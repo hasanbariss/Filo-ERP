@@ -1,0 +1,62 @@
+{
+  "name": "filo-erp",
+  "version": "1.0.0",
+  "description": "IDEOL Filo Yönetim Merkezi — Desktop ERP",
+  "main": "main.js",
+  "author": "IDEOL",
+  "license": "MIT",
+"scripts": {
+  "start": "electron .",
+  "test": "electron .",
+  "build": "echo 'No build step needed'", 
+  "build-win": "electron-builder --win --x64",
+  "build-portable": "electron-builder --win portable --x64"
+},
+  "build": {
+    "appId": "com.ideol.filoerpm",
+    "productName": "Filo Yönetim Merkezi",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "icon.png",
+      "signingHashAlgorithms": null,
+      "forceCodeSigning": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "tr_TR",
+        "en_US"
+      ],
+      "language": "1055"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**",
+      "!dist/**",
+      "!test-extract/**",
+      "!release/**",
+      "!*.md",
+      "!*.log",
+      "!.gitignore"
+    ]
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.98.0"
+  }
+}
