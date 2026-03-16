@@ -1,4 +1,4 @@
-﻿window.hesaplaYakit = function () {
+window.hesaplaYakit = function () {
     const litre = parseFloat(document.getElementById('yakit-litre').value) || 0;
     const fiyat = parseFloat(document.getElementById('yakit-fiyat').value) || 0;
     document.getElementById('yakit-tutar').value = (litre * fiyat).toFixed(2);
@@ -256,8 +256,35 @@ function recalculateAllTotals(daysInMonth) {
     if (sumTek) sumTek.innerText = document.getElementById('grandtotal-Tek') ? document.getElementById('grandtotal-Tek').innerText : 0;
     if (sumGenel) sumGenel.innerText = absoluteGrandTotal;
 }
+window.bulkFillAll = function () {
+    const valObj = document.getElementById('bulk-fill-value');
+    const fillVal = valObj ? valObj.value : '1';
+    
+    if (!confirm(`Bu işlem tablodaki TÜM boş kutulara '${fillVal}' yazacaktır. Onaylıyor musunuz?`)) return;
+
+    const ayYil = document.getElementById('excel-ay-sec').value;
+    if (!ayYil) return;
+    const [yearStr, monthStr] = ayYil.split('-');
+    const year = parseInt(yearStr);
+    const month = parseInt(monthStr);
+
+    const inputs = document.querySelectorAll('#excel-tbody input[type="text"]');
+    inputs.forEach(inp => {
+        if (inp.value.trim() === '') {
+            inp.value = fillVal;
+            const day = parseInt(inp.getAttribute('data-day'));
+            const aracId = inp.getAttribute('data-arac');
+            const groupName = inp.getAttribute('data-type');
+            excelInputChanged(aracId, groupName, day);
+        }
+    });
+}
+
 window.autoFillWeekdays = function () {
-    if (!confirm("Bu işlem tablodaki Pazar günleri HARİÇ tüm boş kutulara '1' yazacaktır. Onaylıyor musunuz?")) return;
+    const valObj = document.getElementById('bulk-fill-value');
+    const fillVal = valObj ? valObj.value : '1';
+    
+    if (!confirm(`Bu işlem tablodaki Pazar günleri HARİÇ tüm boş kutulara '${fillVal}' yazacaktır. Onaylıyor musunuz?`)) return;
 
     const ayYil = document.getElementById('excel-ay-sec').value;
     if (!ayYil) return;
@@ -271,8 +298,7 @@ window.autoFillWeekdays = function () {
         const date = new Date(year, month - 1, day);
         // 0 is Sunday
         if (date.getDay() !== 0 && inp.value.trim() === '') {
-            inp.value = '1';
-            // Sadece değer atıyoruz, olayı tetiklememiz lazım
+            inp.value = fillVal;
             const aracId = inp.getAttribute('data-arac');
             const groupName = inp.getAttribute('data-type');
             excelInputChanged(aracId, groupName, day);
@@ -370,6 +396,45 @@ window.saveExcelGrid = async function () {
         if (finalUpserts.length > 0) {
             const { error: upErr } = await supabaseClient.from('musteri_servis_puantaj').upsert(finalUpserts);
             if (upErr) throw upErr;
+
+            // --- TAŞERON ENTEGRASYONU ---
+            try {
+                const aracIds = [...new Set(finalUpserts.map(r => r.arac_id))];
+                if (aracIds.length > 0) {
+                    const { data: taseronlar } = await supabaseClient.from('araclar')
+                        .select('id, kira_bedeli')
+                        .in('id', aracIds).eq('mulkiyet_durumu', 'TAŞERON');
+                    
+                    if (taseronlar && taseronlar.length > 0) {
+                        for(let tas of taseronlar) {
+                            const uList = finalUpserts.filter(x => x.arac_id === tas.id);
+                            for(let u of uList) {
+                                let totalV = 0, totalT = 0;
+                                if(u.vardiya !== 'X' && u.vardiya !== 'R' && u.vardiya !== 'I' && u.vardiya !== 'İ') totalV = parseInt(u.vardiya) || 0;
+                                if(u.tek !== 'X' && u.tek !== 'R' && u.tek !== 'I' && u.tek !== 'İ') totalT = parseInt(u.tek) || 0;
+                                const count = totalV + totalT;
+                                
+                                await supabaseClient.from('taseron_hakedis')
+                                    .delete()
+                                    .eq('arac_id', tas.id)
+                                    .eq('sefer_tarihi', u.tarih)
+                                    .eq('guzergah', 'Müşteri Servisi (Oto)');
+                                    
+                                if (count > 0) {
+                                    await supabaseClient.from('taseron_hakedis').insert({
+                                        arac_id: tas.id,
+                                        sefer_tarihi: u.tarih,
+                                        guzergah: 'Müşteri Servisi (Oto)',
+                                        anlasilan_tutar: (tas.kira_bedeli || 0) * count,
+                                        yakit_kesintisi: 0
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch(te) { console.warn('Taseron auto-sync error:', te); }
+            // --- END ---
         }
 
         // Close the modal upon saving

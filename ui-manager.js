@@ -1,4 +1,4 @@
-﻿function setGpsUrl(url) {
+function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
 function loadGpsFrame() {
@@ -85,6 +85,7 @@ navButtons.forEach(btn => {
         }
 
         // Modüle özgü veri yükle
+        // Modüle özgü veri yükle
         if (targetId === 'module-teklifler' && typeof fetchTeklifler === 'function') {
             fetchTeklifler();
         } else if (targetId === 'module-dashboard' && typeof fetchDashboardData === 'function') {
@@ -105,6 +106,18 @@ navButtons.forEach(btn => {
             if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
         } else if (targetId === 'module-raporlar') {
             if (typeof fetchRaporlar === 'function') fetchRaporlar();
+        } else if (targetId === 'module-teklifler') {
+            if (typeof fetchTeklifler === 'function') fetchTeklifler();
+        } else if (targetId === 'module-personel') {
+            const ayEl = document.getElementById('personel-ay');
+            if (ayEl && !ayEl.value) {
+                const now = new Date();
+                ayEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+            }
+            if (ayEl && ayEl.value) {
+                ['filter-bordro-ay','filter-bordro-ay-p'].forEach(function(id) { const el = document.getElementById(id); if(el) el.value = ayEl.value; });
+            }
+            if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
         }
 
         // Active tab stili resetlemeyi garantilemek için nav tetiklendiğinde ilgili modülün varsayılan tab'ini (varsa) active yapma

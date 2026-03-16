@@ -89,10 +89,20 @@
             </div>
 
             <!-- Actions -->
-            <button onclick="autoFillWeekdays()"
-                class="px-4 py-2 text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors flex items-center gap-2">
-                <i data-lucide="zap" class="w-4 h-4"></i> Hafta İçi
-            </button>
+            <div class="flex items-center gap-2 border-r border-slate-200 pr-4 mr-2">
+                <select id="bulk-fill-value" class="text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="1">1 (Tam)</option>
+                    <option value="X">X (Tatil/Yok)</option>
+                    <option value="R">R (Raporlu)</option>
+                    <option value="İ">İ (İzinli)</option>
+                </select>
+                <button onclick="bulkFillAll()" class="px-3 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors flex items-center gap-1" title="Tüm Boşlukları Doldur">
+                    <i data-lucide="layers" class="w-4 h-4"></i> Tümü
+                </button>
+                <button onclick="autoFillWeekdays()" class="px-3 py-1.5 text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1" title="Sadece Hafta İçi Boşlukları Doldur">
+                    <i data-lucide="zap" class="w-4 h-4"></i> H. İçi
+                </button>
+            </div>
             <button onclick="saveExcelGrid()"
                 class="px-5 py-2 text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-colors shadow-md shadow-indigo-600/20 flex items-center gap-2">
                 <i data-lucide="save" class="w-4 h-4"></i> Kaydet

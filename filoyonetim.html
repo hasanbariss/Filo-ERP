@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -84,6 +84,9 @@
 
 <body class="selection:bg-orange-500 selection:text-white">
 
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebar-overlay" onclick="window.closeMobileSidebar()"></div>
+
     <!-- === AUTH OVERLAY === -->
     <div id="auth-overlay" class="fixed inset-0 z-[10000] flex items-center justify-center bg-[#0d0f11]"
         style="backdrop-filter:blur(20px)">
@@ -143,7 +146,7 @@
     </div>
 
     <!-- Fixed Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="main-sidebar">
         <div class="flex items-center gap-3 px-2 mb-10">
             <div style="width:34px;height:34px;flex-shrink:0">
                 <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
@@ -175,6 +178,9 @@
             <button data-target="module-gps" class="nav-link">
                 <i data-lucide="map-pin"></i> Canlı Takip
             </button>
+            <button data-target="module-personel" class="nav-link">
+                <i data-lucide="user-cog"></i> Personel
+            </button>
             <button data-target="module-musteri" class="nav-link">
                 <i data-lucide="users"></i> Müşteri Portföyü
             </button>
@@ -196,6 +202,10 @@
         </nav>
 
         <div class="mt-auto pt-6 border-t border-white/5">
+            <button id="mobile-preview-toggle" onclick="window.toggleMobilePreview()" class="nav-link w-full text-left mb-1">
+                <i data-lucide="smartphone" id="mobile-preview-icon"></i>
+                <span id="mobile-preview-label">Mobil Onizleme</span>
+            </button>
             <button onclick="toggleDarkMode()" class="nav-link w-full text-left">
                 <i data-lucide="moon" id="theme-icon-light"></i>
                 <i data-lucide="sun" id="theme-icon-dark" class="hidden"></i>
@@ -215,6 +225,9 @@
                 <p class="text-sm text-gray-500">Hoş geldin, sistem kontrolünde her şey yolunda.</p>
             </div>
             <div class="flex items-center gap-4">
+                <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all flex">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
                 <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
                     <input type="text" id="top-search" placeholder="Hızlı ara..."
@@ -235,60 +248,136 @@
             <div id="module-dashboard" class="main-module block stagger-in">
 
                 <!-- KPI Satırı -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2">
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-blue-500/40 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="truck"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="truck" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Araç</span>
                         </div>
-                        <div class="text-3xl font-black" id="kpi-arac">—</div>
+                        <div class="text-2xl font-black" id="kpi-arac">—</div>
                         <div class="text-xs text-gray-500">Toplam kayıtlı</div>
                     </div>
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-green-500/40 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="users"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-green-500/10 rounded-lg text-green-500"><i data-lucide="users" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Şoför</span>
                         </div>
-                        <div class="text-3xl font-black" id="kpi-sofor">—</div>
+                        <div class="text-2xl font-black" id="kpi-sofor">—</div>
                         <div class="text-xs text-gray-500">Aktif kadro</div>
                     </div>
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2 border border-red-500/20">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 border border-red-500/20 cursor-pointer hover:border-red-500/50 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-lucide="shield-alert"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-red-500/10 rounded-lg text-red-500"><i data-lucide="shield-alert" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest">Evrak</span>
                         </div>
-                        <div class="text-3xl font-black text-red-400" id="kpi-evrak">—</div>
-                        <div class="text-xs text-red-400/70">30 gün içinde biten</div>
+                        <div class="text-2xl font-black text-red-400" id="kpi-evrak">—</div>
+                        <div class="text-xs text-red-400/70">30 gün içinde</div>
                     </div>
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-orange-500/40 transition-all" onclick="document.querySelector('[data-target=module-musteri]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><i data-lucide="trending-up"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="building-2" class="w-4 h-4"></i></div>
+                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Müşteri</span>
+                        </div>
+                        <div class="text-2xl font-black" id="kpi-musteri">—</div>
+                        <div class="text-xs text-gray-500">Aktif fabrika</div>
+                    </div>
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-emerald-500/40 transition-all" onclick="document.querySelector('[data-target=module-raporlar]').click()">
+                        <div class="flex justify-between items-start">
+                            <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Ciro</span>
                         </div>
-                        <div class="text-xl font-black text-emerald-400" id="kpi-ciro">—</div>
+                        <div class="text-lg font-black text-emerald-400" id="kpi-ciro">—</div>
                         <div class="text-xs text-gray-500">Bu ay</div>
                     </div>
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-orange-500/40 transition-all" onclick="document.querySelector('[data-target=module-raporlar]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="trending-down"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500"><i data-lucide="trending-down" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Gider</span>
                         </div>
-                        <div class="text-xl font-black text-orange-400" id="kpi-gider">—</div>
-                        <div class="text-xs text-gray-500">Bu ay (yakıt+bakım)</div>
+                        <div class="text-lg font-black text-orange-400" id="kpi-gider">—</div>
+                        <div class="text-xs text-gray-500">Yakıt+Bakım</div>
                     </div>
-                    <div class="dashboard-card py-4 px-5 flex flex-col gap-2">
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-blue-500/40 transition-all" onclick="document.querySelector('[data-target=module-taseron]').click()">
                         <div class="flex justify-between items-start">
-                            <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="briefcase"
-                                    class="w-4 h-4"></i></div>
+                            <div class="p-2 bg-blue-500/10 rounded-lg text-blue-500"><i data-lucide="truck" class="w-4 h-4"></i></div>
+                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Taşeron</span>
+                        </div>
+                        <div class="text-lg font-black text-blue-400" id="kpi-taseron-hakedis">—</div>
+                        <div class="text-xs text-gray-500">Bu ay hakediş</div>
+                    </div>
+                    <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-purple-500/40 transition-all" onclick="document.querySelector('[data-target=module-cari]').click()">
+                        <div class="flex justify-between items-start">
+                            <div class="p-2 bg-purple-500/10 rounded-lg text-purple-500"><i data-lucide="briefcase" class="w-4 h-4"></i></div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cari</span>
                         </div>
-                        <div class="text-3xl font-black" id="kpi-cari">—</div>
+                        <div class="text-2xl font-black" id="kpi-cari">—</div>
                         <div class="text-xs text-gray-500">Aktif cari</div>
+                    </div>
+                </div>
+
+                <!-- Hızlı İşlemler -->
+                <div class="dashboard-card mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-orange-500"></i>Hızlı İşlemler</h3>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                        <button onclick="openModal('Yeni Araç Ekle')" class="flex flex-col items-center gap-2 p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-blue-500/20 rounded-lg text-blue-400 group-hover:scale-110 transition-transform"><i data-lucide="truck" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest text-center">Araç Ekle</span>
+                        </button>
+                        <button onclick="openModal('Yeni Şoför Ekle')" class="flex flex-col items-center gap-2 p-3 bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-green-500/20 rounded-lg text-green-400 group-hover:scale-110 transition-transform"><i data-lucide="user-plus" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-green-400 uppercase tracking-widest text-center">Şoför Ekle</span>
+                        </button>
+                        <button onclick="openModal('Yeni Yakıt Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-orange-500/20 rounded-lg text-orange-400 group-hover:scale-110 transition-transform"><i data-lucide="fuel" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">Yakıt Gir</span>
+                        </button>
+                        <button onclick="openModal('Yeni Bakım/Parça Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-400 group-hover:scale-110 transition-transform"><i data-lucide="wrench" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest text-center">Bakım Ekle</span>
+                        </button>
+                        <button onclick="openModal('Yeni Müşteri Ekle')" class="flex flex-col items-center gap-2 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-purple-500/20 rounded-lg text-purple-400 group-hover:scale-110 transition-transform"><i data-lucide="building-2" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-purple-400 uppercase tracking-widest text-center">Fabrika Ekle</span>
+                        </button>
+                        <button onclick="openModal('Yeni Poliçe Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 rounded-xl transition-all group">
+                            <div class="p-2 bg-pink-500/20 rounded-lg text-pink-400 group-hover:scale-110 transition-transform"><i data-lucide="shield" class="w-5 h-5"></i></div>
+                            <span class="text-[10px] font-bold text-pink-400 uppercase tracking-widest text-center">Poliçe Ekle</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Excel Import Zone -->
+                <div class="dashboard-card mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold flex items-center gap-2">
+                            <i data-lucide="file-up" class="w-4 h-4 text-emerald-500"></i>
+                            Günlük Excel Import
+                        </h3>
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tarih | Plaka | Fabrika | Giriş | Çıkış</span>
+                    </div>
+                    <!-- Gizli file input -->
+                    <input
+                        type="file"
+                        id="import-file-input"
+                        accept=".xlsx,.xls"
+                        style="display:none"
+                        onchange="window.handleImportFile(this.files[0])"
+                    >
+                    <!-- Drop Alanı -->
+                    <div
+                        class="import-drop-area"
+                        ondrop="window.handleImportDrop(event)"
+                        ondragover="window.handleImportDragOver(event)"
+                        ondragleave="window.handleImportDragLeave()"
+                        onclick="document.getElementById('import-file-input').click()"
+                    >
+                        <div class="import-drop-icon">
+                            <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                        </div>
+                        <p class="text-sm font-bold mt-2">Excel'i sürükle &amp; bırak</p>
+                        <p class="text-xs text-gray-500 mt-1">veya tıkla &amp; seç (.xlsx / .xls)</p>
                     </div>
                 </div>
 
@@ -387,25 +476,21 @@
                 <!-- Son İşlemler Satırı -->
                 <div class="dashboard-card mt-6">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold flex items-center gap-2"><i data-lucide="activity"
-                                class="w-4 h-4 text-emerald-500"></i> Son Yapılan Sistemsel Aktiviteler</h3>
-                        <span class="text-xs bg-white/5 text-gray-400 px-2 py-1 rounded-lg">Son Aktiviteler</span>
+                        <h3 class="font-bold flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
+                        <button onclick="fetchDashboardData()" class="text-xs bg-white/5 hover:bg-white/10 text-gray-400 px-2 py-1 rounded-lg transition-all flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Yenile</button>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-white/5">
                                     <th class="pb-3 px-2">Tarih</th>
+                                    <th class="pb-3 px-2">Tür</th>
                                     <th class="pb-3 px-2">İşlem Detayı</th>
-                                    <th class="pb-3 px-2">Kayıt Türü</th>
-                                    <th class="pb-3 px-2 text-right">Meblağ / Tutar</th>
+                                    <th class="pb-3 px-2 text-right">Tutar</th>
                                 </tr>
                             </thead>
                             <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
-                                <tr>
-                                    <td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Son
-                                        aktiviteler yükleniyor...</td>
-                                </tr>
+                                <tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Aktiviteler yükleniyor...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -952,6 +1037,147 @@
             </div>
 
             <!-- 4. FİNANS VE HAKEDİŞ MODÜLÜ -->
+                        <!-- PERSONEL YONETIMI MODULU -->
+            <div id="module-personel" class="main-module hidden stagger-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
+                    <div>
+                        <h2 class="text-2xl font-bold">Personel Yonetimi</h2>
+                        <p class="text-sm text-gray-500 mt-1">Puantaj, maas bordrosu, avans ve kesinti islemleri.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="month" id="personel-ay" onchange="window.syncPersonelAy()" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold">
+                    </div>
+                </div>
+
+                <!-- KPI Kartlari -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-2">
+                    <div class="dashboard-card border-l-4 border-blue-500 py-3 px-4">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Net Maas</span>
+                        <div class="text-xl font-black text-blue-400" id="per-kpi-maas">--</div>
+                    </div>
+                    <div class="dashboard-card border-l-4 border-orange-500 py-3 px-4">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Avans/Kesinti</span>
+                        <div class="text-xl font-black text-orange-400" id="per-kpi-avans">--</div>
+                    </div>
+                    <div class="dashboard-card border-l-4 border-green-500 py-3 px-4">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Banka Transferi</span>
+                        <div class="text-xl font-black text-green-400" id="per-kpi-banka">--</div>
+                    </div>
+                    <div class="dashboard-card border-l-4 border-yellow-500 py-3 px-4">
+                        <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Elden Odeme</span>
+                        <div class="text-xl font-black text-yellow-400" id="per-kpi-elden">--</div>
+                    </div>
+                </div>
+
+                <!-- Tab Sistemi -->
+                <div class="dashboard-card p-0 overflow-hidden">
+                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;">
+                        <button id="per-tab-puantaj" onclick="window.switchPersonelTab('puantaj')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="calendar-days" class="w-4 h-4"></i>Gunluk Puantaj
+                        </button>
+                        <button id="per-tab-bordro" onclick="window.switchPersonelTab('bordro')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="receipt" class="w-4 h-4"></i>Maas Bordrosu
+                        </button>
+                        <button id="per-tab-avans" onclick="window.switchPersonelTab('avans')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="minus-circle" class="w-4 h-4"></i>Avans &amp; Kesintiler
+                        </button>
+                    </div>
+
+                    <!-- TAB: PUANTAJ (mirrors existing content-sofor-puantaj) -->
+                    <div id="per-content-puantaj" class="block">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 border-b border-white/5">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-orange-500/10 rounded-xl">
+                                    <i data-lucide="calendar-days" class="w-5 h-5 text-orange-500"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base font-bold">Personel Puantaji</h3>
+                                    <p class="text-xs text-gray-500">Gunluk calisma takibi, maas ve kesintiler</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button onclick="puantajMonthPrev()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <input type="month" id="filter-bordro-ay-p" onchange="document.getElementById('filter-bordro-ay').value=this.value; fetchSoforMaasBordro();" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold">
+                                <button onclick="puantajMonthNext()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                                <button onclick="openModal('Yeni Maas Kaydi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Maas Ekle</button>
+                                <button onclick="puantajExport()" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-xl transition-all" title="Excel'e Aktar"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <!-- Totals Bar (linked to same IDs) -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-0 border-b border-white/5">
+                            <div class="p-4 border-r border-white/5"><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Toplam Net Maas</p><p class="text-xl font-black text-blue-400" id="per-total-net-maas">--</p></div>
+                            <div class="p-4 border-r border-white/5"><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avans / Kesinti</p><p class="text-xl font-black text-orange-400" id="per-total-avans">--</p></div>
+                            <div class="p-4 border-r border-white/5"><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Banka Transferi</p><p class="text-xl font-black text-green-400" id="per-total-banka">--</p></div>
+                            <div class="p-4"><p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Elden Odeme</p><p class="text-xl font-black text-yellow-400" id="per-total-elden">--</p></div>
+                        </div>
+                        <div class="p-5">
+                            <div id="puantaj-cards-grid-p" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                                <div class="col-span-full py-16 text-center">
+                                    <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4"><i data-lucide="calendar" class="w-8 h-8 text-gray-600"></i></div>
+                                    <p class="text-gray-500 font-medium">Donem secin ve puantaji goruntuleyın.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TAB: BORDRO -->
+                    <div id="per-content-bordro" class="hidden p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold">Maas &amp; Hakedis Ozeti</h3>
+                                <p class="text-xs text-gray-500">Puantaj ve avanslar dahil otomatik hakedis hesaplamalari.</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="month" id="filter-maas-ay-p" onchange="document.getElementById('filter-maas-ay').value=this.value; fetchSoforMaaslar();" class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="premium-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Sofor Bilgisi</th>
+                                        <th>Gunluk / Sabit</th>
+                                        <th>Puantaj / Harcırah</th>
+                                        <th>Avanslar (−)</th>
+                                        <th class="text-right text-orange-500">Net Odenecek</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="per-sofor-maas-tbody">
+                                    <tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- TAB: AVANS & KESINTiLER -->
+                    <div id="per-content-avans" class="hidden p-6">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold">Avans &amp; Kesinti Gecmisi</h3>
+                                <p class="text-xs text-gray-500">Sofor avans, ceza, haciz ve diger kesinti kayitlari.</p>
+                            </div>
+                            <button onclick="openModal('Yeni Finans Islemi')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20">+ Yeni Islem</button>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="premium-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th>Islem Tarihi</th>
+                                        <th>Sofor</th>
+                                        <th>Islem Turu</th>
+                                        <th>Tutar</th>
+                                        <th>Durum</th>
+                                        <th class="text-right">Islemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="per-sofor-finans-tbody">
+                                    <tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Veriler yukleniyor...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div id="module-finans" class="main-module hidden stagger-in">
                 <!-- Finans Özet Kartları -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -985,29 +1211,19 @@
                 </div>
 
                 <div class="dashboard-card p-0 overflow-hidden">
-                    <div class="flex flex-wrap gap-2 p-4 bg-white/5 border-b border-white/10" id="finans-tabs-nav">
-                        <button onclick="switchTab('finans', 'sofor-puantaj', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all">Günlük
-                            Puantaj</button>
-                        <button onclick="switchTab('finans', 'sofor-finans', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">İşlem
-                            Geçmişi</button>
-                        <button onclick="switchTab('finans', 'sofor-maas', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">Maaş
-                            Hakedişleri</button>
+                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" id="finans-tabs-nav" style="scrollbar-width:none;">
                         <button onclick="switchTab('finans', 'taseron-finans', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">Cari
-                            Hakediş</button>
+                            class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="truck" class="w-4 h-4"></i>Cari Hakedis</button>
                         <button onclick="switchTab('finans', 'taseron-rapor', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">Taşeron
-                            Ay Sonu</button>
+                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4"></i>Taseron Ay Sonu</button>
                         <button onclick="switchTab('finans', 'yakit', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-orange-500"></span> Yakıt
-                        </button>
+                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="droplets" class="w-4 h-4"></i>Yakit</button>
                         <button onclick="switchTab('finans', 'aylik-odeme', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">Aylık
-                            Ödeme Özeti</button>
+                            class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
+                            <i data-lucide="credit-card" class="w-4 h-4"></i>Aylik Odeme Ozeti</button>
                     </div>
 
                     <!-- MODERN PUANTAJ -->
@@ -1161,7 +1377,7 @@
                     </div>
 
                     <!-- Taşeron Hakediş -->
-                    <div id="content-taseron-finans" class="hidden p-6">
+                    <div id="content-taseron-finans" class="block p-6">
                         <div class="flex justify-between items-center mb-8">
                             <h3 class="text-lg font-bold">Taşeron & Sefer Yönetimi</h3>
                             <button onclick="openModal('Yeni Sefer Hakedişi Ekle')"
@@ -1501,193 +1717,118 @@
                             </table>
                         </div>
                     </div>
-
-                    <!-- Maaşlar (YENİ) -->
-                    <div id="content-maaslar" class="hidden p-6">
-                        <div class="flex justify-between items-center mb-8">
-                            <h3 class="text-lg font-bold">Personel Maaş ve Hakediş Listesi</h3>
-                            <div class="flex gap-2">
-                                <button onclick="window.exportTableToExcel('maas-table', 'Maas_Listesi')"
-                                    class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl transition-all"
-                                    title="Excel İndir">
-                                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-                                </button>
-                                <button onclick="openModal('Yeni Maaş Kaydı')"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-lg shadow-blue-500/20 transition-all">
-                                    + Maaş Öde
-                                </button>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="maas-table">
-                                <thead>
-                                    <tr>
-                                        <th>Personel</th>
-                                        <th>Dönem</th>
-                                        <th>Net Maaş</th>
-                                        <th>Ek Ödemeler</th>
-                                        <th class="text-right">Durum / İşlem</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="maas-tbody">
-                                    <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Maaş verileri
-                                            yükleniyor...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Kredi Kartları (YENİ) -->
-                    <div id="content-kredi-kartlari" class="hidden p-6">
-                        <div class="flex justify-between items-center mb-8">
-                            <h3 class="text-lg font-bold">Kredi Kartları (Kart Carisi)</h3>
-                            <div class="flex gap-2">
-                                <button onclick="window.exportTableToExcel('kredi-kart-table', 'Kredi_Kart_Listesi')"
-                                    class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl transition-all"
-                                    title="Excel İndir">
-                                    <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-                                </button>
-                                <button onclick="openModal('Yeni Kredi Kartı')"
-                                    class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-lg shadow-blue-500/20 transition-all">
-                                    + Yeni Kart Ekle
-                                </button>
-                                <button onclick="openModal('Yeni Kart İşlemi')"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-lg shadow-orange-500/20 transition-all">
-                                    + Harcama Gir
-                                </button>
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="kredi-kart-table">
-                                <thead>
-                                    <tr>
-                                        <th>Kart Adı</th>
-                                        <th>Limit & Kullanılabilir</th>
-                                        <th>Toplam Borç</th>
-                                        <th>Aktif İşlem / Taksitler</th>
-                                        <th class="text-right">İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="kredi-kartlari-tbody">
-                                    <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Kredi kartı
-                                            verileri yükleniyor...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                 </div>
             </div>
 
-            <!-- 6. RAPORLAR MODÜLÜ -->
+                        <!-- 6. RAPORLAR MODULU -->
             <div id="module-raporlar" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 px-2">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div>
-                        <h2 class="text-2xl font-bold">Finansal Analiz & Raporlar</h2>
-                        <p class="text-sm text-gray-500 mt-1">Dönemsel gelir, gider ve operasyonel verimlilik
-                            takibi.
-                        </p>
+                        <h2 class="text-2xl font-bold">Finansal Analiz &amp; Raporlar</h2>
+                        <p class="text-sm text-gray-500 mt-1">Donemsel gelir, gider ve operasyonel verimlilik takibi.</p>
                     </div>
                     <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
-                        <label class="text-xs font-bold text-gray-500 uppercase px-2">Dönem:</label>
-                        <input type="month" id="rapor-ay" onchange="fetchRaporlar()"
-                            class="bg-transparent border-none rounded-lg px-4 py-1.5 text-sm text-white focus:outline-none">
+                        <label class="text-xs font-bold text-gray-500 uppercase px-2">Donem:</label>
+                        <input type="month" id="rapor-ay" onchange="fetchRaporlar()" class="bg-transparent border-none rounded-lg px-4 py-1.5 text-sm text-white focus:outline-none">
                     </div>
                 </div>
-
-                <!-- Rapor Özet Kartları -->
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8 px-2">
-                    <div class="dashboard-card border-t-4 border-blue-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Yakıt</span>
-                        <div class="text-xl font-black text-blue-500" id="rapor-yakit">0 ₺</div>
-                    </div>
-                    <div class="dashboard-card border-t-4 border-orange-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Bakım</span>
-                        <div class="text-xl font-black text-orange-500" id="rapor-bakim">0 ₺</div>
-                    </div>
-                    <div class="dashboard-card border-t-4 border-pink-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Sigorta</span>
-                        <div class="text-xl font-black text-pink-500" id="rapor-police">0 ₺</div>
-                    </div>
-                    <div class="dashboard-card border-t-4 border-yellow-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Maaş</span>
-                        <div class="text-xl font-black text-yellow-400" id="rapor-maas">0 ₺</div>
-                    </div>
-                    <div class="dashboard-card border-t-4 border-purple-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Avans/Kesinti</span>
-                        <div class="text-xl font-black text-purple-400" id="rapor-avans">0 ₺</div>
-                    </div>
-                    <div class="dashboard-card border-t-4 border-green-500 py-3 px-4">
-                        <span
-                            class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Ciro</span>
-                        <div class="text-xl font-black text-green-500" id="rapor-ciro">0 ₺</div>
-                    </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 px-2">
+                    <div class="dashboard-card border-t-4 border-blue-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Yakit</span><div class="text-xl font-black text-blue-500" id="rapor-yakit">0 TL</div></div>
+                    <div class="dashboard-card border-t-4 border-orange-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Bakim</span><div class="text-xl font-black text-orange-500" id="rapor-bakim">0 TL</div></div>
+                    <div class="dashboard-card border-t-4 border-pink-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Sigorta</span><div class="text-xl font-black text-pink-500" id="rapor-police">0 TL</div></div>
+                    <div class="dashboard-card border-t-4 border-yellow-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Maas</span><div class="text-xl font-black text-yellow-400" id="rapor-maas">0 TL</div></div>
+                    <div class="dashboard-card border-t-4 border-purple-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Avans/Kesinti</span><div class="text-xl font-black text-purple-400" id="rapor-avans">0 TL</div></div>
+                    <div class="dashboard-card border-t-4 border-green-500 py-3 px-4"><span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 block">Ciro</span><div class="text-xl font-black text-green-500" id="rapor-ciro">0 TL</div></div>
                 </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Sol: Gider Tablosu -->
-                    <div class="dashboard-card overflow-hidden">
-                        <div class="px-5 py-4 border-b border-white/5 bg-white/5 flex justify-between items-center">
-                            <h3 class="font-bold text-sm">Araç Bazlı Gider Dağılımı</h3>
+                <div class="dashboard-card p-0 overflow-hidden">
+                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+                        <button id="rapor-tab-genel" onclick="window.switchRaporTab('genel')" class="rapor-tab-btn active px-4 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Genel Ozet</button>
+                        <button id="rapor-tab-arac" onclick="window.switchRaporTab('arac')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4"></i>Arac Gider</button>
+                        <button id="rapor-tab-personel" onclick="window.switchRaporTab('personel')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Personel</button>
+                        <button id="rapor-tab-musteri" onclick="window.switchRaporTab('musteri')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Musteri/Sefer</button>
+                        <button id="rapor-tab-cari" onclick="window.switchRaporTab('cari')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>Cari Bakiye</button>
+                    </div>
+                    <div id="rapor-content-genel" class="block p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-sm">Gelir / Gider Karsilastirmasi</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportRaporExcel('genel')" class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+                                <button onclick="window.exportRaporPDF('genel')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr
-                                        class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5">
-                                        <th class="p-3 text-left">Araç</th>
-                                        <th class="p-3 text-right">Yakıt</th>
-                                        <th class="p-3 text-right">Bakım</th>
-                                        <th class="p-3 text-right">Sigorta</th>
-                                        <th class="p-3 text-right text-orange-400">Toplam</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5">
-                                    <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Rapor verileri
-                                            hazırlanıyor...</td>
-                                    </tr>
-                                </tbody>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="overflow-x-auto rounded-xl border border-white/5">
+                                <table class="w-full" id="rapor-genel-table">
+                                    <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Kalem</th><th class="p-3 text-center">Tur</th><th class="p-3 text-right">Tutar</th></tr></thead>
+                                    <tbody id="rapor-gelir-gider-tbody" class="divide-y divide-white/5"><tr><td colspan="3" class="py-10 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                                </table>
+                            </div>
+                            <div class="h-64"><canvas id="raporGelirGiderChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div id="rapor-content-arac" class="hidden p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-sm">Arac Bazli Gider Dagilimi</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportRaporExcel('arac')" class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+                                <button onclick="window.exportRaporPDF('arac')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="w-full" id="rapor-arac-table">
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Arac</th><th class="p-3 text-right">Yakit</th><th class="p-3 text-right">Bakim</th><th class="p-3 text-right">Sigorta</th><th class="p-3 text-right text-orange-400">Toplam</th></tr></thead>
+                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
-
-                    <!-- Sağ: Personel Gelir/Gider -->
-                    <div class="dashboard-card overflow-hidden">
-                        <div class="px-5 py-4 border-b border-white/5 bg-white/5">
-                            <h3 class="font-bold text-sm">Gelir / Gider Özeti</h3>
+                    <div id="rapor-content-personel" class="hidden p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-sm">Personel Maas Hakkedis Raporu</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportRaporExcel('personel')" class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+                                <button onclick="window.exportRaporPDF('personel')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr
-                                        class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5">
-                                        <th class="p-3 text-left">Kalem</th>
-                                        <th class="p-3 text-center">Tür</th>
-                                        <th class="p-3 text-right">Tutar</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="rapor-gelir-gider-tbody" class="divide-y divide-white/5">
-                                    <tr>
-                                        <td colspan="3" class="py-12 text-center text-gray-500 italic">Yükleniyor...
-                                        </td>
-                                    </tr>
-                                </tbody>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="w-full" id="rapor-personel-table">
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Personel</th><th class="p-3 text-right">Net Maas</th><th class="p-3 text-right">Avans</th><th class="p-3 text-right">Ceza/Haciz</th><th class="p-3 text-right text-green-400">Toplam Odeme</th></tr></thead>
+                                <tbody id="rapor-personel-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="rapor-content-musteri" class="hidden p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-sm">Fabrika / Musteri Sefer Raporu</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportRaporExcel('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+                                <button onclick="window.exportRaporPDF('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="w-full" id="rapor-musteri-table">
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Musteri</th><th class="p-3 text-center">Vardiya Arac</th><th class="p-3 text-center">Tek Sefer Arac</th><th class="p-3 text-right text-orange-400">Aylik Hakedis</th></tr></thead>
+                                <tbody id="rapor-musteri-tbody" class="divide-y divide-white/5"><tr><td colspan="4" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="rapor-content-cari" class="hidden p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-sm">Cari Hesap Bakiye Raporu</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.exportRaporExcel('cari')" class="flex items-center gap-2 px-3 py-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
+                                <button onclick="window.exportRaporPDF('cari')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto rounded-xl border border-white/5">
+                            <table class="w-full" id="rapor-cari-table">
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Cari / Firma</th><th class="p-3 text-left">Tur</th><th class="p-3 text-right">Toplam Borc</th><th class="p-3 text-right">Odenen</th><th class="p-3 text-right text-orange-400">Net Bakiye</th></tr></thead>
+                                <tbody id="rapor-cari-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Yukleniyor...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-            </div> <!-- module-raporlar KAPANIŞ -->
-
-            <!-- 7. TEKLİF YÖNETİMİ MODÜLÜ -->
+            </div> <!-- module-raporlar KAPANISI -->
+<!-- 7. TEKLİF YÖNETİMİ MODÜLÜ -->
             <div id="module-teklifler" class="main-module hidden stagger-in">
                 <!-- Başlık -->
                 <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
@@ -2059,6 +2200,62 @@
                 }
             });
         </script>
+<script src="app-fixes.js"></script>
+<script src="import-manager.js"></script>
+
+<!-- PWA MOBILE BOTTOM NAVIGATION -->
+<nav class="mobile-bottom-nav" id="mobile-nav">
+    <button class="nav-item active" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-dashboard]').click();">
+        <i data-lucide="layout-dashboard"></i>
+        <span>�zet</span>
+    </button>
+    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-puantaj]').click();">
+        <i data-lucide="calendar-clock"></i>
+        <span>Puantaj</span>
+    </button>
+    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-cari]').click();">
+        <i data-lucide="wallet"></i>
+        <span>Finans</span>
+    </button>
+    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-raporlar]').click();">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Raporlar</span>
+    </button>
+</nav>
+
+<!-- ======================== IMPORT PREVIEW MODAL ======================== -->
+<div
+    id="import-preview-modal"
+    class="hidden fixed inset-0 z-[9000] items-center justify-center"
+    style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);"
+>
+    <div class="import-modal-content">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-5 border-b border-white/10">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-emerald-500/10 rounded-xl">
+                    <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-500"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base">Excel Önizleme &amp; Doğrulama</h3>
+                    <p class="text-xs text-gray-500">Aktarmadan önce verileri kontrol edin.</p>
+                </div>
+            </div>
+            <button
+                onclick="window.closeImportModal()"
+                class="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all"
+            >
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <!-- Dinamik içerik -->
+        <div id="import-modal-body" class="p-5 overflow-y-auto" style="max-height:70vh;"></div>
+    </div>
+</div>
+
 </body>
 
 </html>
+
+
+
