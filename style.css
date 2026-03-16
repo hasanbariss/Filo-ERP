@@ -540,19 +540,86 @@ button:active {
         transform: none;
     }
 
-    /* Table horizontal scroll */
+    /* Table horizontal scroll edge-to-edge */
     .overflow-x-auto {
         -webkit-overflow-scrolling: touch;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        scrollbar-width: none; /* Firefox */
+    }
+    .overflow-x-auto::-webkit-scrollbar {
+        display: none;
     }
 
-    /* Modal full-width on mobile */
-    .modal-content {
-        width: 95vw !important;
-        max-width: 95vw !important;
-        margin: 1rem;
-        max-height: 85vh;
-        overflow-y: auto;
+    .flex.items-center.justify-center.min-h-screen.px-4.p-4,
+    #import-preview-modal,
+    #confirm-modal {
+        align-items: flex-end !important;
+        padding: 0 !important;
     }
+
+    /* Action Sheet Style Modal for Mobile */
+    .modal-content, .import-modal-content, #confirm-modal .max-w-sm {
+        position: relative !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        margin: 0 !important;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px 24px 0 0 !important;
+        padding-bottom: env(safe-area-inset-bottom);
+        animation: slideUpActionSheet 0.3s cubic-bezier(0.175, 0.885, 0.32, 1) forwards;
+    }
+
+    /* Nested Tabs yatay kaydırılabilir (swipeable) PWA hissi */
+    .flex-wrap[id$="-nav"], .flex-wrap[id*="tabs"] {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+        padding-bottom: 4px;
+        -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
+        mask-image: linear-gradient(to right, black 90%, transparent 100%);
+    }
+    
+    .flex-wrap[id$="-nav"]::-webkit-scrollbar, .flex-wrap[id*="tabs"]::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .flex-wrap[id$="-nav"] button, .flex-wrap[id*="tabs"] button {
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    /* Touch target büyüklükleri ve pürüzsüz form hatları (iOS Standardı) */
+    .modal-content input, .modal-content select, .modal-content textarea, .import-modal-content input {
+        min-height: 48px;
+        font-size: 16px !important; /* iOS zoom engelleme */
+        border-radius: 14px;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .modal-content button {
+        min-height: 48px;
+        border-radius: 14px;
+        font-size: 16px;
+    }
+
+    /* Kart iceriklerinde tablo tasmalarini engellemek */
+    .dashboard-card {
+        max-width: 100vw;
+        overflow: hidden;
+    }
+}
+
+@keyframes slideUpActionSheet {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* Mobile Preview Mode (desktop simulation) */
