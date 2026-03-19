@@ -197,13 +197,11 @@
             const plaka = String(plakalar[i] || '').trim();
             if (!plaka) { i++; continue; }
 
-            // Sonraki sütunda da aynı plaka var mı?
-            const sonrakiPlaka = i + 1 < plakalar.length ? String(plakalar[i + 1] || '').trim() : '';
             if (sonrakiPlaka && sonrakiPlaka === plaka) {
                 // TAM vardiya: iki sütun birden
                 result.push({
                     plaka,
-                    vardiya: 'TAM',
+                    vardiya: '2',
                     giris_saati: timeCols[i].saat,
                     cikis_saati: timeCols[i + 1].saat
                 });
@@ -212,7 +210,7 @@
                 // TEK sefer
                 result.push({
                     plaka,
-                    vardiya: 'TEK',
+                    vardiya: '1',
                     giris_saati: timeCols[i].saat,
                     cikis_saati: null
                 });
@@ -274,10 +272,11 @@
     async function validateKayitlar(kayitlar) {
         const supabase = window.supabaseClient;
 
-        const [aracRes, musteriRes, mevcutRes] = await Promise.all([
+        const [aracRes, musteriRes, mevcutRes, araclariRes] = await Promise.all([
             supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
             supabase.from('musteriler').select('id, ad'),
-            supabase.from('musteri_servis_puantaj').select('tarih, arac_id, musteri_id')
+            supabase.from('musteri_servis_puantaj').select('tarih, arac_id, musteri_id'),
+            supabase.from('musteri_araclari').select('musteri_id, arac_id')
         ]);
 
         if (aracRes.error)   throw new Error('Araç listesi alınamadı: ' + aracRes.error.message);
@@ -286,6 +285,7 @@
         const plakaMap   = Object.fromEntries((aracRes.data || []).map(a => [a.plaka.toUpperCase().trim(), a]));
         const musteriMap = Object.fromEntries((musteriRes.data || []).map(m => [m.ad.toUpperCase().trim(), m]));
         const mevcutSet  = new Set((mevcutRes.data || []).map(r => `${r.tarih}|${r.arac_id}|${r.musteri_id}`));
+        const musteriAracSet = new Set((araclariRes.data || []).map(r => `${r.musteri_id}|${r.arac_id}`));
 
         return kayitlar.map((k, i) => {
             const errors   = [];
@@ -296,6 +296,14 @@
 
             if (!arac)    errors.push(`Plaka "${k.plaka}" sistemde yok`);
             if (!musteri) warnings.push(`Müşteri "${k.musteriAdi}" sistemde yok — yeni oluşturulacak`);
+
+            // Fabrika (Müşteri) atama kontrolü
+            if (arac && musteri) {
+                const isAssigned = musteriAracSet.has(`${musteri.id}|${arac.id}`);
+                if (!isAssigned) {
+                    errors.push(`Plaka "${k.plaka}" şu anda ${k.musteriAdi} fabrikasına atanmış değil!`);
+                }
+            }
 
             // Duplicate kontrolü
             if (arac && musteri) {
@@ -358,7 +366,7 @@
                                 <td class="text-center">${r.satir}</td>
                                 <td>${r.guzergah}</td>
                                 <td><strong>${r.plaka}</strong></td>
-                                <td><span class="${r.vardiya === 'TAM' ? 'badge badge-success' : 'badge badge-warning'}">${r.vardiya}</span></td>
+                                <td><span class="${r.vardiya === '2' ? 'badge badge-success' : 'badge badge-warning'}">${r.vardiya}</span></td>
                                 <td>${r.giris_saati || ''}${r.cikis_saati ? ' – ' + r.cikis_saati : ''}</td>
                                 <td class="durum-cell">
                                     ${r.errors.map(e => `<div class="import-err">✗ ${e}</div>`).join('')}
