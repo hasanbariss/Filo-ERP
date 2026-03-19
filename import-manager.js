@@ -74,12 +74,20 @@
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    //  2. Tarih parser ("31 Ocak 2026 Cumartesi" → "2026-01-31")
+    //  2. Tarih parser ("31 Ocak 2026 Cumartesi" veya "20.3.2026" → "2026-01-31")
     // ══════════════════════════════════════════════════════════════════════
     function parseTurkishDate(text) {
         if (!text) return null;
         const s = String(text).toLowerCase().trim();
-        // DD Ay YYYY ...
+
+        const dotMatch = s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+        if (dotMatch) {
+            const gun = dotMatch[1].padStart(2, '0');
+            const ay = dotMatch[2].padStart(2, '0');
+            const yil = dotMatch[3];
+            return `${yil}-${ay}-${gun}`;
+        }
+
         const m = s.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
         if (m) {
             const gun  = m[1].padStart(2, '0');
@@ -87,7 +95,7 @@
             const yil  = m[3];
             if (ay) return `${yil}-${ay}-${gun}`;
         }
-        // YYYY-MM-DD
+
         const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (iso) return iso[0];
         return null;
@@ -159,14 +167,18 @@
         // Veri satırları GİRİŞ/ÇIKIŞ satırından sonra başlar
         dataStartRow = timeColIdx + 2;
 
-        // ── 3D. Güzergah sütununu bul: NO sütunundan sonraki ilk metin sütunu
-        // "NO" veya "İZMİR" veya "GÜZERGAH" kelimesine bak
+        // ── 3D. Güzergah sütununu bul: Çok katmanlı header taraması
+        // "NO", "İZMİR", "GÜZERGAH" kelimesine bak
         const headerRow = rows[timeColIdx] || [];
-        // NO genellikle 0. sütun, güzergah 1. sütun
         guzergahCol = 1; // varsayılan
         for (let c = 0; c < Math.min(headerRow.length, timeCols[0].colIdx); c++) {
-            const v = String(rows[Math.max(0, timeColIdx - 1)]?.[c] || '').toUpperCase();
-            if (v.includes('GÜZERGAH') || v.includes('GUZERGAH') || v.includes('İZMİR') || v.includes('IZMIR')) {
+            const vText = [
+                String(rows[Math.max(0, timeColIdx - 1)]?.[c] || ''),
+                String(rows[timeColIdx]?.[c] || ''),
+                String(rows[timeColIdx + 1]?.[c] || '')
+            ].join(' ').toUpperCase();
+
+            if (vText.includes('GÜZERGAH') || vText.includes('GUZERGAH') || vText.includes('İZMİR') || vText.includes('IZMIR')) {
                 guzergahCol = c;
             }
         }
