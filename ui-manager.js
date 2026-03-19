@@ -612,6 +612,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TC Kimlik No</label>
                                 <input type="text" id="sofor-tc" maxlength="11" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="11 haneli">
                             </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Doğum Tarihi</label>
@@ -1008,6 +1009,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TC Kimlik No</label>
                                 <input type="text" id="edit-sofor-tc" maxlength="11" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
+                        </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Doğum Tarihi</label>
