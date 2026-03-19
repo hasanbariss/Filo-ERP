@@ -200,6 +200,7 @@
                 result.push({
                     plaka,
                     vardiya: '2',
+                    tek: null,
                     giris_saati: timeCols[i].saat,
                     cikis_saati: timeCols[i + 1].saat
                 });
@@ -208,7 +209,8 @@
                 // TEK sefer
                 result.push({
                     plaka,
-                    vardiya: '1',
+                    vardiya: null,
+                    tek: '1',
                     giris_saati: timeCols[i].saat,
                     cikis_saati: null
                 });
@@ -255,6 +257,7 @@
                     guzergah,
                     plaka: v.plaka,
                     vardiya: v.vardiya,
+                    tek: v.tek,
                     giris_saati: v.giris_saati,
                     cikis_saati: v.cikis_saati
                 });
@@ -364,7 +367,7 @@
                                 <td class="text-center">${r.satir}</td>
                                 <td>${r.guzergah}</td>
                                 <td><strong>${r.plaka}</strong></td>
-                                <td><span class="${r.vardiya === '2' ? 'badge badge-success' : 'badge badge-warning'}">${r.vardiya}</span></td>
+                                <td><span class="${r.vardiya ? 'badge badge-success' : 'badge badge-warning'}">${r.vardiya || r.tek}</span></td>
                                 <td>${r.giris_saati || ''}${r.cikis_saati ? ' – ' + r.cikis_saati : ''}</td>
                                 <td class="durum-cell">
                                     ${r.errors.map(e => `<div class="import-err">✗ ${e}</div>`).join('')}
