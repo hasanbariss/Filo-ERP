@@ -276,7 +276,7 @@
         const [aracRes, musteriRes, mevcutRes, araclariRes] = await Promise.all([
             supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
             supabase.from('musteriler').select('id, ad'),
-            supabase.from('musteri_servis_puantaj').select('tarih, arac_id, musteri_id'),
+            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id'),
             supabase.from('musteri_arac_tanimlari').select('musteri_id, arac_id')
         ]);
 
@@ -285,7 +285,7 @@
 
         const plakaMap   = Object.fromEntries((aracRes.data || []).map(a => [a.plaka.toUpperCase().trim(), a]));
         const musteriMap = Object.fromEntries((musteriRes.data || []).map(m => [m.ad.toUpperCase().trim(), m]));
-        const mevcutSet  = new Set((mevcutRes.data || []).map(r => `${r.tarih}|${r.arac_id}|${r.musteri_id}`));
+        const mevcutMap  = Object.fromEntries((mevcutRes.data || []).map(r => [`${r.tarih}|${r.arac_id}|${r.musteri_id}`, r.id]));
         const musteriAracSet = new Set((araclariRes.data || []).map(r => `${r.musteri_id}|${r.arac_id}`));
 
         return kayitlar.map((k, i) => {
@@ -306,10 +306,13 @@
                 }
             }
 
-            // Duplicate kontrolü
+            let existing_id = null;
             if (arac && musteri) {
                 const key = `${k.tarih}|${arac.id}|${musteri.id}`;
-                if (mevcutSet.has(key)) warnings.push('Bu kayıt zaten mevcut');
+                if (mevcutMap[key]) {
+                    existing_id = mevcutMap[key];
+                    warnings.push('Bu kayıt zaten mevcut, üzerine yazılacak');
+                }
             }
 
             return {
@@ -317,6 +320,7 @@
                 satir: i + 1,
                 arac,
                 musteri,
+                existing_id,
                 durum:  errors.length > 0 ? 'hata' : warnings.length > 0 ? 'uyari' : 'ok',
                 errors,
                 warnings
@@ -447,20 +451,25 @@
                     }
                 }
 
-                // musteri_servis_puantaj'a yaz
+                // musteri_servis_puantaj'a yaz (Upsert via ID to prevent duplicate failures)
+                const payload = {
+                    musteri_id: musteriId,
+                    arac_id:    row.arac.id,
+                    tarih:      row.tarih,
+                    vardiya:    row.vardiya,
+                    tek:        row.tek,
+                    guzergah:   row.guzergah,
+                    giris_saati: row.giris_saati,
+                    cikis_saati: row.cikis_saati,
+                    gunluk_ucret: 0
+                };
+                if (row.existing_id) {
+                    payload.id = row.existing_id; // Pass specific PK to overwrite perfectly
+                }
+
                 const { error: sErr } = await supabase
                     .from('musteri_servis_puantaj')
-                    .insert({
-                        musteri_id: musteriId,
-                        arac_id:    row.arac.id,
-                        tarih:      row.tarih,
-                        vardiya:    row.vardiya,
-                        tek:        row.tek,
-                        guzergah:   row.guzergah,
-                        giris_saati: row.giris_saati,
-                        cikis_saati: row.cikis_saati,
-                        gunluk_ucret: 0
-                    });
+                    .upsert(payload);
 
                 if (sErr) {
                     console.error(`[import] satır ${row.satir} servis hatası:`, sErr);
