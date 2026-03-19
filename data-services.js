@@ -1223,6 +1223,67 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 }
 
 /* =====================================================
+   ARAÇ KÂRLILIK (P&L) HESAPLAMA EKLENTİSİ
+   ===================================================== */
+window.loadAracPL = async function(aracId) {
+    const section = document.getElementById('arac-pl-section');
+    if (!section) return;
+    
+    try {
+        const now = new Date();
+        const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+        
+        const [resYakit, resBakim, resPuantaj, resHakedis] = await Promise.allSettled([
+            window.supabaseClient.from('yakit_takip').select('toplam_tutar').eq('arac_id', aracId).gte('tarih', monthStart),
+            window.supabaseClient.from('arac_bakimlari').select('toplam_tutar').eq('arac_id', aracId).gte('islem_tarihi', monthStart),
+            window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret').eq('arac_id', aracId).gte('tarih', monthStart),
+            window.supabaseClient.from('taseron_hakedis').select('net_hakedis').eq('arac_id', aracId).gte('sefer_tarihi', monthStart)
+        ]);
+        
+        const yakitlar = resYakit.value?.data || [];
+        const bakimlar = resBakim.value?.data || [];
+        const puantaj = resPuantaj.value?.data || [];
+        const hakedis = resHakedis.value?.data || [];
+        
+        const giderYakit = yakitlar.reduce((s, y) => s + (parseFloat(y.toplam_tutar) || 0), 0);
+        const giderBakim = bakimlar.reduce((s, b) => s + (parseFloat(b.toplam_tutar) || 0), 0);
+        const toplamGider = giderYakit + giderBakim;
+        
+        const ciroPuantaj = puantaj.reduce((s, p) => s + (parseFloat(p.gunluk_ucret) || 0), 0);
+        const ciroHakedis = hakedis.reduce((s, h) => s + (parseFloat(h.net_hakedis) || 0), 0);
+        const toplamGelir = ciroPuantaj + ciroHakedis;
+        
+        const netKar = toplamGelir - toplamGider;
+        const karClass = netKar >= 0 ? 'text-green-400' : 'text-red-400';
+        
+        const fmt = v => new Intl.NumberFormat('tr-TR', {style:'currency', currency:'TRY', maximumFractionDigits:0}).format(v);
+        
+        section.innerHTML = `
+            <div class="text-[10px] text-gray-400 uppercase tracking-widest mb-2 font-bold flex items-center justify-between">
+                <span>Finansal Analiz (Bu Ay)</span>
+            </div>
+            <div class="bg-black/40 p-3 rounded-xl border border-white/5 grid grid-cols-3 gap-2 text-center divide-x divide-white/5">
+                <div>
+                    <div class="text-[9px] text-gray-500 uppercase mb-1">Gelir (Ciro)</div>
+                    <div class="font-bold text-blue-400 text-sm">${fmt(toplamGelir)}</div>
+                </div>
+                <div>
+                    <div class="text-[9px] text-gray-500 uppercase mb-1">Gider (Yakıt+Bkm)</div>
+                    <div class="font-bold text-orange-400 text-sm">${fmt(toplamGider)}</div>
+                </div>
+                <div>
+                    <div class="text-[9px] text-gray-500 uppercase mb-1">Net Kâr</div>
+                    <div class="font-black ${karClass} text-sm">${fmt(netKar)}</div>
+                </div>
+            </div>
+        `;
+    } catch(e) {
+        console.error('[loadAracPL]', e);
+        section.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Finansal veriler yüklenemedi.</div>`;
+    }
+};
+
+/* =====================================================
    ARAÇ DETAY ÖZET MODAL — Karta tıklayınca açılır
    ===================================================== */
 window.openAracDetay = async function(aracId) {
@@ -1268,7 +1329,7 @@ window.openAracDetay = async function(aracId) {
     try {
         const { data: a, error } = await window.supabaseClient
             .from('araclar')
-            .select('*, soforler(ad_soyad)')
+            .select('*, soforler(ad_soyad, telefon)')
             .eq('id', aracId)
             .single();
 
@@ -1299,9 +1360,12 @@ window.openAracDetay = async function(aracId) {
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Mülkiyet</div>
                     <div class="font-bold text-blue-400">${a.mulkiyet_durumu || '—'}</div>
                 </div>
-                <div class="bg-white/5 rounded-xl p-3">
+                <div class="bg-white/5 rounded-xl p-3 relative group flex flex-col justify-center">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Şoför</div>
-                    <div class="font-bold text-white">${a.soforler?.ad_soyad || '—'}</div>
+                    <div class="font-bold text-white flex justify-between items-center">
+                        <span>${a.soforler?.ad_soyad || '—'}</span>
+                        ${a.soforler?.telefon ? `<a href="https://wa.me/90${a.soforler.telefon.replace(/\D/g,'')}?text=Merhaba%20${encodeURIComponent(a.soforler.ad_soyad.split(' ')[0])},%20${a.plaka}%20plakalı%20aracınla%20ilgili%20bir%20bilgilendirme:" target="_blank" class="w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all ml-2" title="WhatsApp Mesajı Gönder"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.488-1.761-1.665-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></a>` : ''}
+                    </div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Güncel KM</div>
@@ -1328,18 +1392,28 @@ window.openAracDetay = async function(aracId) {
                     ${statusBadge(a.koltuk_bitis, 'Koltuk Sig.')}
                 </div>
             </div>
+            
+            <div id="arac-pl-section" class="mt-4 border-t border-white/10 pt-4">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Kâr / Zarar Analizi (Bu Ay)</div>
+                <div class="h-16 bg-white/5 rounded-xl animate-pulse"></div>
+            </div>
 
             <div class="flex gap-2 pt-2 border-t border-white/5">
                 <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Evrak Güncelle','${aracId}')"
-                    class="flex-1 py-2.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4"></i>Poliçe/Evrak Güncelle
+                    class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>Evrak/Poliçe Güncelle
                 </button>
                 <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Güncelle','${aracId}')"
-                    class="flex-1 py-2.5 text-xs font-bold bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition-all flex items-center justify-center gap-2">
+                    class="flex-1 py-3 text-[10px] font-bold bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
                     <i data-lucide="edit-2" class="w-4 h-4"></i>Araç Düzenle
                 </button>
             </div>
         `;
+        if (window.lucide) window.lucide.createIcons();
+        
+        // P&L datalarını asenkron yükle
+        window.loadAracPL(aracId);
+
         if (window.lucide) window.lucide.createIcons();
     } catch(e) {
         console.error('[ARAÇ DETAY]', e);
@@ -4090,6 +4164,25 @@ window.fetchCariDetails = async function (cariId) {
         if (borcEl) borcEl.textContent = window.formatCurrency(totalBorc);
         if (odenenEl) odenenEl.textContent = window.formatCurrency(totalAlacak);
         if (bakiyeEl) bakiyeEl.textContent = window.formatCurrency(currentBakiye);
+
+        // Binding for WhatsApp Dynamic Button
+        const wpBtn = document.getElementById('cari-whatsapp-btn');
+        if (wpBtn) {
+            if (cari.telefon) {
+                wpBtn.classList.remove('hidden');
+                wpBtn.classList.add('flex');
+                
+                const bakiyeMsj = currentBakiye > 0 
+                  ? `${currentBakiye.toLocaleString('tr-TR')} TL BORCUNUZ` 
+                  : (currentBakiye < 0 ? `${Math.abs(currentBakiye).toLocaleString('tr-TR')} TL ALACAĞINIZ` : 'BORCUNUZ VEYA ALACAĞINIZ OLMADIĞI');
+                  
+                let text = `Merhaba Sayın ${cari.unvan}, sistemimizde an itibarıyla ${bakiyeMsj} bulunmaktadır.`;
+                wpBtn.onclick = () => window.open(`https://wa.me/90${cari.telefon.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+            } else {
+                wpBtn.classList.remove('flex');
+                wpBtn.classList.add('hidden');
+            }
+        }
 
         if (window.lucide) window.lucide.createIcons();
 
