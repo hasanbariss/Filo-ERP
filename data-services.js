@@ -5111,63 +5111,115 @@ window.fetchTakvim = async function() {
 
         const musteriMap = {};
         musteriler.forEach(ms => { musteriMap[ms.id] = (ms.unvan || ms.ad); });
+        const aracLookup = {};
+        araclar.forEach(a => { aracLookup[a.id] = a; });
 
-        const pMap = {};
+        // MATRIX: musteri_id -> arac_id -> day -> {v, t}
+        const musteriMatrix = {};
+        const calisanAraclar = new Set(); // Hangi aracın en az 1 sefere çıktığını tutalım
+
         puantaj.forEach(p => {
-             if (!p.tarih) return;
+             const mId = p.musteri_id || 'diger';
+             if (!p.tarih || !p.arac_id) return;
              const day = parseInt(p.tarih.split('-')[2], 10);
-             if (!pMap[p.arac_id]) pMap[p.arac_id] = {};
-             if (!pMap[p.arac_id][day]) pMap[p.arac_id][day] = {v:0, t:0, cs: []};
              
-             pMap[p.arac_id][day].v += (parseFloat(p.vardiya) || 0);
-             pMap[p.arac_id][day].t += (parseFloat(p.tek) || 0);
-             if (p.musteri_id && musteriMap[p.musteri_id]) {
-                 pMap[p.arac_id][day].cs.push(musteriMap[p.musteri_id]);
-             }
+             if (!musteriMatrix[mId]) musteriMatrix[mId] = {};
+             if (!musteriMatrix[mId][p.arac_id]) musteriMatrix[mId][p.arac_id] = {};
+             if (!musteriMatrix[mId][p.arac_id][day]) musteriMatrix[mId][p.arac_id][day] = {v:0, t:0};
+             
+             musteriMatrix[mId][p.arac_id][day].v += (parseFloat(p.vardiya) || 0);
+             musteriMatrix[mId][p.arac_id][day].t += (parseFloat(p.tek) || 0);
+             calisanAraclar.add(p.arac_id);
         });
 
         let html = '<div class="flex border-b border-white/10 bg-[#0d0f11] sticky top-0 z-20 w-fit min-w-full shadow-2xl">';
-        html += '<div class="w-40 flex-shrink-0 p-3 font-bold text-xs text-gray-500 uppercase tracking-widest sticky left-0 bg-[#0d0f11] z-30 border-r border-white/10">PLAKA</div>';
+        html += '<div class="w-40 flex-shrink-0 p-3 font-bold text-xs text-gray-500 uppercase tracking-widest sticky left-0 bg-[#0d0f11] z-30 border-r border-white/10">FABRİKA & PLAKA</div>';
         for (let i=1; i<=daysInMonth; i++) {
-            html += `<div class="w-8 flex-shrink-0 p-2 text-center font-bold text-xs text-gray-500 border-r border-white/5 flex items-center justify-center">${i}</div>`;
+            html += `<div class="w-8 flex-shrink-0 p-2 text-center font-bold text-[10px] text-gray-500 border-r border-white/5 flex items-center justify-center">${i}</div>`;
         }
         html += '</div>';
 
-        araclar.forEach(a => {
-            html += `<div class="flex border-b border-white/5 hover:bg-white/5 transition-colors w-fit min-w-full group">`;
-            html += `<div class="w-40 flex-shrink-0 px-3 py-2 font-bold text-sm text-white sticky left-0 bg-[#0d0f11] z-10 border-r border-white/10 whitespace-nowrap overflow-hidden text-ellipsis group-hover:bg-[#15181c] transition-colors leading-tight">
-                        ${a.plaka}
-                        <div class="text-[9px] text-gray-600 block mt-0.5">${a.mulkiyet_durumu||'-'}</div>
-                    </div>`;
+        // MÜŞTERİ (FABRİKA) GRUPLARINI ÇİZ
+        for (const [mid, aracMap] of Object.entries(musteriMatrix)) {
+            const mUnvan = musteriMap[mid] || (mid === 'diger' ? 'Serbest / Diğer Seferler' : 'Bilinmeyen Fabrika');
             
+            // Fabrika Header Satırı
+            html += `<div class="flex sticky left-0 w-fit min-w-full bg-[#1b120c] border-y border-orange-500/20 group">`;
+            html += `<div class="sticky left-0 w-40 flex-shrink-0 px-3 py-1.5 font-black text-[10px] text-orange-400 uppercase tracking-widest bg-[#1b120c] z-10 border-r border-orange-500/20 overflow-hidden text-ellipsis whitespace-nowrap" title="${mUnvan}">
+                        <i data-lucide="building-2" class="w-3 h-3 inline mr-1 opacity-70"></i>${mUnvan}
+                    </div>`;
+            // Boş hücreleri tamamla
             for (let i=1; i<=daysInMonth; i++) {
-                const dayData = (pMap[a.id] && pMap[a.id][i]) ? pMap[a.id][i] : null;
-                
-                if (dayData) {
-                    let bg = 'bg-transparent';
-                    if (dayData.v > 0) bg = 'bg-blue-500/20 border-blue-500/50 text-blue-400';
-                    else if (dayData.t > 0) bg = 'bg-orange-500/20 border-orange-500/50 text-orange-400';
-                    
-                    const customers = Array.from(new Set(dayData.cs)).join(', ') || 'Bilinmeyen Müşteri';
-                    const tipText = `${i} ${new Date(y, m-1, i).toLocaleDateString('tr-TR',{month:'long'})} | ${customers}`;
-                    
-                    html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-0.5 relative cursor-pointer group/cell" title="${tipText}">
-                        <div class="w-full h-full rounded ${bg} border border-transparent hover:border-current flex items-center justify-center text-[10px] font-black transition-all">${dayData.v>0?'V':(dayData.t>0?'T':'')}</div>
-                    </div>`;
-                } else {
-                    html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-1 relative">
-                        <div class="w-full h-full rounded-sm border border-transparent group-hover:border-white/5 transition-all cursor-pointer" title="Boşta"></div>
-                    </div>`;
-                }
+                html += `<div class="w-8 flex-shrink-0 border-r border-white/5 opacity-20"></div>`;
             }
             html += `</div>`;
-        });
+
+            // Altındaki Araçları Çiz
+            const sortedAracIds = Object.keys(aracMap).sort((a,b) => {
+                const p1 = (aracLookup[a]?.plaka || '').toLowerCase();
+                const p2 = (aracLookup[b]?.plaka || '').toLowerCase();
+                return p1.localeCompare(p2);
+            });
+
+            sortedAracIds.forEach(aid => {
+                const a = aracLookup[aid] || {plaka: 'Silinmiş Araç', mulkiyet_durumu: '-'};
+                html += `<div class="flex border-b border-white/5 hover:bg-white/5 transition-colors w-fit min-w-full group">`;
+                html += `<div class="w-40 flex-shrink-0 pl-6 pr-3 py-2 font-bold text-sm text-gray-300 sticky left-0 bg-[#0d0f11] z-10 border-r border-white/10 whitespace-nowrap overflow-hidden text-ellipsis group-hover:bg-[#15181c] transition-colors leading-tight">
+                            ${a.plaka}
+                            <div class="text-[9px] text-gray-600 block mt-0.5">${a.mulkiyet_durumu||'-'}</div>
+                        </div>`;
+                
+                for (let i=1; i<=daysInMonth; i++) {
+                    const dayData = aracMap[aid][i];
+                    if (dayData) {
+                        let bg = 'bg-transparent';
+                        if (dayData.v > 0) bg = 'bg-blue-500/20 border-blue-500/50 text-blue-400';
+                        else if (dayData.t > 0) bg = 'bg-orange-500/20 border-orange-500/50 text-orange-400';
+                        
+                        const tipText = `${a.plaka} | ${i} ${selectedStr} | ${mUnvan} | ${dayData.v>0?'Vardiya':'Tek Sefer'}`;
+                        
+                        html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-0.5 relative cursor-pointer group/cell" title="${tipText}">
+                            <div class="w-full h-full rounded ${bg} border border-transparent hover:border-current flex items-center justify-center text-[10px] font-black transition-all">${dayData.v>0?'V':(dayData.t>0?'T':'')}</div>
+                        </div>`;
+                    } else {
+                        html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-1 relative">
+                            <div class="w-full h-full rounded-sm border border-transparent group-hover:border-white/5 transition-all cursor-pointer" title="Boşta"></div>
+                        </div>`;
+                    }
+                }
+                html += `</div>`;
+            });
+        }
+
+        // HİÇ ÇALIŞMAYAN (YATAN) ARAÇLAR
+        const yatanAraclar = araclar.filter(a => !calisanAraclar.has(a.id));
+        if (yatanAraclar.length > 0) {
+            html += `<div class="flex sticky left-0 w-fit min-w-full bg-[#1a1315] border-y border-red-500/20 group">`;
+            html += `<div class="sticky left-0 w-40 flex-shrink-0 px-3 py-1.5 font-black text-[10px] text-red-500 uppercase tracking-widest bg-[#1a1315] z-10 border-r border-red-500/20" title="Tabloda bu ay hiç tur atmamış/boşta kalmış araçlar.">
+                        <i data-lucide="parking-circle" class="w-3 h-3 inline mr-1 opacity-70"></i>PASİF & BOŞTA
+                    </div>`;
+            for (let i=1; i<=daysInMonth; i++) html += `<div class="w-8 flex-shrink-0 border-r border-white/5 opacity-20"></div>`;
+            html += `</div>`;
+
+            yatanAraclar.forEach(a => {
+                html += `<div class="flex border-b border-white/5 hover:bg-white/5 transition-colors w-fit min-w-full group">`;
+                html += `<div class="w-40 flex-shrink-0 pl-6 pr-3 py-2 font-bold text-sm text-gray-500 sticky left-0 bg-[#0d0f11] z-10 border-r border-white/10 whitespace-nowrap overflow-hidden group-hover:bg-[#15181c] transition-colors leading-tight">
+                            <span class="opacity-50 line-through decoration-red-500/50">${a.plaka}</span>
+                            <div class="text-[9px] text-gray-600 block mt-0.5">${a.mulkiyet_durumu||'-'}</div>
+                        </div>`;
+                for (let i=1; i<=daysInMonth; i++) {
+                    html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-1 bg-red-500/5 transition-all"></div>`;
+                }
+                html += `</div>`;
+            });
+        }
 
         if (araclar.length === 0) {
             html += `<div class="p-8 text-center text-gray-500">Sistemde kayıtlı araç yok.</div>`;
         }
 
         grid.innerHTML = html;
+        if(window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[fetchTakvim]', e);
         grid.innerHTML = `<div class="p-8 text-center text-red-500">Takvim yüklenemedi: ${e.message}</div>`;
