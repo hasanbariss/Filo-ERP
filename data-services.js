@@ -1584,6 +1584,116 @@ async function fetchTaseronlar() {
     }
 }
 
+/* =====================================================
+   ŞOFÖR DETAY OVERLAY — ŞOför kartına tıklayınca açılır
+   ===================================================== */
+window.openSoforDetay = async function(soforId) {
+    const ev = window.event;
+    if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.tagName === 'A' || ev.target.closest('button') || ev.target.closest('a'))) return;
+
+    const existing = document.getElementById('sofor-detay-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'sofor-detay-overlay';
+    overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+    overlay.innerHTML = `
+        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400"><i data-lucide="user" class="w-5 h-5"></i></div>
+                    <div id="sofor-detay-isim" class="text-lg font-black text-white">Yükleniyor...</div>
+                </div>
+                <button onclick="document.getElementById('sofor-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="sofor-detay-body" class="p-6 space-y-4">
+                <div class="animate-pulse space-y-3">
+                    <div class="h-4 bg-white/10 rounded w-3/4"></div>
+                    <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                    <div class="h-4 bg-white/10 rounded w-2/3"></div>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(overlay);
+    if (window.lucide) window.lucide.createIcons();
+
+    try {
+        const { data: s, error } = await window.supabaseClient
+            .from('soforler')
+            .select('*, araclar(plaka, marka_model, guncel_km)')
+            .eq('id', soforId)
+            .single();
+        if (error || !s) { overlay.remove(); return; }
+
+        const fmt = v => Number(v || 0).toLocaleString('tr-TR');
+        const sigortaColor = s.sigorta_durumu === 'SGK' ? 'text-green-400 bg-green-500/10 border-green-500/20'
+            : s.sigorta_durumu === 'Bağkur' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+            : 'text-red-400 bg-red-500/10 border-red-500/20';
+        const maasStr = s.aylik_maas ? fmt(s.aylik_maas) + ' ₺/ay' : (s.gunluk_ucret ? fmt(s.gunluk_ucret) + ' ₺/gün' : '—');
+
+        document.getElementById('sofor-detay-isim').textContent = s.ad_soyad || 'Bilinmiyor';
+        document.getElementById('sofor-detay-body').innerHTML = `
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">TC Kimlik No</div>
+                    <div class="font-mono font-bold text-white">${s.tc_no || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Telefon</div>
+                    <div class="font-bold text-white">${s.telefon || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Ehliyet</div>
+                    <div class="font-bold text-indigo-400">${s.ehliyet_sinifi || '—'} ${s.src_belgesi && s.src_belgesi !== 'Yok' ? '/ ' + s.src_belgesi : ''}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Sigorta</div>
+                    <div class="px-2 py-0.5 rounded border text-[11px] font-bold inline-block ${sigortaColor}">${s.sigorta_durumu || '?'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Maaş / Ücret</div>
+                    <div class="font-bold text-orange-400">${maasStr}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Araç</div>
+                    <div class="font-bold text-white">${s.araclar ? s.araclar.plaka + (s.araclar.marka_model ? ' · ' + s.araclar.marka_model : '') : '—'}</div>
+                </div>
+                ${s.araclar && s.araclar.guncel_km ? `
+                <div class="bg-white/5 rounded-xl p-3 col-span-2">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Araç Güncel KM</div>
+                    <div class="font-black text-orange-400 text-lg">${fmt(s.araclar.guncel_km)} km</div>
+                </div>` : ''}
+                ${s.sirket ? `
+                <div class="bg-white/5 rounded-xl p-3 col-span-2">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
+                    <div class="font-bold ${s.sirket === 'IDEOL' ? 'text-orange-400' : 'text-red-400'}">${s.sirket}</div>
+                </div>` : ''}
+            </div>
+            ${s.adres ? `<div class="bg-white/5 rounded-xl p-3">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Adres</div>
+                <div class="text-sm text-gray-300">${s.adres}</div>
+            </div>` : ''}
+            <div class="flex gap-2 pt-2 border-t border-white/5">
+                <button onclick="document.getElementById('sofor-detay-overlay').remove(); openModal('ŞOför Güncelle','${soforId}')"
+                    class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>ŞOför Düzenle
+                </button>
+                ${s.telefon ? `<a href="https://wa.me/90${s.telefon.replace(/\\D/g,'')}?text=Merhaba%20${encodeURIComponent(s.ad_soyad.split(' ')[0])}" target="_blank"
+                    class="flex-1 py-3 text-[10px] font-bold bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                    <i data-lucide="message-circle" class="w-4 h-4"></i>WhatsApp
+                </a>` : ''}
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+    } catch(e) {
+        console.error('[openSoforDetay]', e);
+        overlay.remove();
+    }
+};
+
 async function fetchSoforler(sirketFilter) {
     const grid = document.getElementById('sofor-cards-grid');
     const listBody = document.getElementById('sofor-list-tbody');
@@ -1644,7 +1754,8 @@ async function fetchSoforler(sirketFilter) {
 
             if (grid) {
                 const card = document.createElement('div');
-                card.className = 'dashboard-card hover:border-blue-500/50 transition-all flex flex-col justify-between p-5';
+                card.className = 'dashboard-card hover:border-blue-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer';
+                card.onclick = () => window.openSoforDetay(sofor.id);
                 card.innerHTML = `
                     <div>
                         <div class="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">
