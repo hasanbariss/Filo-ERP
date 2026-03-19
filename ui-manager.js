@@ -1630,10 +1630,15 @@ window.openModal = function (title, id = null, extra = null) {
             if (firmaSelect && window.supabaseClient && window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
                 const { data: cariler } = await window.supabaseClient
                     .from('cariler')
-                    .select('id, unvan')
+                    .select('id, unvan, tur')
                     .order('unvan');
                 firmaSelect.innerHTML = '<option value="">— Sigorta Firması Seç —</option>';
-                (cariler || []).forEach(c => {
+                const sigortacilar = (cariler || []).filter(c => {
+                    const isTurSigorta = c.tur && c.tur.toLowerCase().includes('sigorta');
+                    const isAdSigorta = c.unvan && c.unvan.toLowerCase().includes('sigorta');
+                    return isTurSigorta || isAdSigorta;
+                });
+                sigortacilar.forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id;
                     opt.textContent = c.unvan;

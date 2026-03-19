@@ -979,8 +979,8 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         // Verileri Döngüye Alıp Ekrana Bas
         function getStatusHtml(dateString, label, aracId) {
-            const tur = label.includes('Sigorta') ? 'Trafik Sigortası' : (label.includes('Kasko') ? 'Kasko' : 'Vize');
-            const shortLabel = label === 'Sigorta' ? 'SİG' : (label === 'Kasko' ? 'KSK' : 'VİZE');
+            const tur = label.includes('Sigorta') ? 'Trafik Sigortası' : (label.includes('Kasko') ? 'Kasko' : (label.includes('Koltuk') ? 'Koltuk Sigortası' : 'Vize'));
+            const shortLabel = label === 'Sigorta' ? 'SİG' : (label === 'Kasko' ? 'KSK' : (label === 'Koltuk' ? 'KLT' : 'VİZE'));
 
             if (!dateString) {
                 // "Yok" — zarif dashed border badge
@@ -1095,6 +1095,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const vizeHtml = getStatusHtml(arac.vize_bitis, 'Vize', arac.id);
             const sigortaHtml = getStatusHtml(arac.sigorta_bitis, 'Sigorta', arac.id);
             const kaskoHtml = getStatusHtml(arac.kasko_bitis, 'Kasko', arac.id);
+            const koltukHtml = getStatusHtml(arac.koltuk_bitis, 'Koltuk', arac.id);
 
             // Şirket badge
             let sirketBadgeHtml = '';
@@ -1152,6 +1153,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                                 ${vizeHtml}
                                 ${sigortaHtml}
                                 ${kaskoHtml}
+                                ${koltukHtml}
                             </div>
                         </div>
                     </div>
