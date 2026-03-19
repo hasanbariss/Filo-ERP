@@ -2368,71 +2368,7 @@ window.addEventListener('DOMContentLoaded', function() {
   }, 5000);
 });
 </script>
-    <!-- 1. CRITICAL LIBRARIES (exact versions, defer) -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
-<script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
-<script defer src="config.js"></script>
-<script defer src="data-services.js"></script>
-<script defer src="ui-manager.js"></script>
-
-<!-- 3. FEATURE MODULES -->
-<script defer src="import-manager.js"></script>
-<script defer src="export-manager.js"></script>
-
-<!-- 4. PAGE MODULES -->
-<script defer src="puantaj.js"></script>
-
-<!-- 5. FIXES -->
-<script defer src="app-fixes.js"></script>
-
-<!-- 6. INITIALIZATION SCRIPT -->
-<script>
-window.addEventListener('DOMContentLoaded', function() {
-  console.log('[INIT] DOM Ready');
-  
-  // Wait for Supabase to load
-  const checkSupabase = setInterval(() => {
-    if (window.supabase && window.supabaseClient) {
-      clearInterval(checkSupabase);
-      console.log('[INIT] ✅ Supabase loaded');
-      
-      // Initialize Lucide icons
-      if (window.lucide) {
-        window.lucide.createIcons();
-        console.log('[INIT] ✅ Lucide icons created');
-      } else {
-        console.warn('[INIT] ⚠️ Lucide not loaded, using fallbacks');
-        if (window.fixLucideIcons) window.fixLucideIcons();
-      }
-      
-      // Load dashboard if visible
-      const dashboard = document.getElementById('module-dashboard');
-      if (dashboard && !dashboard.classList.contains('hidden')) {
-        console.log('[INIT] Loading dashboard data...');
-        if (window.fetchDashboard) {
-          window.fetchDashboard();
-        } else {
-          console.error('[INIT] ❌ fetchDashboard not found!');
-        }
-      }
-    }
-  }, 100);
-  
-  // Timeout fallback
-  setTimeout(() => {
-    clearInterval(checkSupabase);
-    if (!window.supabaseClient) {
-      console.error('[INIT] ❌ Supabase failed to load after 5s!');
-      alert('Bağlantı hatası: Lütfen sayfayı yenileyin.');
-    }
-  }, 5000);
-});
-</script>
 </body>
 
 </html>

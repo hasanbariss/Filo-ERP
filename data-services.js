@@ -350,7 +350,13 @@ window.saveDataAndClose = async function (event) {
                 throw error;
             }
             // Auto-refresh müşteri kartı
-            if (typeof fetchMusteriler === 'function') setTimeout(fetchMusteriler, 300);
+            if (typeof fetchMusteriler === 'function') {
+                setTimeout(async () => {
+                    await fetchMusteriler();
+                    const btn = document.querySelector(`[data-musteri-id="${musteri_id}"] button[onclick*="toggleMusteriAraclar"]`);
+                    if(btn) btn.click();
+                }, 400);
+            }
             const excelMusteriSec = document.getElementById('excel-musteri-sec');
             if (typeof loadExcelGrid === 'function' && excelMusteriSec && excelMusteriSec.value === musteri_id) {
                 loadExcelGrid();
@@ -2059,10 +2065,13 @@ window.kaydetTopluAraclar = async function(musteriId) {
     }
 
     const tur = document.getElementById('toplu-tarife-tur').value;
-    const btn = event.currentTarget;
-    const origHtml = btn.innerHTML;
-    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Kaydediliyor...';
-    btn.disabled = true;
+    const btn = document.querySelector('button[onclick*="kaydetTopluAraclar"]');
+    let origHtml = '';
+    if (btn) {
+        origHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Kaydediliyor...';
+        btn.disabled = true;
+    }
 
     try {
         const payload = checked.map(aracId => ({
@@ -2960,8 +2969,15 @@ window.renderTeklifCompare = function () {
     }
     const groups = {};
     data.forEach(t => {
-        const key = `${t.arac_id}|${t.police_turu}`;
-        if (!groups[key]) groups[key] = { plaka: t.araclar?.plaka || '?', tur: t.police_turu, teklifler: [] };
+        let normTur = 'Bilinmeyen';
+        const rawTur = (t.police_turu || '').toLowerCase().trim();
+        if (rawTur.includes('kasko')) normTur = 'Kasko';
+        else if (rawTur.includes('koltuk')) normTur = 'Koltuk Sigortası';
+        else if (rawTur.includes('trafik') || rawTur.includes('zorunlu') || rawTur.includes('sigort')) normTur = 'Trafik';
+        else normTur = t.police_turu || 'Bilinmeyen';
+
+        const key = `${t.arac_id}|${normTur}`;
+        if (!groups[key]) groups[key] = { plaka: t.araclar?.plaka || '?', tur: normTur, teklifler: [] };
         groups[key].teklifler.push(t);
     });
 
@@ -4811,126 +4827,7 @@ window.fetchSonAktiviteler = async function() {
     } catch(e) { console.error('[fetchSonAktiviteler]', e); }
 };
 
-// ============================================================
-// MÜŞTERİ PORTFÖYÜ - TOPLU ARAÇ EKLEMEmi
-// ============================================================
-window.openTopluAracEkle = async function(musteriId, musteriAdi) {
-    // Build modal content with multi-checkbox vehicle list
-    const conn = window.checkSupabaseConnection();
-    if (!conn.ok) { alert(conn.msg); return; }
 
-    try {
-        // All vehicles
-        const {data: tumAraclar} = await window.supabaseClient.from('araclar')
-            .select('id, plaka, marka_model').eq('mulkiyet_durumu', 'ÖZMAL').order('plaka');
-        // Already-assigned vehicles for this customer
-        const {data: mevcutTanimlar} = await window.supabaseClient.from('musteri_arac_tanimlari')
-            .select('arac_id').eq('musteri_id', musteriId);
-        const mevcutIds = new Set((mevcutTanimlar||[]).map(t => t.arac_id));
-
-        const available = (tumAraclar||[]).filter(a => !mevcutIds.has(a.id));
-
-        const modalContainer = document.getElementById('general-modal');
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-dynamic-body');
-        if (!modalContainer || !modalTitle || !modalBody) { alert('Modal bulunamadı.'); return; }
-
-        modalTitle.textContent = 'Toplu Araç Ekle — ' + musteriAdi;
-
-        const aracCheckboxHtml = available.length === 0
-            ? '<p class="text-sm text-gray-400 italic text-center py-4">Tüm araçlar zaten bu müşteriye tanımlı.</p>'
-            : `<div class="space-y-1 max-h-48 overflow-y-auto border border-white/10 rounded-xl p-3 mb-4">
-                ${available.map(a => `
-                    <label class="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer">
-                        <input type="checkbox" name="toplu-arac" value="${a.id}" class="w-4 h-4 accent-orange-500">
-                        <span class="text-sm font-bold">${a.plaka}</span>
-                        <span class="text-xs text-gray-500">${a.marka_model||''}</span>
-                    </label>
-                `).join('')}
-               </div>`;
-
-        modalBody.innerHTML = `
-            <input type="hidden" id="toplu-musteri-id" value="${musteriId}">
-            <p class="text-xs text-gray-400 mb-3">Seçilen araçlar <strong>${musteriAdi}</strong> müşterisine toplu olarak eklenecek.</p>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">Tarife Türü</label>
-                    <select id="toplu-tarife" class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
-                        <option value="Vardiya">Vardiya</option>
-                        <option value="Tek">Tek Sefer</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-1 uppercase tracking-widest">Günlük Fiyat (₺)</label>
-                    <input type="number" id="toplu-fiyat" placeholder="0.00" class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500">
-                </div>
-            </div>
-            <label class="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">Araçları Seçin (${available.length} uygun araç)</label>
-            ${aracCheckboxHtml}
-            <div class="flex gap-2 mt-2">
-                <button type="button" onclick="document.querySelectorAll('[name=toplu-arac]').forEach(c=>c.checked=true)" class="text-xs text-orange-400 hover:text-orange-300 underline">Tümünü Seç</button>
-                <button type="button" onclick="document.querySelectorAll('[name=toplu-arac]').forEach(c=>c.checked=false)" class="text-xs text-gray-400 hover:text-gray-300 underline">Temizle</button>
-            </div>
-        `;
-
-        // Update save button to call our custom handler
-        const saveBtn = document.getElementById('modal-save-btn');
-        if (saveBtn) {
-            const newBtn = saveBtn.cloneNode(true);
-            newBtn.onclick = async () => {
-                await window.saveTopluArac(newBtn);
-            };
-            saveBtn.parentNode.replaceChild(newBtn, saveBtn);
-        }
-
-        modalContainer.classList.remove('hidden');
-        modalContainer.classList.add('flex');
-        if (window.lucide) window.lucide.createIcons();
-
-    } catch(e) { console.error('[openTopluAracEkle]', e); alert('Hata: ' + e.message); }
-};
-
-window.saveTopluArac = async function(btn) {
-    const musteriId = document.getElementById('toplu-musteri-id')?.value;
-    const tarife = document.getElementById('toplu-tarife')?.value;
-    const fiyat = parseFloat(document.getElementById('toplu-fiyat')?.value) || 0;
-    const checked = Array.from(document.querySelectorAll('[name=toplu-arac]:checked')).map(c => c.value);
-
-    if (!musteriId || checked.length === 0) { alert('Lütfen en az bir araç seçin.'); return; }
-    const origHTML = btn.innerHTML;
-    btn.innerHTML = '<span class="animate-spin inline-block mr-1">↻</span> Kaydediliyor...';
-    btn.disabled = true;
-
-    try {
-        const insertRows = checked.map(arac_id => ({
-            musteri_id: musteriId,
-            arac_id,
-            tarife_turu: tarife,
-            tek_fiyat: tarife === 'Tek' ? fiyat : 0,
-            vardiya_fiyat: tarife === 'Vardiya' ? fiyat : 0
-        }));
-
-        const {error} = await window.supabaseClient.from('musteri_arac_tanimlari').insert(insertRows);
-        if (error) {
-            if (error.code === '23505') throw new Error('Bazı araçlar zaten bu müşteriye tanımlı.');
-            throw error;
-        }
-
-        const toast = document.createElement('div');
-        toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;background:rgba(22,163,74,0.92);color:white;font-size:0.8rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,0.25);`;
-        toast.textContent = `✓ ${checked.length} araç başarıyla eklendi`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-
-        if (typeof closeModal === 'function') closeModal();
-        if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
-    } catch(e) {
-        alert('Hata: ' + e.message);
-    } finally {
-        btn.innerHTML = origHTML;
-        btn.disabled = false;
-    }
-};
 
 // ============================================
 // DASHBOARD DATA LOADING
