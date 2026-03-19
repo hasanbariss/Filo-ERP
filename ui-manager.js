@@ -210,8 +210,8 @@ function switchFiloTab(tabName) {
     if (aracBtn) aracBtn.className = inactiveClass;
     if (soforBtn) soforBtn.className = inactiveClass;
 
-    if (aracSub) aracSub.classList.add('hidden');
-    if (soforSub) soforSub.classList.add('hidden');
+    if (aracSub) { aracSub.classList.add('hidden'); aracSub.classList.remove('block'); }
+    if (soforSub) { soforSub.classList.add('hidden'); soforSub.classList.remove('block'); }
 
     // Set active
     if (tabName === 'araclar' && aracBtn && aracSub) {
