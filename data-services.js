@@ -1643,7 +1643,7 @@ window.openSoforDetay = async function(soforId, ev) {
 
         const { data: asignedArac } = await window.supabaseClient
             .from('araclar')
-            .select('plaka, marka_model, guncel_km')
+            .select('plaka, marka_model')
             .eq('sofor_id', soforId)
             .maybeSingle();
         s.araclar = asignedArac || null;
@@ -1681,11 +1681,7 @@ window.openSoforDetay = async function(soforId, ev) {
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Araç</div>
                     <div class="font-bold text-white">${s.araclar ? s.araclar.plaka + (s.araclar.marka_model ? ' · ' + s.araclar.marka_model : '') : '—'}</div>
                 </div>
-                ${s.araclar && s.araclar.guncel_km ? `
-                <div class="bg-white/5 rounded-xl p-3 col-span-2">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Araç Güncel KM</div>
-                    <div class="font-black text-orange-400 text-lg">${fmt(s.araclar.guncel_km)} km</div>
-                </div>` : ''}
+
                 ${s.sirket ? `
                 <div class="bg-white/5 rounded-xl p-3 col-span-2">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
