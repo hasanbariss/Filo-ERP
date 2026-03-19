@@ -733,10 +733,12 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
         } else if (formTitle === 'Yeni Kredi Kartı') {
             const kart_adi = document.getElementById('kredi-kart-adi').value;
-            const limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value) || 0;
+            const kart_sahibi = document.getElementById('kredi-kart-sahibi').value || null;
+            const kart_no = document.getElementById('kredi-kart-no').value || null;
+            const limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value);
 
-            if (!kart_adi.trim()) throw new Error("Kart adı zorunludur.");
-            const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, limit_tutari }]);
+            if (!kart_adi || isNaN(limit_tutari)) throw new Error("Kart adı ve limit zorunludur.");
+            const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, kart_no, limit_tutari }]);
             if (error) throw error;
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
         } else if (formTitle === 'Yeni Kart İşlemi') {
@@ -1622,10 +1624,17 @@ window.openSoforDetay = async function(soforId, ev) {
     try {
         const { data: s, error } = await window.supabaseClient
             .from('soforler')
-            .select('*, araclar(plaka, marka_model, guncel_km)')
+            .select('*')
             .eq('id', soforId)
             .single();
         if (error || !s) { overlay.remove(); return; }
+
+        const { data: asignedArac } = await window.supabaseClient
+            .from('araclar')
+            .select('plaka, marka_model, guncel_km')
+            .eq('sofor_id', soforId)
+            .maybeSingle();
+        s.araclar = asignedArac || null;
 
         const fmt = v => Number(v || 0).toLocaleString('tr-TR');
         const sigortaColor = s.sigorta_durumu === 'SGK' ? 'text-green-400 bg-green-500/10 border-green-500/20'
