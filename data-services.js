@@ -1290,6 +1290,83 @@ window.loadAracPL = async function(aracId) {
 };
 
 /* =====================================================
+   ARAÇ CARİ KARTI — Bakım + Yakıt geçmişi
+   ===================================================== */
+window.loadAracCariKarti = async function(aracId) {
+    const section = document.getElementById('arac-cari-section');
+    if (!section) return;
+    try {
+        const [bakimRes, yakitRes] = await Promise.all([
+            window.supabaseClient.from('arac_bakimlari')
+                .select('islem_tarihi, islem_turu, aciklama, toplam_tutar, cariler(unvan)')
+                .eq('arac_id', aracId).order('islem_tarihi', { ascending: false }).limit(10),
+            window.supabaseClient.from('yakit_islemleri')
+                .select('tarih, litre, tutar, aciklama')
+                .eq('arac_id', aracId).order('tarih', { ascending: false }).limit(10)
+        ]);
+        const bakimlar = bakimRes.data || [];
+        const yakitlar = yakitRes.data || [];
+        const fmt = v => Number(v || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+        const fmtDate = d => d ? new Date(d).toLocaleDateString('tr-TR') : '-';
+        const toplamBakim = bakimlar.reduce((s, b) => s + Number(b.toplam_tutar || 0), 0);
+        const toplamYakit = yakitlar.reduce((s, y) => s + Number(y.tutar || 0), 0);
+
+        const tabId = 'ct' + aracId;
+        let html = `<div class="flex gap-2 mb-3">
+            <button id="${tabId}-b" onclick="document.getElementById('${tabId}-bakim').classList.remove('hidden');document.getElementById('${tabId}-yakit').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all';document.getElementById('${tabId}-yb').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">
+                Bakım (${bakimlar.length})
+            </button>
+            <button id="${tabId}-yb" onclick="document.getElementById('${tabId}-yakit').classList.remove('hidden');document.getElementById('${tabId}-bakim').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all';document.getElementById('${tabId}-b').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all">
+                Yakıt (${yakitlar.length})
+            </button>
+            </div>
+            <div id="${tabId}-bakim" class="max-h-52 overflow-y-auto space-y-1.5">`;
+
+        if (bakimlar.length === 0) {
+            html += `<p class="text-xs text-gray-500 italic text-center py-4">Bakım geçmişi yok.</p>`;
+        } else {
+            bakimlar.forEach(b => {
+                html += `<div class="flex items-start justify-between py-1.5 px-2 rounded-lg bg-white/5">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[11px] font-bold text-orange-400 uppercase">${b.islem_turu}</div>
+                        <div class="text-[10px] text-gray-500">${fmtDate(b.islem_tarihi)}${b.cariler && b.cariler.unvan ? ' · ' + b.cariler.unvan : ''}</div>
+                    </div>
+                    <div class="text-[11px] font-black text-orange-400 ml-2 whitespace-nowrap">${fmt(b.toplam_tutar)} ₺</div>
+                </div>`;
+            });
+            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
+                <span class="text-sm font-black text-orange-400">${fmt(toplamBakim)} ₺</span>
+            </div>`;
+        }
+
+        html += `</div><div id="${tabId}-yakit" class="hidden max-h-52 overflow-y-auto space-y-1.5">`;
+
+        if (yakitlar.length === 0) {
+            html += `<p class="text-xs text-gray-500 italic text-center py-4">Yakıt geçmişi yok.</p>`;
+        } else {
+            yakitlar.forEach(y => {
+                html += `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/5">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[10px] text-gray-400">${fmtDate(y.tarih)}${y.litre ? ' · ' + y.litre + ' Lt' : ''}</div>
+                    </div>
+                    <div class="text-[11px] font-black text-blue-400 ml-2 whitespace-nowrap">${fmt(y.tutar)} ₺</div>
+                </div>`;
+            });
+            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
+                <span class="text-sm font-black text-blue-400">${fmt(toplamYakit)} ₺</span>
+            </div>`;
+        }
+        html += `</div>`;
+        section.innerHTML = html;
+    } catch(e) {
+        console.error('[loadAracCariKarti]', e);
+        if (section) section.innerHTML = '<div class="text-xs text-red-400 text-center py-2">Geçmiş yüklenemedi.</div>';
+    }
+};
+
+/* =====================================================
    ARAÇ DETAY ÖZET MODAL — Karta tıklayınca açılır
    ===================================================== */
 window.openAracDetay = async function(aracId) {
