@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -17,11 +17,11 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+
     <!-- SheetJS (Excel) -->
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
     <!-- jsPDF & AutoTable -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -76,7 +76,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- Leaflet Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -90,7 +90,6 @@
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/3045/3045501.png">
 
     <!-- === DOMPurify (XSS KorumasÄ±) === -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 </head>
 
 <body class="selection:bg-orange-500 selection:text-white">
@@ -2174,9 +2173,9 @@
         </div>
 
 
-        <script src="config.js"></script>
-        <script src="ui-manager.js"></script>
-        <script src="data-services.js"></script>
+
+
+
         <script src="excel-logic.js"></script>
         <script src="pdf-fonts.js"></script>
         <script src="export-manager.js"></script>
@@ -2211,8 +2210,8 @@
                 }
             });
         </script>
-<script src="app-fixes.js"></script>
-<script src="import-manager.js"></script>
+
+
 
 <!-- PWA MOBILE BOTTOM NAVIGATION -->
 <nav class="mobile-bottom-nav" id="mobile-nav">
@@ -2304,6 +2303,136 @@
             container.innerHTML = html;
         };
     </script>
+    <!-- 1. CRITICAL LIBRARIES (exact versions, defer) -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
+<script defer src="config.js"></script>
+<script defer src="data-services.js"></script>
+<script defer src="ui-manager.js"></script>
+
+<!-- 3. FEATURE MODULES -->
+<script defer src="import-manager.js"></script>
+<script defer src="export-manager.js"></script>
+
+<!-- 4. PAGE MODULES -->
+<script defer src="puantaj.js"></script>
+
+<!-- 5. FIXES -->
+<script defer src="app-fixes.js"></script>
+
+<!-- 6. INITIALIZATION SCRIPT -->
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  console.log('[INIT] DOM Ready');
+  
+  // Wait for Supabase to load
+  const checkSupabase = setInterval(() => {
+    if (window.supabase && window.supabaseClient) {
+      clearInterval(checkSupabase);
+      console.log('[INIT] ✅ Supabase loaded');
+      
+      // Initialize Lucide icons
+      if (window.lucide) {
+        window.lucide.createIcons();
+        console.log('[INIT] ✅ Lucide icons created');
+      } else {
+        console.warn('[INIT] ⚠️ Lucide not loaded, using fallbacks');
+        if (window.fixLucideIcons) window.fixLucideIcons();
+      }
+      
+      // Load dashboard if visible
+      const dashboard = document.getElementById('module-dashboard');
+      if (dashboard && !dashboard.classList.contains('hidden')) {
+        console.log('[INIT] Loading dashboard data...');
+        if (window.fetchDashboard) {
+          window.fetchDashboard();
+        } else {
+          console.error('[INIT] ❌ fetchDashboard not found!');
+        }
+      }
+    }
+  }, 100);
+  
+  // Timeout fallback
+  setTimeout(() => {
+    clearInterval(checkSupabase);
+    if (!window.supabaseClient) {
+      console.error('[INIT] ❌ Supabase failed to load after 5s!');
+      alert('Bağlantı hatası: Lütfen sayfayı yenileyin.');
+    }
+  }, 5000);
+});
+</script>
+    <!-- 1. CRITICAL LIBRARIES (exact versions, defer) -->
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+<script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
+<script defer src="config.js"></script>
+<script defer src="data-services.js"></script>
+<script defer src="ui-manager.js"></script>
+
+<!-- 3. FEATURE MODULES -->
+<script defer src="import-manager.js"></script>
+<script defer src="export-manager.js"></script>
+
+<!-- 4. PAGE MODULES -->
+<script defer src="puantaj.js"></script>
+
+<!-- 5. FIXES -->
+<script defer src="app-fixes.js"></script>
+
+<!-- 6. INITIALIZATION SCRIPT -->
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  console.log('[INIT] DOM Ready');
+  
+  // Wait for Supabase to load
+  const checkSupabase = setInterval(() => {
+    if (window.supabase && window.supabaseClient) {
+      clearInterval(checkSupabase);
+      console.log('[INIT] ✅ Supabase loaded');
+      
+      // Initialize Lucide icons
+      if (window.lucide) {
+        window.lucide.createIcons();
+        console.log('[INIT] ✅ Lucide icons created');
+      } else {
+        console.warn('[INIT] ⚠️ Lucide not loaded, using fallbacks');
+        if (window.fixLucideIcons) window.fixLucideIcons();
+      }
+      
+      // Load dashboard if visible
+      const dashboard = document.getElementById('module-dashboard');
+      if (dashboard && !dashboard.classList.contains('hidden')) {
+        console.log('[INIT] Loading dashboard data...');
+        if (window.fetchDashboard) {
+          window.fetchDashboard();
+        } else {
+          console.error('[INIT] ❌ fetchDashboard not found!');
+        }
+      }
+    }
+  }, 100);
+  
+  // Timeout fallback
+  setTimeout(() => {
+    clearInterval(checkSupabase);
+    if (!window.supabaseClient) {
+      console.error('[INIT] ❌ Supabase failed to load after 5s!');
+      alert('Bağlantı hatası: Lütfen sayfayı yenileyin.');
+    }
+  }, 5000);
+});
+</script>
 </body>
 
 </html>

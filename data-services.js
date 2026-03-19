@@ -4931,3 +4931,128 @@ window.saveTopluArac = async function(btn) {
         btn.disabled = false;
     }
 };
+
+// ============================================
+// DASHBOARD DATA LOADING
+// ============================================
+
+window.fetchDashboard = async function() {
+  console.log('[Dashboard] Fetching data...');
+  
+  // Connection check
+  const conn = window.checkSupabaseConnection();
+  if (!conn.ok) {
+    console.error('[Dashboard] Connection failed:', conn.msg);
+    if (window.showGlobalError) {
+      window.showGlobalError('dashboard-container', conn.msg);
+    }
+    return;
+  }
+
+  try {
+    // Parallel queries with Promise.allSettled (graceful degradation)
+    const [
+      araclarResult,
+      soforlerResult,
+      musterilerResult,
+      evraklarResult,
+      ciroResult,
+      yakitResult
+    ] = await Promise.allSettled([
+      window.supabaseClient.from('araclar').select('id, mulkiyet_durumu', { count: 'exact', head: true }),
+      window.supabaseClient.from('soforler').select('id', { count: 'exact', head: true }),
+      window.supabaseClient.from('musteriler').select('id', { count: 'exact', head: true }),
+      window.supabaseClient.from('arac_evrak')
+        .select('id')
+        .gte('bitis_tarihi', new Date().toISOString().split('T')[0])
+        .lte('bitis_tarihi', new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0])
+        .select('*', { count: 'exact', head: true }),
+      window.supabaseClient.from('musteri_servis_puantaj')
+        .select('gunluk_ucret')
+        .gte('tarih', `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`),
+      window.supabaseClient.from('yakit_kayit')
+        .select('toplam_tutar')
+        .gte('tarih', `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`)
+    ]);
+
+    // Extract data (handle errors gracefully)
+    const araclar = araclarResult.status === 'fulfilled' ? araclarResult.value : { count: 0 };
+    const soforler = soforlerResult.status === 'fulfilled' ? soforlerResult.value : { count: 0 };
+    const musteriler = musterilerResult.status === 'fulfilled' ? musterilerResult.value : { count: 0 };
+    const evraklar = evraklarResult.status === 'fulfilled' ? evraklarResult.value : { count: 0 };
+    const ciroData = ciroResult.status === 'fulfilled' ? ciroResult.value.data : [];
+    const yakitData = yakitResult.status === 'fulfilled' ? yakitResult.value.data : [];
+
+    // Log any failed queries
+    [araclarResult, soforlerResult, musterilerResult, evraklarResult, ciroResult, yakitResult].forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        console.warn(`[Dashboard] Query ${idx} failed:`, result.reason);
+      }
+    });
+
+    // Calculate stats
+    const stats = {
+      arac: araclar.count || 0,
+      sofor: soforler.count || 0,
+      evrak: evraklar.count || 0,
+      musteri: musteriler.count || 0,
+      ciro: Array.isArray(ciroData) ? ciroData.reduce((sum, r) => sum + (parseFloat(r.gunluk_ucret) || 0), 0) : 0,
+      gider: Array.isArray(yakitData) ? yakitData.reduce((sum, r) => sum + (parseFloat(r.toplam_tutar) || 0), 0) : 0,
+    };
+
+    console.log('[Dashboard] Stats calculated:', stats);
+
+    // Update DOM (XSS safe - textContent only)
+    const updates = {
+      'stat-arac-count': stats.arac,
+      'stat-sofor-count': stats.sofor,
+      'stat-evrak-count': stats.evrak,
+      'stat-musteri-count': stats.musteri,
+      'stat-ciro': `${stats.ciro.toLocaleString('tr-TR')} ₺`,
+      'stat-gider': `${stats.gider.toLocaleString('tr-TR')} ₺`,
+    };
+
+    let updatedCount = 0;
+    for (let [id, value] of Object.entries(updates)) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = value;
+        updatedCount++;
+      } else {
+        console.warn(`[Dashboard] Element not found: #${id}`);
+      }
+    }
+
+    console.log(`[Dashboard] ✅ Updated ${updatedCount}/${Object.keys(updates).length} stats`);
+
+    // Update chart if Chart.js available
+    if (window.Chart && typeof window.updateCiroGiderChart === 'function') {
+      window.updateCiroGiderChart(stats.ciro, stats.gider);
+    }
+
+  } catch (error) {
+    console.error('[Dashboard] ❌ Fatal error:', error);
+    if (window.Toast && window.Toast.error) {
+      window.Toast.error(`Dashboard yüklenemedi: ${error.message}`);
+    } else {
+      alert(`Dashboard hatası: ${error.message}`);
+    }
+  }
+};
+
+// Auto-load on DOMContentLoaded
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    const dashboard = document.getElementById('module-dashboard');
+    if (dashboard && !dashboard.classList.contains('hidden')) {
+      console.log('[Dashboard] Auto-loading...');
+      setTimeout(() => {
+        if (window.supabaseClient && window.fetchDashboard) {
+          window.fetchDashboard();
+        }
+      }, 500);
+    }
+  });
+}
+
+console.log('[Dashboard] ✅ fetchDashboard registered');
