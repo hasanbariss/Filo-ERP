@@ -3204,10 +3204,27 @@ window.fetchDashboardData = async function () {
         setEl('kpi-cari', cariler?.length ?? 0);
 
         let kritikEvrak = 0;
+        let expiring15Days = 0;
+        const future15 = new Date(); future15.setDate(future15.getDate() + 15);
+        const future15Str = future15.toISOString().split('T')[0];
+
         (araclar || []).forEach(a => {
-            ['sigorta_bitis', 'kasko_bitis', 'vize_bitis'].forEach(f => { if (a[f] && a[f] <= future30Str) kritikEvrak++; });
+            let is30 = false;
+            let is15 = false;
+            ['sigorta_bitis', 'kasko_bitis', 'vize_bitis', 'koltuk_bitis'].forEach(f => { 
+                if (a[f] && a[f] <= future30Str) is30 = true; 
+                if (a[f] && a[f] <= future15Str) is15 = true;
+            });
+            if (is30) kritikEvrak++;
+            if (is15) expiring15Days++;
         });
         setEl('kpi-evrak', kritikEvrak);
+
+        if (expiring15Days > 0 && typeof window.Toast !== 'undefined') {
+            setTimeout(() => {
+                window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş! Lütfen Özmal Filo'dan kontrol edin.`);
+            }, 1500);
+        }
 
         const sumYakit = (yakitlar || []).reduce((s, y) => s + (y.toplam_tutar || 0), 0);
         const sumBakim = (bakimlar || []).reduce((s, b) => s + (b.toplam_tutar || 0), 0);
