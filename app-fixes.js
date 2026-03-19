@@ -135,7 +135,13 @@ function initMobileSidebar() {
     // Show hamburger on mobile via CSS, but ensure it exists
     hamburger.style.display = '';
 
+    window._lastSidebarToggle = 0;
+
     window.toggleMobileSidebar = function () {
+        const now = Date.now();
+        if (now - window._lastSidebarToggle < 300) return;
+        window._lastSidebarToggle = now;
+
         const isOpen = sidebar.classList.contains('mobile-open');
         if (isOpen) {
             closeMobileSidebar();
@@ -146,6 +152,10 @@ function initMobileSidebar() {
     };
 
     window.closeMobileSidebar = function () {
+        const now = Date.now();
+        if (now - window._lastSidebarToggle < 300) return;
+        window._lastSidebarToggle = now;
+
         sidebar.classList.remove('mobile-open');
         if (overlay) {
             overlay.classList.remove('visible');
