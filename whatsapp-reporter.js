@@ -11,7 +11,7 @@ window.sendAutoWhatsAppReport = async function() {
     }
     
     num = num.replace(/\D/g, '');
-    let text = "🚨 *FİLO-ERP GÜNLÜK ÖZET RAPORU* 🚨\n\n";
+    let text = "*FİLO-ERP GÜNLÜK ÖZET RAPORU*\n\n";
     
     try {
         if(window.Toast) window.Toast.info("WhatsApp Raporu hazırlanıyor...");
@@ -24,14 +24,14 @@ window.sendAutoWhatsAppReport = async function() {
             let bitis = new Date(p.bitis_tarihi);
             let diff = Math.floor((bitis - now) / (1000*60*60*24));
             if(diff <= 15 && diff >= -15) {
-                pAlerts.push('📌 ' + (p.araclar?.plaka || '-') + ' - ' + p.police_turu + ' (' + (diff < 0 ? 'SÜRESİ GEÇTİ!' : diff+' Gün Kaldı') + ')');
+                pAlerts.push('- ' + (p.araclar?.plaka || '-') + ' - ' + p.police_turu + ' (' + (diff < 0 ? 'SÜRESİ GEÇTİ!' : diff+' Gün Kaldı') + ')');
             }
         });
 
         if(pAlerts.length > 0) {
-           text += "⏰ *YAKLAŞAN/BİTEN POLİÇELER:*\n" + pAlerts.join("\n") + "\n\n";
+           text += "*YAKLAŞAN/BİTEN POLİÇELER:*\n" + pAlerts.join("\n") + "\n\n";
         } else {
-           text += "✅ Yakın zamanda biten poliçe yok.\n\n";
+           text += "Yakın zamanda biten poliçe yok.\n\n";
         }
 
         // 2. Tahsilat (>10 Gün Geciken Invoices)
@@ -52,18 +52,18 @@ window.sendAutoWhatsAppReport = async function() {
                 const invDate = new Date(cB[cid].last);
                 const d = Math.floor(Math.abs(now - invDate) / (1000 * 60 * 60 * 24)); 
                 if(d >= 10) {
-                    fAlerts.push('⚠️ ' + cB[cid].u.substring(0, 15) + '... (Risk: ' + d + ' Gün geç) ₺' + k.toLocaleString('tr-TR',{maximumFractionDigits:0}));
+                    fAlerts.push('- ' + cB[cid].u.substring(0, 15) + '... (Risk: ' + d + ' Gün geç) ₺' + k.toLocaleString('tr-TR',{maximumFractionDigits:0}));
                 }
             }
         });
 
         if(fAlerts.length > 0) {
-           text += "💳 *GECİKEN TAHSİLATLAR:*\n" + fAlerts.join("\n") + "\n\n";
+           text += "*GECİKEN TAHSİLATLAR:*\n" + fAlerts.join("\n") + "\n\n";
         } else {
-           text += "✅ Geciken acil tahsilat uyarısı yok.\n\n";
+           text += "Geciken acil tahsilat uyarısı yok.\n\n";
         }
 
-        text += "🤖 _Filo-ERP Otomatik Altyapısı._";
+        text += "_Filo-ERP Otomatik Altyapısı._";
         
         window.open('https://wa.me/90' + num + '?text=' + encodeURIComponent(text), '_blank');
     } catch(e) { console.error(e); }
