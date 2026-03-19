@@ -10,8 +10,10 @@ async function initPuantaj() {
     try {
         if (!window.supabaseClient) throw new Error("SupabaseClient tanımsız! config.js yüklenemedi.");
         if (!musteriId || !monthStr) {
-            document.getElementById('header-title').textContent = "Hata: Eksik Parametre";
-            document.getElementById('header-subtitle').textContent = "Lütfen pencereyi kapatıp tekrar açın.";
+            const hTitle = document.getElementById('header-title');
+            const hSub = document.getElementById('header-subtitle');
+            if (hTitle) hTitle.textContent = "Hata: Eksik Parametre";
+            if (hSub) hSub.textContent = "Lütfen pencereyi kapatıp tekrar açın.";
             return;
         }
 
@@ -25,8 +27,10 @@ async function initPuantaj() {
         await loadGridData();
     } catch (e) {
         alert("Init Hatası: " + e.message + "\nStack: " + e.stack);
-        document.getElementById('header-title').textContent = "KRİTİK HATA";
-        document.getElementById('header-subtitle').textContent = e.message;
+        const hTitle = document.getElementById('header-title');
+        const hSub = document.getElementById('header-subtitle');
+        if (hTitle) hTitle.textContent = "KRİTİK HATA";
+        if (hSub) hSub.textContent = e.message;
     }
 }
 
