@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.0';
+var CACHE_NAME = 'filo-erp-v1.0.1';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
@@ -96,11 +96,10 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    // Kendi statik dosyaları → Cache First (en hızlı)
+    // Kendi statik dosyaları → Network First, Fallback to Cache
     event.respondWith(
-        caches.match(event.request).then(function (cached) {
-            if (cached) return cached;
-            return fetch(event.request).then(function (response) {
+        fetch(event.request)
+            .then(function (response) {
                 if (response && response.status === 200) {
                     var cloned = response.clone();
                     caches.open(CACHE_NAME).then(function (cache) {
@@ -108,7 +107,9 @@ self.addEventListener('fetch', function (event) {
                     });
                 }
                 return response;
-            });
-        })
+            })
+            .catch(function () {
+                return caches.match(event.request);
+            })
     );
 });
