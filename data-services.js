@@ -1587,8 +1587,7 @@ async function fetchTaseronlar() {
 /* =====================================================
    ŞOFÖR DETAY OVERLAY — ŞOför kartına tıklayınca açılır
    ===================================================== */
-window.openSoforDetay = async function(soforId) {
-    const ev = window.event;
+window.openSoforDetay = async function(soforId, ev) {
     if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.tagName === 'A' || ev.target.closest('button') || ev.target.closest('a'))) return;
 
     const existing = document.getElementById('sofor-detay-overlay');
@@ -1755,7 +1754,7 @@ async function fetchSoforler(sirketFilter) {
             if (grid) {
                 const card = document.createElement('div');
                 card.className = 'dashboard-card hover:border-blue-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer';
-                card.onclick = () => window.openSoforDetay(sofor.id);
+                card.onclick = (e) => window.openSoforDetay(sofor.id, e);
                 card.innerHTML = `
                     <div>
                         <div class="flex items-center gap-4 mb-4 border-b border-white/5 pb-4">

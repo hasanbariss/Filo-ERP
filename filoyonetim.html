@@ -1785,6 +1785,65 @@
                         </div>
                     </div>
 
+                    <!-- Personel Maaş & Bordro -->
+                                    </tr>
+                                </thead>
+                                <tbody id="maaslar-tbody">
+                                    <tr>
+                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Kredi Kartları -->
+                    <div id="content-kredi-kartlari" class="hidden p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <h3 class="text-lg font-bold">Şirket Kredi Kartları</h3>
+                            <div class="flex gap-2">
+                                <button onclick="openModal('Yeni Kart İşlemi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2">
+                                    <i data-lucide="receipt" class="w-4 h-4"></i>
+                                    Harcama Ekle
+                                </button>
+                                <button onclick="openModal('Yeni Kredi Kartı')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                    Kart Ekle
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kart Adı / Banka</th>
+                                        <th>Limit (₺)</th>
+                                        <th>Kullanılan (₺)</th>
+                                        <th>Kullanılabilir (₺)</th>
+                                        <th class="text-right">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kredi-kartlari-tbody">
+                                    <tr>
+                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                                        <th class="text-right">Ä°ÅŸlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kredi-kartlari-tbody">
+                                    <tr>
+                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yÃ¼kleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
                     <!-- Personel MaaÅŸ & Bordro -->
                     <div id="content-maaslar" class="hidden p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
@@ -1850,7 +1909,6 @@
                     </div>
                 </div>
             </div>
-
                         <!-- 6. RAPORLAR MODULU -->
             <div id="module-raporlar" class="main-module hidden stagger-in">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
