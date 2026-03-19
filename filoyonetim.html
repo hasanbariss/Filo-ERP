@@ -296,7 +296,20 @@
             <!-- Dashboard Module -->
             <div id="module-dashboard" class="main-module block stagger-in">
 
-                <!-- Akıllı Vade Alarmları -->\n                <div class="mb-6">\n                    <div class="flex justify-between items-center mb-4">\n                        <h3 class="text-sm font-bold text-red-500 w-full flex justify-between items-center gap-4">\n                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div> FİLO RİSKLERİ / GECİKMİŞ VADELER</div> \n                            <button onclick="if(window.sendAutoWhatsAppReport) window.sendAutoWhatsAppReport()" class="flex items-center gap-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg uppercase text-[10px] font-bold shadow-lg shadow-green-500/20">\n                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i> OTO-RAPOR AL (WHATSAPP)\n                            </button>\n                        </h3>\n                    </div>\n                    <div id="vade-alarmlari-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>\n                </div>\n\n                <!-- KPI Satırı -->
+                                <!-- Akıllı Vade Alarmları -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-red-500 w-full flex justify-between items-center gap-4">
+                            <div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500 animate-ping"></div> FİLO RİSKLERİ / GECİKMİŞ VADELER</div> 
+                            <button onclick="if(window.sendAutoWhatsAppReport) window.sendAutoWhatsAppReport()" class="flex items-center gap-2 px-3 py-1.5 bg-green-500 hover:bg-green-600 focus:bg-green-600 text-white rounded-lg uppercase text-[10px] font-bold shadow-lg shadow-green-500/30 transition-all border border-green-500/50">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5 text-white fill-white"></i> OTO-RAPOR AL (WHATSAPP)
+                            </button>
+                        </h3>
+                    </div>
+                    <div id="vade-alarmlari-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- KPI Satırı -->
                 <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
                     <div class="dashboard-card py-4 px-4 flex flex-col gap-1 cursor-pointer hover:border-blue-500/40 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
                         <div class="flex justify-between items-start">
