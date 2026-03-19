@@ -106,6 +106,8 @@ navButtons.forEach(btn => {
             if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
         } else if (targetId === 'module-raporlar') {
             if (typeof fetchRaporlar === 'function') fetchRaporlar();
+        } else if (targetId === 'module-takvim') {
+            if (typeof fetchTakvim === 'function') fetchTakvim();
         } else if (targetId === 'module-teklifler') {
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
         } else if (targetId === 'module-personel') {

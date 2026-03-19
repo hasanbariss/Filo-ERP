@@ -5065,3 +5065,111 @@ if (document.readyState === 'loading') {
 }
 
 console.log('[Dashboard] ✅ fetchDashboard registered');
+
+// ============================================
+// PHASE 2 - OPERASYON TAKVİMİ (GANTT CHART)
+// ============================================
+
+window.fetchTakvim = async function() {
+    const grid = document.getElementById('takvim-grid');
+    const selector = document.getElementById('takvim-ay-secici');
+    if (!grid || !selector) return;
+    
+    grid.innerHTML = '<div class="p-12 text-center text-gray-500 font-bold uppercase tracking-widest animate-pulse">Veriler yükleniyor...</div>';
+
+    try {
+        let selectedStr = selector.value;
+        const now = new Date();
+        
+        if (!selectedStr) {
+            selectedStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+            let opts = '';
+            for(let i=-6; i<=6; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                const label = d.toLocaleDateString('tr-TR', {month:'long', year:'numeric'});
+                opts += `<option value="${val}" ${i===0?'selected':''}>${label}</option>`;
+            }
+            selector.innerHTML = opts;
+            selectedStr = selector.value;
+        }
+
+        const [y, m] = selectedStr.split('-').map(Number);
+        const daysInMonth = new Date(y, m, 0).getDate();
+        const startStr = `${selectedStr}-01`;
+        const endStr = `${selectedStr}-${String(daysInMonth).padStart(2,'0')}`;
+
+        const [aracRes, pushRes, musteriRes] = await Promise.all([
+            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu').order('plaka'),
+            window.supabaseClient.from('musteri_servis_puantaj').select('arac_id, musteri_id, tarih, vardiya, tek').gte('tarih', startStr).lte('tarih', endStr),
+            window.supabaseClient.from('musteriler').select('id, ad, unvan')
+        ]);
+
+        const araclar = aracRes.data || [];
+        const puantaj = pushRes.data || [];
+        const musteriler = musteriRes.data || [];
+
+        const musteriMap = {};
+        musteriler.forEach(ms => { musteriMap[ms.id] = (ms.unvan || ms.ad); });
+
+        const pMap = {};
+        puantaj.forEach(p => {
+             if (!p.tarih) return;
+             const day = parseInt(p.tarih.split('-')[2], 10);
+             if (!pMap[p.arac_id]) pMap[p.arac_id] = {};
+             if (!pMap[p.arac_id][day]) pMap[p.arac_id][day] = {v:0, t:0, cs: []};
+             
+             pMap[p.arac_id][day].v += (parseFloat(p.vardiya) || 0);
+             pMap[p.arac_id][day].t += (parseFloat(p.tek) || 0);
+             if (p.musteri_id && musteriMap[p.musteri_id]) {
+                 pMap[p.arac_id][day].cs.push(musteriMap[p.musteri_id]);
+             }
+        });
+
+        let html = '<div class="flex border-b border-white/10 bg-[#0d0f11] sticky top-0 z-20 w-fit min-w-full shadow-2xl">';
+        html += '<div class="w-40 flex-shrink-0 p-3 font-bold text-xs text-gray-500 uppercase tracking-widest sticky left-0 bg-[#0d0f11] z-30 border-r border-white/10">PLAKA</div>';
+        for (let i=1; i<=daysInMonth; i++) {
+            html += `<div class="w-8 flex-shrink-0 p-2 text-center font-bold text-xs text-gray-500 border-r border-white/5 flex items-center justify-center">${i}</div>`;
+        }
+        html += '</div>';
+
+        araclar.forEach(a => {
+            html += `<div class="flex border-b border-white/5 hover:bg-white/5 transition-colors w-fit min-w-full group">`;
+            html += `<div class="w-40 flex-shrink-0 px-3 py-2 font-bold text-sm text-white sticky left-0 bg-[#0d0f11] z-10 border-r border-white/10 whitespace-nowrap overflow-hidden text-ellipsis group-hover:bg-[#15181c] transition-colors leading-tight">
+                        ${a.plaka}
+                        <div class="text-[9px] text-gray-600 block mt-0.5">${a.mulkiyet_durumu||'-'}</div>
+                    </div>`;
+            
+            for (let i=1; i<=daysInMonth; i++) {
+                const dayData = (pMap[a.id] && pMap[a.id][i]) ? pMap[a.id][i] : null;
+                
+                if (dayData) {
+                    let bg = 'bg-transparent';
+                    if (dayData.v > 0) bg = 'bg-blue-500/20 border-blue-500/50 text-blue-400';
+                    else if (dayData.t > 0) bg = 'bg-orange-500/20 border-orange-500/50 text-orange-400';
+                    
+                    const customers = Array.from(new Set(dayData.cs)).join(', ') || 'Bilinmeyen Müşteri';
+                    const tipText = `${i} ${new Date(y, m-1, i).toLocaleDateString('tr-TR',{month:'long'})} | ${customers}`;
+                    
+                    html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-0.5 relative cursor-pointer group/cell" title="${tipText}">
+                        <div class="w-full h-full rounded ${bg} border border-transparent hover:border-current flex items-center justify-center text-[10px] font-black transition-all">${dayData.v>0?'V':(dayData.t>0?'T':'')}</div>
+                    </div>`;
+                } else {
+                    html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-1 relative">
+                        <div class="w-full h-full rounded-sm border border-transparent group-hover:border-white/5 transition-all cursor-pointer" title="Boşta"></div>
+                    </div>`;
+                }
+            }
+            html += `</div>`;
+        });
+
+        if (araclar.length === 0) {
+            html += `<div class="p-8 text-center text-gray-500">Sistemde kayıtlı araç yok.</div>`;
+        }
+
+        grid.innerHTML = html;
+    } catch (e) {
+        console.error('[fetchTakvim]', e);
+        grid.innerHTML = `<div class="p-8 text-center text-red-500">Takvim yüklenemedi: ${e.message}</div>`;
+    }
+};
