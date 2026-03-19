@@ -274,7 +274,7 @@
             supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
             supabase.from('musteriler').select('id, ad'),
             supabase.from('musteri_servis_puantaj').select('tarih, arac_id, musteri_id'),
-            supabase.from('musteri_araclari').select('musteri_id, arac_id')
+            supabase.from('musteri_arac_tanimlari').select('musteri_id, arac_id')
         ]);
 
         if (aracRes.error)   throw new Error('Araç listesi alınamadı: ' + aracRes.error.message);
