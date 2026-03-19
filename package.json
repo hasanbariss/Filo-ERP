@@ -5,13 +5,13 @@
   "main": "main.js",
   "author": "IDEOL",
   "license": "MIT",
-"scripts": {
-  "start": "electron .",
-  "test": "electron .",
-  "build": "echo 'No build step needed'", 
-  "build-win": "electron-builder --win --x64",
-  "build-portable": "electron-builder --win portable --x64"
-},
+  "scripts": {
+    "start": "electron .",
+    "test": "electron .",
+    "build": "echo 'No build step needed'",
+    "build-win": "electron-builder --win --x64",
+    "build-portable": "electron-builder --win portable --x64"
+  },
   "build": {
     "appId": "com.ideol.filoerpm",
     "productName": "Filo Yönetim Merkezi",
@@ -57,6 +57,8 @@
     "electron-builder": "^25.0.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.98.0"
+    "@supabase/supabase-js": "^2.98.0",
+    "exceljs": "^4.4.0",
+    "xlsx": "^0.18.5"
   }
 }

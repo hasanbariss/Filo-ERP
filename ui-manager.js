@@ -325,7 +325,7 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
         else if (tabName === 'bakim') fetchBakimlar();
         else if (tabName === 'police') fetchPoliceler();
         else if (tabName === 'taksitler') fetchTaksitler();
-        else if (tabName === 'maaslar') fetchSoforMaaslar();
+        else if (tabName === 'maaslar') fetchMaaslar();
         else if (tabName === 'kredi-kartlari') fetchKrediKartlari();
     }
 }

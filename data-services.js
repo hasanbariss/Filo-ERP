@@ -4193,6 +4193,84 @@ window.fetchCariDetails = async function (cariId) {
     }
 }
 
+// === PERSONEL MAAŞ & BORDRO (YENİ) ===
+window.fetchMaaslar = async function () {
+    const tbody = document.getElementById('maaslar-tbody');
+    if (!tbody) return;
+    if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+
+    try {
+        const [soforlerRes, finansRes] = await Promise.all([
+            window.supabaseClient.from('soforler').select('id, ad_soyad, aylik_maas').order('ad_soyad'),
+            window.supabaseClient.from('sofor_finans').select('*')
+        ]);
+
+        if (soforlerRes.error) throw soforlerRes.error;
+        if (finansRes.error) throw finansRes.error;
+
+        const soforler = soforlerRes.data || [];
+        const finans = finansRes.data || [];
+
+        tbody.innerHTML = '';
+        if (soforler.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Personel bulunamadı.</td></tr>`;
+            return;
+        }
+
+        soforler.forEach(s => {
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
+
+            const maas = Number(s.aylik_maas || 0);
+            
+            let toplamOdenen = 0;
+            let toplamKesinti = 0;
+            let netHakedis = 0;
+
+            const islemler = (finans || []).filter(f => f.sofor_id === s.id);
+            islemler.forEach(f => {
+                const tur = (f.islem_turu || '').toUpperCase();
+                const tutar = Number(f.tutar || 0);
+                if (tur.includes('AVANS') || tur.includes('MAAŞ') || tur.includes('ÖDEME')) {
+                    toplamOdenen += tutar;
+                } else if (tur.includes('KESİNTİ') || tur.includes('CEZA')) {
+                    toplamKesinti += tutar;
+                } else if (tur.includes('PRİM') || tur.includes('HARCIRAH')) {
+                    netHakedis += tutar;
+                }
+            });
+
+            const toplamHakedis = maas + netHakedis;
+            const kalanBakiye = toplamHakedis - toplamOdenen - toplamKesinti;
+
+            const bakiyeRenk = kalanBakiye >= 0 ? 'text-green-400' : 'text-red-400';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-gray-200">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold">
+                            ${(s.ad_soyad || 'A').charAt(0).toUpperCase()}
+                        </div>
+                        ${s.ad_soyad}
+                    </div>
+                </td>
+                <td class="px-6 py-4 font-bold text-gray-300">
+                    <div class="text-[10px] text-gray-500 font-normal uppercase tracking-widest block mb-0.5">Sbt: ${maas.toLocaleString('tr-TR')} ₺</div>
+                    ${netHakedis > 0 ? '<span class="text-green-400 text-xs">+' + netHakedis.toLocaleString('tr-TR') + ' ₺ (Ek)</span>' : '<span class="text-gray-600 text-xs">+0 ₺ (Ek)</span>'}
+                </td>
+                <td class="px-6 py-4 text-orange-400 font-bold">${toplamOdenen.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
+                <td class="px-6 py-4 text-red-400 font-bold">${toplamKesinti.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
+                <td class="px-6 py-4 text-right font-black ${bakiyeRenk} text-lg tracking-tight">${kalanBakiye.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (e) {
+        console.error("fetchMaaslar hatası:", e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Maaş/Bordro verileri yüklenirken hata oluştu.</td></tr>';
+    }
+}
+
 // === KREDİ KARTLARI (KART CARİSİ) (YENİ) ===
 window.fetchKrediKartlari = async function () {
     const tbody = document.getElementById('kredi-kartlari-tbody');
@@ -5142,7 +5220,7 @@ window.fetchTakvim = async function() {
 
         // MÜŞTERİ (FABRİKA) GRUPLARINI ÇİZ
         for (const [mid, aracMap] of Object.entries(musteriMatrix)) {
-            const mUnvan = musteriMap[mid] || (mid === 'diger' ? 'Serbest / Diğer Seferler' : 'Bilinmeyen Fabrika');
+            const mUnvan = musteriMap[mid] || (mid === 'diger' ? 'Serbest / Diğer Seferler' : 'Kayıt Dışı Fabrika');
             
             // Fabrika Header Satırı
             html += `<div class="flex sticky left-0 w-fit min-w-full bg-[#1b120c] border-y border-orange-500/20 group">`;
