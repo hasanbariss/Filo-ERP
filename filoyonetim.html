@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -80,6 +80,17 @@
     <!-- Leaflet Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- === PWA META TAGS === -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#3b82f6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Filo ERP">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/3045/3045501.png">
+
+    <!-- === DOMPurify (XSS KorumasÄ±) === -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 </head>
 
 <body class="selection:bg-orange-500 selection:text-white">
@@ -2207,7 +2218,7 @@
 <nav class="mobile-bottom-nav" id="mobile-nav">
     <button class="nav-item active" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-dashboard]').click();">
         <i data-lucide="layout-dashboard"></i>
-        <span>�zet</span>
+        <span>�zet</span>
     </button>
     <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-puantaj]').click();">
         <i data-lucide="calendar-clock"></i>
@@ -2253,6 +2264,46 @@
     </div>
 </div>
 
+
+    <!-- === FILO-ERP UTILITY SCRIPTS === -->
+    <!-- Cache Manager (Supabase quota korumasÄ±) -->
+    <script src="cache-manager.js"></script>
+    <!-- Toast Manager (alert() yerine) -->
+    <script src="toast-manager.js"></script>
+    <!-- Keyboard Shortcuts (Desktop UX) -->
+    <script src="keyboard-shortcuts.js"></script>
+    <!-- Swipe Gestures + Pull-to-Refresh (Mobile UX) -->
+    <script src="swipe-gestures.js"></script>
+
+    <!-- === SERVICE WORKER KAYDI (PWA Offline) === -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(reg) { window.log && window.log('[SW] KayÄ±tlÄ±:', reg.scope); })
+                    .catch(function(err) { console.warn('[SW] KayÄ±t baÅŸarÄ±sÄ±z:', err); });
+            });
+        }
+    </script>
+
+    <!-- === showSkeletonCards helper === -->
+    <script>
+        window.showSkeletonCards = function(containerId, count) {
+            count = count || 3;
+            var container = document.getElementById(containerId);
+            if (!container) return;
+            var html = '';
+            for (var i = 0; i < count; i++) {
+                html += '<div class="skeleton skeleton-card">' +
+                    '<div class="skeleton skeleton-title"></div>' +
+                    '<div class="skeleton skeleton-text"></div>' +
+                    '<div class="skeleton skeleton-text" style="width:70%"></div>' +
+                    '<div class="skeleton skeleton-text-sm"></div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
+        };
+    </script>
 </body>
 
 </html>

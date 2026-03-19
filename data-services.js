@@ -15,23 +15,40 @@ window.checkSupabaseConnection = function () {
 window.showGlobalError = function (containerId, message) {
     const el = document.getElementById(containerId);
     if (el) {
-        el.innerHTML = `
-            <div class="col-span-full py-12 text-center">
-                <div class="inline-flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 mb-2">
-                    <i data-lucide="alert-circle" class="w-5 h-5"></i>
-                    <span class="font-bold">Bağlantı Hatası</span>
-                </div>
-                <p class="text-sm text-gray-400 max-w-sm mx-auto">${message}</p>
-                <button onclick="location.reload()" class="mt-4 text-xs underline text-gray-500 hover:text-white transition-all">Tekrar Dene</button>
-            </div>
-        `;
+        // XSS Safe: user-visible data via textContent, not innerHTML interpolation
+        const wrapper = document.createElement('div');
+        wrapper.className = 'col-span-full py-12 text-center';
+
+        const badge = document.createElement('div');
+        badge.className = 'inline-flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 mb-2';
+        badge.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i><span class="font-bold">Bağlantı Hatası</span>';
+
+        const p = document.createElement('p');
+        p.className = 'text-sm text-gray-400 max-w-sm mx-auto';
+        p.textContent = message; // XSS safe
+
+        const btn = document.createElement('button');
+        btn.className = 'mt-4 text-xs underline text-gray-500 hover:text-white transition-all';
+        btn.textContent = 'Tekrar Dene';
+        btn.addEventListener('click', function() { location.reload(); });
+
+        wrapper.appendChild(badge);
+        wrapper.appendChild(p);
+        wrapper.appendChild(btn);
+        el.innerHTML = '';
+        el.appendChild(wrapper);
+
         if (window.lucide) window.lucide.createIcons();
     }
 };
 
 window.uploadDosya = async function (file, folder = 'common') {
     const conn = window.checkSupabaseConnection();
-    if (!conn.ok) { alert(conn.msg); return null; }
+    if (!conn.ok) {
+        if (window.Toast) { window.Toast.error(conn.msg); }
+        else { alert(conn.msg); }
+        return null;
+    }
     if (!file) return null;
     const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
     const { data, error } = await window.supabaseClient.storage.from('filo-erp').upload(`${folder}/${fileName}`, file);
@@ -743,7 +760,14 @@ window.saveDataAndClose = async function (event) {
         if (error.details) message += ` | Detay: ${error.details}`;
         if (error.hint) message += ` | İpucu: ${error.hint}`;
 
-        errBox.innerHTML = `⚠ Kayıt başarısız: <span style="font-weight:400">${message}</span>`;
+        // XSS Safe: textContent yerine DOM API kullan
+        errBox.textContent = '';
+        const warnIcon = document.createTextNode('⚠ Kayıt başarısız: ');
+        const msgSpan = document.createElement('span');
+        msgSpan.style.fontWeight = '400';
+        msgSpan.textContent = message; // user data → textContent, never innerHTML
+        errBox.appendChild(warnIcon);
+        errBox.appendChild(msgSpan);
         errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } finally {
         btn.innerHTML = originalHTML;
@@ -783,12 +807,14 @@ window.deleteRecord = async function (tableName, id, fetchFunctionName) {
                 throw error;
             }
 
-            alert("Kayıt başarıyla silindi.");
+            if (window.Toast) { window.Toast.success('Kayıt başarıyla silindi.'); }
+            else { alert("Kayıt başarıyla silindi."); }
             if (typeof window[fetchFunctionName] === 'function') window[fetchFunctionName]();
             if (typeof window.refreshAllModules === 'function' && fetchFunctionName !== 'refreshAllModules') window.refreshAllModules();
         } catch (error) {
             console.error("[SİLME] Hata:", error);
-            alert("Silme hatası: " + error.message);
+            if (window.Toast) { window.Toast.error('Silme hatası: ' + error.message); }
+            else { alert("Silme hatası: " + error.message); }
         } finally {
             if (btn) {
                 btn.innerHTML = originalHTML;

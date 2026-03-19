@@ -892,3 +892,76 @@ body.mobile-preview-mode .top-bar {
         padding: 20px 12px;
     }
 }
+
+/* =====================================================
+   SKELETON LOADING — UX İyileştirmesi
+   Veriler yüklenirken shimmer animasyonu gösterir
+   ===================================================== */
+@keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        hsl(var(--bg-card)) 25%,
+        hsl(var(--bg-card-hover)) 50%,
+        hsl(var(--bg-card)) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: 8px;
+    color: transparent !important;
+    pointer-events: none;
+    user-select: none;
+}
+
+.skeleton-card {
+    padding: 16px;
+    margin-bottom: 8px;
+    border-radius: 16px;
+    min-height: 90px;
+}
+
+.skeleton-title {
+    height: 18px;
+    width: 55%;
+    margin-bottom: 12px;
+    border-radius: 6px;
+}
+
+.skeleton-text {
+    height: 12px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+.skeleton-text-sm {
+    height: 10px;
+    width: 40%;
+    border-radius: 4px;
+}
+
+/* Improved bottom nav active indicator */
+@media (max-width: 768px) {
+    .nav-item.active {
+        color: #3b82f6 !important;
+    }
+
+    .nav-item.active i {
+        color: #3b82f6 !important;
+        filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6)) !important;
+        transform: translateY(-2px);
+    }
+}
+
+/* Field validation error display */
+.field-error {
+    color: #f87171;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-top: 4px;
+    display: block;
+}
+
