@@ -934,7 +934,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         let query = window.supabaseClient
             .from('araclar')
-            .select('*, soforler(ad_soyad)')
+            .select('*')
             .order('id', { ascending: false });
 
         // Mulkiyet/Belge Filtresi
@@ -958,7 +958,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         // EĞER "belge_turu" sütunu SUPEBASE'de henüz yoksa (PGRST204: column does not exist) ve filtre d2/d4s değilse
         if (error && error.message && typeof error.message === 'string' && error.message.includes("belge_turu does not exist")) {
             console.warn("Supabase tablosunda 'belge_turu' sütunu henüz oluşturulmadığı için esnek sorguya (fallback) geçiliyor...");
-            let fallbackQuery = window.supabaseClient.from('araclar').select('*, soforler(ad_soyad)').order('id', { ascending: false });
+            let fallbackQuery = window.supabaseClient.from('araclar').select('*').order('id', { ascending: false });
             if (mulkiyetFilter && mulkiyetFilter !== 'hepsi' && mulkiyetFilter !== 'D2' && mulkiyetFilter !== 'D4S') {
                 fallbackQuery = fallbackQuery.eq('mulkiyet_durumu', mulkiyetFilter);
             }
@@ -973,6 +973,11 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         }
 
         if (error) throw error;
+
+        // Fetch driver names manually to avoid Supabase join errors
+        const { data: tumSoforler } = await window.supabaseClient.from('soforler').select('id, ad_soyad');
+        const soforMap = {};
+        if (tumSoforler) tumSoforler.forEach(s => soforMap[s.id] = s.ad_soyad);
 
         // Tabloyu temizle
         if (grid) grid.innerHTML = '';
@@ -1097,7 +1102,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const plaka = arac.plaka || 'Bilinmiyor';
             const marka = arac.marka_model || 'Bilinmiyor';
             const mulkiyet = arac.mulkiyet_durumu || 'ÖZMAL';
-            const sofor = arac.soforler ? arac.soforler.ad_soyad : '<span class="text-gray-400 italic">Atanmamış</span>';
+            const sofor = arac.sofor_id && soforMap[arac.sofor_id] ? soforMap[arac.sofor_id] : '<span class="text-gray-400 italic">Atanmamış</span>';
 
             const vizeHtml = getStatusHtml(arac.vize_bitis, 'Vize', arac.id);
             const sigortaHtml = getStatusHtml(arac.sigorta_bitis, 'Sigorta', arac.id);
@@ -1414,11 +1419,18 @@ window.openAracDetay = async function(aracId) {
     try {
         const { data: a, error } = await window.supabaseClient
             .from('araclar')
-            .select('*, soforler(ad_soyad, telefon)')
+            .select('*')
             .eq('id', aracId)
             .single();
 
         if (error || !a) { overlay.remove(); return; }
+
+        if (a.sofor_id) {
+            const { data: sof } = await window.supabaseClient.from('soforler').select('ad_soyad, telefon').eq('id', a.sofor_id).maybeSingle();
+            a.soforler = sof || null;
+        } else {
+            a.soforler = null;
+        }
 
         const fmt = (d) => d ? new Date(d).toLocaleDateString('tr-TR') : '—';
         const today = new Date();
@@ -1685,9 +1697,9 @@ window.openSoforDetay = async function(soforId, ev) {
                 <div class="text-sm text-gray-300">${s.adres}</div>
             </div>` : ''}
             <div class="flex gap-2 pt-2 border-t border-white/5">
-                <button onclick="document.getElementById('sofor-detay-overlay').remove(); openModal('ŞOför Güncelle','${soforId}')"
+                <button onclick="document.getElementById('sofor-detay-overlay').remove(); openModal('Şoför Güncelle','${soforId}')"
                     class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <i data-lucide="edit-2" class="w-4 h-4"></i>ŞOför Düzenle
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>Şoför Düzenle
                 </button>
                 ${s.telefon ? `<a href="https://wa.me/90${s.telefon.replace(/\\D/g,'')}?text=Merhaba%20${encodeURIComponent(s.ad_soyad.split(' ')[0])}" target="_blank"
                     class="flex-1 py-3 text-[10px] font-bold bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
@@ -1728,6 +1740,13 @@ async function fetchSoforler(sirketFilter) {
 
         const { data: soforler, error } = await query;
         if (error) throw error;
+
+        // Prepare assigned vehicles manually (without Postgrest relation)
+        const { data: atananAraclar } = await window.supabaseClient.from('araclar').select('sofor_id, plaka').not('sofor_id', 'is', null);
+        const aracMap = {};
+        if (atananAraclar) {
+            atananAraclar.forEach(a => { if(a.sofor_id) aracMap[a.sofor_id] = a.plaka; });
+        }
 
         if (grid) grid.innerHTML = '';
         if (listBody) listBody.innerHTML = '';
@@ -1778,6 +1797,10 @@ async function fetchSoforler(sirketFilter) {
                         </div>
 
                         <div class="space-y-3 mb-4">
+                            <div class="flex justify-between items-center bg-black/20 p-2 rounded-lg mb-2 border border-white/5">
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="truck" class="w-3 h-3"></i>Atanan Araç</span>
+                                <span class="text-xs font-bold text-white">${aracMap[sofor.id] || '<span class="text-gray-600 italic font-medium">Bilinmiyor/Yok</span>'}</span>
+                            </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i>Telefon</span>
                                 <span class="text-xs font-semibold text-gray-300">${sofor.telefon || '—'}</span>
