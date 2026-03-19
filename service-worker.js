@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.1';
+var CACHE_NAME = 'filo-erp-v1.0.2';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
@@ -60,28 +60,9 @@ self.addEventListener('fetch', function (event) {
     // POST / non-GET istekler → her zaman network
     if (event.request.method !== 'GET') return;
 
-    // Supabase API → Network First (cache fallback için offline destek)
+    // Supabase API → Doğrudan Network (Asla cache'lenmez, canlı data şart)
     if (url.hostname.includes('supabase.co')) {
-        event.respondWith(
-            fetch(event.request.clone())
-                .then(function (response) {
-                    if (response && response.status === 200) {
-                        var cloned = response.clone();
-                        caches.open(CACHE_NAME).then(function (cache) {
-                            cache.put(event.request, cloned);
-                        });
-                    }
-                    return response;
-                })
-                .catch(function () {
-                    return caches.match(event.request).then(function (cached) {
-                        return cached || new Response(
-                            JSON.stringify({ error: 'Offline - cached data not available' }),
-                            { headers: { 'Content-Type': 'application/json' } }
-                        );
-                    });
-                })
-        );
+        event.respondWith(fetch(event.request));
         return;
     }
 
@@ -96,7 +77,7 @@ self.addEventListener('fetch', function (event) {
         return;
     }
 
-    // Kendi statik dosyaları → Network First, Fallback to Cache
+    // Kendi statik dosyaları → Network First, hiç yoksa Cache
     event.respondWith(
         fetch(event.request)
             .then(function (response) {
