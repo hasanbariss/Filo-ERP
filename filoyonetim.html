@@ -1786,6 +1786,23 @@
                     </div>
 
                     <!-- Personel Maaş & Bordro -->
+                    <div id="content-maaslar" class="hidden p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <h3 class="text-lg font-bold">Personel Maaş &amp; Finansal Durum</h3>
+                            <button onclick="openModal('Yeni Finans İşlemi')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Yeni Ödeme / Avans
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Personel (Şoför) Adı</th>
+                                        <th>Aylık Maaş (₺)</th>
+                                        <th>Ödenen Toplam (₺)</th>
+                                        <th>Kesintiler (₺)</th>
+                                        <th class="text-right">Kalan Bakiye (₺)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="maaslar-tbody">
@@ -1830,19 +1847,8 @@
                                 </tbody>
                             </table>
                         </div>
-                                        <th class="text-right">Ä°ÅŸlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="kredi-kartlari-tbody">
-                                    <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yÃ¼kleniyor...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
-            </div>
             </div>
                         <!-- 6. RAPORLAR MODULU -->
             <div id="module-raporlar" class="main-module hidden stagger-in">
