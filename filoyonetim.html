@@ -1243,6 +1243,70 @@
                             </table>
                         </div>
                     </div>
+                    
+                    <!-- Personel Maaş & Bordro -->
+                    <div id="content-maaslar" class="hidden p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <h3 class="text-lg font-bold">Personel Maaş & Finansal Durum</h3>
+                            <button onclick="openModal('Yeni Finans İşlemi')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                                Yeni Ödeme / Avans
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Personel (Şoför) Adı</th>
+                                        <th>Aylık Maaş / Sabit Düzey (₺)</th>
+                                        <th>Ödenen (Avans+Maaş) (₺)</th>
+                                        <th>Kesintiler / Cezalar (₺)</th>
+                                        <th class="text-right">Kalan Kümülatif Bakiye (₺)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="maaslar-tbody">
+                                    <tr>
+                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Kredi Kartları -->
+                    <div id="content-kredi-kartlari" class="hidden p-6">
+                        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                            <h3 class="text-lg font-bold">Şirket Kredi Kartları</h3>
+                            <div class="flex gap-2">
+                                <button onclick="openModal('Yeni Kart İşlemi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2">
+                                    <i data-lucide="receipt" class="w-4 h-4"></i>
+                                    Harcama Ekle
+                                </button>
+                                <button onclick="openModal('Yeni Kredi Kartı')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                                    <i data-lucide="credit-card" class="w-4 h-4"></i>
+                                    Kart Ekle
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Kart Adı / Banka</th>
+                                        <th>Toplam Limit (₺)</th>
+                                        <th>Kullanılan Toplam Tutar (₺)</th>
+                                        <th>Kullanılabilir Limit (₺)</th>
+                                        <th class="text-right">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="kredi-kartlari-tbody">
+                                    <tr>
+                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler yükleniyor...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="module-finans" class="main-module hidden stagger-in">
