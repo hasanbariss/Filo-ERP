@@ -458,9 +458,6 @@
                     tarih:      row.tarih,
                     vardiya:    row.vardiya,
                     tek:        row.tek,
-                    guzergah:   row.guzergah,
-                    giris_saati: row.giris_saati,
-                    cikis_saati: row.cikis_saati,
                     gunluk_ucret: 0
                 };
                 if (row.existing_id) {
