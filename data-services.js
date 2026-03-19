@@ -516,9 +516,14 @@ window.saveDataAndClose = async function (event) {
                 const updatePayload = {};
                 if (!arac || bakim_km > (arac.guncel_km || 0)) updatePayload.guncel_km = bakim_km;
                 const islemTuruLower = islem_turu?.toLowerCase() || '';
-                if (islem_turu.trim() === 'Yağ Değişimi' || islem_turu.trim() === 'Periyodik Bakım') {
+                if (
+                    islem_turu.trim() === 'Yağ Değişimi' ||
+                    islem_turu.trim() === 'Periyodik Bakım' ||
+                    islem_turu.trim() === '10.000 Yağ' ||
+                    islemTuruLower.includes('yağ') ||
+                    islemTuruLower.includes('yag')
+                ) {
                     updatePayload.son_yag_km = bakim_km;
-                    // son_yag_tarihi kolonu DB'de olmayabilir, sadece km güncelliyoruz
                 }
                 if (Object.keys(updatePayload).length > 0) {
                     await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
@@ -1303,7 +1308,7 @@ window.openAracDetay = async function(aracId) {
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
             <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-orange-500/10 rounded-xl text-orange-500">
@@ -1399,6 +1404,15 @@ window.openAracDetay = async function(aracId) {
                 <div class="h-16 bg-white/5 rounded-xl animate-pulse"></div>
             </div>
 
+            <div class="mt-4 border-t border-white/10 pt-4">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-3 font-bold flex items-center gap-1.5">
+                    <i data-lucide="book-open" class="w-3 h-3"></i> ARAÇ CARİ KARTI
+                </div>
+                <div id="arac-cari-section">
+                    <div class="h-12 bg-white/5 rounded-xl animate-pulse"></div>
+                </div>
+            </div>
+
             <div class="flex gap-2 pt-2 border-t border-white/5">
                 <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Evrak Güncelle','${aracId}')"
                     class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
@@ -1414,6 +1428,9 @@ window.openAracDetay = async function(aracId) {
         
         // P&L datalarını asenkron yükle
         window.loadAracPL(aracId);
+        
+        // Araç Cari Kartı (Bakım + Yakıt geçmişini) asenkron yükle
+        window.loadAracCariKarti(aracId);
 
         if (window.lucide) window.lucide.createIcons();
     } catch(e) {
