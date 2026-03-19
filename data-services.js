@@ -1196,6 +1196,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                             ${vizeHtml}
                             ${sigortaHtml}
                             ${kaskoHtml}
+                            ${koltukHtml}
                         </div>
                     </td>
                     <td class="p-4 border-b border-white/5 text-right w-32">

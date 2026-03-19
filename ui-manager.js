@@ -2062,7 +2062,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const activeModule = document.querySelector('.main-module.block');
             if (!activeModule) return;
 
-            const rows = activeModule.querySelectorAll('tbody tr');
+            const rows = activeModule.querySelectorAll('tbody tr, div[id*="-grid"] > div');
             rows.forEach(row => {
                 const text = row.innerText.toLowerCase();
                 row.style.display = text.includes(term) ? '' : 'none';
