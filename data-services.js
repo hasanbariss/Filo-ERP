@@ -1840,6 +1840,7 @@ async function fetchSoforler(sirketFilter) {
                                     ${sofor.ad_soyad}
                                     ${sirketBadgeHtml}
                                 </div>
+                                <div class="text-[10px] text-orange-400 font-bold whitespace-nowrap mt-0.5"><i data-lucide="truck" class="w-2.5 h-2.5 inline-block mr-0.5"></i>${aracMap[sofor.id] || 'Araç Yok'}</div>
                                 <div class="text-[10px] font-mono text-gray-500 mt-0.5">${sofor.telefon || (sofor.tc_no || 'Tel/TC Yok')}</div>
                             </div>
                         </div>
@@ -5417,7 +5418,7 @@ window.fetchTakvim = async function() {
         const [aracRes, pushRes, musteriRes] = await Promise.all([
             window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu').order('plaka'),
             window.supabaseClient.from('musteri_servis_puantaj').select('arac_id, musteri_id, tarih, vardiya, tek').gte('tarih', startStr).lte('tarih', endStr),
-            window.supabaseClient.from('musteriler').select('id, ad, unvan')
+            window.supabaseClient.from('cariler').select('id, unvan')
         ]);
 
         const araclar = aracRes.data || [];
@@ -5425,7 +5426,7 @@ window.fetchTakvim = async function() {
         const musteriler = musteriRes.data || [];
 
         const musteriMap = {};
-        musteriler.forEach(ms => { musteriMap[ms.id] = (ms.unvan || ms.ad); });
+        musteriler.forEach(ms => { musteriMap[ms.id] = ms.unvan || 'İsimsiz Cari'; });
         const aracLookup = {};
         araclar.forEach(a => { aracLookup[a.id] = a; });
 
