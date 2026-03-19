@@ -712,7 +712,7 @@ window.openModal = function (title, id = null, extra = null) {
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Poliçe Türü *</label>
                         <select id="teklif-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="Trafik Sigortası">Trafik Sigortası</option>
+                            <option value="Trafik">Trafik Sigortası</option>
                             <option value="Kasko">Kasko</option>
                             <option value="Koltuk Sigortası">Koltuk Sigortası</option>
                             <option value="Diğer">Diğer</option>
@@ -1351,7 +1351,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Poliçe Türü</label>
                                 <select id="police-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="Trafik Sigortası">Trafik Sigortası</option>
+                                    <option value="Trafik">Trafik Sigortası</option>
                                     <option value="Kasko">Kasko</option>
                                     <option value="İhtiyari Mali Mesuliyet">İMM</option>
                                 </select>

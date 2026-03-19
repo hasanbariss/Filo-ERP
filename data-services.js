@@ -585,7 +585,7 @@ window.saveDataAndClose = async function (event) {
             // OTOMATİK ARAÇ GÜNCELLEME: Poliçe türüne göre aracın bitiş tarihini güncelle
             const updateData = {};
             // String eşleşmesini garantilemek için .trim() kullanıyoruz
-            if (police_turu.trim() === 'Trafik Sigortası') updateData.sigorta_bitis = bitis_tarihi;
+            if (police_turu.trim() === 'Trafik' || police_turu.trim() === 'Trafik Sigortası') updateData.sigorta_bitis = bitis_tarihi;
             else if (police_turu.trim() === 'Kasko') updateData.kasko_bitis = bitis_tarihi;
 
             if (Object.keys(updateData).length > 0) {
@@ -867,7 +867,7 @@ async function handleCariDeletion(cariId) {
             console.log(`[SİLME-DERİN] ${policeler.length} adet poliçe bulundu, araçlar güncelleniyor...`);
             for (const p of policeler) {
                 const updateData = {};
-                if (p.police_turu && p.police_turu.trim() === 'Trafik Sigortası') updateData.sigorta_bitis = null;
+                if (p.police_turu && (p.police_turu.trim() === 'Trafik' || p.police_turu.trim() === 'Trafik Sigortası')) updateData.sigorta_bitis = null;
                 else if (p.police_turu && p.police_turu.trim() === 'Kasko') updateData.kasko_bitis = null;
 
                 if (Object.keys(updateData).length > 0) {
