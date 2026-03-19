@@ -5414,7 +5414,7 @@ window.fetchTakvim = async function() {
         const [aracRes, pushRes, musteriRes] = await Promise.all([
             window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu').order('plaka'),
             window.supabaseClient.from('musteri_servis_puantaj').select('arac_id, musteri_id, tarih, vardiya, tek').gte('tarih', startStr).lte('tarih', endStr),
-            window.supabaseClient.from('cariler').select('id, unvan')
+            window.supabaseClient.from('musteriler').select('id, ad')
         ]);
 
         const araclar = aracRes.data || [];
@@ -5422,7 +5422,7 @@ window.fetchTakvim = async function() {
         const musteriler = musteriRes.data || [];
 
         const musteriMap = {};
-        musteriler.forEach(ms => { musteriMap[ms.id] = ms.unvan || 'İsimsiz Cari'; });
+        musteriler.forEach(ms => { musteriMap[ms.id] = ms.ad || 'İsimsiz Fabrika'; });
         const aracLookup = {};
         araclar.forEach(a => { aracLookup[a.id] = a; });
 
