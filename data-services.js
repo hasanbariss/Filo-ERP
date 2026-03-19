@@ -322,11 +322,15 @@ window.saveDataAndClose = async function (event) {
             const kasko_bitis = document.getElementById('evrak-kasko').value || null;
             const kasko_dosya_url = document.getElementById('evrak-kasko-url').value || null;
 
+            const koltuk_bitis = document.getElementById('evrak-koltuk')?.value || null;
+            const koltuk_dosya_url = document.getElementById('evrak-koltuk-url')?.value || null;
+
             if (!arac_id) throw new Error("Araç ID bulunamadı.");
             const { error } = await window.supabaseClient.from('araclar').update({
                 vize_bitis, vize_dosya_url,
                 sigorta_bitis, sigorta_dosya_url,
-                kasko_bitis, kasko_dosya_url
+                kasko_bitis, kasko_dosya_url,
+                koltuk_bitis, koltuk_dosya_url
             }).eq('id', arac_id);
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
@@ -345,7 +349,10 @@ window.saveDataAndClose = async function (event) {
                 if (error.code === '23505') throw new Error("Bu araç zaten bu müşteriye tanımlı.");
                 throw error;
             }
-            const excelMusteriSec = document.getElementById('excel-musteri-sec'); if (typeof loadExcelGrid === 'function' && excelMusteriSec && excelMusteriSec.value === musteri_id) {
+            // Auto-refresh müşteri kartı
+            if (typeof fetchMusteriler === 'function') setTimeout(fetchMusteriler, 300);
+            const excelMusteriSec = document.getElementById('excel-musteri-sec');
+            if (typeof loadExcelGrid === 'function' && excelMusteriSec && excelMusteriSec.value === musteri_id) {
                 loadExcelGrid();
             }
         } else if (formTitle === 'Yeni Teklif Ekle' && document.getElementById('teklif-tur')) {
@@ -1109,10 +1116,10 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             // Supabase'den gelen veriye göre modern card oluştur
             if (grid) {
                 const card = document.createElement('div');
-                card.className = "dashboard-card hover:border-orange-500/50 transition-all flex flex-col justify-between p-5";
+                card.className = "dashboard-card hover:border-orange-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer";
 
                 card.innerHTML = `
-                    <div>
+                    <div onclick="window.openAracDetay('${arac.id}')" style="cursor:pointer">
                         <div class="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
                             <div class="flex items-center gap-3">
                                 <div class="p-2.5 bg-orange-500/10 rounded-xl text-orange-500">
@@ -1152,6 +1159,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 `;
                 grid.appendChild(card);
             }
+
 
             if (listBody) {
                 const tr = document.createElement('tr');
@@ -1205,6 +1213,133 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         if (listBody) listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Hata: ${error.message}</td></tr>`;
     }
 }
+
+/* =====================================================
+   ARAÇ DETAY ÖZET MODAL — Karta tıklayınca açılır
+   ===================================================== */
+window.openAracDetay = async function(aracId) {
+    // Eğer butonlara tıklandıysa kart tıklaması tetiklenmesin (event bubling engelleyici)
+    const ev = window.event;
+    if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.closest('button'))) return;
+
+    // Mevcut overlay varsa kaldır
+    const existingOverlay = document.getElementById('arac-detay-overlay');
+    if (existingOverlay) existingOverlay.remove();
+
+    // Yükleme göstergesi
+    const overlay = document.createElement('div');
+    overlay.id = 'arac-detay-overlay';
+    overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
+    overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+    overlay.innerHTML = `
+        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-orange-500/10 rounded-xl text-orange-500">
+                        <i data-lucide="truck" class="w-5 h-5"></i>
+                    </div>
+                    <div id="arac-detay-plaka-header" class="text-lg font-black text-white">Yükleniyor...</div>
+                </div>
+                <button onclick="document.getElementById('arac-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div id="arac-detay-body" class="p-6 space-y-4">
+                <div class="animate-pulse space-y-3">
+                    <div class="h-4 bg-white/10 rounded w-3/4"></div>
+                    <div class="h-4 bg-white/10 rounded w-1/2"></div>
+                    <div class="h-4 bg-white/10 rounded w-2/3"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    if (window.lucide) window.lucide.createIcons();
+
+    try {
+        const { data: a, error } = await window.supabaseClient
+            .from('araclar')
+            .select('*, soforler(ad_soyad)')
+            .eq('id', aracId)
+            .single();
+
+        if (error || !a) { overlay.remove(); return; }
+
+        const fmt = (d) => d ? new Date(d).toLocaleDateString('tr-TR') : '—';
+        const today = new Date();
+        const daysLeft = (d) => {
+            if (!d) return null;
+            return Math.ceil((new Date(d) - today) / 86400000);
+        };
+        const statusBadge = (d, label) => {
+            const dl = daysLeft(d);
+            if (dl === null) return `<span class="px-2 py-0.5 bg-gray-700 text-gray-400 text-[10px] font-bold rounded uppercase">${label}: —</span>`;
+            if (dl < 0) return `<span class="px-2 py-0.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold rounded uppercase">${label}: BİTTİ</span>`;
+            if (dl <= 30) return `<span class="px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-[10px] font-bold rounded uppercase">${label}: ${dl}g</span>`;
+            return `<span class="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold rounded uppercase">${label}: ${fmt(d)}</span>`;
+        };
+
+        document.getElementById('arac-detay-plaka-header').textContent = a.plaka || 'Bilinmiyor';
+        document.getElementById('arac-detay-body').innerHTML = `
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Marka/Model</div>
+                    <div class="font-bold text-white">${a.marka_model || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Mülkiyet</div>
+                    <div class="font-bold text-blue-400">${a.mulkiyet_durumu || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Şoför</div>
+                    <div class="font-bold text-white">${a.soforler?.ad_soyad || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Güncel KM</div>
+                    <div class="font-bold text-orange-400">${a.guncel_km ? a.guncel_km.toLocaleString('tr-TR') + ' km' : '—'}</div>
+                </div>
+                ${a.sirket && a.sirket !== 'Belirtilmemiş' ? `
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
+                    <div class="font-bold text-orange-400">${a.sirket}</div>
+                </div>` : ''}
+                ${a.belge_turu && a.belge_turu !== 'Yok' ? `
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Belge Türü</div>
+                    <div class="font-bold text-purple-400">${a.belge_turu}</div>
+                </div>` : ''}
+            </div>
+
+            <div class="border-t border-white/10 pt-4">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-3 font-bold">Sigorta & Evrak Durumu</div>
+                <div class="flex flex-wrap gap-2">
+                    ${statusBadge(a.vize_bitis, 'Vize')}
+                    ${statusBadge(a.sigorta_bitis, 'Trafik Sig.')}
+                    ${statusBadge(a.kasko_bitis, 'Kasko')}
+                    ${statusBadge(a.koltuk_bitis, 'Koltuk Sig.')}
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t border-white/5">
+                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Evrak Güncelle','${aracId}')"
+                    class="flex-1 py-2.5 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4"></i>Poliçe/Evrak Güncelle
+                </button>
+                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Güncelle','${aracId}')"
+                    class="flex-1 py-2.5 text-xs font-bold bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>Araç Düzenle
+                </button>
+            </div>
+        `;
+        if (window.lucide) window.lucide.createIcons();
+    } catch(e) {
+        console.error('[ARAÇ DETAY]', e);
+        overlay.remove();
+    }
+};
+
+
 
 
 async function fetchTaseronlar() {
@@ -1831,6 +1966,143 @@ window.loadExcelMusteriler = async function () {
     } catch (err) { console.error(err); }
 };
 
+// ============================================
+// TOPLU ARAÇ EKLEME
+// ============================================
+window.openTopluAracEkle = function (musteriId, musteriAdi) {
+    // If we have an existing openTopluAracModal, clear its state
+    const overlay = document.createElement('div');
+    overlay.id = "toplu-arac-modal-overlay";
+    overlay.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-20 pb-20";
+    
+    // We fetch araclar here directly
+    overlay.innerHTML = `
+        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
+                <div>
+                    <h2 class="text-lg font-black text-white uppercase tracking-wider">Toplu Araç Tanımlama</h2>
+                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisine/Fabrikasına Araç Ata</p>
+                </div>
+                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Üst Kontroller -->
+                <div class="flex gap-4 mb-6">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Varsayılan Tarife Türü</label>
+                        <select id="toplu-tarife-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
+                            <option value="Vardiya">Vardiya (Aylık/Günlük Sabit)</option>
+                            <option value="Tek">Tek Sefer (Tur Başı)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Araç Seçim Listesi -->
+                <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
+                    <div class="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Araç Kayıtları</h3>
+                        <div class="flex gap-3 text-[10px] font-bold">
+                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">Tümünü Seç</button>
+                            <span class="text-gray-600">|</span>
+                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=false)" class="text-gray-500 hover:text-gray-400">Temizle</button>
+                        </div>
+                    </div>
+                    
+                    <div class="max-h-[400px] overflow-y-auto p-4 custom-scrollbar" id="toplu-arac-list">
+                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">Araçlar yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
+                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
+                <button onclick="kaydetTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white font-black text-sm shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    Seçili Araçları Kaydet
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    if(window.lucide) window.lucide.createIcons();
+
+    // Fetch araclar list
+    window.supabaseClient.from('araclar').select('id, plaka, marka_model, mulkiyet_durumu').order('plaka').then(res => {
+        const listDiv = document.getElementById('toplu-arac-list');
+        if(!listDiv) return;
+        
+        if(res.error || !res.data || res.data.length === 0) {
+            listDiv.innerHTML = '<div class="text-center p-8 text-red-400 text-sm">Araç bilgileri alınamadı.</div>';
+            return;
+        }
+
+        const araclar = res.data;
+        listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + araclar.map(a => `
+            <label class="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-white/20 bg-white/5 cursor-pointer transition-colors group">
+                <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-orange-500 focus:ring-orange-500/50 focus:ring-offset-gray-900" value="${a.id}">
+                <div>
+                    <div class="font-bold text-white text-sm">${a.plaka}</div>
+                    <div class="text-[10px] text-gray-500 uppercase">${a.marka_model||'-'} <span class="opacity-50">(${a.mulkiyet_durumu})</span></div>
+                </div>
+            </label>
+        `).join('') + '</div>';
+    });
+};
+
+window.kaydetTopluAraclar = async function(musteriId) {
+    const checked = Array.from(document.querySelectorAll('.toplu-arac-cb:checked')).map(cb => cb.value);
+    if(checked.length === 0) {
+        if(window.Toast) window.Toast.error("Lütfen en az bir araç seçin.");
+        else alert("Lütfen en az bir araç seçin.");
+        return;
+    }
+
+    const tur = document.getElementById('toplu-tarife-tur').value;
+    const btn = event.currentTarget;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Kaydediliyor...';
+    btn.disabled = true;
+
+    try {
+        const payload = checked.map(aracId => ({
+            musteri_id: musteriId,
+            arac_id: aracId,
+            tarife_turu: tur,
+            tek_fiyat: 0,
+            vardiya_fiyat: 0
+        }));
+
+        // Upsert format might fail on duplicate, so standard insert with ignore duplicates is better.
+        // We do insert with onConflict not supported easily in pure js client w/o setup, so we handle standard error or check first
+        // Simple approach: try to insert all, if fails, tell user some might be duplicates, but supabase bulk insert fails completely if 1 dup.
+        // Let's get existing first
+        const { data: existing } = await window.supabaseClient.from('musteri_arac_tanimlari').select('arac_id').eq('musteri_id', musteriId);
+        const existingIds = (existing||[]).map(e => e.arac_id);
+        
+        const toInsert = payload.filter(p => !existingIds.includes(p.arac_id));
+        
+        if(toInsert.length > 0) {
+            const { error } = await window.supabaseClient.from('musteri_arac_tanimlari').insert(toInsert);
+            if(error) throw error;
+        }
+
+        if(window.Toast) window.Toast.success(`${toInsert.length} adet araç başarıyla atandı.`);
+        else alert(`${toInsert.length} adet araç başarıyla atandı.`);
+        
+        document.getElementById('toplu-arac-modal-overlay').remove();
+        if(typeof window.fetchMusteriler==='function') window.fetchMusteriler();
+        
+    } catch(e) {
+        console.error("Toplu Kayıt Hatası:", e);
+        if(window.Toast) window.Toast.error("Kayıt hatası: " + e.message);
+        else alert("Kayıt hatası: " + e.message);
+        btn.innerHTML = origHtml;
+        btn.disabled = false;
+        if(window.lucide) window.lucide.createIcons();
+    }
+};
+
 async function fetchMusteriServis() {
     const tbody = document.getElementById('musteri-servis-tbody');
     if (!tbody) return;
@@ -2348,21 +2620,26 @@ window.fetchTeklifler = async function fetchTeklifler() {
         const flatTeklifler = validTeklifler.map(t => ({ ...t, plaka: t.araclar ? t.araclar.plaka : '-' }));
         const bestPrices = {};
         flatTeklifler.forEach(t => {
-            if (!bestPrices[t.arac_id] || t.tutar < bestPrices[t.arac_id]) {
-                bestPrices[t.arac_id] = t.tutar;
+            const pType = (t.secenekler || {}).teklif_turu || t.police_turu || 'Trafik Sigortası';
+            const key = t.arac_id + '_' + pType;
+            if (!bestPrices[key] || t.tutar < bestPrices[key]) {
+                bestPrices[key] = t.tutar;
             }
         });
 
         tbody.innerHTML = '';
         flatTeklifler.forEach(t => {
-            const isBest = t.tutar === bestPrices[t.arac_id];
-            const isSelected = t.secildi;
             const opts = t.secenekler || {};
+            const pType = opts.teklif_turu || t.police_turu || 'Trafik Sigortası';
+            const key = t.arac_id + '_' + pType;
+            
+            const isBest = t.tutar === bestPrices[key];
+            const isSelected = t.secildi;
 
-            const pType = opts.teklif_turu || t.police_turu || 'Trafik';
-            const typeBadge = pType === 'Kasko'
-                ? '<span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Kasko</span>'
-                : '<span class="px-2 py-0.5 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Trafik</span>';
+            let typeBadge = '';
+            if (pType.includes('Kasko')) typeBadge = '<span class="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Kasko</span>';
+            else if (pType.includes('Koltuk')) typeBadge = '<span class="px-2 py-0.5 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Koltuk</span>';
+            else typeBadge = '<span class="px-2 py-0.5 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Trafik</span>';
 
             const optList = [];
             if (opts.imm) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">İMM:</span> <span class="text-[9px] text-gray-400">${opts.imm_limit || '-'}</span></div>`);

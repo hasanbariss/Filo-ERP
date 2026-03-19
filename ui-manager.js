@@ -712,9 +712,9 @@ window.openModal = function (title, id = null, extra = null) {
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Poliçe Türü *</label>
                         <select id="teklif-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="Trafik">Trafik</option>
+                            <option value="Trafik Sigortası">Trafik Sigortası</option>
                             <option value="Kasko">Kasko</option>
-                            <option value="Sigorta">Sigorta</option>
+                            <option value="Koltuk Sigortası">Koltuk Sigortası</option>
                             <option value="Diğer">Diğer</option>
                         </select>
                     </div>
@@ -1124,6 +1124,16 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kasko Belgesi (URL)</label>
                                 <input type="text" id="evrak-kasko-url" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm" placeholder="https://...">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
+                            <div>
+                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Koltuk Sig. Bitiş</label>
+                                <input type="date" id="evrak-koltuk" class="w-full bg-white/5 border border-purple-500/20 rounded-xl px-3 py-2 text-white text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Koltuk Sig. Belgesi (URL)</label>
+                                <input type="text" id="evrak-koltuk-url" class="w-full bg-white/5 border border-purple-500/20 rounded-xl px-3 py-2 text-white text-sm" placeholder="https://...">
                             </div>
                         </div>
                     </div>
