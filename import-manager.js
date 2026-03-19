@@ -27,14 +27,11 @@
 
     // ── Toast ────────────────────────────────────────────────────────────
     function showImportToast(mesaj, tip) {
-        const renk = tip === 'success' ? 'rgba(22,163,74,0.92)'
-                   : tip === 'error'   ? 'rgba(220,38,68,0.92)'
-                   : 'rgba(30,100,200,0.92)';
-        const t = document.createElement('div');
-        t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;background:${renk};color:white;font-size:0.8rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,0.25);backdrop-filter:blur(8px);max-width:360px;word-break:break-word;`;
-        t.textContent = mesaj;
-        document.body.appendChild(t);
-        setTimeout(() => t.remove(), 5000);
+        if (window.Toast) {
+            window.Toast.show(mesaj, tip || 'info');
+        } else {
+            alert(mesaj);
+        }
     }
 
     // ── Loading butonu ───────────────────────────────────────────────────
@@ -197,6 +194,7 @@
             const plaka = String(plakalar[i] || '').trim();
             if (!plaka) { i++; continue; }
 
+            const sonrakiPlaka = i + 1 < plakalar.length ? String(plakalar[i + 1] || '').trim() : '';
             if (sonrakiPlaka && sonrakiPlaka === plaka) {
                 // TAM vardiya: iki sütun birden
                 result.push({
