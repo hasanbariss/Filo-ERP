@@ -5173,3 +5173,199 @@ window.fetchTakvim = async function() {
         grid.innerHTML = `<div class="p-8 text-center text-red-500">Takvim yüklenemedi: ${e.message}</div>`;
     }
 };
+
+window.filterTakvim = function(kw) {
+    if(!kw) kw = '';
+    kw = kw.toLowerCase().trim();
+    const rows = document.querySelectorAll('#takvim-grid > .group');
+    rows.forEach(r => {
+        if (!kw) {
+            r.classList.remove('hidden');
+            r.classList.add('flex');
+            return;
+        }
+        let textStr = r.innerText.toLowerCase();
+        let tips = Array.from(r.querySelectorAll('[title]')).map(el => el.getAttribute('title').toLowerCase()).join(' ');
+        if (textStr.includes(kw) || tips.includes(kw)) {
+            r.classList.remove('hidden');
+            r.classList.add('flex');
+        } else {
+            r.classList.remove('flex');
+            r.classList.add('hidden');
+        }
+    });
+};
+
+
+// ============================================
+// ŞOFÖR PDKS & MAAŞ YÖNETİMİ & VADE ALARMLARI
+// ============================================
+window.fetchSoforMaas = async function() {
+    const tbody = document.getElementById("maaslar-tbody");
+    if (!tbody) return;
+    try {
+        const { data: soforler, error } = await window.supabaseClient.from("soforler").select("*").order("ad_soyad", {ascending: true});
+        if (error) throw error;
+        const { data: kesintiler } = await window.supabaseClient.from("sofor_avans_kesinti").select("sofor_id, tutar");
+        if (!soforler || soforler.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Kayıtlı personel bulunamadı.</td></tr>';
+            return;
+        }
+        const fmt = n => "₺" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
+        let tc = 0, tn = 0;
+        
+        tbody.innerHTML = soforler.map(s => {
+            let baslik = `<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400/20 to-red-500/20 text-orange-500 font-bold flex items-center justify-center border border-orange-500/50">${s.ad_soyad.substring(0,2).toUpperCase()}</div><div><p class="font-bold text-white">${s.ad_soyad}</p><p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Kadro: Şoför</p></div></div>`;
+            let sumKesinti = (kesintiler||[]).filter(k => k.sofor_id === s.id).reduce((sum, item) => sum + parseFloat(item.tutar||0), 0);
+            tc += sumKesinti;
+            let rm = s.maas_tipi === "Sabit" ? parseFloat(s.sabit_maas||0) : 0;
+            let net = rm - sumKesinti;
+            tn += net;
+            let kHtml = sumKesinti > 0 ? `<div class="flex justify-end items-center gap-2"><span class="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer" title="Detaylar için Avans Ekle butonuna tıklayın">- ${fmt(sumKesinti)}</span></div>` : `<span class="text-xs text-gray-500 block text-right">Yok</span>`;
+            
+            return `<tr class="hover:bg-white/5 transition-all group">
+                <td class="p-4">${baslik}</td>
+                <td class="p-4 text-xs font-bold text-gray-400">${s.telefon||"-"}</td>
+                <td class="p-4 text-sm font-black text-gray-300 text-right">${fmt(rm)}</td>
+                <td class="p-4">${kHtml}</td>
+                <td class="p-4 text-lg font-black text-green-400 text-right">${fmt(net)}</td>
+                <td class="p-4 text-center">
+                    <button onclick="window.openAvansKesinti('${s.id}', '${s.ad_soyad}')" class="px-4 py-2 bg-orange-500/10 hover:bg-orange-500 focus:ring-2 ring-orange-500 text-orange-500 hover:text-white border border-orange-500/50 rounded-lg text-[10px] uppercase tracking-widest font-black transition-all shadow-lg"> + Avans / Ceza </button>
+                </td>
+            </tr>`;
+        }).join("");
+        
+        let elCount = document.getElementById("pdks-kpi-count"); if(elCount) elCount.textContent = soforler.length;
+        let elKes = document.getElementById("pdks-kpi-kesinti"); if(elKes) elKes.textContent = fmt(tc);
+        let elNet = document.getElementById("pdks-kpi-net"); if(elNet) elNet.textContent = fmt(tn);
+        if(window.lucide) window.lucide.createIcons();
+    } catch(err) {
+        console.error("fetchSoforMaas error:", err);
+    }
+};
+
+window.openAvansKesinti = async function(id, adSoyad) {
+    document.getElementById("ak-sofor-ad").textContent = adSoyad;
+    document.getElementById("ak-sofor-id").value = id;
+    document.getElementById("ak-tarih").value = new Date().toISOString().split("T")[0];
+    document.getElementById("ak-tur").value = "Avans";
+    document.getElementById("ak-tutar").value = "";
+    document.getElementById("ak-aciklama").value = "";
+    const tbody = document.getElementById("ak-gecmis-tbody");
+    tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">Yükleniyor...</td></tr>';
+    document.getElementById("avans-kesinti-modal").classList.remove("hidden");
+    document.getElementById("avans-kesinti-modal").classList.add("flex");
+    try {
+        const { data, error } = await window.supabaseClient.from("sofor_avans_kesinti").select("*").eq("sofor_id", id).order("tarih", {ascending: false});
+        if(error) throw error;
+        if(!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">Bu personelin geçmiş verisi yok.</td></tr>';
+            return;
+        }
+        const fmt = n => "₺" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
+        tbody.innerHTML = data.map(r => `<tr class="border-b border-white/5 hover:bg-white/5">
+                <td class="p-3">${r.tarih}</td>
+                <td class="p-3"><span class="px-2 py-0.5 bg-white/10 rounded text-xs font-bold text-gray-300">${r.tur}</span></td>
+                <td class="p-3 text-xs text-gray-400">${r.aciklama||"-"}</td>
+                <td class="p-3 text-right font-black text-red-500">-${fmt(r.tutar)}</td>
+                <td class="p-3 text-center">
+                    <button onclick="window.silAvansKesinti('${r.id}', '${id}')" class="text-gray-500 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4 mx-auto"></i></button>
+                </td>
+            </tr>`).join("");
+        if(window.lucide) window.lucide.createIcons();
+    } catch(err) {
+        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-red-500">Veri çekilemedi!</td></tr>';
+    }
+};
+
+window.saveAvansKesinti = async function() {
+    const data = {
+        sofor_id: document.getElementById("ak-sofor-id").value,
+        tarih: document.getElementById("ak-tarih").value,
+        tur: document.getElementById("ak-tur").value,
+        tutar: parseFloat(document.getElementById("ak-tutar").value || 0),
+        aciklama: document.getElementById("ak-aciklama").value
+    };
+    if(!data.sofor_id || !data.tarih || !data.tur || isNaN(data.tutar) || data.tutar <= 0) {
+        if(window.Toast) window.Toast.warning("Lütfen geçerli bir tutar ve tarih giriniz.");
+        return;
+    }
+    try {
+        const { error } = await window.supabaseClient.from("sofor_avans_kesinti").insert([data]);
+        if(error) throw error;
+        if(window.Toast) window.Toast.success("Kesinti kaydedildi!");
+        window.openAvansKesinti(data.sofor_id, document.getElementById("ak-sofor-ad").textContent);
+        if(window.fetchSoforMaas) window.fetchSoforMaas();
+        document.getElementById("ak-tutar").value = "";
+        document.getElementById("ak-aciklama").value = "";
+    } catch(err) {
+        console.error(err);
+        if(window.Toast) window.Toast.error("Kayıt hatası: " + err.message);
+    }
+};
+
+window.silAvansKesinti = async function(id, soforId) {
+    if(!confirm("Bu işlemi silmek istediğinize emin misiniz? Şoförün net maaşına rakam geri yüklenecektir.")) return;
+    try {
+        const { error } = await window.supabaseClient.from("sofor_avans_kesinti").delete().eq("id", id);
+        if(error) throw error;
+        if(window.Toast) window.Toast.success("İşlem kalıcı olarak silindi.");
+        window.openAvansKesinti(soforId, document.getElementById("ak-sofor-ad").textContent);
+        if(window.fetchSoforMaas) window.fetchSoforMaas();
+    } catch(err) {
+        console.error(err);
+        if(window.Toast) window.Toast.error("Silinirken hata oluştu!");
+    }
+};
+
+window.checkVadeAlarmlari = async function() {
+    const container = document.getElementById("vade-alarmlari-container");
+    if (!container) return;
+    try {
+        const { data: faturalar, error } = await window.supabaseClient.from("cari_faturalar").select("id, cari_id, fatura_tarihi, toplam_tutar, cariler(unvan)").order("fatura_tarihi", {ascending: true});
+        if(error) throw error;
+        if(!faturalar || faturalar.length === 0) return;
+        const { data: odemeler } = await window.supabaseClient.from("cari_odemeler").select("cari_id, tutar");
+        let cB = {};
+        faturalar.forEach(f => {
+            if(!cB[f.cari_id]) cB[f.cari_id] = {b:0, o:0, u: f.cariler?.unvan, last: f.fatura_tarihi};
+            cB[f.cari_id].b += parseFloat(f.toplam_tutar||0);
+        });
+        (odemeler||[]).forEach(o => {
+            if(cB[o.cari_id]) cB[o.cari_id].o += parseFloat(o.tutar||0);
+        });
+        let alerts = ""; const now = new Date();
+        Object.keys(cB).forEach(cid => {
+            const k = cB[cid].b - cB[cid].o;
+            if(k > 10) {
+                const invDate = new Date(cB[cid].last);
+                const d = Math.floor(Math.abs(now - invDate) / (1000 * 60 * 60 * 24)); 
+                if(d >= 10) {
+                    alerts += `<div class="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/30 rounded-xl shadow-lg relative overflow-hidden group cursor-pointer" onclick="if(typeof window.switchModule !== 'undefined') window.switchModule('module-cari');">
+                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-red-500"></div>
+                        <div class="flex items-center gap-4">
+                            <div class="p-2 bg-red-500/20 text-red-500 rounded-lg"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+                            <div>
+                                <h4 class="text-sm font-bold text-red-400 uppercase tracking-widest">${cB[cid].u}</h4>
+                                <p class="text-[11px] text-gray-400 font-bold">${d} gündür tahsilat bekleniyor. Ödenmemiş Bakiye Riski!</p>
+                            </div>
+                        </div>
+                        <div class="font-black text-white text-lg tracking-tight">₺${k.toLocaleString("tr-TR", {minimumFractionDigits:2})}</div>
+                        <div class="absolute inset-0 bg-red-500/5 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"></div>
+                    </div>`;
+                }
+            }
+        });
+        container.innerHTML = alerts;
+        if(window.lucide) window.lucide.createIcons();
+    } catch(err) { console.error("Vade Alarm:", err); }
+};
+
+if(typeof window._origDdash === 'undefined') {
+    window._origDdash = window.fetchDashboardData;
+    window.fetchDashboardData = async function() {
+        if(typeof window._origDdash === "function") await window._origDdash();
+        if(typeof window.checkVadeAlarmlari === "function") await window.checkVadeAlarmlari();
+    };
+}
+

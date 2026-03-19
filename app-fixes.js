@@ -476,7 +476,7 @@ function initQuickSearch() {
         { mod: 'module-personel', label: 'Personel', icon: 'user-cog', keywords: ['personel', 'maas', 'puantaj', 'avans', 'sofor', 'bordro', 'kesinti'] },
         { mod: 'module-raporlar', label: 'Raporlar', icon: 'bar-chart-3', keywords: ['rapor', 'analiz', 'pdf', 'excel', 'gelir', 'gider'] },
         { mod: 'module-teklifler', label: 'Teklifler', icon: 'file-text', keywords: ['teklif', 'sigorta', 'kasko', 'karsilastirma'] },
-        { mod: 'module-harita', label: 'Harita', icon: 'map', keywords: ['harita', 'rota'] },
+
     ];
 
     function getModules() {

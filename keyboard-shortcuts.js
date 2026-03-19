@@ -48,7 +48,7 @@
             'alt+6': function () { switchModule('module-finans'); },
             'alt+7': function () { switchModule('module-yakit'); },
             'alt+8': function () { switchModule('module-bakim'); },
-            'alt+9': function () { switchModule('module-harita'); },
+
 
             // Yardım (Ctrl + /)
             'ctrl+/': function () {

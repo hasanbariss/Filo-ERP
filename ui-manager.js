@@ -92,9 +92,7 @@ navButtons.forEach(btn => {
             fetchDashboardData();
         } else if (targetId === 'module-musteri' && typeof fetchMusteriler === 'function') {
             fetchMusteriler();
-        } else if (targetId === 'module-harita') {
-            window.initMap();
-            if (typeof window.initRotaLogic === 'function') window.initRotaLogic();
+
         } else if (targetId === 'module-taseron' && typeof fetchTaseronlar === 'function') {
             fetchTaseronlar();
         } else if (targetId === 'module-filo') {
