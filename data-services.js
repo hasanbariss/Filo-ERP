@@ -754,6 +754,26 @@ window.saveDataAndClose = async function (event) {
             }]);
             if (error) throw error;
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
+
+        // === SRP MODÜLLER: Evrak Arşivi & İş Emirleri ===
+        } else if (formTitle === 'Yeni Evrak Ekle') {
+            if (typeof window.saveEvrak === 'function') {
+                await window.saveEvrak();
+            } else {
+                throw new Error('Evrak modülü yüklenemedi. Lütfen sayfayı yenileyin.');
+            }
+        } else if (formTitle === 'Yeni İş Emri') {
+            if (typeof window.saveIsEmri === 'function') {
+                await window.saveIsEmri();
+            } else {
+                throw new Error('İş emirleri modülü yüklenemedi. Lütfen sayfayı yenileyin.');
+            }
+        } else if (formTitle === 'Yeni Araç Çıkış Formu') {
+            if (typeof window.saveChecklist === 'function') {
+                await window.saveChecklist();
+            } else {
+                throw new Error('Checklist modülü yüklenemedi. Lütfen sayfayı yenileyin.');
+            }
         }
 
         // Başarı toast göster ve modalı kapat

@@ -1883,6 +1883,37 @@ window.openModal = function (title, id = null, extra = null) {
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('kredi-kart-secim', 'kredi_kartlari', 'id', 'kart_adi'), 50);
+    } else if (title === 'Yeni Evrak Ekle') {
+        if (typeof window.getEvrakFormHTML === 'function') {
+            window.getEvrakFormHTML().then(html => {
+                dynamicBody.innerHTML = html;
+                modal.classList.remove('hidden');
+            });
+            return; // Since it's async, we handle render inside and return early
+        } else {
+            content = '<p class="text-red-500 text-sm">Evrak modülü yüklenemedi.</p>';
+        }
+    } else if (title === 'Yeni İş Emri') {
+        if (typeof window.getIsEmriFormHTML === 'function') {
+            window.getIsEmriFormHTML().then(html => {
+                dynamicBody.innerHTML = html;
+                modal.classList.remove('hidden');
+                if (window.lucide) window.lucide.createIcons();
+            });
+            return;
+        } else {
+            content = '<p class="text-red-500 text-sm">İş emirleri modülü yüklenemedi.</p>';
+        }
+    } else if (title === 'Yeni Araç Çıkış Formu') {
+        if (typeof window.getChecklistFormHTML === 'function') {
+            window.getChecklistFormHTML().then(html => {
+                dynamicBody.innerHTML = html;
+                modal.classList.remove('hidden');
+            });
+            return;
+        } else {
+            content = '<p class="text-red-500 text-sm">Checklist modülü yüklenemedi.</p>';
+        }
     }
 
     dynamicBody.innerHTML = content;

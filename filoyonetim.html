@@ -209,6 +209,12 @@
                         <button data-target="module-takvim" class="nav-link">
                 <i data-lucide="calendar-days"></i> Operasyon Takvimi
             </button>
+            <button data-target="module-evrak-arsivi" class="nav-link">
+                <i data-lucide="folder-open"></i> Evrak Arşivi
+            </button>
+            <button data-target="module-is-emirleri" class="nav-link">
+                <i data-lucide="clipboard-list"></i> İş Emirleri
+            </button>
         </nav>
 
         <div class="mt-auto pt-6 border-t border-white/5">
@@ -253,6 +259,12 @@
 
         <!-- Main Content -->
         <main class="max-w-[1920px] w-full mx-auto py-10 px-4 sm:px-6 lg:px-8">
+
+            <!-- Evrak Arsivi Module -->
+            <div id="module-evrak-arsivi" class="main-module hidden stagger-in"></div>
+
+            <!-- Is Emirleri Module -->
+            <div id="module-is-emirleri" class="main-module hidden stagger-in"></div>
 
             <!-- Takvim (Gantt) Module -->
             <div id="module-takvim" class="main-module hidden stagger-in">
@@ -2455,6 +2467,10 @@
 
 <!-- 5. FIXES -->
 <script defer src="app-fixes.js"></script>
+
+<!-- 6. NEW SRP MODULES -->
+<script defer src="evrak-arsivi.js"></script>
+<script defer src="is-emirleri.js"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>
