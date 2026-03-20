@@ -1562,24 +1562,25 @@ async function fetchTaseronlar() {
         }
 
         taseronlar.forEach(a => {
+            const soforGoster = a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">Atanmamış</span>';
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                    < td class="px-6 py-4 whitespace-nowrap" >
-                        <div class="flex items-center">
-                            <div class="p-2 bg-pink-500/10 rounded-lg text-pink-500 mr-3">
-                                <i data-lucide="truck" class="w-4 h-4"></i>
-                            </div>
-                            <div>
-                                <div class="text-sm font-bold text-white">${a.plaka}</div>
-                                <div class="text-[10px] text-gray-500 uppercase">${a.marka_model || '-'}</div>
-                            </div>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-pink-500/10 rounded-lg text-pink-500 mr-3">
+                            <i data-lucide="truck" class="w-4 h-4"></i>
                         </div>
-                </td >
+                        <div>
+                            <div class="text-sm font-bold text-white">${a.plaka}</div>
+                            <div class="text-[10px] text-gray-500 uppercase">${a.marka_model || '-'}</div>
+                        </div>
+                    </div>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     ${a.firma_adi || 'Bireysel / Belirtilmemiş'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    ${a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">Atanmamış</span>'}
+                    ${soforGoster}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="text-sm font-bold text-white">${window.formatCurrency(a.kira_bedeli || 0)}</span>
@@ -1588,7 +1589,7 @@ async function fetchTaseronlar() {
                     <button onclick="openModal('Araç Güncelle', '${a.id}')" class="text-orange-500 hover:text-orange-400 mr-3 transition-all">Düzenle</button>
                     <button onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" class="text-gray-500 hover:text-red-500 transition-all">Sil</button>
                 </td>
-                `;
+            `;
             tbody.appendChild(tr);
         });
 
@@ -1596,7 +1597,7 @@ async function fetchTaseronlar() {
 
     } catch (e) {
         console.error('Taşeron fetch hatası:', e);
-        tbody.innerHTML = `< tr > <td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr > `;
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 }
 
