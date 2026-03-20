@@ -973,6 +973,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         }
 
         if (error) throw error;
+        araclar = window.sanitizeDataArray(araclar);
 
         // Fetch driver names manually to avoid Supabase join errors
         const { data: tumSoforler } = await window.supabaseClient.from('soforler').select('id, ad_soyad');
@@ -1734,7 +1735,8 @@ async function fetchSoforler(sirketFilter) {
             query = query.eq('sirket', sirketFilter);
         }
 
-        const { data: soforler, error } = await query;
+        let { data: soforler, error } = await query;
+        soforler = window.sanitizeDataArray(soforler);
         if (error) throw error;
 
         // Prepare assigned vehicles manually (without Postgrest relation)
@@ -2484,17 +2486,19 @@ async function fetchCariler() {
 
         if (error) throw error;
 
+        const carilerClean = window.sanitizeDataArray(cariler);
+
         // Dashboard Güncelleme
         const cariCountEl = document.getElementById('ozet-cari-sayisi');
-        if (cariCountEl) cariCountEl.textContent = cariler.length;
+        if (cariCountEl) cariCountEl.textContent = carilerClean.length;
 
         tbody.innerHTML = '';
-        if (cariler.length === 0) {
+        if (carilerClean.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Henüz cari hesap bulunmuyor.</td></tr>';
             return;
         }
 
-        cariler.forEach(c => {
+        carilerClean.forEach(c => {
             // Borç Hesabı: Faturalar + Poliçeler + Bakımlar
             const cariFaturalar = (faturalar || []).filter(f => f.cari_id === c.id);
             const cariPoliceler = (policeler || []).filter(p => p.cari_id === c.id);
@@ -2558,7 +2562,8 @@ async function fetchTaksitler() {
 
     try {
         const { data: cariler } = await window.supabaseClient.from('cariler').select('id, unvan');
-        const { data: policeler, error } = await window.supabaseClient.from('arac_policeler').select('*');
+        let { data: policeler, error } = await window.supabaseClient.from('arac_policeler').select('*');
+        policeler = window.sanitizeDataArray(policeler);
         if (error) throw error;
 
         tbody.innerHTML = '';
@@ -2649,7 +2654,8 @@ async function fetchSoforMaaslar() {
         const endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
 
         // Verileri çek
-        const { data: soforler } = await window.supabaseClient.from('soforler').select('*');
+        let { data: soforler } = await window.supabaseClient.from('soforler').select('*');
+        soforler = window.sanitizeDataArray(soforler || []);
         let bordroData = [];
         try {
             const { data: bd, error: be } = await window.supabaseClient.from('sofor_maas_bordro').select('*').eq('donem', filterVal);
@@ -2910,10 +2916,12 @@ window.fetchTeklifler = async function fetchTeklifler() {
 
         if (tErr) throw tErr;
 
+        const tekliflerClean = window.sanitizeDataArray(teklifler || []);
+
         // --- 15 DAKİKA KONTROLÜ (Otomatik Silme) ---
         const now = Date.now();
         const deletionPromises = [];
-        const validTeklifler = (teklifler || []).filter(t => {
+        const validTeklifler = tekliflerClean.filter(t => {
             if (t.secildi && t.secenekler && t.secenekler.secilme_zamani) {
                 const diffMin = (now - t.secenekler.secilme_zamani) / 60000;
                 if (diffMin >= 15) { // 15 dakika dolmuş
@@ -4519,6 +4527,7 @@ window.fetchKrediKartlari = async function () {
             .order('id', { ascending: false });
 
         if (kartErr) throw kartErr;
+        const kartlarClean = window.sanitizeDataArray(kartlar || []);
 
         // 2. İşlemleri Çek
         const { data: islemler, error: islemErr } = await window.supabaseClient
@@ -5413,9 +5422,9 @@ window.fetchTakvim = async function() {
             window.supabaseClient.from('musteriler').select('id, ad')
         ]);
 
-        const araclar = aracRes.data || [];
-        const puantaj = pushRes.data || [];
-        const musteriler = musteriRes.data || [];
+        const araclar = window.sanitizeDataArray(aracRes.data || []);
+        const puantaj = window.sanitizeDataArray(pushRes.data || []);
+        const musteriler = window.sanitizeDataArray(musteriRes.data || []);
 
         const musteriMap = {};
         musteriler.forEach(ms => { musteriMap[ms.id] = ms.ad || 'İsimsiz Fabrika'; });

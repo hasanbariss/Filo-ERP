@@ -56,8 +56,22 @@ window.sanitizeHTML = function(dirty) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 };
-
-// --- SQL LIKE Escape ---
+// Objelerin ve array'lerin içindeki string girdilerini XSS'e karşı temizle (Deep Sanitize)
+window.sanitizeDataArray = function(data) {
+    if (!data) return data;
+    if (typeof data === 'string') return window.sanitizeHTML(data);
+    if (Array.isArray(data)) {
+        return data.map(item => window.sanitizeDataArray(item));
+    }
+    if (typeof data === 'object' && data !== null) {
+        let cleanObj = {};
+        for (let key in data) {
+            cleanObj[key] = window.sanitizeDataArray(data[key]);
+        }
+        return cleanObj;
+    }
+    return data;
+};// --- SQL LIKE Escape ---
 // Supabase .filter() veya .ilike() içinde kullanıcı input'u geçerken
 window.escapeSQLLike = function(str) {
     return String(str).replace(/[%_\\]/g, '\\$&');
