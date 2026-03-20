@@ -3177,7 +3177,7 @@ window.doLogin = async function () {
         document.getElementById('auth-overlay').style.display = 'none';
         btn.textContent = 'Giriş Yap';
         btn.disabled = false;
-        if (typeof initDashboard === 'function') initDashboard();
+        if (typeof window.initApp === 'function') window.initApp();
         return;
     }
 
@@ -3214,7 +3214,7 @@ window.doLogin = async function () {
             userNameEl.title = user.email;
         }
 
-        if (typeof initDashboard === 'function') initDashboard();
+        if (typeof window.initApp === 'function') window.initApp();
 
     } catch (err) {
         clearTimeout(timeout);
@@ -5361,20 +5361,16 @@ window.fetchDashboard = async function() {
   }
 };
 
-// Auto-load on DOMContentLoaded
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const dashboard = document.getElementById('module-dashboard');
-    if (dashboard && !dashboard.classList.contains('hidden')) {
-      console.log('[Dashboard] Auto-loading...');
-      setTimeout(() => {
-        if (window.supabaseClient && window.fetchDashboard) {
-          window.fetchDashboard();
-        }
-      }, 500);
-    }
-  });
-}
+// Güvenli başlatma fonksiyonu: Sadece başarılı giriş sonrası çağrılır
+window.initApp = function() {
+  if (window.appInitialized) return;
+  window.appInitialized = true;
+  
+  console.log('[App] Orijinal yükleme başlatılıyor...');
+  if (window.supabaseClient && window.fetchDashboard) {
+     window.fetchDashboard();
+  }
+};
 
 console.log('[Dashboard] ✅ fetchDashboard registered');
 

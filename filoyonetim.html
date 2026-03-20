@@ -2332,7 +2332,10 @@
 
                 if (window.supabaseClient && window.supabaseClient.auth) {
                     window.supabaseClient.auth.onAuthStateChange(function (ev, sess) {
-                        if (ev === 'SIGNED_IN' && sess) _hideAuthOverlay(sess.user);
+                        if (ev === 'SIGNED_IN' && sess) {
+                            _hideAuthOverlay(sess.user);
+                            if (typeof window.initApp === 'function') window.initApp();
+                        }
                         else if (ev === 'SIGNED_OUT') _showAuthOverlay();
                     });
                 }
