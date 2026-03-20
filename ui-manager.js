@@ -1,4 +1,4 @@
-function setGpsUrl(url) {
+﻿function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
 function loadGpsFrame() {
@@ -16,18 +16,18 @@ function loadGpsFrame() {
     iframe.style.display = 'none';
     link.href = url;
 
-    // Timeout ile engel kontrolü
+    // Timeout ile engel kontrolÃ¼
     const timer = setTimeout(() => checkFrameBlocked(iframe, url), 4000);
 
     iframe.onload = function () {
         clearTimeout(timer);
         loading.style.display = 'none';
         try {
-            // Cross-origin erişimi dene
+            // Cross-origin eriÅŸimi dene
             const _ = iframe.contentWindow.location.href;
             iframe.style.display = 'block';
         } catch (e) {
-            // Cross-origin ama yüklendi = muhtemelen iframe izin verdi
+            // Cross-origin ama yÃ¼klendi = muhtemelen iframe izin verdi
             iframe.style.display = 'block';
         }
     };
@@ -45,7 +45,7 @@ function checkFrameBlocked(iframe, url) {
             showGpsBlocked();
         }
     } catch (e) {
-        // cross-origin = normal, iframe yüklendi
+        // cross-origin = normal, iframe yÃ¼klendi
     }
 }
 function showGpsBlocked() {
@@ -54,7 +54,7 @@ function showGpsBlocked() {
     const b = document.getElementById('gps-blocked');
     b.style.display = 'flex';
 }
-/* === 1. ANA NAVİGASYON (SİDEBAR) MANTIĞI === */
+/* === 1. ANA NAVÄ°GASYON (SÄ°DEBAR) MANTIÄžI === */
 const navButtons = document.querySelectorAll('#main-nav-buttons button');
 const modules = document.querySelectorAll('.main-module');
 const pageTitle = document.getElementById('page-title');
@@ -64,16 +64,16 @@ navButtons.forEach(btn => {
         const targetId = btn.getAttribute('data-target');
         const moduleName = btn.innerText.trim();
 
-        // Active button class sıfırla
+        // Active button class sÄ±fÄ±rla
         navButtons.forEach(b => b.classList.remove('active'));
 
-        // Tıklananı aktif yap
+        // TÄ±klananÄ± aktif yap
         btn.classList.add('active');
 
-        // Başlık Güncelle
+        // BaÅŸlÄ±k GÃ¼ncelle
         if (pageTitle) pageTitle.innerText = moduleName;
 
-        // Modülleri Gizle ve Hedefi Göster
+        // ModÃ¼lleri Gizle ve Hedefi GÃ¶ster
         modules.forEach(mod => {
             mod.classList.add('hidden');
             mod.classList.remove('block');
@@ -84,8 +84,8 @@ navButtons.forEach(btn => {
             targetMod.classList.remove('hidden');
         }
 
-        // Modüle özgü veri yükle
-        // Modüle özgü veri yükle
+        // ModÃ¼le Ã¶zgÃ¼ veri yÃ¼kle
+        // ModÃ¼le Ã¶zgÃ¼ veri yÃ¼kle
         if (targetId === 'module-teklifler' && typeof fetchTeklifler === 'function') {
             fetchTeklifler();
         } else if (targetId === 'module-dashboard' && typeof fetchDashboardData === 'function') {
@@ -120,7 +120,7 @@ navButtons.forEach(btn => {
             if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
         }
 
-        // Active tab stili resetlemeyi garantilemek için nav tetiklendiğinde ilgili modülün varsayılan tab'ini (varsa) active yapma
+        // Active tab stili resetlemeyi garantilemek iÃ§in nav tetiklendiÄŸinde ilgili modÃ¼lÃ¼n varsayÄ±lan tab'ini (varsa) active yapma
         if (targetId === 'module-cari') {
             const cariNav = document.getElementById('cari-tabs-nav');
             if (cariNav) {
@@ -134,7 +134,7 @@ navButtons.forEach(btn => {
     });
 });
 
-// Lucide Ikonlarını Başlat
+// Lucide IkonlarÄ±nÄ± BaÅŸlat
 window.addEventListener('DOMContentLoaded', () => {
     if (window.lucide) {
         window.lucide.createIcons();
@@ -142,7 +142,7 @@ window.addEventListener('DOMContentLoaded', () => {
     initCharts();
 });
 
-/* === GRAFİK SİSTEMİ (CHART.JS) === */
+/* === GRAFÄ°K SÄ°STEMÄ° (CHART.JS) === */
 let mainChart, statusChart;
 
 function initCharts() {
@@ -153,9 +153,9 @@ function initCharts() {
         mainChart = new Chart(ctxMain, {
             type: 'bar',
             data: {
-                labels: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
+                labels: ['Oca', 'Åžub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'AÄŸu', 'Eyl', 'Eki', 'Kas', 'Ara'],
                 datasets: [{
-                    label: 'Kilometre Performansı',
+                    label: 'Kilometre PerformansÄ±',
                     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                     backgroundColor: '#FF6B00',
                     borderRadius: 8,
@@ -178,7 +178,7 @@ function initCharts() {
         statusChart = new Chart(ctxStatus, {
             type: 'doughnut',
             data: {
-                labels: ['Geçerli', 'Yaklaşıyor', 'Süresi Dolan'],
+                labels: ['GeÃ§erli', 'YaklaÅŸÄ±yor', 'SÃ¼resi Dolan'],
                 datasets: [{
                     data: [0, 0, 0],
                     backgroundColor: ['#00E699', '#FFB800', '#FF005C'],
@@ -195,7 +195,7 @@ function initCharts() {
     }
 }
 
-/* === 1.B. FİLO ALT SÜRÜMÜ (ARAÇLAR / ŞOFÖRLER) === */
+/* === 1.B. FÄ°LO ALT SÃœRÃœMÃœ (ARAÃ‡LAR / ÅžOFÃ–RLER) === */
 function switchFiloTab(tabName) {
     const aracBtn = document.getElementById('tab-btn-araclar');
     const soforBtn = document.getElementById('tab-btn-soforler');
@@ -227,7 +227,7 @@ function switchFiloTab(tabName) {
     }
 }
 
-/* === 1.C. TAŞERON ALT SEKMELERİ === */
+/* === 1.C. TAÅžERON ALT SEKMELERÄ° === */
 window.switchTaseronTab = function (tabName) {
     const tabs = ['liste', 'hakedis', 'sefer', 'evrak'];
     const inactiveClass = "px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2";
@@ -252,7 +252,7 @@ window.switchTaseronTab = function (tabName) {
         activeContent.classList.add('block');
     }
 
-    // Tab'a özgü veri yükle
+    // Tab'a Ã¶zgÃ¼ veri yÃ¼kle
     if (tabName === 'liste' && typeof fetchTaseronlar === 'function') fetchTaseronlar();
     if (tabName === 'hakedis' && typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis();
     if (tabName === 'sefer' && typeof fetchTaseronSeferler === 'function') fetchTaseronSeferler();
@@ -273,8 +273,8 @@ window.formatDate = (dateStr) => {
     } catch { return dateStr; }
 };
 
-/* === 2. FİNANS ALT SEKMELERİ === */
-// Genel sekme geçiş fonksiyonu
+/* === 2. FÄ°NANS ALT SEKMELERÄ° === */
+// Genel sekme geÃ§iÅŸ fonksiyonu
 window.switchTab = function (modulePrefix, tabName, clickedButton) {
 
     // Find all buttons in the nav container
@@ -330,32 +330,32 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
     }
 }
 
-/* === 2.A Kredi Kartı İşlem Detay Modalı (YENİ) === */
+/* === 2.A Kredi KartÄ± Ä°ÅŸlem Detay ModalÄ± (YENÄ°) === */
 window.showKartIslemleri = function (txDataStr, kartAdi) {
     const modal = document.getElementById('general-modal');
     const modalTitle = document.getElementById('modal-title');
     const dynamicBody = document.getElementById('modal-dynamic-body');
 
-    modalTitle.textContent = kartAdi + ' - Kart İşlemleri';
+    modalTitle.textContent = kartAdi + ' - Kart Ä°ÅŸlemleri';
     let content = '<div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">';
 
     try {
         const txList = JSON.parse(txDataStr);
         if (txList.length === 0) {
-            content += '<p class="text-sm text-gray-400 italic">Bu karta ait henüz işlem bulunmamaktadır.</p>';
+            content += '<p class="text-sm text-gray-400 italic">Bu karta ait henÃ¼z iÅŸlem bulunmamaktadÄ±r.</p>';
         } else {
             // Sort by date descending
             txList.sort((a, b) => new Date(b.islem_tarihi) - new Date(a.islem_tarihi));
 
             txList.forEach(tx => {
                 const islemGunu = window.formatDate(tx.islem_tarihi);
-                const desc = tx.aciklama || 'Belirtilmemiş Harcama';
+                const desc = tx.aciklama || 'BelirtilmemiÅŸ Harcama';
                 const ts = Number(tx.taksit_sayisi || 1);
                 const tTutar = Number(tx.toplam_tutar || 0);
                 const aylikTutar = (ts > 0) ? (tTutar / ts) : tTutar;
                 const taksitBadge = (ts > 1)
                     ? `<span class="px-2 py-0.5 bg-blue-500/20 text-blue-400 font-bold text-[10px] rounded ml-2">${ts} Taksit</span>`
-                    : `<span class="px-2 py-0.5 bg-white/10 text-gray-400 font-bold text-[10px] rounded ml-2">Tek Çekim</span>`;
+                    : `<span class="px-2 py-0.5 bg-white/10 text-gray-400 font-bold text-[10px] rounded ml-2">Tek Ã‡ekim</span>`;
 
                 content += `
                     <div class="p-4 bg-white/5 border border-white/10 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:bg-white/10 transition-colors">
@@ -370,14 +370,14 @@ window.showKartIslemleri = function (txDataStr, kartAdi) {
                             <p class="text-sm font-bold text-orange-400 border-b border-orange-500/20 pb-1 mb-1">
                                 Toplam: ${window.formatCurrency(tTutar)}
                             </p>
-                            ${ts > 1 ? `<p class="text-[10px] text-gray-400">Aylık: <span class="text-white">${window.formatCurrency(aylikTutar)}/ay</span></p>` : ''}
+                            ${ts > 1 ? `<p class="text-[10px] text-gray-400">AylÄ±k: <span class="text-white">${window.formatCurrency(aylikTutar)}/ay</span></p>` : ''}
                         </div>
                     </div>
                 `;
             });
         }
     } catch (e) {
-        content += `<p class="text-sm text-red-500">İşlemler yüklenirken hata oluştu.</p>`;
+        content += `<p class="text-sm text-red-500">Ä°ÅŸlemler yÃ¼klenirken hata oluÅŸtu.</p>`;
     }
 
     content += '</div>';
@@ -416,10 +416,10 @@ window.showKartIslemleri = function (txDataStr, kartAdi) {
     modal.classList.remove('hidden');
 }
 
-/* === 2.B. ÖDEME PLANI FİLTRELEME (PHASE 8) === */
+/* === 2.B. Ã–DEME PLANI FÄ°LTRELEME (PHASE 8) === */
 window.filterTaksitler = function (category) {
     const btns = {
-        'HEPSİ': 'taksit-btn-all',
+        'HEPSÄ°': 'taksit-btn-all',
         'Police': 'taksit-btn-police',
         'Bakim': 'taksit-btn-bakim'
     };
@@ -444,7 +444,7 @@ window.filterTaksitler = function (category) {
     }
 }
 
-/* === 2.C. CARİ DETAY & EKSTRE (PHASE 8) === */
+/* === 2.C. CARÄ° DETAY & EKSTRE (PHASE 8) === */
 window.openCariDetail = function (cariId) {
     const modal = document.getElementById('cari-detail-modal');
     if (!modal) return;
@@ -497,7 +497,7 @@ window.printCariEkstre = function () {
             <body>
                 <h1 class="text-2xl font-black mb-8 border-b pb-4">Cari Hesap Ekstresi</h1>
                 ${content.innerHTML}
-                <div class="mt-12 text-xs text-gray-500 text-center italic">Bu rapor IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur.</div>
+                <div class="mt-12 text-xs text-gray-500 text-center italic">Bu rapor IDEOL Filo YÃ¶netim Sistemi tarafÄ±ndan oluÅŸturulmuÅŸtur.</div>
             </body>
         </html>
     `);
@@ -508,7 +508,7 @@ window.printCariEkstre = function () {
     }, 500);
 };
 
-// Başlangıçta ilk sekmeyi aktif et
+// BaÅŸlangÄ±Ã§ta ilk sekmeyi aktif et
 document.addEventListener('DOMContentLoaded', () => {
     // Set bordro month filter to current month
     const bordroAy = document.getElementById('filter-bordro-ay');
@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-/* === 3. MODAL (PENCERE) KONTROLLERİ === */
+/* === 3. MODAL (PENCERE) KONTROLLERÄ° === */
 const modal = document.getElementById('general-modal');
 const modalTitle = document.getElementById('modal-title');
 
@@ -543,9 +543,9 @@ window.openModal = function (title, id = null, extra = null) {
     const dynamicBody = document.getElementById('modal-dynamic-body');
     let content = '';
 
-    if (title === 'Yeni Araç Ekle') {
+    if (title === 'Yeni AraÃ§ Ekle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Mevcut araç tablosuna yeni bir araç kaydı eklemek için lütfen aşağıdaki alanları eksiksiz doldurunuz.</p>
+                    <p class="text-sm text-gray-400 mb-8">Mevcut araÃ§ tablosuna yeni bir araÃ§ kaydÄ± eklemek iÃ§in lÃ¼tfen aÅŸaÄŸÄ±daki alanlarÄ± eksiksiz doldurunuz.</p>
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Plaka</label>
@@ -557,9 +557,9 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="text" id="arac-marka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Marka Model Giriniz">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã‡alÄ±ÅŸtÄ±ÄŸÄ± Åžirket</label>
                                 <select id="arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="Belirtilmemiş">Belirtilmemiş</option>
+                                    <option value="BelirtilmemiÅŸ">BelirtilmemiÅŸ</option>
                                     <option value="IDEOL">IDEOL</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -567,40 +567,40 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mülkiyet Durumu</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼lkiyet Durumu</label>
                                 <select id="arac-mulkiyet" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="ÖZMAL">ÖZMAL</option>
-                                    <option value="TAŞERON">TAŞERON</option>
-                                    <option value="KİRALIK">KİRALIK</option>
+                                    <option value="Ã–ZMAL">Ã–ZMAL</option>
+                                    <option value="TAÅžERON">TAÅžERON</option>
+                                    <option value="KÄ°RALIK">KÄ°RALIK</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge TÃ¼rÃ¼</label>
                                 <select id="arac-belge" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Yok">Yok</option>
                                     <option value="D2">D2 Belgesi</option>
                                     <option value="D4S">D4S Belgesi</option>
                                     <option value="U-ETDS">U-ETDS Sistemi</option>
-                                    <option value="Diğer">Diğer</option>
+                                    <option value="DiÄŸer">DiÄŸer</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 `;
-    } else if (title === 'Yeni Şoför Ekle') {
+    } else if (title === 'Yeni ÅžofÃ¶r Ekle') {
         content = `
                     <div class="space-y-6">
                         <div class="flex items-center gap-2 mb-2">
                             <i data-lucide="user" class="w-4 h-4 text-blue-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-blue-500">Kişisel Bilgiler</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-blue-500">KiÅŸisel Bilgiler</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ad Soyad *</label>
-                                <input type="text" id="sofor-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="İsim Soyisim">
+                                <input type="text" id="sofor-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ä°sim Soyisim">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã‡alÄ±ÅŸtÄ±ÄŸÄ± Åžirket</label>
                                 <select id="sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="IDEOL">IDEOL</option>
                                     <option value="M.K.">M.K.</option>
@@ -615,7 +615,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Doğum Tarihi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">DoÄŸum Tarihi</label>
                                 <input type="date" id="sofor-dogum" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
@@ -625,8 +625,8 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum Kişisi</label>
-                                <input type="text" id="sofor-acil-kisi" class="w-full bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-all font-medium" placeholder="İsim Soyisim">
+                                <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum KiÅŸisi</label>
+                                <input type="text" id="sofor-acil-kisi" class="w-full bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-all font-medium" placeholder="Ä°sim Soyisim">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum Telefonu</label>
@@ -640,13 +640,13 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ehliyet Sınıfı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ehliyet SÄ±nÄ±fÄ±</label>
                                 <select id="sofor-ehliyet" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="">Seçiniz...</option>
-                                    <option value="B">B Sınıfı</option>
-                                    <option value="C">C Sınıfı</option>
-                                    <option value="CE">CE Sınıfı</option>
-                                    <option value="D">D Sınıfı</option>
+                                    <option value="">SeÃ§iniz...</option>
+                                    <option value="B">B SÄ±nÄ±fÄ±</option>
+                                    <option value="C">C SÄ±nÄ±fÄ±</option>
+                                    <option value="CE">CE SÄ±nÄ±fÄ±</option>
+                                    <option value="D">D SÄ±nÄ±fÄ±</option>
                                 </select>
                             </div>
                             <div>
@@ -662,21 +662,21 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge / Sözleşme URL</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge / SÃ¶zleÅŸme URL</label>
                             <input type="text" id="sofor-belge-url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="https://...">
                         </div>
 
                         <div class="flex items-center gap-2 mt-4 mb-2">
                             <i data-lucide="banknote" class="w-4 h-4 text-green-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">Maaş & Sigorta</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">MaaÅŸ & Sigorta</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Aylık Maaş (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AylÄ±k MaaÅŸ (â‚º)</label>
                                 <input type="number" id="sofor-aylik-maas" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="35000">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Günlük Yevmiye (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GÃ¼nlÃ¼k Yevmiye (â‚º)</label>
                                 <input type="number" id="sofor-ucret" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0">
                             </div>
                         </div>
@@ -685,12 +685,12 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta</label>
                                 <select id="sofor-sigorta" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                     <option value="SGK">SGK</option>
-                                    <option value="Bağkur">Bağkur</option>
+                                    <option value="BaÄŸkur">BaÄŸkur</option>
                                     <option value="Yok">Yok</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşe Başlama</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸe BaÅŸlama</label>
                                 <input type="date" id="sofor-ise-baslama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
@@ -701,40 +701,40 @@ window.openModal = function (title, id = null, extra = null) {
                     </div>
                 `;
     } else if (title === 'Yeni Teklif Ekle') {
-        // Dinamik araç ve cari listesi bekleyelim
+        // Dinamik araÃ§ ve cari listesi bekleyelim
         content = `
-            <p class="text-xs text-gray-400 mb-5">Farklı firmalardan alınan teklifleri karşılaştırmak için kaydedin.</p>
+            <p class="text-xs text-gray-400 mb-5">FarklÄ± firmalardan alÄ±nan teklifleri karÅŸÄ±laÅŸtÄ±rmak iÃ§in kaydedin.</p>
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Araç *</label>
-                        <select id="teklif-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all"><option value="">Yükleniyor...</option></select>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">AraÃ§ *</label>
+                        <select id="teklif-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all"><option value="">YÃ¼kleniyor...</option></select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Poliçe Türü *</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">PoliÃ§e TÃ¼rÃ¼ *</label>
                         <select id="teklif-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="Trafik">Trafik Sigortası</option>
+                            <option value="Trafik">Trafik SigortasÄ±</option>
                             <option value="Kasko">Kasko</option>
-                            <option value="Koltuk Sigortası">Koltuk Sigortası</option>
-                            <option value="Diğer">Diğer</option>
+                            <option value="Koltuk SigortasÄ±">Koltuk SigortasÄ±</option>
+                            <option value="DiÄŸer">DiÄŸer</option>
                         </select>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Sigorta Firması (Cari) *</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Sigorta FirmasÄ± (Cari) *</label>
                     <select id="teklif-firma" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                        <option value="">— Cari Yükleniyor —</option>
+                        <option value="">â€” Cari YÃ¼kleniyor â€”</option>
                     </select>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fiyat (₺) *</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fiyat (â‚º) *</label>
                         <input type="number" id="teklif-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all" placeholder="0.00">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Taksit Sayısı</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Taksit SayÄ±sÄ±</label>
                         <select id="teklif-taksit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="1">Peşin (Tek Çekim)</option>
+                            <option value="1">PeÅŸin (Tek Ã‡ekim)</option>
                             <option value="2">2 Taksit</option>
                             <option value="3">3 Taksit</option>
                             <option value="4">4 Taksit</option>
@@ -748,12 +748,12 @@ window.openModal = function (title, id = null, extra = null) {
         `;
         setTimeout(async () => {
             loadSelectOptions('teklif-arac', 'araclar', 'id', 'plaka');
-            // Sigortacı carilerini yükle
+            // SigortacÄ± carilerini yÃ¼kle
             const firmaSelect = document.getElementById('teklif-firma');
             if (firmaSelect && window.supabaseClient && window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
                 const { data: cariler } = await window.supabaseClient
                     .from('cariler').select('id, unvan').order('unvan');
-                firmaSelect.innerHTML = '<option value="">— Sigorta Firması Seç —</option>';
+                firmaSelect.innerHTML = '<option value="">â€” Sigorta FirmasÄ± SeÃ§ â€”</option>';
                 (cariler || []).forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id;
@@ -764,15 +764,15 @@ window.openModal = function (title, id = null, extra = null) {
         }, 50);
     } else if (title === 'Yeni Puantaj Gir') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Şoförün günlük çalışma, izin veya rapor durumunu sisteme işleyiniz.</p>
+                    <p class="text-sm text-gray-400 mb-8">ÅžofÃ¶rÃ¼n gÃ¼nlÃ¼k Ã§alÄ±ÅŸma, izin veya rapor durumunu sisteme iÅŸleyiniz.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ÅžofÃ¶r SeÃ§in</label>
                                 <select id="puantaj-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§in</label>
                                 <select id="puantaj-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
@@ -783,14 +783,14 @@ window.openModal = function (title, id = null, extra = null) {
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Durum</label>
                             <select id="puantaj-durum" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                <option value="ÇALIŞTI">ÇALIŞTI</option>
-                                <option value="İZİNLİ">İZİNLİ</option>
+                                <option value="Ã‡ALIÅžTI">Ã‡ALIÅžTI</option>
+                                <option value="Ä°ZÄ°NLÄ°">Ä°ZÄ°NLÄ°</option>
                                 <option value="RAPORLU">RAPORLU</option>
                                 <option value="DEVAMSIZ">DEVAMSIZ</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Harcırah (₺)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">HarcÄ±rah (â‚º)</label>
                             <input type="number" step="0.01" id="puantaj-harcirah" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Tutar">
                         </div>
                     </div>
@@ -799,45 +799,45 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('puantaj-sofor', 'soforler', 'id', 'ad_soyad');
             loadSelectOptions('puantaj-arac', 'araclar', 'id', 'plaka');
         }, 50);
-    } else if (title === 'Yeni Finans İşlemi') {
+    } else if (title === 'Yeni Finans Ä°ÅŸlemi') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Şoför bazlı finansal işlem (maaş, avans, kesinti vb.) girişi yapın.</p>
+                    <p class="text-sm text-gray-400 mb-8">ÅžofÃ¶r bazlÄ± finansal iÅŸlem (maaÅŸ, avans, kesinti vb.) giriÅŸi yapÄ±n.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Seçin</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ÅžofÃ¶r SeÃ§in</label>
                             <select id="finans-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Türü</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸlem TÃ¼rÃ¼</label>
                             <select id="finans-tur" onchange="if(window.handleFinansTurChange) window.handleFinansTurChange(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                <option value="MAAŞ">MAAŞ (+)</option>
-                                <option value="PRİM/HARCIRAH">PRİM/HARCIRAH (+)</option>
+                                <option value="MAAÅž">MAAÅž (+)</option>
+                                <option value="PRÄ°M/HARCIRAH">PRÄ°M/HARCIRAH (+)</option>
                                 <option value="AVANS">AVANS (-)</option>
-                                <option value="KESİNTİ (Ceza/Hasar)">KESİNTİ (Ceza/Hasar) (-)</option>
+                                <option value="KESÄ°NTÄ° (Ceza/Hasar)">KESÄ°NTÄ° (Ceza/Hasar) (-)</option>
                             </select>
                         </div>
                         
-                        <!-- DİNAMİK ALANLAR (Geri Ödeme Şekli, Ceza No vb.) -->
+                        <!-- DÄ°NAMÄ°K ALANLAR (Geri Ã–deme Åžekli, Ceza No vb.) -->
                         <div id="finans-dinamik-alanlar" class="hidden bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (₺)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (â‚º)</label>
                             <input type="number" step="0.01" id="finans-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Tutar">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
-                            <input type="text" id="finans-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="İşlem Açıklaması">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AÃ§Ä±klama</label>
+                            <input type="text" id="finans-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ä°ÅŸlem AÃ§Ä±klamasÄ±">
                         </div>
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('finans-sofor', 'soforler', 'id', 'ad_soyad'), 50);
-    } else if (title === 'Yeni Sefer Hakedişi Ekle') {
+    } else if (title === 'Yeni Sefer HakediÅŸi Ekle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Taşeron araçlar için yeni sefer hakedişi kaydı oluşturun.</p>
+                    <p class="text-sm text-gray-400 mb-8">TaÅŸeron araÃ§lar iÃ§in yeni sefer hakediÅŸi kaydÄ± oluÅŸturun.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§in</label>
                             <select id="taseron-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div>
@@ -845,34 +845,34 @@ window.openModal = function (title, id = null, extra = null) {
                             <input type="date" id="taseron-tarih" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Güzergah</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GÃ¼zergah</label>
                             <input type="text" id="taseron-guzergah" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Rota Bilgisi">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Anlaşılan Tutar</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AnlaÅŸÄ±lan Tutar</label>
                                 <input type="number" step="0.01" id="taseron-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="10000">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Yakıt Kesintisi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">YakÄ±t Kesintisi</label>
                                 <input type="number" step="0.01" id="taseron-yakit" value="0" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
                     </div>
                 `;
-        setTimeout(() => loadSelectOptions('taseron-arac', 'araclar', 'id', 'plaka', 'mulkiyet_durumu', ['TAŞERON']), 50);
-    } else if (title === 'Yeni Taşeron Kaydı') {
+        setTimeout(() => loadSelectOptions('taseron-arac', 'araclar', 'id', 'plaka', 'mulkiyet_durumu', ['TAÅžERON']), 50);
+    } else if (title === 'Yeni TaÅŸeron KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Sisteme yeni bir dış tedarikçi (taşeron) aracı ve sahibi kaydedin.</p>
+                    <p class="text-sm text-gray-400 mb-8">Sisteme yeni bir dÄ±ÅŸ tedarikÃ§i (taÅŸeron) aracÄ± ve sahibi kaydedin.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Plakası *</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ PlakasÄ± *</label>
                                 <input type="text" id="taseron-yeni-plaka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="34 ABC 123">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Firma / Sahip Adı *</label>
-                                <input type="text" id="taseron-yeni-firma" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Lojistik A.Ş.">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Firma / Sahip AdÄ± *</label>
+                                <input type="text" id="taseron-yeni-firma" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Lojistik A.Åž.">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -881,25 +881,25 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="text" id="taseron-yeni-marka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Mercedes Axor">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kira Bedeli (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kira Bedeli (â‚º)</label>
                                 <input type="number" id="taseron-yeni-kira" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Görevli Şoför</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GÃ¶revli ÅžofÃ¶r</label>
                             <select id="taseron-yeni-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('taseron-yeni-sofor', 'soforler', 'id', 'ad_soyad'), 50);
-    } else if (title === 'Yeni Müşteri Ekle') {
+    } else if (title === 'Yeni MÃ¼ÅŸteri Ekle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Kurumsal müşteri ve iş ortağı bilgilerini detaylı olarak kaydedin.</p>
+                    <p class="text-sm text-gray-400 mb-8">Kurumsal mÃ¼ÅŸteri ve iÅŸ ortaÄŸÄ± bilgilerini detaylÄ± olarak kaydedin.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri / Kurum Adı</label>
-                                <input type="text" id="musteri-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Kurum Adı">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼ÅŸteri / Kurum AdÄ±</label>
+                                <input type="text" id="musteri-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Kurum AdÄ±">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vergi No / Daire</label>
@@ -908,7 +908,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Yetkili Kişi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Yetkili KiÅŸi</label>
                                 <input type="text" id="musteri-yetkili" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ad Soyad">
                             </div>
                             <div>
@@ -922,7 +922,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vade (Gün)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vade (GÃ¼n)</label>
                                 <input type="number" id="musteri-vade" value="30" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                              <div>
@@ -932,17 +932,17 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                     </div>
                 `;
-    } else if (title === 'Yeni Servis Kaydı') {
+    } else if (title === 'Yeni Servis KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Müşteriye verilen günlük veya vardiyalı servis hizmetini kayıt altına alın.</p>
+                    <p class="text-sm text-gray-400 mb-8">MÃ¼ÅŸteriye verilen gÃ¼nlÃ¼k veya vardiyalÄ± servis hizmetini kayÄ±t altÄ±na alÄ±n.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼ÅŸteri SeÃ§in</label>
                                 <select id="servis-musteri" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kullanan Araç</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kullanan AraÃ§</label>
                                 <select id="servis-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
@@ -952,17 +952,17 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="date" id="servis-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vardiya / Yön</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vardiya / YÃ¶n</label>
                                 <select id="servis-vardiya" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                     <option value="SABAH">SABAH</option>
-                                    <option value="AKŞAM">AKŞAM</option>
+                                    <option value="AKÅžAM">AKÅžAM</option>
                                     <option value="GECE">GECE</option>
                                     <option value="EKSTRA">EKSTRA</option>
                                 </select>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Günlük Fatura Tutarı (₺)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GÃ¼nlÃ¼k Fatura TutarÄ± (â‚º)</label>
                             <input type="number" step="0.01" id="servis-fatura" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Tutar">
                         </div>
                     </div>
@@ -971,24 +971,24 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('servis-musteri', 'musteriler', 'id', 'ad');
             loadSelectOptions('servis-arac', 'araclar', 'id', 'plaka');
         }, 50);
-    } else if (title === 'Araç Şoför Ata') {
+    } else if (title === 'AraÃ§ ÅžofÃ¶r Ata') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Seçili araca atamak istediğiniz aktif şoförü listeden seçiniz.</p>
+                    <p class="text-sm text-gray-400 mb-8">SeÃ§ili araca atamak istediÄŸiniz aktif ÅŸofÃ¶rÃ¼ listeden seÃ§iniz.</p>
                     <input type="hidden" id="atama-arac-id" value="">
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Seçin</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ÅžofÃ¶r SeÃ§in</label>
                             <select id="atama-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('atama-sofor', 'soforler', 'id', 'ad_soyad'), 50);
-    } else if (title === 'Şoför Güncelle') {
+    } else if (title === 'ÅžofÃ¶r GÃ¼ncelle') {
         content = `
                     <div class="space-y-6">
                         <div class="flex items-center gap-2 mb-2">
                             <i data-lucide="user" class="w-4 h-4 text-blue-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-blue-500">Kişisel Bilgiler</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-blue-500">KiÅŸisel Bilgiler</p>
                         </div>
                         <input type="hidden" id="edit-sofor-id" value="">
                         <div class="grid grid-cols-2 gap-4">
@@ -997,7 +997,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="text" id="edit-sofor-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã‡alÄ±ÅŸtÄ±ÄŸÄ± Åžirket</label>
                                 <select id="edit-sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="IDEOL">IDEOL</option>
                                     <option value="M.K.">M.K.</option>
@@ -1012,7 +1012,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Doğum Tarihi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">DoÄŸum Tarihi</label>
                                 <input type="date" id="edit-sofor-dogum" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
@@ -1022,8 +1022,8 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum Kişisi</label>
-                                <input type="text" id="edit-sofor-acil-kisi" class="w-full bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-all font-medium" placeholder="İsim Soyisim">
+                                <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum KiÅŸisi</label>
+                                <input type="text" id="edit-sofor-acil-kisi" class="w-full bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-red-500 transition-all font-medium" placeholder="Ä°sim Soyisim">
                             </div>
                             <div>
                                 <label class="block text-[10px] font-bold text-red-400 uppercase tracking-widest mb-2">Acil Durum Telefonu</label>
@@ -1037,13 +1037,13 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ehliyet Sınıfı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ehliyet SÄ±nÄ±fÄ±</label>
                                 <select id="edit-sofor-ehliyet" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="">Seçiniz...</option>
-                                    <option value="B">B Sınıfı</option>
-                                    <option value="C">C Sınıfı</option>
-                                    <option value="CE">CE Sınıfı</option>
-                                    <option value="D">D Sınıfı</option>
+                                    <option value="">SeÃ§iniz...</option>
+                                    <option value="B">B SÄ±nÄ±fÄ±</option>
+                                    <option value="C">C SÄ±nÄ±fÄ±</option>
+                                    <option value="CE">CE SÄ±nÄ±fÄ±</option>
+                                    <option value="D">D SÄ±nÄ±fÄ±</option>
                                 </select>
                             </div>
                             <div>
@@ -1059,21 +1059,21 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge / Sözleşme URL</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge / SÃ¶zleÅŸme URL</label>
                             <input type="text" id="edit-sofor-belge-url" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                         </div>
 
                         <div class="flex items-center gap-2 mt-4 mb-2">
                             <i data-lucide="banknote" class="w-4 h-4 text-green-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">Maaş & Sigorta</p>
+                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">MaaÅŸ & Sigorta</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Aylık Maaş (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AylÄ±k MaaÅŸ (â‚º)</label>
                                 <input type="number" id="edit-sofor-aylik-maas" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Günlük Yevmiye (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">GÃ¼nlÃ¼k Yevmiye (â‚º)</label>
                                 <input type="number" id="edit-sofor-ucret" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
@@ -1082,25 +1082,25 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta</label>
                                 <select id="edit-sofor-sigorta" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                     <option value="SGK">SGK</option>
-                                    <option value="Bağkur">Bağkur</option>
+                                    <option value="BaÄŸkur">BaÄŸkur</option>
                                     <option value="Yok">Yok</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşe Başlama</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸe BaÅŸlama</label>
                                 <input type="date" id="edit-sofor-ise-baslama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
                     </div>
                 `;
-    } else if (title === 'Araç Evrak Güncelle') {
+    } else if (title === 'AraÃ§ Evrak GÃ¼ncelle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Aracın kritik evrak (vize, sigorta, kasko) tarihlerini ve belgelerini güncelleyin.</p>
+                    <p class="text-sm text-gray-400 mb-8">AracÄ±n kritik evrak (vize, sigorta, kasko) tarihlerini ve belgelerini gÃ¼ncelleyin.</p>
                     <input type="hidden" id="evrak-arac-id" value="">
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vize Bitiş</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vize BitiÅŸ</label>
                                 <input type="date" id="evrak-vize" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm">
                             </div>
                             <div>
@@ -1110,7 +1110,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta Bitiş</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta BitiÅŸ</label>
                                 <input type="date" id="evrak-sigorta" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm">
                             </div>
                             <div>
@@ -1120,7 +1120,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kasko Bitiş</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kasko BitiÅŸ</label>
                                 <input type="date" id="evrak-kasko" class="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white text-sm">
                             </div>
                             <div>
@@ -1130,7 +1130,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-white/5">
                             <div>
-                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Koltuk Sig. Bitiş</label>
+                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Koltuk Sig. BitiÅŸ</label>
                                 <input type="date" id="evrak-koltuk" class="w-full bg-white/5 border border-purple-500/20 rounded-xl px-3 py-2 text-white text-sm">
                             </div>
                             <div>
@@ -1140,33 +1140,33 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                     </div>
                 `;
-    } else if (title === 'Müşteriye Araç Tanımla') {
+    } else if (title === 'MÃ¼ÅŸteriye AraÃ§ TanÄ±mla') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Müşteriye özel araç ve tarife tanımlarını yaparak otomatik faturalandırma altyapısını kurun.</p>
+                    <p class="text-sm text-gray-400 mb-8">MÃ¼ÅŸteriye Ã¶zel araÃ§ ve tarife tanÄ±mlarÄ±nÄ± yaparak otomatik faturalandÄ±rma altyapÄ±sÄ±nÄ± kurun.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri / Fabrika Seçin</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼ÅŸteri / Fabrika SeÃ§in</label>
                             <select id="tanim-musteri" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tanımlanacak Araç</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TanÄ±mlanacak AraÃ§</label>
                             <select id="tanim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarife Türü</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarife TÃ¼rÃ¼</label>
                             <select id="tanim-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                 <option value="Vardiya">Vardiya</option>
-                                <option value="Tek">Tek (Sabah veya Akşam)</option>
+                                <option value="Tek">Tek (Sabah veya AkÅŸam)</option>
                             </select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tam / Vardiya Fiyatı (₺)</label>
-                                <input type="number" step="0.01" id="tanim-vardiya-fiyat" placeholder="Örn: 1500" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tam / Vardiya FiyatÄ± (â‚º)</label>
+                                <input type="number" step="0.01" id="tanim-vardiya-fiyat" placeholder="Ã–rn: 1500" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tek Sefer Fiyatı (₺)</label>
-                                <input type="number" step="0.01" id="tanim-tek-fiyat" placeholder="Örn: 800" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tek Sefer FiyatÄ± (â‚º)</label>
+                                <input type="number" step="0.01" id="tanim-tek-fiyat" placeholder="Ã–rn: 800" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
                     </div>
@@ -1175,9 +1175,9 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('tanim-musteri', 'musteriler', 'id', 'ad');
             loadSelectOptions('tanim-arac', 'araclar', 'id', 'plaka');
         }, 50);
-    } else if (title === 'Yeni Yakıt Kaydı') {
+    } else if (title === 'Yeni YakÄ±t KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Araç yakıt alımlarını takip ederek işletme maliyetlerini optimize edin.</p>
+                    <p class="text-sm text-gray-400 mb-8">AraÃ§ yakÄ±t alÄ±mlarÄ±nÄ± takip ederek iÅŸletme maliyetlerini optimize edin.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -1185,27 +1185,27 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="date" id="yakit-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§in</label>
                                 <select id="yakit-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Alınan Litre</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AlÄ±nan Litre</label>
                                 <input type="number" step="0.01" id="yakit-litre" oninput="hesaplaYakit()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Birim Fiyat (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Birim Fiyat (â‚º)</label>
                                 <input type="number" step="0.01" id="yakit-fiyat" oninput="hesaplaYakit()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Anlık Kilometre (KM)</label>
-                                <input type="number" id="yakit-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Örn: 125000">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AnlÄ±k Kilometre (KM)</label>
+                                <input type="number" id="yakit-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Ã–rn: 125000">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (â‚º)</label>
                                 <input type="number" step="0.01" id="yakit-tutar" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none transition-all font-bold" readonly>
                             </div>
                         </div>
@@ -1214,105 +1214,105 @@ window.openModal = function (title, id = null, extra = null) {
         setTimeout(() => loadSelectOptions('yakit-arac', 'araclar', 'id', 'plaka'), 50);
     } else if (title === 'Yeni Cari Hesap') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Tedarikçi, servis veya acente bilgilerinizi sisteme kaydederek ödeme takibini başlatın.</p>
+                    <p class="text-sm text-gray-400 mb-8">TedarikÃ§i, servis veya acente bilgilerinizi sisteme kaydederek Ã¶deme takibini baÅŸlatÄ±n.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Unvan / Firma Adı</label>
-                            <input type="text" id="cari-unvan" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Firma tam adı">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Unvan / Firma AdÄ±</label>
+                            <input type="text" id="cari-unvan" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Firma tam adÄ±">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari TÃ¼rÃ¼</label>
                                 <select id="cari-tur" onchange="if(window.handleCariTurChange) window.handleCariTurChange(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="Tedarikçi">Tedarikçi</option>
+                                    <option value="TedarikÃ§i">TedarikÃ§i</option>
                                     <option value="Tamirci">Tamirci / Servis</option>
                                     <option value="Sigorta Acentesi">Sigorta Acentesi</option>
-                                    <option value="Diğer">Diğer</option>
+                                    <option value="DiÄŸer">DiÄŸer</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İletişim No</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°letiÅŸim No</label>
                                 <input type="text" id="cari-telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0212 ...">
                             </div>
                         </div>
                         
-                        <!-- DİNAMİK ALANLAR (Acente Levha No, Uzmanlık vb.) -->
+                        <!-- DÄ°NAMÄ°K ALANLAR (Acente Levha No, UzmanlÄ±k vb.) -->
                         <div id="cari-dinamik-alanlar" class="hidden bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
                         </div>
 
                     </div>
                 `;
-    } else if (title === 'Yeni Bakım/Parça Kaydı') {
+    } else if (title === 'Yeni BakÄ±m/ParÃ§a KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Araç bakım ve onarım işlemlerini detaylandırarak teknik geçmiş oluşturun.</p>
+                    <p class="text-sm text-gray-400 mb-8">AraÃ§ bakÄ±m ve onarÄ±m iÅŸlemlerini detaylandÄ±rarak teknik geÃ§miÅŸ oluÅŸturun.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Tarihi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸlem Tarihi</label>
                                 <input type="date" id="bakim-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§in</label>
                                 <select id="bakim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸlem TÃ¼rÃ¼</label>
                                 <select id="bakim-tur" onchange="if(window.handleBakimTurChange) window.handleBakimTurChange(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="Bakım/İşçilik">Bakım / İşçilik</option>
-                                    <option value="Yedek Parça">Yedek Parça</option>
-                                    <option value="Hasar Onarım">Hasar Onarım</option>
+                                    <option value="BakÄ±m/Ä°ÅŸÃ§ilik">BakÄ±m / Ä°ÅŸÃ§ilik</option>
+                                    <option value="Yedek ParÃ§a">Yedek ParÃ§a</option>
+                                    <option value="Hasar OnarÄ±m">Hasar OnarÄ±m</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tedarikçi/Tamirci</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">TedarikÃ§i/Tamirci</label>
                                 <select id="bakim-cari" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
 
-                        <!-- DİNAMİK ALANLAR (Parça Adı/Kodu, Hasar Dosya No) -->
+                        <!-- DÄ°NAMÄ°K ALANLAR (ParÃ§a AdÄ±/Kodu, Hasar Dosya No) -->
                         <div id="bakim-dinamik-alanlar" class="hidden bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
                         </div>
 
                         <div class="grid grid-cols-3 gap-4">
                             <div class="col-span-2">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
-                                <input type="text" id="bakim-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: 10.000 Bakımı, Yağ Değişimi">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AÃ§Ä±klama</label>
+                                <input type="text" id="bakim-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: 10.000 BakÄ±mÄ±, YaÄŸ DeÄŸiÅŸimi">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Anlık KM</label>
-                                <input type="number" id="bakim-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Örn: 125000">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AnlÄ±k KM</label>
+                                <input type="number" id="bakim-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Ã–rn: 125000">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (â‚º)</label>
                                 <input type="number" step="0.01" id="bakim-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Yükle</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge YÃ¼kle</label>
                                 <input type="file" id="bakim-dosya" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:font-bold file:bg-orange-500/20 file:text-orange-400 hover:file:bg-orange-500/30 transition-all cursor-pointer">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-gray-500/5 border border-gray-500/10">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã–deme TÃ¼rÃ¼</label>
                                 <select id="bakim-odeme-turu" onchange="if(window.handleOdemeTuruChange) window.handleOdemeTuruChange(this.value, 'bakim')" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="VADELİ (Cariye Yaz)">VADELİ (Cariye Yaz)</option>
-                                    <option value="KREDİ KARTI">KREDİ KARTI İLE ÖDENDİ</option>
-                                    <option value="CARİ HESABI">CARİ HESABINDAN ÖDENDİ</option>
-                                    <option value="NAKİT / HAVALE">NAKİT / HAVALE İLE ÖDENDİ</option>
+                                    <option value="VADELÄ° (Cariye Yaz)">VADELÄ° (Cariye Yaz)</option>
+                                    <option value="KREDÄ° KARTI">KREDÄ° KARTI Ä°LE Ã–DENDÄ°</option>
+                                    <option value="CARÄ° HESABI">CARÄ° HESABINDAN Ã–DENDÄ°</option>
+                                    <option value="NAKÄ°T / HAVALE">NAKÄ°T / HAVALE Ä°LE Ã–DENDÄ°</option>
                                 </select>
                             </div>
                             <div id="bakim-kredi-karti-container" class="hidden">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kredi Kartı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kredi KartÄ±</label>
                                 <select id="bakim-kredi-karti" class="w-full bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-orange-400 focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                             </div>
                             <div id="bakim-cari-hesap-container" class="hidden">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Hesap Seç</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Hesap SeÃ§</label>
                                 <select id="bakim-odeme-cari" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3 text-blue-400 focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
@@ -1321,17 +1321,17 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
         setTimeout(() => {
             loadSelectOptions('bakim-arac', 'araclar', 'id', 'plaka');
-            loadSelectOptions('bakim-cari', 'cariler', 'id', 'unvan', 'tur', ['Tedarikçi', 'Tamirci', 'Servis', 'Tedarikçi/Tamirci']);
+            loadSelectOptions('bakim-cari', 'cariler', 'id', 'unvan', 'tur', ['TedarikÃ§i', 'Tamirci', 'Servis', 'TedarikÃ§i/Tamirci']);
             loadSelectOptions('bakim-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('bakim-odeme-cari', 'cariler', 'id', 'unvan');
         }, 50);
-    } else if (title === 'Yeni Poliçe Kaydı') {
+    } else if (title === 'Yeni PoliÃ§e KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Trafik sigortası, kasko ve diğer poliçe girişlerini yaparak risk yönetimi sağlayın.</p>
+                    <p class="text-sm text-gray-400 mb-8">Trafik sigortasÄ±, kasko ve diÄŸer poliÃ§e giriÅŸlerini yaparak risk yÃ¶netimi saÄŸlayÄ±n.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§in</label>
                                 <select id="police-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                             <div>
@@ -1341,21 +1341,21 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Başlangıç</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BaÅŸlangÄ±Ã§</label>
                                 <input type="date" id="police-baslangic" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Bitiş</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BitiÅŸ</label>
                                 <input type="date" id="police-bitis" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Poliçe Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">PoliÃ§e TÃ¼rÃ¼</label>
                                 <select id="police-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="Trafik">Trafik Sigortası</option>
+                                    <option value="Trafik">Trafik SigortasÄ±</option>
                                     <option value="Kasko">Kasko</option>
-                                    <option value="İhtiyari Mali Mesuliyet">İMM</option>
+                                    <option value="Ä°htiyari Mali Mesuliyet">Ä°MM</option>
                                 </select>
                             </div>
                             <div>
@@ -1365,31 +1365,31 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (â‚º)</label>
                                 <input type="number" step="0.01" id="police-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Yükle</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge YÃ¼kle</label>
                                 <input type="file" id="police-dosya" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:font-bold file:bg-orange-500/20 file:text-orange-400 hover:file:bg-orange-500/30 transition-all cursor-pointer">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-gray-500/5 border border-gray-500/10">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã–deme TÃ¼rÃ¼</label>
                                 <select id="police-odeme-turu" onchange="if(window.handleOdemeTuruChange) window.handleOdemeTuruChange(this.value, 'police')" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="VADELİ (Cariye Yaz)">VADELİ (Cariye Yaz)</option>
-                                    <option value="KREDİ KARTI">KREDİ KARTI İLE ÖDENDİ</option>
-                                    <option value="CARİ HESABI">CARİ HESABINDAN ÖDENDİ</option>
-                                    <option value="NAKİT / HAVALE">NAKİT / HAVALE İLE ÖDENDİ</option>
+                                    <option value="VADELÄ° (Cariye Yaz)">VADELÄ° (Cariye Yaz)</option>
+                                    <option value="KREDÄ° KARTI">KREDÄ° KARTI Ä°LE Ã–DENDÄ°</option>
+                                    <option value="CARÄ° HESABI">CARÄ° HESABINDAN Ã–DENDÄ°</option>
+                                    <option value="NAKÄ°T / HAVALE">NAKÄ°T / HAVALE Ä°LE Ã–DENDÄ°</option>
                                 </select>
                             </div>
                             <div id="police-kredi-karti-container" class="hidden">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kredi Kartı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kredi KartÄ±</label>
                                 <select id="police-kredi-karti" class="w-full bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-orange-400 focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                             </div>
                             <div id="police-cari-hesap-container" class="hidden">
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Hesap Seç</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Hesap SeÃ§</label>
                                 <select id="police-odeme-cari" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3 text-blue-400 focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
@@ -1401,7 +1401,7 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('police-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('police-odeme-cari', 'cariler', 'id', 'unvan');
         }, 50);
-    } else if (title === 'Yeni Fatura Kaydı') {
+    } else if (title === 'Yeni Fatura KaydÄ±') {
         content = `
                     <p class="text-sm text-gray-500 mb-6">Cari hesaba ait genel bir fatura veya belge kaydedin.</p>
                     <input type="hidden" id="fatura-cari-id" value="">
@@ -1417,25 +1417,25 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Fatura Türü</label>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Fatura TÃ¼rÃ¼</label>
                             <select id="fatura-tur" onchange="if(window.handleFaturaTurChange) window.handleFaturaTurChange(this.value)" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors">
                                 <option value="Genel Gider">Genel Gider (Ofis vb.)</option>
-                                <option value="Yakıt">Yakıt (Araç Bazlı)</option>
-                                <option value="OGS/HGS">OGS/HGS Geçişi</option>
-                                <option value="Sigorta/Kasko">Sigorta/Kasko Ödemesi</option>
+                                <option value="YakÄ±t">YakÄ±t (AraÃ§ BazlÄ±)</option>
+                                <option value="OGS/HGS">OGS/HGS GeÃ§iÅŸi</option>
+                                <option value="Sigorta/Kasko">Sigorta/Kasko Ã–demesi</option>
                             </select>
                         </div>
                         
-                        <!-- DİNAMİK ALANLAR (Litre, İhlal vb.) -->
+                        <!-- DÄ°NAMÄ°K ALANLAR (Litre, Ä°hlal vb.) -->
                         <div id="fatura-dinamik-alanlar" class="hidden bg-black/10 p-4 rounded border border-gray-200 space-y-4">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Açıklama</label>
-                            <input type="text" id="fatura-aciklama" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors" placeholder="Örn: Kırtasiye Gideri, Ofis Kirası vb.">
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">AÃ§Ä±klama</label>
+                            <input type="text" id="fatura-aciklama" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors" placeholder="Ã–rn: KÄ±rtasiye Gideri, Ofis KirasÄ± vb.">
                         </div>
                         <div>
-                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Toplam Tutar (₺)</label>
+                            <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Toplam Tutar (â‚º)</label>
                             <input type="number" step="0.01" id="fatura-tutar" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors">
                         </div>
                         <div>
@@ -1444,62 +1444,62 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                     </div>
                 `;
-    } else if (title === 'Yeni Ödeme Kaydı') {
+    } else if (title === 'Yeni Ã–deme KaydÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Tedarikçiye yapılan ödemeyi (çek, nakit, havale) kaydederek bakiyesini güncelleyin.</p>
+                    <p class="text-sm text-gray-400 mb-8">TedarikÃ§iye yapÄ±lan Ã¶demeyi (Ã§ek, nakit, havale) kaydederek bakiyesini gÃ¼ncelleyin.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Yapılan Cari</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã–deme YapÄ±lan Cari</label>
                             <select id="odeme-cari" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Tarihi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã–deme Tarihi</label>
                                 <input type="date" id="odeme-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã–deme TÃ¼rÃ¼</label>
                                 <select id="odeme-tur" onchange="if(window.handleOdemeTurChange) window.handleOdemeTurChange(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                     <option value="Banka/Havale">Banka / Havale</option>
                                     <option value="Nakit">Nakit</option>
-                                    <option value="Çek/Senet">Çek / Senet</option>
-                                    <option value="Kredi Kartı">Kredi Kartı</option>
+                                    <option value="Ã‡ek/Senet">Ã‡ek / Senet</option>
+                                    <option value="Kredi KartÄ±">Kredi KartÄ±</option>
                                 </select>
                             </div>
                         </div>
                         
-                        <!-- DİNAMİK ALANLAR (Çek No, Dekont No vb.) -->
+                        <!-- DÄ°NAMÄ°K ALANLAR (Ã‡ek No, Dekont No vb.) -->
                         <div id="odeme-dinamik-alanlar" class="hidden bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (₺)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (â‚º)</label>
                             <input type="number" step="0.01" id="odeme-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
-                            <input type="text" id="odeme-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: X Ayı Taksit Ödemesi">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AÃ§Ä±klama</label>
+                            <input type="text" id="odeme-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: X AyÄ± Taksit Ã–demesi">
                         </div>
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('odeme-cari', 'cariler', 'id', 'unvan'), 50);
     } else if (title === 'Yeni Teklif Ekle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-6">Sigorta şirketlerinden aldığınız teklifleri tüm poliçe detaylarıyla karşılaştırmak için kaydedin.</p>
+                    <p class="text-sm text-gray-400 mb-6">Sigorta ÅŸirketlerinden aldÄ±ÄŸÄ±nÄ±z teklifleri tÃ¼m poliÃ§e detaylarÄ±yla karÅŸÄ±laÅŸtÄ±rmak iÃ§in kaydedin.</p>
                     <div class="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
                         
-                        <!-- 1. TEMEL BİLGİLER -->
+                        <!-- 1. TEMEL BÄ°LGÄ°LER -->
                         <div class="bg-white/5 border border-white/10 rounded-xl p-5">
                             <h3 class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <i data-lucide="file-text" class="w-4 h-4"></i> Genel Bilgiler
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Poliçe Türü *</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">PoliÃ§e TÃ¼rÃ¼ *</label>
                                     <div class="flex gap-4">
                                         <label class="flex items-center gap-2 cursor-pointer">
                                             <input type="radio" name="teklif_turu" value="Trafik" class="w-4 h-4 text-orange-500 bg-black/30 border-white/20 focus:ring-orange-500" checked>
-                                            <span class="text-sm font-semibold text-white">Trafik Sigortası</span>
+                                            <span class="text-sm font-semibold text-white">Trafik SigortasÄ±</span>
                                         </label>
                                         <label class="flex items-center gap-2 cursor-pointer">
                                             <input type="radio" name="teklif_turu" value="Kasko" class="w-4 h-4 text-orange-500 bg-black/30 border-white/20 focus:ring-orange-500">
@@ -1508,41 +1508,41 @@ window.openModal = function (title, id = null, extra = null) {
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçimi *</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ SeÃ§imi *</label>
                                     <select id="teklif-arac" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                                 </div>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta Firması (Cari) *</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sigorta FirmasÄ± (Cari) *</label>
                                     <select id="teklif-firma" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Başlangıç Tarihi</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BaÅŸlangÄ±Ã§ Tarihi</label>
                                     <input type="date" id="teklif-baslangic" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Bitiş Tarihi</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">BitiÅŸ Tarihi</label>
                                     <input type="date" id="teklif-bitis" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 2. FİNANS VE TAKSİT -->
+                        <!-- 2. FÄ°NANS VE TAKSÄ°T -->
                         <div class="bg-white/5 border border-white/10 rounded-xl p-5">
                             <h3 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i data-lucide="credit-card" class="w-4 h-4"></i> Ödeme Planı
+                                <i data-lucide="credit-card" class="w-4 h-4"></i> Ã–deme PlanÄ±
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Toplam Poliçe Tutarı (₺) *</label>
+                                    <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Toplam PoliÃ§e TutarÄ± (â‚º) *</label>
                                     <input type="number" step="0.01" id="teklif-tutar" class="w-full bg-black/30 border border-orange-500/30 rounded-xl px-4 py-3 text-orange-400 font-bold focus:outline-none focus:border-orange-500 transition-all" placeholder="0.00">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Taksit Sayısı</label>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Taksit SayÄ±sÄ±</label>
                                     <select id="teklif-taksit-sayisi" class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                        <option value="1">Peşin (Tek Çekim)</option>
+                                        <option value="1">PeÅŸin (Tek Ã‡ekim)</option>
                                         <option value="2">2 Taksit</option>
                                         <option value="3">3 Taksit</option>
                                         <option value="4">4 Taksit</option>
@@ -1553,52 +1553,52 @@ window.openModal = function (title, id = null, extra = null) {
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Aylık Taksit (₺)</label>
+                                    <label class="block text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">AylÄ±k Taksit (â‚º)</label>
                                     <input type="number" step="0.01" id="teklif-taksit-tutar" class="w-full bg-black/30 border border-blue-500/30 rounded-xl px-4 py-3 text-blue-400 font-bold focus:outline-none focus:border-blue-500 transition-all" placeholder="0.00">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- 3. KAPSAM VE TEMİNATLAR -->
+                        <!-- 3. KAPSAM VE TEMÄ°NATLAR -->
                         <div class="bg-white/5 border border-white/10 rounded-xl p-5">
                             <h3 class="text-xs font-bold text-green-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                <i data-lucide="shield-check" class="w-4 h-4"></i> Poliçe Ekstra Teminatları
+                                <i data-lucide="shield-check" class="w-4 h-4"></i> PoliÃ§e Ekstra TeminatlarÄ±
                             </h3>
                             
                             <div class="space-y-3">
-                                <!-- İMM -->
+                                <!-- Ä°MM -->
                                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full md:w-auto">
                                         <input type="checkbox" id="teklif-imm" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
                                         <div class="flex flex-col">
-                                            <span class="text-sm font-bold text-gray-200">İhtiyari Mali Mesuliyet (İMM)</span>
-                                            <span class="text-[10px] text-gray-500">Karşı tarafa verilecek zararlar</span>
+                                            <span class="text-sm font-bold text-gray-200">Ä°htiyari Mali Mesuliyet (Ä°MM)</span>
+                                            <span class="text-[10px] text-gray-500">KarÅŸÄ± tarafa verilecek zararlar</span>
                                         </div>
                                     </label>
                                     <div class="flex items-center gap-2 bg-black/30 px-3 py-2 rounded-lg border border-white/5 w-full md:w-auto">
                                         <span class="text-[10px] text-gray-500 uppercase font-bold">Limit:</span>
                                         <select id="teklif-imm-limit" class="bg-transparent text-xs text-gray-300 font-semibold focus:outline-none w-full min-w-[120px]">
-                                            <option value="1.000.000">1 Milyon ₺</option>
-                                            <option value="3.000.000" selected>3 Milyon ₺</option>
-                                            <option value="5.000.000">5 Milyon ₺</option>
+                                            <option value="1.000.000">1 Milyon â‚º</option>
+                                            <option value="3.000.000" selected>3 Milyon â‚º</option>
+                                            <option value="5.000.000">5 Milyon â‚º</option>
                                             <option value="Limitsiz">Limitsiz</option>
                                         </select>
                                     </div>
                                 </div>
                                 
-                                <!-- İkame Araç -->
+                                <!-- Ä°kame AraÃ§ -->
                                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full md:w-auto">
                                         <input type="checkbox" id="teklif-ikame" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
-                                        <span class="text-sm font-bold text-gray-200">İkame Araç Hizmeti</span>
+                                        <span class="text-sm font-bold text-gray-200">Ä°kame AraÃ§ Hizmeti</span>
                                     </label>
                                     <div class="flex items-center gap-2 bg-black/30 px-3 py-2 rounded-lg border border-white/5 w-full md:w-auto">
-                                        <span class="text-[10px] text-gray-500 uppercase font-bold">Süre:</span>
+                                        <span class="text-[10px] text-gray-500 uppercase font-bold">SÃ¼re:</span>
                                         <select id="teklif-ikame-sure" class="bg-transparent text-xs text-gray-300 font-semibold focus:outline-none w-full min-w-[120px]">
-                                            <option value="7 Gün">7 Gün</option>
-                                            <option value="15 Gün" selected>15 Gün</option>
-                                            <option value="30 Gün">30 Gün</option>
-                                            <option value="Sınırsız">Sınırsız</option>
+                                            <option value="7 GÃ¼n">7 GÃ¼n</option>
+                                            <option value="15 GÃ¼n" selected>15 GÃ¼n</option>
+                                            <option value="30 GÃ¼n">30 GÃ¼n</option>
+                                            <option value="SÄ±nÄ±rsÄ±z">SÄ±nÄ±rsÄ±z</option>
                                         </select>
                                     </div>
                                 </div>
@@ -1609,16 +1609,16 @@ window.openModal = function (title, id = null, extra = null) {
                                         <input type="checkbox" id="teklif-cam" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
                                         <div class="flex flex-col">
                                             <span class="text-sm font-bold text-gray-200">Orijinal Cam (Muafiyetsiz)</span>
-                                            <span class="text-[10px] text-gray-500">Logolu kırılmaz parça değişimi</span>
+                                            <span class="text-[10px] text-gray-500">Logolu kÄ±rÄ±lmaz parÃ§a deÄŸiÅŸimi</span>
                                         </div>
                                     </label>
                                 </div>
                                 
-                                <!-- Yol Yardım -->
+                                <!-- Yol YardÄ±m -->
                                 <div class="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full">
                                         <input type="checkbox" id="teklif-yolyardim" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
-                                        <span class="text-sm font-bold text-gray-200">Genişletilmiş Yol Yardım Paketi</span>
+                                        <span class="text-sm font-bold text-gray-200">GeniÅŸletilmiÅŸ Yol YardÄ±m Paketi</span>
                                     </label>
                                 </div>
                             </div>
@@ -1627,14 +1627,14 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
         setTimeout(async () => {
             loadSelectOptions('teklif-arac', 'araclar', 'id', 'plaka');
-            // Sigortacı carilerini yükle
+            // SigortacÄ± carilerini yÃ¼kle
             const firmaSelect = document.getElementById('teklif-firma');
             if (firmaSelect && window.supabaseClient && window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
                 const { data: cariler } = await window.supabaseClient
                     .from('cariler')
                     .select('id, unvan, tur')
                     .order('unvan');
-                firmaSelect.innerHTML = '<option value="">— Sigorta Firması Seç —</option>';
+                firmaSelect.innerHTML = '<option value="">â€” Sigorta FirmasÄ± SeÃ§ â€”</option>';
                 const sigortacilar = (cariler || []).filter(c => {
                     const isTurSigorta = c.tur && c.tur.toLowerCase().includes('sigorta');
                     const isAdSigorta = c.unvan && c.unvan.toLowerCase().includes('sigorta');
@@ -1648,61 +1648,61 @@ window.openModal = function (title, id = null, extra = null) {
                 });
             }
         }, 50);
-    } else if (title === 'Yeni Maaş Kaydı') {
+    } else if (title === 'Yeni MaaÅŸ KaydÄ±') {
         const now = new Date();
         const donem = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
         content = `
-                    <p class="text-sm text-gray-400 mb-6">Şoför aylık maaş ödemesini kaydedin. Elden tutar banka kesintileri çıkarıldıktan sonra hesaplanır.</p>
+                    <p class="text-sm text-gray-400 mb-6">ÅžofÃ¶r aylÄ±k maaÅŸ Ã¶demesini kaydedin. Elden tutar banka kesintileri Ã§Ä±karÄ±ldÄ±ktan sonra hesaplanÄ±r.</p>
                     <div class="space-y-5">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">ÅžofÃ¶r</label>
                                 <select id="maas-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç (Plaka)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AraÃ§ (Plaka)</label>
                                 <select id="maas-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Dönem</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">DÃ¶nem</label>
                                 <input type="month" id="maas-donem" value="${donem}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalışma Günü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã‡alÄ±ÅŸma GÃ¼nÃ¼</label>
                                 <input type="number" id="maas-gun" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0" min="0" max="31">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Net Maaş (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Net MaaÅŸ (â‚º)</label>
                                 <input type="number" step="0.01" id="maas-net" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium text-blue-400 font-bold" placeholder="0.00">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Avans (₺)</label>
+                                <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Avans (â‚º)</label>
                                 <input type="number" step="0.01" id="maas-avans" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-red-400 uppercase tracking-widest mb-2">Ceza (₺)</label>
+                                <label class="block text-xs font-bold text-red-400 uppercase tracking-widest mb-2">Ceza (â‚º)</label>
                                 <input type="number" step="0.01" id="maas-ceza" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Haciz (₺)</label>
+                                <label class="block text-xs font-bold text-purple-400 uppercase tracking-widest mb-2">Haciz (â‚º)</label>
                                 <input type="number" step="0.01" id="maas-haciz" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">M.K Banka (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">M.K Banka (â‚º)</label>
                                 <input type="number" step="0.01" id="maas-mk-banka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-green-400 uppercase tracking-widest mb-2">İDEOL Banka (₺)</label>
+                            <label class="block text-xs font-bold text-green-400 uppercase tracking-widest mb-2">Ä°DEOL Banka (â‚º)</label>
                             <input type="number" step="0.01" id="maas-ideol-banka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
-                            <input type="text" id="maas-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="Opsiyonel açıklama...">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AÃ§Ä±klama</label>
+                            <input type="text" id="maas-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="Opsiyonel aÃ§Ä±klama...">
                         </div>
                     </div>
                 `;
@@ -1710,38 +1710,38 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('maas-sofor', 'soforler', 'id', 'ad_soyad');
             loadSelectOptions('maas-arac', 'araclar', 'id', 'plaka');
         }, 50);
-    } else if (title === 'Cari Güncelle') {
+    } else if (title === 'Cari GÃ¼ncelle') {
         content = `
                     <div class="space-y-6">
                         <input type="hidden" id="edit-cari-id" value="">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Unvan / Firma Adı</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Unvan / Firma AdÄ±</label>
                             <input type="text" id="edit-cari-unvan" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Cari TÃ¼rÃ¼</label>
                                 <select id="edit-cari-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="Tedarikçi">Tedarikçi</option>
+                                    <option value="TedarikÃ§i">TedarikÃ§i</option>
                                     <option value="Tamirci">Tamirci / Servis</option>
                                     <option value="Sigorta Acentesi">Sigorta Acentesi</option>
-                                    <option value="Diğer">Diğer</option>
+                                    <option value="DiÄŸer">DiÄŸer</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İletişim No</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°letiÅŸim No</label>
                                 <input type="text" id="edit-cari-telefon" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
                     </div>
                 `;
-    } else if (title === 'Müşteri Güncelle') {
+    } else if (title === 'MÃ¼ÅŸteri GÃ¼ncelle') {
         content = `
                     <div class="space-y-6">
                         <input type="hidden" id="edit-musteri-id" value="">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri/Firma Adı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼ÅŸteri/Firma AdÄ±</label>
                                 <input type="text" id="edit-musteri-ad" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
@@ -1751,7 +1751,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Yetkili Kişi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Yetkili KiÅŸi</label>
                                 <input type="text" id="edit-musteri-yetkili" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
@@ -1765,7 +1765,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vade (Gün)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vade (GÃ¼n)</label>
                                 <input type="number" id="edit-musteri-vade" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                              <div>
@@ -1775,7 +1775,7 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                     </div>
                 `;
-    } else if (title === 'Araç Güncelle') {
+    } else if (title === 'AraÃ§ GÃ¼ncelle') {
         content = `
                     <div class="space-y-6">
                         <input type="hidden" id="edit-arac-id" value="">
@@ -1785,9 +1785,9 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="text" id="edit-arac-plaka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium uppercase">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ã‡alÄ±ÅŸtÄ±ÄŸÄ± Åžirket</label>
                                 <select id="edit-arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="Belirtilmemiş">Belirtilmemiş</option>
+                                    <option value="BelirtilmemiÅŸ">BelirtilmemiÅŸ</option>
                                     <option value="IDEOL">IDEOL</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -1799,69 +1799,69 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mülkiyet Durumu</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">MÃ¼lkiyet Durumu</label>
                                 <select id="edit-arac-mulkiyet" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="ÖZMAL">ÖZMAL</option>
-                                    <option value="TAŞERON">TAŞERON</option>
-                                    <option value="KİRALIK">KİRALIK</option>
+                                    <option value="Ã–ZMAL">Ã–ZMAL</option>
+                                    <option value="TAÅžERON">TAÅžERON</option>
+                                    <option value="KÄ°RALIK">KÄ°RALIK</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Türü</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge TÃ¼rÃ¼</label>
                                 <select id="edit-arac-belge" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Yok">Yok</option>
                                     <option value="D2">D2 Belgesi</option>
                                     <option value="D4S">D4S Belgesi</option>
                                     <option value="U-ETDS">U-ETDS Sistemi</option>
-                                    <option value="Diğer">Diğer</option>
+                                    <option value="DiÄŸer">DiÄŸer</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 `;
-    } else if (title === 'Yeni Kredi Kartı') {
+    } else if (title === 'Yeni Kredi KartÄ±') {
         content = `
-                    <p class="text-sm text-gray-400 mb-6">Şirket kredi kartını hesap takibi için sisteme kaydediniz.</p>
+                    <p class="text-sm text-gray-400 mb-6">Åžirket kredi kartÄ±nÄ± hesap takibi iÃ§in sisteme kaydediniz.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Adı / Banka</label>
-                                <input type="text" id="kredi-kart-adi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Garanti Bonus">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart AdÄ± / Banka</label>
+                                <input type="text" id="kredi-kart-adi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: Garanti Bonus">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Sahibi / Şirket</label>
-                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: IDEOL A.Ş.">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Sahibi / Åžirket</label>
+                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: IDEOL A.Åž.">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Numarası (Son 4 Hane vs)</label>
-                                <input type="text" id="kredi-kart-no" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: **** 1234">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart NumarasÄ± (Son 4 Hane vs)</label>
+                                <input type="text" id="kredi-kart-no" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: **** 1234">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Limiti (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Limiti (â‚º)</label>
                                 <input type="number" step="0.01" id="kredi-kart-limit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
                         </div>
                     </div>
                 `;
-    } else if (title === 'Yeni Kart İşlemi') {
+    } else if (title === 'Yeni Kart Ä°ÅŸlemi') {
         content = `
-                    <p class="text-sm text-gray-400 mb-6">Kredi kartınızla yaptığınız harcama ve taksit planını kaydediniz.</p>
+                    <p class="text-sm text-gray-400 mb-6">Kredi kartÄ±nÄ±zla yaptÄ±ÄŸÄ±nÄ±z harcama ve taksit planÄ±nÄ± kaydediniz.</p>
                     <div class="space-y-6">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Yapılan Kart</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸlem YapÄ±lan Kart</label>
                             <select id="kredi-kart-secim" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Tarihi</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ä°ÅŸlem Tarihi</label>
                                 <input type="date" id="kart-islem-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Taksit Sayısı</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Taksit SayÄ±sÄ±</label>
                                 <select id="kart-islem-taksit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                    <option value="1">Tek Çekim</option>
+                                    <option value="1">Tek Ã‡ekim</option>
                                     <option value="2">2 Taksit</option>
                                     <option value="3">3 Taksit</option>
                                     <option value="4">4 Taksit</option>
@@ -1873,11 +1873,11 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama / Kurum</label>
-                            <input type="text" id="kart-islem-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Araç Kaskosu">
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">AÃ§Ä±klama / Kurum</label>
+                            <input type="text" id="kart-islem-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Ã–rn: AraÃ§ Kaskosu">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Harcama (₺)</label>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Harcama (â‚º)</label>
                             <input type="number" step="0.01" id="kart-islem-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium text-orange-400 font-bold" placeholder="0.00">
                         </div>
                     </div>
@@ -1903,7 +1903,7 @@ window.openModal = function (title, id = null, extra = null) {
             const sel = document.getElementById('teklif-arac');
             if (!sel || window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
             const { data } = await window.supabaseClient.from('araclar').select('id, plaka').order('plaka');
-            sel.innerHTML = '<option value="">Araç Seçin...</option>';
+            sel.innerHTML = '<option value="">AraÃ§ SeÃ§in...</option>';
             (data || []).forEach(a => {
                 const opt = document.createElement('option'); opt.value = a.id; opt.textContent = a.plaka; sel.appendChild(opt);
             });
@@ -1912,9 +1912,9 @@ window.openModal = function (title, id = null, extra = null) {
 
     if (id) {
         setTimeout(() => {
-            if (title === 'Araç Şoför Ata') {
+            if (title === 'AraÃ§ ÅžofÃ¶r Ata') {
                 document.getElementById('atama-arac-id').value = id;
-            } else if (title === 'Araç Evrak Güncelle') {
+            } else if (title === 'AraÃ§ Evrak GÃ¼ncelle') {
                 document.getElementById('evrak-arac-id').value = id;
                 window.supabaseClient.from('araclar').select('*').eq('id', id).single().then(({ data }) => {
                     if (data) {
@@ -1926,15 +1926,15 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('evrak-kasko-url').value = data.kasko_dosya_url || '';
                     }
                 });
-            } else if (title === 'Yeni Fatura Kaydı') {
+            } else if (title === 'Yeni Fatura KaydÄ±') {
                 document.getElementById('fatura-cari-id').value = id;
-            } else if (title === 'Yeni Poliçe Kaydı') {
-                // Araç plakasını otomatik seç (dropdown yüklendikten sonra)
+            } else if (title === 'Yeni PoliÃ§e KaydÄ±') {
+                // AraÃ§ plakasÄ±nÄ± otomatik seÃ§ (dropdown yÃ¼klendikten sonra)
                 setTimeout(() => {
                     const policeArac = document.getElementById('police-arac');
                     if (policeArac) policeArac.value = id;
                 }, 200);
-            } else if (title === 'Şoför Güncelle') {
+            } else if (title === 'ÅžofÃ¶r GÃ¼ncelle') {
                 const sId = id;
                 window.supabaseClient.from('soforler').select('*').eq('id', sId).single().then(({ data }) => {
                     if (data) {
@@ -1953,16 +1953,16 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-sofor-sirket').value = data.sirket || 'IDEOL';
                     }
                 });
-            } else if (title === 'Cari Güncelle') {
+            } else if (title === 'Cari GÃ¼ncelle') {
                 window.supabaseClient.from('cariler').select('*').eq('id', id).single().then(({ data }) => {
                     if (data) {
                         document.getElementById('edit-cari-id').value = data.id;
                         document.getElementById('edit-cari-unvan').value = data.unvan || '';
-                        document.getElementById('edit-cari-tur').value = data.tur || 'Tedarikçi';
+                        document.getElementById('edit-cari-tur').value = data.tur || 'TedarikÃ§i';
                         document.getElementById('edit-cari-telefon').value = data.telefon || '';
                     }
                 });
-            } else if (title === 'Müşteri Güncelle') {
+            } else if (title === 'MÃ¼ÅŸteri GÃ¼ncelle') {
                 window.supabaseClient.from('musteriler').select('*').eq('id', id).single().then(({ data }) => {
                     if (data) {
                         document.getElementById('edit-musteri-id').value = data.id;
@@ -1975,21 +1975,21 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-musteri-logo').value = data.logo_url || '';
                     }
                 });
-            } else if (title === 'Araç Güncelle') {
+            } else if (title === 'AraÃ§ GÃ¼ncelle') {
                 window.supabaseClient.from('araclar').select('*').eq('id', id).single().then(({ data }) => {
                     if (data) {
                         document.getElementById('edit-arac-id').value = data.id;
                         document.getElementById('edit-arac-plaka').value = data.plaka || '';
                         document.getElementById('edit-arac-marka').value = data.marka_model || '';
-                        document.getElementById('edit-arac-mulkiyet').value = data.mulkiyet_durumu || 'ÖZMAL';
-                        document.getElementById('edit-arac-sirket').value = data.sirket || 'Belirtilmemiş';
+                        document.getElementById('edit-arac-mulkiyet').value = data.mulkiyet_durumu || 'Ã–ZMAL';
+                        document.getElementById('edit-arac-sirket').value = data.sirket || 'BelirtilmemiÅŸ';
                     }
                 });
             }
         }, 10);
     }
 }
-// filterCol: sütun adı, filterVals: string[] — birden fazla değerle in() filtresi uygular
+// filterCol: sÃ¼tun adÄ±, filterVals: string[] â€” birden fazla deÄŸerle in() filtresi uygular
 async function loadSelectOptions(selectId, table, valueField, textField, filterCol = null, filterVals = null) {
     const sel = document.getElementById(selectId);
     if (!sel || window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -1999,7 +1999,7 @@ async function loadSelectOptions(selectId, table, valueField, textField, filterC
     }
     const { data, error } = await query;
     if (error) { console.error(error); return; }
-    sel.innerHTML = '<option value="">Seçiniz...</option>';
+    sel.innerHTML = '<option value="">SeÃ§iniz...</option>';
     data.forEach(item => {
         sel.innerHTML += `<option value="${item[valueField]}">${item[textField]}</option>`;
     });
@@ -2008,7 +2008,7 @@ window.closeModal = function () {
     modal.classList.add('hidden');
 }
 
-// Özel Onay Modalı Fonksiyonu
+// Ã–zel Onay ModalÄ± Fonksiyonu
 window.showConfirm = function (message, onConfirm) {
     const modal = document.getElementById('confirm-modal');
     const msgEl = document.getElementById('confirm-modal-message');
@@ -2016,7 +2016,7 @@ window.showConfirm = function (message, onConfirm) {
     const cancelBtn = document.getElementById('confirm-modal-cancel');
 
     if (!modal || !msgEl || !confirmBtn || !cancelBtn) {
-        // Modal yoksa native confirm'e düş
+        // Modal yoksa native confirm'e dÃ¼ÅŸ
         if (confirm(message)) onConfirm();
         return;
     }
@@ -2038,7 +2038,7 @@ window.showConfirm = function (message, onConfirm) {
         modal.classList.remove('flex');
         confirmBtn.removeEventListener('click', handleOk);
         cancelBtn.removeEventListener('click', handleCancel);
-        console.log("[SİLME] İşlem kullanıcı tarafından iptal edildi.");
+
     };
 
     confirmBtn.addEventListener('click', handleOk);
@@ -2119,19 +2119,19 @@ async function fetchDashboard() {
             window.supabaseClient.from('araclar').select('vize_bitis, sigorta_bitis, kasko_bitis')
         ]);
 
-        // KPI: Araç sayısı
+        // KPI: AraÃ§ sayÄ±sÄ±
         const elArac = document.getElementById('kpi-arac');
-        if (elArac) elArac.textContent = aracCount ?? '—';
+        if (elArac) elArac.textContent = aracCount ?? 'â€”';
 
-        // KPI: Şoför sayısı
+        // KPI: ÅžofÃ¶r sayÄ±sÄ±
         const elSofor = document.getElementById('kpi-sofor');
-        if (elSofor) elSofor.textContent = soforCount ?? '—';
+        if (elSofor) elSofor.textContent = soforCount ?? 'â€”';
 
-        // KPI: Cari hesap sayısı
+        // KPI: Cari hesap sayÄ±sÄ±
         const elCari = document.getElementById('kpi-cari');
-        if (elCari) elCari.textContent = cariCount ?? '—';
+        if (elCari) elCari.textContent = cariCount ?? 'â€”';
 
-        // KPI: 15 gün içinde süresi dolacak evraklar
+        // KPI: 15 gÃ¼n iÃ§inde sÃ¼resi dolacak evraklar
         if (araclar) {
             const today = new Date();
             const sooner = new Date(today);
@@ -2149,22 +2149,22 @@ async function fetchDashboard() {
             if (elEvrak) elEvrak.textContent = uyariSayisi;
         }
     } catch (e) {
-        console.error('Dashboard fetch hatası:', e);
+        console.error('Dashboard fetch hatasÄ±:', e);
     }
 }
 
-// DİNAMİK FORM ALANLARI YÖNETİMİ
+// DÄ°NAMÄ°K FORM ALANLARI YÃ–NETÄ°MÄ°
 window.handleOdemeTurChange = function (tur) {
     const container = document.getElementById('odeme-dinamik-alanlar');
     if (!container) return;
 
     container.innerHTML = '';
 
-    if (tur === 'Çek/Senet') {
+    if (tur === 'Ã‡ek/Senet') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Çek/Senet No</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ã‡ek/Senet No</label>
                     <input type="text" id="odeme-cek-no" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="12345678">
                 </div>
                 <div>
@@ -2177,12 +2177,12 @@ window.handleOdemeTurChange = function (tur) {
     } else if (tur === 'Banka/Havale') {
         container.innerHTML = `
             <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Dekont / İşlem Referans No</label>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Dekont / Ä°ÅŸlem Referans No</label>
                 <input type="text" id="odeme-dekont-no" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="TR123...">
             </div>
         `;
         container.classList.remove('hidden');
-    } else if (tur === 'Kredi Kartı') {
+    } else if (tur === 'Kredi KartÄ±') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -2190,10 +2190,10 @@ window.handleOdemeTurChange = function (tur) {
                     <input type="text" id="odeme-kart-no" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="**** 1234">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fiş/Fatura Alındı mı?</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">FiÅŸ/Fatura AlÄ±ndÄ± mÄ±?</label>
                     <div class="flex items-center gap-2 mt-2">
                         <input type="checkbox" id="odeme-fis-kart" class="w-4 h-4 text-green-500 bg-black/30 border-white/20 rounded focus:ring-green-500">
-                        <input type="text" id="odeme-fis-no-kart" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Fiş/Fatura No">
+                        <input type="text" id="odeme-fis-no-kart" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="FiÅŸ/Fatura No">
                     </div>
                 </div>
             </div>
@@ -2202,10 +2202,10 @@ window.handleOdemeTurChange = function (tur) {
     } else if (tur === 'Nakit') {
         container.innerHTML = `
             <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fiş / Fatura Alındı mı?</label>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">FiÅŸ / Fatura AlÄ±ndÄ± mÄ±?</label>
                 <div class="flex items-center gap-2 mt-2">
                     <input type="checkbox" id="odeme-fis-nakit" class="w-4 h-4 text-green-500 bg-black/30 border-white/20 rounded focus:ring-green-500">
-                    <input type="text" id="odeme-fis-no-nakit" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Fiş/Fatura No (Opsiyonel)">
+                    <input type="text" id="odeme-fis-no-nakit" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="FiÅŸ/Fatura No (Opsiyonel)">
                 </div>
             </div>
         `;
@@ -2221,12 +2221,12 @@ window.handleBakimTurChange = function (tur) {
 
     container.innerHTML = '';
 
-    if (tur === 'Yedek Parça') {
+    if (tur === 'Yedek ParÃ§a') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Parça Adı / Kodu</label>
-                    <input type="text" id="bakim-parca-adi" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Örn: Yağ Filtresi 01H">
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">ParÃ§a AdÄ± / Kodu</label>
+                    <input type="text" id="bakim-parca-adi" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Ã–rn: YaÄŸ Filtresi 01H">
                 </div>
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Adet</label>
@@ -2235,11 +2235,11 @@ window.handleBakimTurChange = function (tur) {
             </div>
         `;
         container.classList.remove('hidden');
-    } else if (tur === 'Hasar Onarım') {
+    } else if (tur === 'Hasar OnarÄ±m') {
         container.innerHTML = `
             <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hasar / Sigorta Dosya No</label>
-                <input type="text" id="bakim-dosya-no" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Sigorta Şirketi Hasar Dosya No">
+                <input type="text" id="bakim-dosya-no" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Sigorta Åžirketi Hasar Dosya No">
             </div>
         `;
         container.classList.remove('hidden');
@@ -2262,7 +2262,7 @@ window.handleCariTurChange = function (tur) {
                     <input type="text" id="cari-tamirci-belge" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="TSE1234...">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Uzmanlık Alanı</label>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">UzmanlÄ±k AlanÄ±</label>
                     <input type="text" id="cari-tamirci-uzmanlik" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Mekanik, Elektrik, Boya...">
                 </div>
             </div>
@@ -2276,11 +2276,11 @@ window.handleCariTurChange = function (tur) {
             </div>
         `;
         container.classList.remove('hidden');
-    } else if (tur === 'Tedarikçi') {
+    } else if (tur === 'TedarikÃ§i') {
         container.innerHTML = `
             <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Tedarik Grubu</label>
-                <input type="text" id="cari-tedarikci-grup" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Örn: Lastik, Filtre, Yağ...">
+                <input type="text" id="cari-tedarikci-grup" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Ã–rn: Lastik, Filtre, YaÄŸ...">
             </div>
         `;
         container.classList.remove('hidden');
@@ -2295,15 +2295,15 @@ window.handleFaturaTurChange = function (tur) {
 
     container.innerHTML = '';
 
-    if (tur === 'Yakıt') {
+    if (tur === 'YakÄ±t') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Alınan Litre</label>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">AlÄ±nan Litre</label>
                     <input type="number" step="0.01" id="fatura-yakit-litre" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm" placeholder="0.00 L">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Plaka (İsteğe Bağlı)</label>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Plaka (Ä°steÄŸe BaÄŸlÄ±)</label>
                     <input type="text" id="fatura-yakit-plaka" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm" placeholder="34 ABC 123">
                 </div>
             </div>
@@ -2313,11 +2313,11 @@ window.handleFaturaTurChange = function (tur) {
         container.innerHTML = `
             <div class="flex items-center gap-4 mb-3 mt-1">
                 <input type="checkbox" id="fatura-ogs-ihlal" class="w-4 h-4 text-danger bg-white border-gray-300 rounded focus:ring-danger">
-                <label for="fatura-ogs-ihlal" class="text-sm font-semibold text-gray-600">İhlalli Geçiş mi?</label>
+                <label for="fatura-ogs-ihlal" class="text-sm font-semibold text-gray-600">Ä°hlalli GeÃ§iÅŸ mi?</label>
             </div>
             <div>
-                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Geçiş Yapılan Güzergah/Köprü</label>
-                <input type="text" id="fatura-ogs-guzergah" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm" placeholder="Örn: FSM, Avrasya, Anadolu Otoyolu...">
+                <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">GeÃ§iÅŸ YapÄ±lan GÃ¼zergah/KÃ¶prÃ¼</label>
+                <input type="text" id="fatura-ogs-guzergah" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm" placeholder="Ã–rn: FSM, Avrasya, Anadolu Otoyolu...">
             </div>
         `;
         container.classList.remove('hidden');
@@ -2343,24 +2343,24 @@ window.handleFinansTurChange = function (tur) {
     if (tur === 'AVANS') {
         container.innerHTML = `
             <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Geri Ödeme Şekli</label>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Geri Ã–deme Åžekli</label>
                 <select id="finans-avans-odeme" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm">
-                    <option value="Maaştan Kesilecek">Maaştan Kesilecek</option>
-                    <option value="Elden Ödenecek">Ay İçi Elden Ödenecek</option>
-                    <option value="Primden Karşılanacak">Primden Karşılanacak</option>
+                    <option value="MaaÅŸtan Kesilecek">MaaÅŸtan Kesilecek</option>
+                    <option value="Elden Ã–denecek">Ay Ä°Ã§i Elden Ã–denecek</option>
+                    <option value="Primden KarÅŸÄ±lanacak">Primden KarÅŸÄ±lanacak</option>
                 </select>
             </div>
         `;
         container.classList.remove('hidden');
-    } else if (tur === 'KESİNTİ (Ceza/Hasar)') {
+    } else if (tur === 'KESÄ°NTÄ° (Ceza/Hasar)') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Kesinti Sebebi</label>
                     <select id="finans-kesinti-sebep" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm">
-                        <option value="Trafik Cezası">Trafik Cezası</option>
-                        <option value="Araç Hasarı">Araç Hasarı / Kaza</option>
-                        <option value="Diğer Kesinti">Diğer (İhlal, Kayıp Parça)</option>
+                        <option value="Trafik CezasÄ±">Trafik CezasÄ±</option>
+                        <option value="AraÃ§ HasarÄ±">AraÃ§ HasarÄ± / Kaza</option>
+                        <option value="DiÄŸer Kesinti">DiÄŸer (Ä°hlal, KayÄ±p ParÃ§a)</option>
                     </select>
                 </div>
                 <div>
@@ -2370,10 +2370,10 @@ window.handleFinansTurChange = function (tur) {
             </div>
         `;
         container.classList.remove('hidden');
-    } else if (tur === 'PRİM/HARCIRAH') {
+    } else if (tur === 'PRÄ°M/HARCIRAH') {
         container.innerHTML = `
             <div>
-                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">İlgili Hak Ediş Dönemi (Ay/Yıl)</label>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Ä°lgili Hak EdiÅŸ DÃ¶nemi (Ay/YÄ±l)</label>
                 <input type="month" id="finans-prim-donem" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm">
             </div>
         `;
@@ -2391,7 +2391,7 @@ window.printTaseronRapor = function () {
     win.document.write(`
         <html>
             <head>
-                <title>Taşeron Ay Sonu Raporu - ${month}</title>
+                <title>TaÅŸeron Ay Sonu Raporu - ${month}</title>
                 <style>
                     body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -2409,8 +2409,8 @@ window.printTaseronRapor = function () {
             </head>
             <body>
                 <div class="header">
-                    <h1>Taşeron Ay Sonu Hesap Özeti</h1>
-                    <p>Dönem: ${month}</p>
+                    <h1>TaÅŸeron Ay Sonu Hesap Ã–zeti</h1>
+                    <p>DÃ¶nem: ${month}</p>
                 </div>
                 ${tableHtml}
             </body>
@@ -2420,43 +2420,43 @@ window.printTaseronRapor = function () {
     win.print();
 };
 
-/* === 9. HARİTA & ROTA MANTIĞI === */
+/* === 9. HARÄ°TA & ROTA MANTIÄžI === */
 window.mainMap = null;
 let mapMarkers = [];
 
 window.initMap = async function () {
-    console.log("[MAP] Harita başlatılıyor...");
 
-    // Harita konteynerinin görünür olduğundan emin olalım
+
+    // Harita konteynerinin gÃ¶rÃ¼nÃ¼r olduÄŸundan emin olalÄ±m
     const mapContainer = document.getElementById('factory-map');
     if (!mapContainer) {
-        console.error("[MAP] factory-map konteyneri bulunamadı!");
+        console.error("[MAP] factory-map konteyneri bulunamadÄ±!");
         return;
     }
 
-    // Harita boyutlarını Leaflet'e tekrar hesaplattıralım (Hidden modülden çıktığı için)
+    // Harita boyutlarÄ±nÄ± Leaflet'e tekrar hesaplattÄ±ralÄ±m (Hidden modÃ¼lden Ã§Ä±ktÄ±ÄŸÄ± iÃ§in)
     if (!window.mainMap) {
-        // İlk kez oluşturuluyor
+        // Ä°lk kez oluÅŸturuluyor
         window.mainMap = L.map('factory-map', {
             zoomControl: true,
             scrollWheelZoom: true
-        }).setView([39.9334, 32.8597], 6); // Türkiye merkezi
+        }).setView([39.9334, 32.8597], 6); // TÃ¼rkiye merkezi
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(mainMap);
 
-        // İlk yüklemede boyut hatasını önlemek için
+        // Ä°lk yÃ¼klemede boyut hatasÄ±nÄ± Ã¶nlemek iÃ§in
         setTimeout(() => mainMap.invalidateSize(), 300);
     } else {
-        // Zaten varsa sadece boyutu düzelt ve merkezle
+        // Zaten varsa sadece boyutu dÃ¼zelt ve merkezle
         setTimeout(() => {
             mainMap.invalidateSize();
         }, 100);
     }
 
-    // Mevcut markerları temizle
+    // Mevcut markerlarÄ± temizle
     mapMarkers.forEach(m => mainMap.removeLayer(m));
     mapMarkers = [];
 
@@ -2467,7 +2467,7 @@ window.initMap = async function () {
         if (!musteriler || musteriler.length === 0) return;
 
         musteriler.forEach(m => {
-            // Demo amaçlı koordinat simülasyonu
+            // Demo amaÃ§lÄ± koordinat simÃ¼lasyonu
             const lat = m.lat || (39.5 + (Math.random() - 0.5) * 5);
             const lng = m.lng || (32.0 + (Math.random() - 0.5) * 8);
 
@@ -2475,18 +2475,18 @@ window.initMap = async function () {
             marker.bindPopup(`
                 <div class="p-2 min-w-[150px]">
                     <h4 class="font-bold text-orange-500 mb-1 leading-tight">${m.unvan}</h4>
-                    <p class="text-[10px] text-gray-500 mb-3 uppercase tracking-wider">${m.sehir || 'Şehir Belirtilmemiş'}</p>
+                    <p class="text-[10px] text-gray-500 mb-3 uppercase tracking-wider">${m.sehir || 'Åžehir BelirtilmemiÅŸ'}</p>
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2">${m.adres || 'Adres bilgisi yok'}</p>
                     <button onclick="window.showRoute([${lat}, ${lng}])" 
                         class="w-full bg-orange-500 hover:bg-orange-600 text-white text-[10px] py-2 rounded-lg font-bold transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2">
-                        <i data-lucide="navigation" class="w-3 h-3"></i> Rota Çiz
+                        <i data-lucide="navigation" class="w-3 h-3"></i> Rota Ã‡iz
                     </button>
                 </div>
             `);
             mapMarkers.push(marker);
         });
 
-        // Haritayı markerlara göre sığdır
+        // HaritayÄ± markerlara gÃ¶re sÄ±ÄŸdÄ±r
         if (mapMarkers.length > 0) {
             const group = new L.featureGroup(mapMarkers);
             mainMap.fitBounds(group.getBounds().pad(0.1));
@@ -2495,12 +2495,12 @@ window.initMap = async function () {
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
-        console.error("Harita yükleme hatası:", e);
+        console.error("Harita yÃ¼kleme hatasÄ±:", e);
     }
 };
 
 window.showRoute = function (destCoords) {
-    const startCoords = [41.0082, 28.9784]; // Örn: Merkez (İstanbul)
+    const startCoords = [41.0082, 28.9784]; // Ã–rn: Merkez (Ä°stanbul)
 
     if (window.currentRouteLine) mainMap.removeLayer(window.currentRouteLine);
 
@@ -2516,7 +2516,7 @@ window.showRoute = function (destCoords) {
 
     L.popup()
         .setLatLng(destCoords)
-        .setContent('<div class="text-xs font-bold text-orange-500 p-1">Rota Planlandı!</div>')
+        .setContent('<div class="text-xs font-bold text-orange-500 p-1">Rota PlanlandÄ±!</div>')
         .openOn(window.mainMap);
 };
 
@@ -2524,12 +2524,12 @@ window.handleOdemeTuruChange = function (value, prefix) {
     const ccContainer = document.getElementById(`${prefix}-kredi-karti-container`);
     const cariContainer = document.getElementById(`${prefix}-cari-hesap-container`);
 
-    if (ccContainer) ccContainer.classList.toggle('hidden', value !== 'KREDİ KARTI');
-    if (cariContainer) cariContainer.classList.toggle('hidden', value !== 'CARİ HESABI');
+    if (ccContainer) ccContainer.classList.toggle('hidden', value !== 'KREDÄ° KARTI');
+    if (cariContainer) cariContainer.classList.toggle('hidden', value !== 'CARÄ° HESABI');
 };
 
 window.filterAraclar = function (filter) {
-    // Tüm filtre butonlarını sıfırla
+    // TÃ¼m filtre butonlarÄ±nÄ± sÄ±fÄ±rla
     ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk'].forEach(key => {
         const btn = document.getElementById(`filter-btn-${key}`);
         if (btn) {
@@ -2544,8 +2544,8 @@ window.filterAraclar = function (filter) {
         }
     });
 
-    // Aktif olanı vurgula
-    const keyMap = { 'hepsi': 'hepsi', 'ÖZMAL': 'ozmal', 'TAŞERON': 'taseron', 'KİRALIK': 'kiralik', 'D2': 'd2', 'D4S': 'd4s' };
+    // Aktif olanÄ± vurgula
+    const keyMap = { 'hepsi': 'hepsi', 'Ã–ZMAL': 'ozmal', 'TAÅžERON': 'taseron', 'KÄ°RALIK': 'kiralik', 'D2': 'd2', 'D4S': 'd4s' };
     const activeKey = keyMap[filter] || 'hepsi';
     const activeBtn = document.getElementById(`filter-btn-${activeKey}`);
     if (activeBtn) {
@@ -2560,12 +2560,12 @@ window.filterAraclar = function (filter) {
             activeBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
         }
     }
-    // Veriyi çek
+    // Veriyi Ã§ek
     if (typeof fetchAraclar === 'function') fetchAraclar(filter, 'hepsi');
 };
 
 window.filterAraclarBySirket = function (sirket) {
-    // Tüm araç filtrelerini temizle
+    // TÃ¼m araÃ§ filtrelerini temizle
     ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk'].forEach(key => {
         const btn = document.getElementById(`filter-btn-${key}`);
         if (btn) {

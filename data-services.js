@@ -1,13 +1,13 @@
-// === GLOBAL BAĞLANTI KONTROLÜ ===
+﻿// === GLOBAL BAÄžLANTI KONTROLÃœ ===
 window.checkSupabaseConnection = function () {
     if (!window.supabaseUrl || window.supabaseUrl === 'YOUR_SUPABASE_URL') {
-        return { ok: false, msg: "Supabase URL yapılandırılmamış (config.js)." };
+        return { ok: false, msg: "Supabase URL yapÄ±landÄ±rÄ±lmamÄ±ÅŸ (config.js)." };
     }
     if (!window.supabaseKey || window.supabaseKey.startsWith('sb_publishable_')) {
-        return { ok: false, msg: "Hatalı Supabase Key! config.js dosyasındaki anahtar muhtemelen bir Stripe anahtarı. Lütfen Supabase anon-public key ile değiştirin." };
+        return { ok: false, msg: "HatalÄ± Supabase Key! config.js dosyasÄ±ndaki anahtar muhtemelen bir Stripe anahtarÄ±. LÃ¼tfen Supabase anon-public key ile deÄŸiÅŸtirin." };
     }
     if (!window.supabaseClient) {
-        return { ok: false, msg: "Supabase istemcisi başlatılamadı." };
+        return { ok: false, msg: "Supabase istemcisi baÅŸlatÄ±lamadÄ±." };
     }
     return { ok: true };
 };
@@ -21,7 +21,7 @@ window.showGlobalError = function (containerId, message) {
 
         const badge = document.createElement('div');
         badge.className = 'inline-flex items-center gap-3 px-4 py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 mb-2';
-        badge.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i><span class="font-bold">Bağlantı Hatası</span>';
+        badge.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i><span class="font-bold">BaÄŸlantÄ± HatasÄ±</span>';
 
         const p = document.createElement('p');
         p.className = 'text-sm text-gray-400 max-w-sm mx-auto';
@@ -53,7 +53,7 @@ window.uploadDosya = async function (file, folder = 'common') {
     const fileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
     const { data, error } = await window.supabaseClient.storage.from('filo-erp').upload(`${folder}/${fileName}`, file);
     if (error) {
-        console.error("Dosya yükleme hatası:", error);
+        console.error("Dosya yÃ¼kleme hatasÄ±:", error);
         return null;
     }
     const { data: { publicUrl } } = window.supabaseClient.storage.from('filo-erp').getPublicUrl(`${folder}/${fileName}`);
@@ -64,7 +64,7 @@ window.saveDataAndClose = async function (event) {
     const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
 
-    // Yükleniyor durumu animasyonu
+    // YÃ¼kleniyor durumu animasyonu
     btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Kaydediliyor...`;
     btn.classList.add('opacity-80', 'cursor-wait');
 
@@ -72,10 +72,10 @@ window.saveDataAndClose = async function (event) {
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') {
-            throw new Error("Lütfen index.html içerisindeki Supabase URL ve KEY değerlerini kendi projenize göre girin. Aksi halde veritabanı bağlantısı kurulamaz!");
+            throw new Error("LÃ¼tfen index.html iÃ§erisindeki Supabase URL ve KEY deÄŸerlerini kendi projenize gÃ¶re girin. Aksi halde veritabanÄ± baÄŸlantÄ±sÄ± kurulamaz!");
         }
 
-        if (formTitle === 'Yeni Araç Ekle') {
+        if (formTitle === 'Yeni AraÃ§ Ekle') {
             const plaka = document.getElementById('arac-plaka').value;
             const marka = document.getElementById('arac-marka').value;
             const mulkiyet = document.getElementById('arac-mulkiyet').value;
@@ -85,7 +85,7 @@ window.saveDataAndClose = async function (event) {
             const { error } = await window.supabaseClient.from('araclar').insert([{ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket }]);
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
-        } else if (formTitle === 'Araç Güncelle') {
+        } else if (formTitle === 'AraÃ§ GÃ¼ncelle') {
             const id = document.getElementById('edit-arac-id').value;
             const plaka = document.getElementById('edit-arac-plaka').value;
             const marka = document.getElementById('edit-arac-marka').value;
@@ -98,7 +98,7 @@ window.saveDataAndClose = async function (event) {
 
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
-        } else if (formTitle === 'Yeni Şoför Ekle') {
+        } else if (formTitle === 'Yeni ÅžofÃ¶r Ekle') {
             const ad_soyad = document.getElementById('sofor-ad').value?.trim();
             const telefon = document.getElementById('sofor-telefon').value?.trim();
             const gunluk_ucret = parseFloat(document.getElementById('sofor-ucret').value) || 0;
@@ -113,7 +113,7 @@ window.saveDataAndClose = async function (event) {
             const iban = document.getElementById('sofor-iban')?.value?.trim() || null;
             const sirket = document.getElementById('sofor-sirket')?.value || 'IDEOL';
 
-            if (!ad_soyad) throw new Error("İsim boş bırakılamaz.");
+            if (!ad_soyad) throw new Error("Ä°sim boÅŸ bÄ±rakÄ±lamaz.");
 
             const driverData = {
                 ad_soyad,
@@ -142,7 +142,7 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchSoforMaaslar === 'function') fetchSoforMaaslar();
             if (typeof fetchDashboard === 'function') fetchDashboard();
 
-        } else if (formTitle === 'Şoför Güncelle') {
+        } else if (formTitle === 'ÅžofÃ¶r GÃ¼ncelle') {
             const id = document.getElementById('edit-sofor-id').value;
             const ad_soyad = document.getElementById('edit-sofor-ad').value;
             const tc_no = document.getElementById('edit-sofor-tc').value;
@@ -173,7 +173,7 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchSoforler === 'function') fetchSoforler();
             if (typeof fetchSoforMaaslar === 'function') fetchSoforMaaslar();
         }
-        else if (formTitle === 'Yeni Finans İşlemi') {
+        else if (formTitle === 'Yeni Finans Ä°ÅŸlemi') {
             const sofor_id = document.getElementById('finans-sofor').value;
             const islem_turu = document.getElementById('finans-tur').value;
             let tutar = parseFloat(document.getElementById('finans-tutar').value);
@@ -182,21 +182,21 @@ window.saveDataAndClose = async function (event) {
             // Dinamik Alanlar
             if (islem_turu === 'AVANS') {
                 const odemeSekli = document.getElementById('finans-avans-odeme')?.value;
-                if (odemeSekli) aciklama = `[Şekli: ${odemeSekli}] ` + aciklama;
-            } else if (islem_turu === 'KESİNTİ (Ceza/Hasar)') {
+                if (odemeSekli) aciklama = `[Åžekli: ${odemeSekli}] ` + aciklama;
+            } else if (islem_turu === 'KESÄ°NTÄ° (Ceza/Hasar)') {
                 const sebep = document.getElementById('finans-kesinti-sebep')?.value;
                 const cezaNo = document.getElementById('finans-kesinti-no')?.value;
                 let not = `[Sebep: ${sebep || '-'}] `;
                 if (cezaNo) not += `[No: ${cezaNo}] `;
                 aciklama = not + aciklama;
-            } else if (islem_turu === 'PRİM/HARCIRAH') {
+            } else if (islem_turu === 'PRÄ°M/HARCIRAH') {
                 const donem = document.getElementById('finans-prim-donem')?.value; // YYYY-MM
-                if (donem) aciklama = `[Dönem: ${donem}] ` + aciklama;
+                if (donem) aciklama = `[DÃ¶nem: ${donem}] ` + aciklama;
             }
 
-            if (!sofor_id || isNaN(tutar)) throw new Error("Şoför ve tutar zorunludur.");
+            if (!sofor_id || isNaN(tutar)) throw new Error("ÅžofÃ¶r ve tutar zorunludur.");
 
-            if (islem_turu === 'AVANS' || islem_turu === 'KESİNTİ (Ceza/Hasar)') {
+            if (islem_turu === 'AVANS' || islem_turu === 'KESÄ°NTÄ° (Ceza/Hasar)') {
                 if (tutar > 0) tutar = -tutar; // ensure negative for deductions
             } else {
                 if (tutar < 0) tutar = -tutar; // ensure positive for salary
@@ -206,13 +206,13 @@ window.saveDataAndClose = async function (event) {
             if (error) throw error;
             if (typeof fetchSoforFinans === 'function') fetchSoforFinans();
         }
-        else if (formTitle === 'Yeni Sefer Hakedişi Ekle') {
+        else if (formTitle === 'Yeni Sefer HakediÅŸi Ekle') {
             const arac_id = document.getElementById('taseron-arac').value;
             const sefer_tarihi = document.getElementById('taseron-tarih').value;
             const guzergah = document.getElementById('taseron-guzergah').value;
             const anlasilan_tutar = parseFloat(document.getElementById('taseron-tutar').value);
             const yakit_kesintisi = parseFloat(document.getElementById('taseron-yakit').value) || 0;
-            if (!arac_id || !sefer_tarihi || isNaN(anlasilan_tutar)) throw new Error("Araç, tarih ve anlaşılan tutar zorunludur.");
+            if (!arac_id || !sefer_tarihi || isNaN(anlasilan_tutar)) throw new Error("AraÃ§, tarih ve anlaÅŸÄ±lan tutar zorunludur.");
 
             // The net_hakedis is generated in postgres
             const { error } = await window.supabaseClient.from('taseron_hakedis').insert([{
@@ -220,20 +220,20 @@ window.saveDataAndClose = async function (event) {
             }]);
             if (error) throw error;
             if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
-        } else if (formTitle === 'Yeni Taşeron Kaydı') {
+        } else if (formTitle === 'Yeni TaÅŸeron KaydÄ±') {
             const plaka = document.getElementById('taseron-yeni-plaka').value;
             const firma_adi = document.getElementById('taseron-yeni-firma').value;
             const marka_model = document.getElementById('taseron-yeni-marka').value;
             const kira_bedeli = parseFloat(document.getElementById('taseron-yeni-kira').value) || 0;
             const sofor_id = document.getElementById('taseron-yeni-sofor').value;
 
-            if (!plaka || !firma_adi) throw new Error("Plaka ve firma adı zorunludur.");
+            if (!plaka || !firma_adi) throw new Error("Plaka ve firma adÄ± zorunludur.");
             const { error } = await window.supabaseClient.from('araclar').insert([{
-                plaka, firma_adi, marka_model, kira_bedeli, sofor_id: sofor_id || null, mulkiyet_durumu: 'TAŞERON'
+                plaka, firma_adi, marka_model, kira_bedeli, sofor_id: sofor_id || null, mulkiyet_durumu: 'TAÅžERON'
             }]);
             if (error) throw error;
             if (typeof fetchTaseronlar === 'function') fetchTaseronlar();
-        } else if (formTitle === 'Yeni Müşteri Ekle') {
+        } else if (formTitle === 'Yeni MÃ¼ÅŸteri Ekle') {
             const ad = document.getElementById('musteri-ad').value;
             const vergi_no_daire = document.getElementById('musteri-vergi').value;
             const yetkili_kisi = document.getElementById('musteri-yetkili').value;
@@ -242,14 +242,14 @@ window.saveDataAndClose = async function (event) {
             const vade_gun = document.getElementById('musteri-vade').value;
             const logo_url = document.getElementById('musteri-logo').value;
 
-            if (!ad) throw new Error("Müşteri adı zorunludur.");
+            if (!ad) throw new Error("MÃ¼ÅŸteri adÄ± zorunludur.");
             const { error } = await window.supabaseClient.from('musteriler').insert([{
                 ad, vergi_no_daire, yetkili_kisi_ad_soyad: yetkili_kisi,
                 telefon, adres, vade_gun, logo_url
             }]);
             if (error) throw error;
             if (typeof fetchMusteriler === 'function') fetchMusteriler();
-        } else if (formTitle === 'Müşteri Güncelle') {
+        } else if (formTitle === 'MÃ¼ÅŸteri GÃ¼ncelle') {
             const id = document.getElementById('edit-musteri-id').value;
             const ad = document.getElementById('edit-musteri-ad').value;
             const vergi_no_daire = document.getElementById('edit-musteri-vergi').value;
@@ -259,7 +259,7 @@ window.saveDataAndClose = async function (event) {
             const vade_gun = document.getElementById('edit-musteri-vade').value;
             const logo_url = document.getElementById('edit-musteri-logo').value;
 
-            if (!ad || !id) throw new Error("Müşteri adı zorunludur.");
+            if (!ad || !id) throw new Error("MÃ¼ÅŸteri adÄ± zorunludur.");
             const { error } = await window.supabaseClient.from('musteriler').update({
                 ad, vergi_no_daire, yetkili_kisi_ad_soyad: yetkili_kisi,
                 telefon, adres, vade_gun, logo_url
@@ -267,26 +267,26 @@ window.saveDataAndClose = async function (event) {
 
             if (error) throw error;
             if (typeof fetchMusteriler === 'function') fetchMusteriler();
-        } else if (formTitle === 'Yeni Servis Kaydı') {
+        } else if (formTitle === 'Yeni Servis KaydÄ±') {
             const musteri_id = document.getElementById('servis-musteri').value;
             const arac_id = document.getElementById('servis-arac').value;
             const tarih = document.getElementById('servis-tarih').value;
             const vardiya = document.getElementById('servis-vardiya').value;
             const gunluk_ucret = parseFloat(document.getElementById('servis-fatura').value) || 0;
-            if (!musteri_id || !arac_id || !tarih) throw new Error("Müşteri, araç ve tarih alanları zorunludur.");
+            if (!musteri_id || !arac_id || !tarih) throw new Error("MÃ¼ÅŸteri, araÃ§ ve tarih alanlarÄ± zorunludur.");
             const { error } = await window.supabaseClient.from('musteri_servis_puantaj').insert([{
                 musteri_id, arac_id, tarih, vardiya, gunluk_ucret
             }]);
             if (error) throw error;
             try {
                 const { data: arac } = await window.supabaseClient.from('araclar').select('mulkiyet_durumu, kira_bedeli').eq('id', arac_id).single();
-                if (arac && arac.mulkiyet_durumu === 'TAŞERON') {
+                if (arac && arac.mulkiyet_durumu === 'TAÅžERON') {
                     const t = vardiya.toUpperCase();
-                    if (t !== 'X' && t !== 'R' && t !== 'I' && t !== 'İ') {
+                    if (t !== 'X' && t !== 'R' && t !== 'I' && t !== 'Ä°') {
                         await window.supabaseClient.from('taseron_hakedis').insert({
                             arac_id: arac_id,
                             sefer_tarihi: tarih,
-                            guzergah: 'Müşteri Servisi (Oto)',
+                            guzergah: 'MÃ¼ÅŸteri Servisi (Oto)',
                             anlasilan_tutar: arac.kira_bedeli || gunluk_ucret,
                             yakit_kesintisi: 0
                         });
@@ -300,20 +300,20 @@ window.saveDataAndClose = async function (event) {
             const tarih = document.getElementById('puantaj-tarih').value;
             const durum = document.getElementById('puantaj-durum').value;
             const gunluk_harcirah = parseFloat(document.getElementById('puantaj-harcirah').value) || 0;
-            if (!sofor_id || !tarih) throw new Error("Şoför ve tarih seçimi zorunludur.");
+            if (!sofor_id || !tarih) throw new Error("ÅžofÃ¶r ve tarih seÃ§imi zorunludur.");
             const { error } = await window.supabaseClient.from('sofor_puantaj').insert([{
                 sofor_id, arac_id, tarih, durum, gunluk_harcirah
             }]);
             if (error) throw error;
             if (typeof fetchSoforPuantaj === 'function') fetchSoforPuantaj();
-        } else if (formTitle === 'Araç Şoför Ata') {
+        } else if (formTitle === 'AraÃ§ ÅžofÃ¶r Ata') {
             const arac_id = document.getElementById('atama-arac-id').value;
             const sofor_id = document.getElementById('atama-sofor').value;
-            if (!arac_id || !sofor_id) throw new Error("Araç ve Şoför seçimi zorunludur.");
+            if (!arac_id || !sofor_id) throw new Error("AraÃ§ ve ÅžofÃ¶r seÃ§imi zorunludur.");
             const { error } = await window.supabaseClient.from('araclar').update({ sofor_id }).eq('id', arac_id);
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
-        } else if (formTitle === 'Araç Evrak Güncelle') {
+        } else if (formTitle === 'AraÃ§ Evrak GÃ¼ncelle') {
             const arac_id = document.getElementById('evrak-arac-id').value;
             const vize_bitis = document.getElementById('evrak-vize').value || null;
             const vize_dosya_url = document.getElementById('evrak-vize-url').value || null;
@@ -325,7 +325,7 @@ window.saveDataAndClose = async function (event) {
             const koltuk_bitis = document.getElementById('evrak-koltuk')?.value || null;
             const koltuk_dosya_url = document.getElementById('evrak-koltuk-url')?.value || null;
 
-            if (!arac_id) throw new Error("Araç ID bulunamadı.");
+            if (!arac_id) throw new Error("AraÃ§ ID bulunamadÄ±.");
             const { error } = await window.supabaseClient.from('araclar').update({
                 vize_bitis, vize_dosya_url,
                 sigorta_bitis, sigorta_dosya_url,
@@ -334,22 +334,22 @@ window.saveDataAndClose = async function (event) {
             }).eq('id', arac_id);
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
-        } else if (formTitle === 'Müşteriye Araç Tanımla') {
+        } else if (formTitle === 'MÃ¼ÅŸteriye AraÃ§ TanÄ±mla') {
             const musteri_id = document.getElementById('tanim-musteri').value;
             const arac_id = document.getElementById('tanim-arac').value;
             const tarife_turu = document.getElementById('tanim-tur').value;
             const tek_fiyat = parseFloat(document.getElementById('tanim-tek-fiyat').value) || 0;
             const vardiya_fiyat = parseFloat(document.getElementById('tanim-vardiya-fiyat').value) || 0;
 
-            if (!musteri_id || !arac_id) throw new Error("Müşteri ve Araç seçimi zorunludur.");
+            if (!musteri_id || !arac_id) throw new Error("MÃ¼ÅŸteri ve AraÃ§ seÃ§imi zorunludur.");
             const { error } = await window.supabaseClient.from('musteri_arac_tanimlari').insert([{
                 musteri_id, arac_id, tarife_turu, tek_fiyat, vardiya_fiyat
             }]);
             if (error) {
-                if (error.code === '23505') throw new Error("Bu araç zaten bu müşteriye tanımlı.");
+                if (error.code === '23505') throw new Error("Bu araÃ§ zaten bu mÃ¼ÅŸteriye tanÄ±mlÄ±.");
                 throw error;
             }
-            // Auto-refresh müşteri kartı
+            // Auto-refresh mÃ¼ÅŸteri kartÄ±
             if (typeof fetchMusteriler === 'function') {
                 setTimeout(async () => {
                     await fetchMusteriler();
@@ -366,7 +366,7 @@ window.saveDataAndClose = async function (event) {
             const arac_id = document.getElementById('teklif-arac')?.value;
             const police_turu = document.getElementById('teklif-tur')?.value || 'Trafik';
 
-            // Firma select → cari_id + unvan
+            // Firma select â†’ cari_id + unvan
             const firmaSelect = document.getElementById('teklif-firma');
             const cari_id = firmaSelect?.value || null;
             const firma_adi = firmaSelect?.options[firmaSelect.selectedIndex]?.text?.trim() || '';
@@ -374,11 +374,11 @@ window.saveDataAndClose = async function (event) {
             const tutar = parseFloat(document.getElementById('teklif-tutar')?.value) || 0;
             const taksit_sayisi = parseInt(document.getElementById('teklif-taksit')?.value) || 1;
 
-            if (!arac_id) throw new Error('Araç seçimi zorunludur.');
-            if (!firma_adi || firma_adi === '— Sigorta Firması Seç —') throw new Error('Firma seçimi zorunludur.');
+            if (!arac_id) throw new Error('AraÃ§ seÃ§imi zorunludur.');
+            if (!firma_adi || firma_adi === 'â€” Sigorta FirmasÄ± SeÃ§ â€”') throw new Error('Firma seÃ§imi zorunludur.');
             if (!tutar) throw new Error('Tutar girilmelidir.');
 
-            // Sadece tabloda olan kolonları gönder; police_turu ve taksit_sayisi → secenekler JSON
+            // Sadece tabloda olan kolonlarÄ± gÃ¶nder; police_turu ve taksit_sayisi â†’ secenekler JSON
             const secenekler = { teklif_turu: police_turu, taksit_sayisi };
             const insertData = { arac_id, firma_adi, tutar, secenekler };
             if (cari_id) insertData.cari_id = cari_id;
@@ -387,7 +387,7 @@ window.saveDataAndClose = async function (event) {
             if (error) throw error;
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
 
-        } else if (formTitle === 'Yeni Yakıt Kaydı') {
+        } else if (formTitle === 'Yeni YakÄ±t KaydÄ±') {
             const tarih = document.getElementById('yakit-tarih').value;
             const arac_id = document.getElementById('yakit-arac').value;
             const litre = document.getElementById('yakit-litre').value;
@@ -395,7 +395,7 @@ window.saveDataAndClose = async function (event) {
             const toplam_tutar = document.getElementById('yakit-tutar').value;
             const anlik_km = parseInt(document.getElementById('yakit-km')?.value) || null;
 
-            if (!tarih || !arac_id || !litre) throw new Error("Lütfen zorunlu yakıt bilgilerini giriniz.");
+            if (!tarih || !arac_id || !litre) throw new Error("LÃ¼tfen zorunlu yakÄ±t bilgilerini giriniz.");
 
             const insertData = { tarih, arac_id, litre, birim_fiyat, toplam_tutar };
             const { error } = await window.supabaseClient.from('yakit_takip').insert([insertData]);
@@ -414,17 +414,17 @@ window.saveDataAndClose = async function (event) {
             const tur = document.getElementById('cari-tur').value;
             let telefon = document.getElementById('cari-telefon').value || '';
 
-            // Dinamik Alanları Yükle (Açıklama alanı olmadığı için ünvan/telefon sonuna not olarak ekliyoruz)
+            // Dinamik AlanlarÄ± YÃ¼kle (AÃ§Ä±klama alanÄ± olmadÄ±ÄŸÄ± iÃ§in Ã¼nvan/telefon sonuna not olarak ekliyoruz)
             let ekNot = '';
             if (tur === 'Tamirci') {
                 const belge = document.getElementById('cari-tamirci-belge')?.value;
                 const uzmanlik = document.getElementById('cari-tamirci-uzmanlik')?.value;
                 if (belge) ekNot += `[Yetki Belgesi: ${belge}] `;
-                if (uzmanlik) ekNot += `[Uzmanlık: ${uzmanlik}]`;
+                if (uzmanlik) ekNot += `[UzmanlÄ±k: ${uzmanlik}]`;
             } else if (tur === 'Sigorta Acentesi') {
                 const levha = document.getElementById('cari-sigorta-levha')?.value;
                 if (levha) ekNot += `[Acente No: ${levha}]`;
-            } else if (tur === 'Tedarikçi') {
+            } else if (tur === 'TedarikÃ§i') {
                 const grup = document.getElementById('cari-tedarikci-grup')?.value;
                 if (grup) ekNot += `[Grup: ${grup}]`;
             }
@@ -433,13 +433,13 @@ window.saveDataAndClose = async function (event) {
                 unvan = unvan + ` ${ekNot.trim()}`;
             }
 
-            if (!unvan.trim()) throw new Error("Ünvan zorunludur.");
+            if (!unvan.trim()) throw new Error("Ãœnvan zorunludur.");
             const { error } = await window.supabaseClient.from('cariler').insert([{
                 unvan, tur, telefon
             }]);
             if (error) throw error;
             if (typeof fetchCariler === 'function') fetchCariler();
-        } else if (formTitle === 'Cari Güncelle') {
+        } else if (formTitle === 'Cari GÃ¼ncelle') {
             const id = document.getElementById('edit-cari-id').value;
             const unvan = document.getElementById('edit-cari-unvan').value;
             const tur = document.getElementById('edit-cari-tur').value;
@@ -449,7 +449,7 @@ window.saveDataAndClose = async function (event) {
             const { error } = await window.supabaseClient.from('cariler').update({ unvan, tur, telefon }).eq('id', id);
             if (error) throw error;
             if (typeof fetchCariler === 'function') fetchCariler();
-        } else if (formTitle === 'Yeni Bakım/Parça Kaydı') {
+        } else if (formTitle === 'Yeni BakÄ±m/ParÃ§a KaydÄ±') {
             const islem_tarihi = document.getElementById('bakim-tarih').value;
             const arac_id = document.getElementById('bakim-arac').value;
             const islem_turu = document.getElementById('bakim-tur').value;
@@ -458,69 +458,69 @@ window.saveDataAndClose = async function (event) {
             const bakim_km = parseInt(document.getElementById('bakim-km')?.value) || null;
             const toplam_tutar = parseFloat(document.getElementById('bakim-tutar').value) || 0;
 
-            const odeme_turu = document.getElementById('bakim-odeme-turu')?.value || 'VADELİ (Cariye Yaz)';
+            const odeme_turu = document.getElementById('bakim-odeme-turu')?.value || 'VADELÄ° (Cariye Yaz)';
             const kredi_karti_id = document.getElementById('bakim-kredi-karti')?.value || null;
 
             if (bakim_km) {
                 aciklama = `[O Anki KM: ${bakim_km}] ` + aciklama;
             }
 
-            // Dinamik Alanları Yükle
-            if (islem_turu === 'Yedek Parça') {
+            // Dinamik AlanlarÄ± YÃ¼kle
+            if (islem_turu === 'Yedek ParÃ§a') {
                 const parcaAdi = document.getElementById('bakim-parca-adi')?.value;
                 const adet = document.getElementById('bakim-parca-adet')?.value || '1';
-                if (parcaAdi) aciklama = `[Parça: ${parcaAdi} | Adet: ${adet}] ` + aciklama;
-            } else if (islem_turu === 'Hasar Onarım') {
+                if (parcaAdi) aciklama = `[ParÃ§a: ${parcaAdi} | Adet: ${adet}] ` + aciklama;
+            } else if (islem_turu === 'Hasar OnarÄ±m') {
                 const dosyaNo = document.getElementById('bakim-dosya-no')?.value;
                 if (dosyaNo) aciklama = `[Hasar Dosya No: ${dosyaNo}] ` + aciklama;
             }
 
-            // Dosya yükleme
+            // Dosya yÃ¼kleme
             const bakimDosya = document.getElementById('bakim-dosya');
             let dosya_url = null;
             if (bakimDosya?.files?.length > 0) {
                 dosya_url = await window.uploadDosya(bakimDosya.files[0], 'bakimlar');
             }
 
-            if (!arac_id || !aciklama) throw new Error("Araç ve açıklama alanları zorunludur.");
+            if (!arac_id || !aciklama) throw new Error("AraÃ§ ve aÃ§Ä±klama alanlarÄ± zorunludur.");
             const { error, data: bakimData } = await window.supabaseClient.from('arac_bakimlari').insert([{
                 islem_tarihi, arac_id, islem_turu, cari_id, aciklama, toplam_tutar, dosya_url
             }]).select();
             if (error) throw error;
 
-            // Ödeme işlemi varsa otomatik düşüm yap
-            if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
+            // Ã–deme iÅŸlemi varsa otomatik dÃ¼ÅŸÃ¼m yap
+            if (odeme_turu !== 'VADELÄ° (Cariye Yaz)' && toplam_tutar > 0) {
                 const odeme_cari_id = document.getElementById('bakim-odeme-cari')?.value || cari_id;
-                let odemeAciklama = `[${islem_turu}] Otomatik Ödeme - Bakım ID: ${bakimData?.[0]?.id || ''}`;
-                let gercekOdemeTuru = odeme_turu === 'KREDİ KARTI' ? 'Kredi Kartı' : (odeme_turu === 'CARİ HESABI' ? 'Cari Hesap' : 'Nakit');
+                let odemeAciklama = `[${islem_turu}] Otomatik Ã–deme - BakÄ±m ID: ${bakimData?.[0]?.id || ''}`;
+                let gercekOdemeTuru = odeme_turu === 'KREDÄ° KARTI' ? 'Kredi KartÄ±' : (odeme_turu === 'CARÄ° HESABI' ? 'Cari Hesap' : 'Nakit');
 
                 if (odeme_cari_id) {
                     const { error: odemeHata } = await window.supabaseClient.from('cari_odemeler').insert([{
                         cari_id: odeme_cari_id, tarih: islem_tarihi, odeme_turu: gercekOdemeTuru, tutar: toplam_tutar, aciklama: odemeAciklama
                     }]);
-                    if (odemeHata) console.error('Otomatik cari ödeme eklenemedi:', odemeHata);
+                    if (odemeHata) console.error('Otomatik cari Ã¶deme eklenemedi:', odemeHata);
                 }
 
-                if (odeme_turu === 'KREDİ KARTI' && kredi_karti_id) {
+                if (odeme_turu === 'KREDÄ° KARTI' && kredi_karti_id) {
                     const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi, taksit_sayisi: 1,
-                        aciklama: `[BAKIM/PARÇA] ${aciklama.substring(0, 50)}`, toplam_tutar
+                        aciklama: `[BAKIM/PARÃ‡A] ${aciklama.substring(0, 50)}`, toplam_tutar
                     }]);
-                    if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
+                    if (kkHata) console.error('Otomatik kredi kartÄ± harcamasÄ± eklenemedi:', kkHata);
                 }
             }
 
-            // Yağ Bakımı Kaydı: Eğer bakım türü yağ değişimi ise son_yag_km güncelle
+            // YaÄŸ BakÄ±mÄ± KaydÄ±: EÄŸer bakÄ±m tÃ¼rÃ¼ yaÄŸ deÄŸiÅŸimi ise son_yag_km gÃ¼ncelle
             if (bakim_km && arac_id) {
                 const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km, son_yag_km').eq('id', arac_id).single();
                 const updatePayload = {};
                 if (!arac || bakim_km > (arac.guncel_km || 0)) updatePayload.guncel_km = bakim_km;
                 const islemTuruLower = islem_turu?.toLowerCase() || '';
                 if (
-                    islem_turu.trim() === 'Yağ Değişimi' ||
-                    islem_turu.trim() === 'Periyodik Bakım' ||
-                    islem_turu.trim() === '10.000 Yağ' ||
-                    islemTuruLower.includes('yağ') ||
+                    islem_turu.trim() === 'YaÄŸ DeÄŸiÅŸimi' ||
+                    islem_turu.trim() === 'Periyodik BakÄ±m' ||
+                    islem_turu.trim() === '10.000 YaÄŸ' ||
+                    islemTuruLower.includes('yaÄŸ') ||
                     islemTuruLower.includes('yag')
                 ) {
                     updatePayload.son_yag_km = bakim_km;
@@ -531,7 +531,7 @@ window.saveDataAndClose = async function (event) {
             }
             if (typeof fetchBakimlar === 'function') fetchBakimlar();
             if (typeof fetchDashboardData === 'function') fetchDashboardData();
-        } else if (formTitle === 'Yeni Poliçe Kaydı') {
+        } else if (formTitle === 'Yeni PoliÃ§e KaydÄ±') {
             const arac_id = document.getElementById('police-arac').value;
             const cari_id = document.getElementById('police-cari').value || null;
             const police_turu = document.getElementById('police-tur').value;
@@ -540,19 +540,19 @@ window.saveDataAndClose = async function (event) {
             const toplam_tutar = parseFloat(document.getElementById('police-tutar').value) || 0;
             const taksit_sayisi = parseInt(document.getElementById('police-taksit').value) || 1;
 
-            const odeme_turu = document.getElementById('police-odeme-turu')?.value || 'VADELİ (Cariye Yaz)';
+            const odeme_turu = document.getElementById('police-odeme-turu')?.value || 'VADELÄ° (Cariye Yaz)';
             const kredi_karti_id = document.getElementById('police-kredi-karti')?.value || null;
             const odeme_cari_id_police = document.getElementById('police-odeme-cari')?.value || null;
 
-            // Dosya yükleme
+            // Dosya yÃ¼kleme
             const dosyaInput = document.getElementById('police-dosya');
             let dosya_url = null;
             if (dosyaInput?.files?.length > 0) {
                 dosya_url = await window.uploadDosya(dosyaInput.files[0], 'policeler');
             }
 
-            if (!arac_id) throw new Error("Araç seçimi zorunludur.");
-            if (!bitis_tarihi) throw new Error("Bitiş tarihi zorunludur.");
+            if (!arac_id) throw new Error("AraÃ§ seÃ§imi zorunludur.");
+            if (!bitis_tarihi) throw new Error("BitiÅŸ tarihi zorunludur.");
 
             const { error, data: policeData } = await window.supabaseClient.from('arac_policeler').insert([{
                 arac_id, cari_id, police_turu,
@@ -562,11 +562,11 @@ window.saveDataAndClose = async function (event) {
             }]).select();
             if (error) throw error;
 
-            if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
+            if (odeme_turu !== 'VADELÄ° (Cariye Yaz)' && toplam_tutar > 0) {
                 const tarihIcin = baslangic_tarihi || new Date().toISOString().split('T')[0];
-                let odemeAciklama = `[${police_turu}] Otomatik Ödeme Kaydı - Poliçe ID: ${policeData?.[0]?.id || ''}`;
-                let gercekOdemeTuru = odeme_turu === 'KREDİ KARTI' ? 'Kredi Kartı' : (odeme_turu === 'CARİ HESABI' ? 'Cari Hesap' : 'Nakit');
-                // Ödeme yapan hesap: Cari Hesap seçildiyse orası, seçilmediyse sigorta acentesi (cari_id)
+                let odemeAciklama = `[${police_turu}] Otomatik Ã–deme KaydÄ± - PoliÃ§e ID: ${policeData?.[0]?.id || ''}`;
+                let gercekOdemeTuru = odeme_turu === 'KREDÄ° KARTI' ? 'Kredi KartÄ±' : (odeme_turu === 'CARÄ° HESABI' ? 'Cari Hesap' : 'Nakit');
+                // Ã–deme yapan hesap: Cari Hesap seÃ§ildiyse orasÄ±, seÃ§ilmediyse sigorta acentesi (cari_id)
                 const payer_cari = odeme_cari_id_police || cari_id;
 
                 if (payer_cari) {
@@ -574,34 +574,34 @@ window.saveDataAndClose = async function (event) {
                         cari_id: payer_cari, tarih: tarihIcin,
                         odeme_turu: gercekOdemeTuru, tutar: toplam_tutar, aciklama: odemeAciklama
                     }]);
-                    if (odemeHata) console.error('Otomatik cari ödeme eklenemedi:', odemeHata);
+                    if (odemeHata) console.error('Otomatik cari Ã¶deme eklenemedi:', odemeHata);
                 }
 
-                if (odeme_turu === 'KREDİ KARTI' && kredi_karti_id) {
+                if (odeme_turu === 'KREDÄ° KARTI' && kredi_karti_id) {
                     const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi: tarihIcin,
                         taksit_sayisi: taksit_sayisi,
-                        aciklama: `[${police_turu}] Poliçe Ödemesi`, toplam_tutar
+                        aciklama: `[${police_turu}] PoliÃ§e Ã–demesi`, toplam_tutar
                     }]);
-                    if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
+                    if (kkHata) console.error('Otomatik kredi kartÄ± harcamasÄ± eklenemedi:', kkHata);
                 }
             }
 
-            // OTOMATİK ARAÇ GÜNCELLEME: Poliçe türüne göre aracın bitiş tarihini güncelle
+            // OTOMATÄ°K ARAÃ‡ GÃœNCELLEME: PoliÃ§e tÃ¼rÃ¼ne gÃ¶re aracÄ±n bitiÅŸ tarihini gÃ¼ncelle
             const updateData = {};
-            // String eşleşmesini garantilemek için .trim() kullanıyoruz
-            if (police_turu.trim() === 'Trafik' || police_turu.trim() === 'Trafik Sigortası') updateData.sigorta_bitis = bitis_tarihi;
+            // String eÅŸleÅŸmesini garantilemek iÃ§in .trim() kullanÄ±yoruz
+            if (police_turu.trim() === 'Trafik' || police_turu.trim() === 'Trafik SigortasÄ±') updateData.sigorta_bitis = bitis_tarihi;
             else if (police_turu.trim() === 'Kasko') updateData.kasko_bitis = bitis_tarihi;
 
             if (Object.keys(updateData).length > 0) {
                 const { error: updError } = await window.supabaseClient.from('araclar').update(updateData).eq('id', arac_id);
-                if (updError) console.error("Araç tarih güncelleme hatası:", updError);
+                if (updError) console.error("AraÃ§ tarih gÃ¼ncelleme hatasÄ±:", updError);
             }
 
             if (typeof fetchPoliceler === 'function') fetchPoliceler();
             if (typeof fetchAraclar === 'function') fetchAraclar();
             if (typeof fetchTaksitler === 'function') fetchTaksitler();
-        } else if (formTitle === 'Yeni Fatura Kaydı') {
+        } else if (formTitle === 'Yeni Fatura KaydÄ±') {
             const cari_id = document.getElementById('fatura-cari-id').value;
             const fatura_tarihi = document.getElementById('fatura-tarih').value;
             const fatura_no = document.getElementById('fatura-no').value;
@@ -610,8 +610,8 @@ window.saveDataAndClose = async function (event) {
             const dosya_url = document.getElementById('fatura-dosya').value;
             const fatura_turu = document.getElementById('fatura-tur')?.value;
 
-            // Dinamik Alanları Yükle
-            if (fatura_turu === 'Yakıt') {
+            // Dinamik AlanlarÄ± YÃ¼kle
+            if (fatura_turu === 'YakÄ±t') {
                 const litre = document.getElementById('fatura-yakit-litre')?.value;
                 const plaka = document.getElementById('fatura-yakit-plaka')?.value;
                 let not = `[${fatura_turu}] `;
@@ -622,8 +622,8 @@ window.saveDataAndClose = async function (event) {
                 const ihlalMi = document.getElementById('fatura-ogs-ihlal')?.checked;
                 const guzergah = document.getElementById('fatura-ogs-guzergah')?.value;
                 let not = `[${fatura_turu}] `;
-                if (ihlalMi) not += `!!İHLALLİ GEÇİŞ!! `;
-                if (guzergah) not += `Güzergah: ${guzergah} `;
+                if (ihlalMi) not += `!!Ä°HLALLÄ° GEÃ‡Ä°Åž!! `;
+                if (guzergah) not += `GÃ¼zergah: ${guzergah} `;
                 aciklama = not + aciklama;
             } else if (fatura_turu === 'Genel Gider') {
                 const ref = document.getElementById('fatura-genel-ref')?.value;
@@ -634,39 +634,39 @@ window.saveDataAndClose = async function (event) {
                 aciklama = `[${fatura_turu}] ` + aciklama;
             }
 
-            if (!cari_id || !fatura_tarihi) throw new Error("Cari ve tarih seçimi zorunludur.");
+            if (!cari_id || !fatura_tarihi) throw new Error("Cari ve tarih seÃ§imi zorunludur.");
             const { error } = await window.supabaseClient.from('cari_faturalar').insert([{
                 cari_id, fatura_tarihi, fatura_no, aciklama, toplam_tutar, dosya_url
             }]);
             if (error) throw error;
             if (typeof fetchCariler === 'function') fetchCariler();
-        } else if (formTitle === 'Yeni Ödeme Kaydı') {
+        } else if (formTitle === 'Yeni Ã–deme KaydÄ±') {
             const cari_id = document.getElementById('odeme-cari').value;
             const tarih = document.getElementById('odeme-tarih').value;
             const odeme_turu = document.getElementById('odeme-tur').value;
             const tutar = parseFloat(document.getElementById('odeme-tutar').value) || 0;
             let aciklama = document.getElementById('odeme-aciklama').value || '';
 
-            // Dinamik Alanları Yükle
-            if (odeme_turu === 'Çek/Senet') {
+            // Dinamik AlanlarÄ± YÃ¼kle
+            if (odeme_turu === 'Ã‡ek/Senet') {
                 const cekNo = document.getElementById('odeme-cek-no')?.value;
                 const vade = document.getElementById('odeme-vade')?.value;
-                if (cekNo || vade) aciklama = `[Çek/Senet No: ${cekNo || '-'} | Vade: ${vade || '-'}] ` + aciklama;
+                if (cekNo || vade) aciklama = `[Ã‡ek/Senet No: ${cekNo || '-'} | Vade: ${vade || '-'}] ` + aciklama;
             } else if (odeme_turu === 'Banka/Havale') {
                 const dekont = document.getElementById('odeme-dekont-no')?.value;
                 if (dekont) aciklama = `[Dekont/Ref: ${dekont}] ` + aciklama;
-            } else if (odeme_turu === 'Kredi Kartı') {
+            } else if (odeme_turu === 'Kredi KartÄ±') {
                 const kart = document.getElementById('odeme-kart-no')?.value;
                 const fisAlindi = document.getElementById('odeme-fis-kart')?.checked;
                 const fisNo = document.getElementById('odeme-fis-no-kart')?.value;
                 let not = '';
                 if (kart) not += `[Kart/Slip: ${kart}] `;
-                if (fisAlindi) not += `[Fiş Kapatıldı` + (fisNo ? ` - No: ${fisNo}` : '') + `] `;
+                if (fisAlindi) not += `[FiÅŸ KapatÄ±ldÄ±` + (fisNo ? ` - No: ${fisNo}` : '') + `] `;
                 aciklama = not + aciklama;
             } else if (odeme_turu === 'Nakit') {
                 const fisAlindi = document.getElementById('odeme-fis-nakit')?.checked;
                 const fisNo = document.getElementById('odeme-fis-no-nakit')?.value;
-                if (fisAlindi) aciklama = `[Fiş Kapatıldı` + (fisNo ? ` - No: ${fisNo}` : '') + `] ` + aciklama;
+                if (fisAlindi) aciklama = `[FiÅŸ KapatÄ±ldÄ±` + (fisNo ? ` - No: ${fisNo}` : '') + `] ` + aciklama;
             }
 
             if (!cari_id || !tarih || !tutar) throw new Error("Cari, tarih ve tutar zorunludur.");
@@ -675,7 +675,7 @@ window.saveDataAndClose = async function (event) {
             }]);
             if (error) throw error;
             if (typeof fetchCariler === 'function') fetchCariler();
-        } else if (formTitle === 'Yeni Maaş Kaydı') {
+        } else if (formTitle === 'Yeni MaaÅŸ KaydÄ±') {
             const sofor_id = document.getElementById('maas-sofor').value;
             const arac_id = document.getElementById('maas-arac').value || null;
             const donem = document.getElementById('maas-donem').value;
@@ -688,7 +688,7 @@ window.saveDataAndClose = async function (event) {
             const ideol_banka = parseFloat(document.getElementById('maas-ideol-banka').value) || 0;
             const aciklama = document.getElementById('maas-aciklama').value;
 
-            if (!sofor_id || !donem || !net_maas) throw new Error("Şoför, dönem ve net maaş zorunludur.");
+            if (!sofor_id || !donem || !net_maas) throw new Error("ÅžofÃ¶r, dÃ¶nem ve net maaÅŸ zorunludur.");
             const { error } = await window.supabaseClient.from('sofor_maas_bordro').insert([{
                 sofor_id, arac_id, donem, calisma_gun, net_maas, avans, ceza, haciz, mk_banka, ideol_banka, aciklama
             }]);
@@ -708,7 +708,7 @@ window.saveDataAndClose = async function (event) {
             const taksit_sayisi = parseInt(document.getElementById('teklif-taksit-sayisi')?.value) || 1;
             const taksit_tutar = parseFloat(document.getElementById('teklif-taksit-tutar')?.value) || 0;
 
-            // Poliçe türünü çek (radio butonlardan)
+            // PoliÃ§e tÃ¼rÃ¼nÃ¼ Ã§ek (radio butonlardan)
             const turRadios = document.getElementsByName('teklif_turu');
             let teklif_turu = 'Trafik';
             for (let r of turRadios) { if (r.checked) teklif_turu = r.value; }
@@ -725,23 +725,23 @@ window.saveDataAndClose = async function (event) {
                 cam: document.getElementById('teklif-cam').checked
             };
 
-            if (!arac_id || !firma_adi || !tutar) throw new Error("Araç, firma ve tutar zorunludur.");
+            if (!arac_id || !firma_adi || !tutar) throw new Error("AraÃ§, firma ve tutar zorunludur.");
             const insertData = { arac_id, firma_adi, tutar, baslangic_tarihi, bitis_tarihi: bitis_tarihi || null, taksit_sayisi, secenekler };
             if (cari_id) insertData.cari_id = cari_id;
             const { error } = await window.supabaseClient.from('sigorta_teklifleri').insert([insertData]);
             if (error) throw error;
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
-        } else if (formTitle === 'Yeni Kredi Kartı') {
+        } else if (formTitle === 'Yeni Kredi KartÄ±') {
             const kart_adi = document.getElementById('kredi-kart-adi').value;
             const kart_sahibi = document.getElementById('kredi-kart-sahibi').value || null;
             const kart_no = document.getElementById('kredi-kart-no').value || null;
             const limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value);
 
-            if (!kart_adi || isNaN(limit_tutari)) throw new Error("Kart adı ve limit zorunludur.");
+            if (!kart_adi || isNaN(limit_tutari)) throw new Error("Kart adÄ± ve limit zorunludur.");
             const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, kart_no, limit_tutari }]);
             if (error) throw error;
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
-        } else if (formTitle === 'Yeni Kart İşlemi') {
+        } else if (formTitle === 'Yeni Kart Ä°ÅŸlemi') {
             const kart_id = document.getElementById('kredi-kart-secim').value;
             const islem_tarihi = document.getElementById('kart-islem-tarih').value;
             const taksit_sayisi = parseInt(document.getElementById('kart-islem-taksit').value) || 1;
@@ -756,17 +756,17 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
         }
 
-        // Başarı toast göster ve modalı kapat
+        // BaÅŸarÄ± toast gÃ¶ster ve modalÄ± kapat
         const toast = document.createElement('div');
         toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;background:rgba(22,163,74,0.92);color:white;font-size:0.8rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,0.25);backdrop-filter:blur(8px);`;
-        toast.textContent = `✓ ${formTitle} kaydedildi`;
+        toast.textContent = `âœ“ ${formTitle} kaydedildi`;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
         closeModal();
         if (typeof window.refreshAllModules === 'function') window.refreshAllModules();
     } catch (error) {
-        console.error("Supabase Hatası:", error);
-        // Hata mesajını modal içinde göster
+        console.error("Supabase HatasÄ±:", error);
+        // Hata mesajÄ±nÄ± modal iÃ§inde gÃ¶ster
         let errBox = document.getElementById('modal-error-box');
         if (!errBox) {
             errBox = document.createElement('div');
@@ -776,16 +776,16 @@ window.saveDataAndClose = async function (event) {
             if (dynBody) dynBody.appendChild(errBox);
         }
 
-        let message = error.message || "Bilinmeyen bir hata oluştu.";
+        let message = error.message || "Bilinmeyen bir hata oluÅŸtu.";
         if (error.details) message += ` | Detay: ${error.details}`;
-        if (error.hint) message += ` | İpucu: ${error.hint}`;
+        if (error.hint) message += ` | Ä°pucu: ${error.hint}`;
 
         // XSS Safe: textContent yerine DOM API kullan
         errBox.textContent = '';
-        const warnIcon = document.createTextNode('⚠ Kayıt başarısız: ');
+        const warnIcon = document.createTextNode('âš  KayÄ±t baÅŸarÄ±sÄ±z: ');
         const msgSpan = document.createElement('span');
         msgSpan.style.fontWeight = '400';
-        msgSpan.textContent = message; // user data → textContent, never innerHTML
+        msgSpan.textContent = message; // user data â†’ textContent, never innerHTML
         errBox.appendChild(warnIcon);
         errBox.appendChild(msgSpan);
         errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -798,43 +798,43 @@ window.deleteRecord = async function (tableName, id, fetchFunctionName) {
     const btn = window.event?.currentTarget;
     const originalHTML = btn ? btn.innerHTML : 'Sil';
 
-    console.log(`[SİLME] ${tableName} tablosundan ID:${id} siliniyor...`);
 
-    window.showConfirm("Bu kaydı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.", async () => {
+
+    window.showConfirm("Bu kaydÄ± silmek istediÄŸinize emin misiniz? Bu iÅŸlem geri alÄ±namaz.", async () => {
         if (btn) {
-            btn.innerHTML = '<span class="inline-block animate-spin mr-1">↻</span> Siliniyor...';
+            btn.innerHTML = '<span class="inline-block animate-spin mr-1">â†»</span> Siliniyor...';
             btn.disabled = true;
             btn.classList.add('opacity-50', 'cursor-not-allowed');
         }
 
         try {
             if (tableName === 'cariler') {
-                console.log("[SİLME] Cari siliniyor, derin temizlik başlatılıyor...");
+
                 await handleCariDeletion(id);
             } else if (tableName === 'soforler') {
-                console.log("[SİLME] Şoför siliniyor, derin temizlik başlatılıyor...");
+
                 await handleSoforDeletion(id);
             }
 
-            console.log(`[SİLME] Supabase ana silme işlemi yürütülüyor: ${tableName} -> ${id}`);
+
             const { error } = await window.supabaseClient.from(tableName).delete().eq('id', id);
 
             if (error) {
-                console.error("[SİLME] Supabase Silme Hatası:", error);
+                console.error("[SÄ°LME] Supabase Silme HatasÄ±:", error);
                 if (error.code === '23503') {
-                    throw new Error("Bu kayıt başka verilerle bağlantılı. Lütfen önce bağlı alt kayıtları siliniz.");
+                    throw new Error("Bu kayÄ±t baÅŸka verilerle baÄŸlantÄ±lÄ±. LÃ¼tfen Ã¶nce baÄŸlÄ± alt kayÄ±tlarÄ± siliniz.");
                 }
                 throw error;
             }
 
-            if (window.Toast) { window.Toast.success('Kayıt başarıyla silindi.'); }
-            else { alert("Kayıt başarıyla silindi."); }
+            if (window.Toast) { window.Toast.success('KayÄ±t baÅŸarÄ±yla silindi.'); }
+            else { alert("KayÄ±t baÅŸarÄ±yla silindi."); }
             if (typeof window[fetchFunctionName] === 'function') window[fetchFunctionName]();
             if (typeof window.refreshAllModules === 'function' && fetchFunctionName !== 'refreshAllModules') window.refreshAllModules();
         } catch (error) {
-            console.error("[SİLME] Hata:", error);
-            if (window.Toast) { window.Toast.error('Silme hatası: ' + error.message); }
-            else { alert("Silme hatası: " + error.message); }
+            console.error("[SÄ°LME] Hata:", error);
+            if (window.Toast) { window.Toast.error('Silme hatasÄ±: ' + error.message); }
+            else { alert("Silme hatasÄ±: " + error.message); }
         } finally {
             if (btn) {
                 btn.innerHTML = originalHTML;
@@ -845,82 +845,82 @@ window.deleteRecord = async function (tableName, id, fetchFunctionName) {
     });
 }
 async function handleSoforDeletion(soforId) {
-    console.log(`[SİLME-DERİN] Şoför ID:${soforId} için derivasyon temizliği başlatıldı...`);
+
     try {
-        console.log("[SİLME-DERİN] 1/3: Araç atamaları temizleniyor...");
+
         const { error: aracErr } = await window.supabaseClient.from('araclar').update({ sofor_id: null }).eq('sofor_id', soforId);
-        if (aracErr) console.warn("[SİLME-DERİN] Araç ataması kaldırılırken hata:", aracErr);
+        if (aracErr) console.warn("[SÄ°LME-DERÄ°N] AraÃ§ atamasÄ± kaldÄ±rÄ±lÄ±rken hata:", aracErr);
 
-        console.log("[SİLME-DERİN] 2/3: Şoför işlem raporları/finans kayıtları siliniyor...");
+
         const { error: finErr } = await window.supabaseClient.from('sofor_finans').delete().eq('sofor_id', soforId);
-        if (finErr) console.warn("[SİLME-DERİN] İşlem geçmişi silinirken hata:", finErr);
+        if (finErr) console.warn("[SÄ°LME-DERÄ°N] Ä°ÅŸlem geÃ§miÅŸi silinirken hata:", finErr);
 
-        console.log("[SİLME-DERİN] 3/3: Maaş bordro dökümleri siliniyor...");
+
         const { error: bordroErr } = await window.supabaseClient.from('sofor_maas_bordro').delete().eq('sofor_id', soforId);
-        if (bordroErr) console.warn("[SİLME-DERİN] Bordro silinirken hata:", bordroErr);
+        if (bordroErr) console.warn("[SÄ°LME-DERÄ°N] Bordro silinirken hata:", bordroErr);
     } catch (e) {
-        console.error("[SİLME-DERİN] Şoför temizlik aşamasında kritik hata:", e);
+        console.error("[SÄ°LME-DERÄ°N] ÅžofÃ¶r temizlik aÅŸamasÄ±nda kritik hata:", e);
         throw e;
     }
 }
 async function handleCariDeletion(cariId) {
-    console.log(`[SİLME-DERİN] Cari ID:${cariId} için derin temizlik başlatıldı...`);
+
     try {
-        // 1. Bağlı Poliçeleri Temizle ve Araç Durumlarını Güncelle
-        console.log("[SİLME-DERİN] 1/3: Poliçeler ve Araç durumları kontrol ediliyor...");
+        // 1. BaÄŸlÄ± PoliÃ§eleri Temizle ve AraÃ§ DurumlarÄ±nÄ± GÃ¼ncelle
+
         const { data: policeler } = await window.supabaseClient.from('arac_policeler').select('*').eq('cari_id', cariId);
 
         if (policeler && policeler.length > 0) {
-            console.log(`[SİLME-DERİN] ${policeler.length} adet poliçe bulundu, araçlar güncelleniyor...`);
+
             for (const p of policeler) {
                 const updateData = {};
-                if (p.police_turu && (p.police_turu.trim() === 'Trafik' || p.police_turu.trim() === 'Trafik Sigortası')) updateData.sigorta_bitis = null;
+                if (p.police_turu && (p.police_turu.trim() === 'Trafik' || p.police_turu.trim() === 'Trafik SigortasÄ±')) updateData.sigorta_bitis = null;
                 else if (p.police_turu && p.police_turu.trim() === 'Kasko') updateData.kasko_bitis = null;
 
                 if (Object.keys(updateData).length > 0) {
                     await window.supabaseClient.from('araclar').update(updateData).eq('id', p.arac_id);
                 }
             }
-            // Poliçeleri açıkça sil
+            // PoliÃ§eleri aÃ§Ä±kÃ§a sil
             const { error: polErr } = await window.supabaseClient.from('arac_policeler').delete().eq('cari_id', cariId);
-            if (polErr) console.warn("[SİLME-DERİN] Poliçe silme uyarısı:", polErr);
+            if (polErr) console.warn("[SÄ°LME-DERÄ°N] PoliÃ§e silme uyarÄ±sÄ±:", polErr);
         }
 
-        // 2. Bakım Kayıtlarındaki Referansları Temizle (NULL yap)
-        console.log("[SİLME-DERİN] 2/3: Bakım kayıtlarındaki Cari bağlantıları temizleniyor...");
+        // 2. BakÄ±m KayÄ±tlarÄ±ndaki ReferanslarÄ± Temizle (NULL yap)
+
         const { error: bakimErr } = await window.supabaseClient.from('arac_bakimlari').update({ cari_id: null }).eq('cari_id', cariId);
-        if (bakimErr) console.warn("[SİLME-DERİN] Bakım temizleme uyarısı:", bakimErr);
+        if (bakimErr) console.warn("[SÄ°LME-DERÄ°N] BakÄ±m temizleme uyarÄ±sÄ±:", bakimErr);
 
-        // 3. Bağlı Faturaları Açıkça Sil
-        console.log("[SİLME-DERİN] 3/4: Bağlı faturalar siliniyor...");
+        // 3. BaÄŸlÄ± FaturalarÄ± AÃ§Ä±kÃ§a Sil
+
         const { error: fatErr } = await window.supabaseClient.from('cari_faturalar').delete().eq('cari_id', cariId);
-        if (fatErr) console.warn("[SİLME-DERİN] Fatura silme uyarısı:", fatErr);
+        if (fatErr) console.warn("[SÄ°LME-DERÄ°N] Fatura silme uyarÄ±sÄ±:", fatErr);
 
-        // 4. Bağlı Ödemeleri (Hızlı Ödemeler, Tahsilatlar vb.) Sil
-        console.log("[SİLME-DERİN] 4/4: Bağlı ödemeler (cari_odemeler) siliniyor...");
+        // 4. BaÄŸlÄ± Ã–demeleri (HÄ±zlÄ± Ã–demeler, Tahsilatlar vb.) Sil
+
         const { error: odemeErr } = await window.supabaseClient.from('cari_odemeler').delete().eq('cari_id', cariId);
-        if (odemeErr) console.warn("[SİLME-DERİN] Ödeme silme uyarısı:", odemeErr);
+        if (odemeErr) console.warn("[SÄ°LME-DERÄ°N] Ã–deme silme uyarÄ±sÄ±:", odemeErr);
 
-        console.log("[SİLME-DERİN] Derin temizlik başarıyla tamamlandı.");
 
-        // Diğer tabloları güncelle
+
+        // DiÄŸer tablolarÄ± gÃ¼ncelle
         if (typeof fetchAraclar === 'function') fetchAraclar();
         if (typeof fetchPoliceler === 'function') fetchPoliceler();
         if (typeof fetchBakimlar === 'function') fetchBakimlar();
         if (typeof fetchTaksitler === 'function') fetchTaksitler();
     } catch (err) {
-        console.error("[SİLME-DERİN] Kritik Hata:", err);
-        // Ana silme işleminin devam etmesi için hatayı yutuyoruz ama logluyoruz
+        console.error("[SÄ°LME-DERÄ°N] Kritik Hata:", err);
+        // Ana silme iÅŸleminin devam etmesi iÃ§in hatayÄ± yutuyoruz ama logluyoruz
     }
 }
-/* === 4. SUPABASE VERİ ÇEKME (READ / SELECT) İŞLEMLERİ === */
+/* === 4. SUPABASE VERÄ° Ã‡EKME (READ / SELECT) Ä°ÅžLEMLERÄ° === */
 window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi') {
     const grid = document.getElementById('arac-cards-grid');
     const listBody = document.getElementById('arac-list-tbody');
     if (!grid && !listBody) return;
 
     // Loading state
-    if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto"></i><p class="mt-2 text-xs">Araçlar yükleniyor...</p></div>';
+    if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto"></i><p class="mt-2 text-xs">AraÃ§lar yÃ¼kleniyor...</p></div>';
 
     const conn = window.checkSupabaseConnection();
     if (!conn.ok) {
@@ -928,7 +928,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         return;
     }
 
-    console.log("[fetchAraclar] Başlatıldı. Filtreler:", { mulkiyetFilter, sirketFilter });
+
 
     try {
 
@@ -946,18 +946,18 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             }
         }
 
-        // Şirket Filtresi (IDEOL / M.K.)
+        // Åžirket Filtresi (IDEOL / M.K.)
         if (sirketFilter && sirketFilter !== 'hepsi') {
             query = query.eq('sirket', sirketFilter);
         }
 
-        console.log("[fetchAraclar] Sorgu gönderiliyor...");
-        let { data: araclar, error } = await query;
-        console.log("[fetchAraclar] Yanıt alındı:", { count: araclar?.length, error });
 
-        // EĞER "belge_turu" sütunu SUPEBASE'de henüz yoksa (PGRST204: column does not exist) ve filtre d2/d4s değilse
+        let { data: araclar, error } = await query;
+
+
+        // EÄžER "belge_turu" sÃ¼tunu SUPEBASE'de henÃ¼z yoksa (PGRST204: column does not exist) ve filtre d2/d4s deÄŸilse
         if (error && error.message && typeof error.message === 'string' && error.message.includes("belge_turu does not exist")) {
-            console.warn("Supabase tablosunda 'belge_turu' sütunu henüz oluşturulmadığı için esnek sorguya (fallback) geçiliyor...");
+            console.warn("Supabase tablosunda 'belge_turu' sÃ¼tunu henÃ¼z oluÅŸturulmadÄ±ÄŸÄ± iÃ§in esnek sorguya (fallback) geÃ§iliyor...");
             let fallbackQuery = window.supabaseClient.from('araclar').select('*').order('id', { ascending: false });
             if (mulkiyetFilter && mulkiyetFilter !== 'hepsi' && mulkiyetFilter !== 'D2' && mulkiyetFilter !== 'D4S') {
                 fallbackQuery = fallbackQuery.eq('mulkiyet_durumu', mulkiyetFilter);
@@ -965,11 +965,11 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const fallbackRes = await fallbackQuery;
             araclar = fallbackRes.data || [];
 
-            // Eğer D2 veya D4S filtresine basılmışsa ama DB'de kolon yoksa boş liste göster
+            // EÄŸer D2 veya D4S filtresine basÄ±lmÄ±ÅŸsa ama DB'de kolon yoksa boÅŸ liste gÃ¶ster
             if (mulkiyetFilter === 'D2' || mulkiyetFilter === 'D4S') {
                 araclar = [];
             }
-            error = null; // UI Çökmesini engellemek için hatayı null yap
+            error = null; // UI Ã‡Ã¶kmesini engellemek iÃ§in hatayÄ± null yap
         }
 
         if (error) throw error;
@@ -985,19 +985,19 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         if (listBody) listBody.innerHTML = '';
 
         if (araclar.length === 0) {
-            if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">Henüz kayıtlı özmal araç bulunmuyor.</div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">Kayıt bulunamadı.</td></tr>';
+            if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">HenÃ¼z kayÄ±tlÄ± Ã¶zmal araÃ§ bulunmuyor.</div>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">KayÄ±t bulunamadÄ±.</td></tr>';
             return;
         }
 
-        // Verileri Döngüye Alıp Ekrana Bas
+        // Verileri DÃ¶ngÃ¼ye AlÄ±p Ekrana Bas
         function getStatusHtml(dateString, label, aracId) {
-            const tur = label.includes('Sigorta') ? 'Trafik Sigortası' : (label.includes('Kasko') ? 'Kasko' : (label.includes('Koltuk') ? 'Koltuk Sigortası' : 'Vize'));
-            const shortLabel = label === 'Sigorta' ? 'SİG' : (label === 'Kasko' ? 'KSK' : (label === 'Koltuk' ? 'KLT' : 'VİZE'));
+            const tur = label.includes('Sigorta') ? 'Trafik SigortasÄ±' : (label.includes('Kasko') ? 'Kasko' : (label.includes('Koltuk') ? 'Koltuk SigortasÄ±' : 'Vize'));
+            const shortLabel = label === 'Sigorta' ? 'SÄ°G' : (label === 'Kasko' ? 'KSK' : (label === 'Koltuk' ? 'KLT' : 'VÄ°ZE'));
 
             if (!dateString) {
-                // "Yok" — zarif dashed border badge
-                return `<span onclick="openModal('Yeni Poliçe Kaydı')"
+                // "Yok" â€” zarif dashed border badge
+                return `<span onclick="openModal('Yeni PoliÃ§e KaydÄ±')"
                             style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1.5px dashed hsl(var(--border-strong));color:hsl(var(--surface-muted));font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px;transition:all 0.15s ease;background:hsl(var(--surface-alt))"
                             onmouseover="this.style.borderColor='hsl(var(--accent))';this.style.color='hsl(var(--accent))'"
                             onmouseout="this.style.borderColor='hsl(var(--border-strong))';this.style.color='hsl(var(--surface-muted))'">
@@ -1043,14 +1043,14 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     .single();
 
                 if (error || !p) {
-                    alert(`${tur} kaydı bulunamadı.`);
+                    alert(`${tur} kaydÄ± bulunamadÄ±.`);
                     return;
                 }
 
                 let content = `
                             <div class="text-left space-y-3 p-2">
                                 <div class="flex justify-between border-b pb-2">
-                                    <span class="text-xs text-gray-400 uppercase font-bold">Poliçe Türü</span>
+                                    <span class="text-xs text-gray-400 uppercase font-bold">PoliÃ§e TÃ¼rÃ¼</span>
                                     <span class="text-sm font-bold text-primary">${p.police_turu}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-2">
@@ -1058,31 +1058,31 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                                     <span class="text-sm font-bold text-primary">${p.cariler ? p.cariler.unvan : '-'}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-2">
-                                    <span class="text-xs text-gray-400 uppercase font-bold">Başlangıç</span>
+                                    <span class="text-xs text-gray-400 uppercase font-bold">BaÅŸlangÄ±Ã§</span>
                                     <span class="text-sm font-medium text-gray-600">${p.baslangic_tarihi}</span>
                                 </div>
                                 <div class="flex justify-between border-b pb-2">
-                                    <span class="text-xs text-gray-400 uppercase font-bold">Bitiş Tarihi</span>
+                                    <span class="text-xs text-gray-400 uppercase font-bold">BitiÅŸ Tarihi</span>
                                     <span class="text-sm font-bold text-danger">${p.bitis_tarihi}</span>
                                 </div>
                                 ${p.dosya_url ? `
                                 <div class="mt-4">
                                     <a href="${p.dosya_url}" target="_blank" class="w-full bg-blue-600 hover:bg-blue-700 text-white block text-center py-2 rounded font-bold text-sm shadow-md transition-all">
-                                        📄 POLİÇE PDF / DOSYAYI AÇ
+                                        ðŸ“„ POLÄ°Ã‡E PDF / DOSYAYI AÃ‡
                                     </a>
-                                </div>` : '<p class="text-[10px] text-gray-400 italic text-center">Bu poliçeye ait döküman yüklenmemiş.</p>'}
+                                </div>` : '<p class="text-[10px] text-gray-400 italic text-center">Bu poliÃ§eye ait dÃ¶kÃ¼man yÃ¼klenmemiÅŸ.</p>'}
                             </div>
                         `;
 
-                // Modal kullanarak göster (veya alert yerine daha şık bir div)
+                // Modal kullanarak gÃ¶ster (veya alert yerine daha ÅŸÄ±k bir div)
                 const detailModal = document.createElement('div');
                 detailModal.id = "policy-detail-overlay";
                 detailModal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4";
                 detailModal.innerHTML = `
                             <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
                                 <div class="bg-primary px-4 py-3 flex justify-between items-center">
-                                    <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} Detayları</h3>
-                                    <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">✕</button>
+                                    <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} DetaylarÄ±</h3>
+                                    <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">âœ•</button>
                                 </div>
                                 <div class="p-4 font-sans">${content}</div>
                                 <div class="bg-gray-50 px-4 py-3 text-right">
@@ -1094,26 +1094,26 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
             } catch (e) {
                 console.error(e);
-                alert("Poliçe detayları yüklenemedi.");
+                alert("PoliÃ§e detaylarÄ± yÃ¼klenemedi.");
             }
         }
 
         araclar.forEach(arac => {
-            // Varsayılan değerler
+            // VarsayÄ±lan deÄŸerler
             const plaka = arac.plaka || 'Bilinmiyor';
             const marka = arac.marka_model || 'Bilinmiyor';
-            const mulkiyet = arac.mulkiyet_durumu || 'ÖZMAL';
+            const mulkiyet = arac.mulkiyet_durumu || 'Ã–ZMAL';
             const soforAdi = arac.sofor_id && soforMap[arac.sofor_id] ? soforMap[arac.sofor_id] : null;
-            const sofor = soforAdi ? soforAdi : '<span class="text-gray-400 italic">Atanmamış</span>';
+            const sofor = soforAdi ? soforAdi : '<span class="text-gray-400 italic">AtanmamÄ±ÅŸ</span>';
 
             const vizeHtml = getStatusHtml(arac.vize_bitis, 'Vize', arac.id);
             const sigortaHtml = getStatusHtml(arac.sigorta_bitis, 'Sigorta', arac.id);
             const kaskoHtml = getStatusHtml(arac.kasko_bitis, 'Kasko', arac.id);
             const koltukHtml = getStatusHtml(arac.koltuk_bitis, 'Koltuk', arac.id);
 
-            // Şirket badge
+            // Åžirket badge
             let sirketBadgeHtml = '';
-            if (arac.sirket && arac.sirket !== 'Belirtilmemiş') {
+            if (arac.sirket && arac.sirket !== 'BelirtilmemiÅŸ') {
                 const sirketColor = arac.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30';
                 sirketBadgeHtml = `
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded border ${sirketColor} text-[9px] font-bold uppercase tracking-wider">
@@ -1122,7 +1122,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 `;
             }
 
-            // Belge türü badge (D2, D4S vs)
+            // Belge tÃ¼rÃ¼ badge (D2, D4S vs)
             let belgeBadgeHtml = '';
             if (arac.belge_turu && arac.belge_turu !== 'Yok') {
                 const badgeColor = arac.belge_turu === 'D2' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
@@ -1134,7 +1134,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 `;
             }
 
-            // Supabase'den gelen veriye göre modern card oluştur
+            // Supabase'den gelen veriye gÃ¶re modern card oluÅŸtur
             if (grid) {
                 const card = document.createElement('div');
                 card.className = "dashboard-card hover:border-orange-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer";
@@ -1155,12 +1155,12 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                                     </div>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded-md ${arac.mulkiyet_durumu === 'ÖZMAL' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}">${mulkiyet}</span>
+                            <span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded-md ${arac.mulkiyet_durumu === 'Ã–ZMAL' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}">${mulkiyet}</span>
                         </div>
 
                         <div class="space-y-3 mb-4">
                             <div class="flex justify-between items-center bg-black/20 p-2.5 rounded-xl border border-white/5">
-                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i>Sürücü</span>
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i>SÃ¼rÃ¼cÃ¼</span>
                                 <span class="text-sm font-semibold text-gray-300">${sofor}</span>
                             </div>
                             <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/5">
@@ -1173,9 +1173,9 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     </div>
 
                     <div class="flex flex-wrap items-center justify-between mt-auto pt-4 border-t border-white/5 gap-2">
-                        <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="user-plus" class="w-3 h-3"></i>Şoför Eşleştir</button>
-                        <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>Poliçe/Evrak</button>
-                        <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="text-[10px] font-bold text-orange-500 hover:text-orange-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>Düzenle</button>
+                        <button onclick="openModal('AraÃ§ ÅžofÃ¶r Ata', '${arac.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="user-plus" class="w-3 h-3"></i>ÅžofÃ¶r EÅŸleÅŸtir</button>
+                        <button onclick="openModal('AraÃ§ Evrak GÃ¼ncelle', '${arac.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>PoliÃ§e/Evrak</button>
+                        <button onclick="openModal('AraÃ§ GÃ¼ncelle', '${arac.id}')" class="text-[10px] font-bold text-orange-500 hover:text-orange-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>DÃ¼zenle</button>
                         <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Sil</button>
                     </div>
                 `;
@@ -1215,9 +1215,9 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     </td>
                     <td class="p-4 border-b border-white/5 text-right w-32">
                         <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="Şoför Ata"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Evrak/Poliçe"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="p-1.5 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-lg transition-all" title="Düzenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openModal('AraÃ§ ÅžofÃ¶r Ata', '${arac.id}')" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="ÅžofÃ¶r Ata"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openModal('AraÃ§ Evrak GÃ¼ncelle', '${arac.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Evrak/PoliÃ§e"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openModal('AraÃ§ GÃ¼ncelle', '${arac.id}')" class="p-1.5 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-lg transition-all" title="DÃ¼zenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
                             <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all" title="Sil"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </td>
@@ -1231,14 +1231,14 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         if (window.lucide) window.lucide.createIcons();
 
     } catch (error) {
-        console.error("Araçları çekerken hata:", error);
-        if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500">Veriler yüklenemedi: ${error.message}</div>`;
+        console.error("AraÃ§larÄ± Ã§ekerken hata:", error);
+        if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500">Veriler yÃ¼klenemedi: ${error.message}</div>`;
         if (listBody) listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Hata: ${error.message}</td></tr>`;
     }
 }
 
 /* =====================================================
-   ARAÇ KÂRLILIK (P&L) HESAPLAMA EKLENTİSİ
+   ARAÃ‡ KÃ‚RLILIK (P&L) HESAPLAMA EKLENTÄ°SÄ°
    ===================================================== */
 window.loadAracPL = async function(aracId) {
     const section = document.getElementById('arac-pl-section');
@@ -1283,23 +1283,23 @@ window.loadAracPL = async function(aracId) {
                     <div class="font-bold text-blue-400 text-sm">${fmt(toplamGelir)}</div>
                 </div>
                 <div>
-                    <div class="text-[9px] text-gray-500 uppercase mb-1">Gider (Yakıt+Bkm)</div>
+                    <div class="text-[9px] text-gray-500 uppercase mb-1">Gider (YakÄ±t+Bkm)</div>
                     <div class="font-bold text-orange-400 text-sm">${fmt(toplamGider)}</div>
                 </div>
                 <div>
-                    <div class="text-[9px] text-gray-500 uppercase mb-1">Net Kâr</div>
+                    <div class="text-[9px] text-gray-500 uppercase mb-1">Net KÃ¢r</div>
                     <div class="font-black ${karClass} text-sm">${fmt(netKar)}</div>
                 </div>
             </div>
         `;
     } catch(e) {
         console.error('[loadAracPL]', e);
-        section.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Finansal veriler yüklenemedi.</div>`;
+        section.innerHTML = `<div class="text-xs text-red-400 text-center py-2">Finansal veriler yÃ¼klenemedi.</div>`;
     }
 };
 
 /* =====================================================
-   ARAÇ CARİ KARTI — Bakım + Yakıt geçmişi
+   ARAÃ‡ CARÄ° KARTI â€” BakÄ±m + YakÄ±t geÃ§miÅŸi
    ===================================================== */
 window.loadAracCariKarti = async function(aracId) {
     const section = document.getElementById('arac-cari-section');
@@ -1323,71 +1323,71 @@ window.loadAracCariKarti = async function(aracId) {
         const tabId = 'ct' + aracId;
         let html = `<div class="flex gap-2 mb-3">
             <button id="${tabId}-b" onclick="document.getElementById('${tabId}-bakim').classList.remove('hidden');document.getElementById('${tabId}-yakit').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all';document.getElementById('${tabId}-yb').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">
-                Bakım (${bakimlar.length})
+                BakÄ±m (${bakimlar.length})
             </button>
             <button id="${tabId}-yb" onclick="document.getElementById('${tabId}-yakit').classList.remove('hidden');document.getElementById('${tabId}-bakim').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all';document.getElementById('${tabId}-b').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all">
-                Yakıt (${yakitlar.length})
+                YakÄ±t (${yakitlar.length})
             </button>
             </div>
             <div id="${tabId}-bakim" class="max-h-52 overflow-y-auto space-y-1.5">`;
 
         if (bakimlar.length === 0) {
-            html += `<p class="text-xs text-gray-500 italic text-center py-4">Bakım geçmişi yok.</p>`;
+            html += `<p class="text-xs text-gray-500 italic text-center py-4">BakÄ±m geÃ§miÅŸi yok.</p>`;
         } else {
             bakimlar.forEach(b => {
                 html += `<div class="flex items-start justify-between py-1.5 px-2 rounded-lg bg-white/5">
                     <div class="flex-1 min-w-0">
                         <div class="text-[11px] font-bold text-orange-400 uppercase">${b.islem_turu}</div>
-                        <div class="text-[10px] text-gray-500">${fmtDate(b.islem_tarihi)}${b.cariler && b.cariler.unvan ? ' · ' + b.cariler.unvan : ''}</div>
+                        <div class="text-[10px] text-gray-500">${fmtDate(b.islem_tarihi)}${b.cariler && b.cariler.unvan ? ' Â· ' + b.cariler.unvan : ''}</div>
                     </div>
-                    <div class="text-[11px] font-black text-orange-400 ml-2 whitespace-nowrap">${fmt(b.toplam_tutar)} ₺</div>
+                    <div class="text-[11px] font-black text-orange-400 ml-2 whitespace-nowrap">${fmt(b.toplam_tutar)} â‚º</div>
                 </div>`;
             });
             html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
                 <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
-                <span class="text-sm font-black text-orange-400">${fmt(toplamBakim)} ₺</span>
+                <span class="text-sm font-black text-orange-400">${fmt(toplamBakim)} â‚º</span>
             </div>`;
         }
 
         html += `</div><div id="${tabId}-yakit" class="hidden max-h-52 overflow-y-auto space-y-1.5">`;
 
         if (yakitlar.length === 0) {
-            html += `<p class="text-xs text-gray-500 italic text-center py-4">Yakıt geçmişi yok.</p>`;
+            html += `<p class="text-xs text-gray-500 italic text-center py-4">YakÄ±t geÃ§miÅŸi yok.</p>`;
         } else {
             yakitlar.forEach(y => {
                 html += `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/5">
                     <div class="flex-1 min-w-0">
-                        <div class="text-[10px] text-gray-400">${fmtDate(y.tarih)}${y.litre ? ' · ' + y.litre + ' Lt' : ''}</div>
+                        <div class="text-[10px] text-gray-400">${fmtDate(y.tarih)}${y.litre ? ' Â· ' + y.litre + ' Lt' : ''}</div>
                     </div>
-                    <div class="text-[11px] font-black text-blue-400 ml-2 whitespace-nowrap">${fmt(y.tutar)} ₺</div>
+                    <div class="text-[11px] font-black text-blue-400 ml-2 whitespace-nowrap">${fmt(y.tutar)} â‚º</div>
                 </div>`;
             });
             html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
                 <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
-                <span class="text-sm font-black text-blue-400">${fmt(toplamYakit)} ₺</span>
+                <span class="text-sm font-black text-blue-400">${fmt(toplamYakit)} â‚º</span>
             </div>`;
         }
         html += `</div>`;
         section.innerHTML = html;
     } catch(e) {
         console.error('[loadAracCariKarti]', e);
-        if (section) section.innerHTML = '<div class="text-xs text-red-400 text-center py-2">Geçmiş yüklenemedi.</div>';
+        if (section) section.innerHTML = '<div class="text-xs text-red-400 text-center py-2">GeÃ§miÅŸ yÃ¼klenemedi.</div>';
     }
 };
 
 /* =====================================================
-   ARAÇ DETAY ÖZET MODAL — Karta tıklayınca açılır
+   ARAÃ‡ DETAY Ã–ZET MODAL â€” Karta tÄ±klayÄ±nca aÃ§Ä±lÄ±r
    ===================================================== */
 window.openAracDetay = async function(aracId) {
-    // Eğer butonlara tıklandıysa kart tıklaması tetiklenmesin (event bubling engelleyici)
+    // EÄŸer butonlara tÄ±klandÄ±ysa kart tÄ±klamasÄ± tetiklenmesin (event bubling engelleyici)
     const ev = window.event;
     if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.closest('button'))) return;
 
-    // Mevcut overlay varsa kaldır
+    // Mevcut overlay varsa kaldÄ±r
     const existingOverlay = document.getElementById('arac-detay-overlay');
     if (existingOverlay) existingOverlay.remove();
 
-    // Yükleme göstergesi
+    // YÃ¼kleme gÃ¶stergesi
     const overlay = document.createElement('div');
     overlay.id = 'arac-detay-overlay';
     overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
@@ -1400,7 +1400,7 @@ window.openAracDetay = async function(aracId) {
                     <div class="p-2 bg-orange-500/10 rounded-xl text-orange-500">
                         <i data-lucide="truck" class="w-5 h-5"></i>
                     </div>
-                    <div id="arac-detay-plaka-header" class="text-lg font-black text-white">Yükleniyor...</div>
+                    <div id="arac-detay-plaka-header" class="text-lg font-black text-white">YÃ¼kleniyor...</div>
                 </div>
                 <button onclick="document.getElementById('arac-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -1434,7 +1434,7 @@ window.openAracDetay = async function(aracId) {
             a.soforler = null;
         }
 
-        const fmt = (d) => d ? new Date(d).toLocaleDateString('tr-TR') : '—';
+        const fmt = (d) => d ? new Date(d).toLocaleDateString('tr-TR') : 'â€”';
         const today = new Date();
         const daysLeft = (d) => {
             if (!d) return null;
@@ -1442,8 +1442,8 @@ window.openAracDetay = async function(aracId) {
         };
         const statusBadge = (d, label) => {
             const dl = daysLeft(d);
-            if (dl === null) return `<span class="px-2 py-0.5 bg-gray-700 text-gray-400 text-[10px] font-bold rounded uppercase">${label}: —</span>`;
-            if (dl < 0) return `<span class="px-2 py-0.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold rounded uppercase">${label}: BİTTİ</span>`;
+            if (dl === null) return `<span class="px-2 py-0.5 bg-gray-700 text-gray-400 text-[10px] font-bold rounded uppercase">${label}: â€”</span>`;
+            if (dl < 0) return `<span class="px-2 py-0.5 bg-red-500/20 border border-red-500/30 text-red-400 text-[10px] font-bold rounded uppercase">${label}: BÄ°TTÄ°</span>`;
             if (dl <= 30) return `<span class="px-2 py-0.5 bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-[10px] font-bold rounded uppercase">${label}: ${dl}g</span>`;
             return `<span class="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold rounded uppercase">${label}: ${fmt(d)}</span>`;
         };
@@ -1453,31 +1453,31 @@ window.openAracDetay = async function(aracId) {
             <div class="grid grid-cols-2 gap-3 text-sm">
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Marka/Model</div>
-                    <div class="font-bold text-white">${a.marka_model || '—'}</div>
+                    <div class="font-bold text-white">${a.marka_model || 'â€”'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Mülkiyet</div>
-                    <div class="font-bold text-blue-400">${a.mulkiyet_durumu || '—'}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">MÃ¼lkiyet</div>
+                    <div class="font-bold text-blue-400">${a.mulkiyet_durumu || 'â€”'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3 relative group flex flex-col justify-center">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Şoför</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan ÅžofÃ¶r</div>
                     <div class="font-bold text-white flex justify-between items-center">
-                        <span>${a.soforler?.ad_soyad || '—'}</span>
-                        ${a.soforler?.telefon ? `<a href="https://wa.me/90${a.soforler.telefon.replace(/\D/g,'')}?text=Merhaba%20${encodeURIComponent(a.soforler.ad_soyad.split(' ')[0])},%20${a.plaka}%20plakalı%20aracınla%20ilgili%20bir%20bilgilendirme:" target="_blank" class="w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all ml-2" title="WhatsApp Mesajı Gönder"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.488-1.761-1.665-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></a>` : ''}
+                        <span>${a.soforler?.ad_soyad || 'â€”'}</span>
+                        ${a.soforler?.telefon ? `<a href="https://wa.me/90${a.soforler.telefon.replace(/\D/g,'')}?text=Merhaba%20${encodeURIComponent(a.soforler.ad_soyad.split(' ')[0])},%20${a.plaka}%20plakalÄ±%20aracÄ±nla%20ilgili%20bir%20bilgilendirme:" target="_blank" class="w-6 h-6 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all ml-2" title="WhatsApp MesajÄ± GÃ¶nder"><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.488-1.761-1.665-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg></a>` : ''}
                     </div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Güncel KM</div>
-                    <div class="font-bold text-orange-400">${a.guncel_km ? a.guncel_km.toLocaleString('tr-TR') + ' km' : '—'}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">GÃ¼ncel KM</div>
+                    <div class="font-bold text-orange-400">${a.guncel_km ? a.guncel_km.toLocaleString('tr-TR') + ' km' : 'â€”'}</div>
                 </div>
-                ${a.sirket && a.sirket !== 'Belirtilmemiş' ? `
+                ${a.sirket && a.sirket !== 'BelirtilmemiÅŸ' ? `
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Åžirket</div>
                     <div class="font-bold text-orange-400">${a.sirket}</div>
                 </div>` : ''}
                 ${a.belge_turu && a.belge_turu !== 'Yok' ? `
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Belge Türü</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Belge TÃ¼rÃ¼</div>
                     <div class="font-bold text-purple-400">${a.belge_turu}</div>
                 </div>` : ''}
             </div>
@@ -1493,13 +1493,13 @@ window.openAracDetay = async function(aracId) {
             </div>
             
             <div id="arac-pl-section" class="mt-4 border-t border-white/10 pt-4">
-                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">Kâr / Zarar Analizi (Bu Ay)</div>
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-bold">KÃ¢r / Zarar Analizi (Bu Ay)</div>
                 <div class="h-16 bg-white/5 rounded-xl animate-pulse"></div>
             </div>
 
             <div class="mt-4 border-t border-white/10 pt-4">
                 <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-3 font-bold flex items-center gap-1.5">
-                    <i data-lucide="book-open" class="w-3 h-3"></i> ARAÇ CARİ KARTI
+                    <i data-lucide="book-open" class="w-3 h-3"></i> ARAÃ‡ CARÄ° KARTI
                 </div>
                 <div id="arac-cari-section">
                     <div class="h-12 bg-white/5 rounded-xl animate-pulse"></div>
@@ -1507,27 +1507,27 @@ window.openAracDetay = async function(aracId) {
             </div>
 
             <div class="flex gap-2 pt-2 border-t border-white/5">
-                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Evrak Güncelle','${aracId}')"
+                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('AraÃ§ Evrak GÃ¼ncelle','${aracId}')"
                     class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <i data-lucide="file-text" class="w-4 h-4"></i>Evrak/Poliçe Güncelle
+                    <i data-lucide="file-text" class="w-4 h-4"></i>Evrak/PoliÃ§e GÃ¼ncelle
                 </button>
-                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('Araç Güncelle','${aracId}')"
+                <button onclick="document.getElementById('arac-detay-overlay').remove(); openModal('AraÃ§ GÃ¼ncelle','${aracId}')"
                     class="flex-1 py-3 text-[10px] font-bold bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <i data-lucide="edit-2" class="w-4 h-4"></i>Araç Düzenle
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>AraÃ§ DÃ¼zenle
                 </button>
             </div>
         `;
         if (window.lucide) window.lucide.createIcons();
         
-        // P&L datalarını asenkron yükle
+        // P&L datalarÄ±nÄ± asenkron yÃ¼kle
         window.loadAracPL(aracId);
         
-        // Araç Cari Kartı (Bakım + Yakıt geçmişini) asenkron yükle
+        // AraÃ§ Cari KartÄ± (BakÄ±m + YakÄ±t geÃ§miÅŸini) asenkron yÃ¼kle
         window.loadAracCariKarti(aracId);
 
         if (window.lucide) window.lucide.createIcons();
     } catch(e) {
-        console.error('[ARAÇ DETAY]', e);
+        console.error('[ARAÃ‡ DETAY]', e);
         overlay.remove();
     }
 };
@@ -1549,7 +1549,7 @@ async function fetchTaseronlar() {
         const { data: taseronlar, error } = await window.supabaseClient
             .from('araclar')
             .select('*, soforler(ad_soyad)')
-            .eq('mulkiyet_durumu', 'TAŞERON')
+            .eq('mulkiyet_durumu', 'TAÅžERON')
             .order('id', { ascending: false });
 
         if (error) throw error;
@@ -1557,12 +1557,12 @@ async function fetchTaseronlar() {
         tbody.innerHTML = '';
 
         if (taseronlar.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Kayıtlı taşeron araç bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">KayÄ±tlÄ± taÅŸeron araÃ§ bulunmuyor.</td></tr>';
             return;
         }
 
         taseronlar.forEach(a => {
-            const soforGoster = a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">Atanmamış</span>';
+            const soforGoster = a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">AtanmamÄ±ÅŸ</span>';
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -1577,7 +1577,7 @@ async function fetchTaseronlar() {
                     </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    ${a.firma_adi || 'Bireysel / Belirtilmemiş'}
+                    ${a.firma_adi || 'Bireysel / BelirtilmemiÅŸ'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     ${soforGoster}
@@ -1586,7 +1586,7 @@ async function fetchTaseronlar() {
                     <span class="text-sm font-bold text-white">${window.formatCurrency(a.kira_bedeli || 0)}</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onclick="openModal('Araç Güncelle', '${a.id}')" class="text-orange-500 hover:text-orange-400 mr-3 transition-all">Düzenle</button>
+                    <button onclick="openModal('AraÃ§ GÃ¼ncelle', '${a.id}')" class="text-orange-500 hover:text-orange-400 mr-3 transition-all">DÃ¼zenle</button>
                     <button onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" class="text-gray-500 hover:text-red-500 transition-all">Sil</button>
                 </td>
             `;
@@ -1596,13 +1596,13 @@ async function fetchTaseronlar() {
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
-        console.error('Taşeron fetch hatası:', e);
+        console.error('TaÅŸeron fetch hatasÄ±:', e);
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 }
 
 /* =====================================================
-   ŞOFÖR DETAY OVERLAY — ŞOför kartına tıklayınca açılır
+   ÅžOFÃ–R DETAY OVERLAY â€” ÅžOfÃ¶r kartÄ±na tÄ±klayÄ±nca aÃ§Ä±lÄ±r
    ===================================================== */
 window.openSoforDetay = async function(soforId, ev) {
     if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.tagName === 'A' || ev.target.closest('button') || ev.target.closest('a'))) return;
@@ -1619,7 +1619,7 @@ window.openSoforDetay = async function(soforId, ev) {
             <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400"><i data-lucide="user" class="w-5 h-5"></i></div>
-                    <div id="sofor-detay-isim" class="text-lg font-black text-white">Yükleniyor...</div>
+                    <div id="sofor-detay-isim" class="text-lg font-black text-white">YÃ¼kleniyor...</div>
                 </div>
                 <button onclick="document.getElementById('sofor-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
                     <i data-lucide="x" class="w-4 h-4"></i>
@@ -1653,41 +1653,41 @@ window.openSoforDetay = async function(soforId, ev) {
 
         const fmt = v => Number(v || 0).toLocaleString('tr-TR');
         const sigortaColor = s.sigorta_durumu === 'SGK' ? 'text-green-400 bg-green-500/10 border-green-500/20'
-            : s.sigorta_durumu === 'Bağkur' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20'
+            : s.sigorta_durumu === 'BaÄŸkur' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20'
             : 'text-red-400 bg-red-500/10 border-red-500/20';
-        const maasStr = s.aylik_maas ? fmt(s.aylik_maas) + ' ₺/ay' : (s.gunluk_ucret ? fmt(s.gunluk_ucret) + ' ₺/gün' : '—');
+        const maasStr = s.aylik_maas ? fmt(s.aylik_maas) + ' â‚º/ay' : (s.gunluk_ucret ? fmt(s.gunluk_ucret) + ' â‚º/gÃ¼n' : 'â€”');
 
         document.getElementById('sofor-detay-isim').textContent = s.ad_soyad || 'Bilinmiyor';
         document.getElementById('sofor-detay-body').innerHTML = `
             <div class="grid grid-cols-2 gap-3 text-sm">
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">TC Kimlik No</div>
-                    <div class="font-mono font-bold text-white">${s.tc_no || '—'}</div>
+                    <div class="font-mono font-bold text-white">${s.tc_no || 'â€”'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Telefon</div>
-                    <div class="font-bold text-white">${s.telefon || '—'}</div>
+                    <div class="font-bold text-white">${s.telefon || 'â€”'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Ehliyet</div>
-                    <div class="font-bold text-indigo-400">${s.ehliyet_sinifi || '—'} ${s.src_belgesi && s.src_belgesi !== 'Yok' ? '/ ' + s.src_belgesi : ''}</div>
+                    <div class="font-bold text-indigo-400">${s.ehliyet_sinifi || 'â€”'} ${s.src_belgesi && s.src_belgesi !== 'Yok' ? '/ ' + s.src_belgesi : ''}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Sigorta</div>
                     <div class="px-2 py-0.5 rounded border text-[11px] font-bold inline-block ${sigortaColor}">${s.sigorta_durumu || '?'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Maaş / Ücret</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">MaaÅŸ / Ãœcret</div>
                     <div class="font-bold text-orange-400">${maasStr}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Araç</div>
-                    <div class="font-bold text-white">${s.araclar ? s.araclar.plaka + (s.araclar.marka_model ? ' · ' + s.araclar.marka_model : '') : '—'}</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan AraÃ§</div>
+                    <div class="font-bold text-white">${s.araclar ? s.araclar.plaka + (s.araclar.marka_model ? ' Â· ' + s.araclar.marka_model : '') : 'â€”'}</div>
                 </div>
 
                 ${s.sirket ? `
                 <div class="bg-white/5 rounded-xl p-3 col-span-2">
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Åžirket</div>
                     <div class="font-bold ${s.sirket === 'IDEOL' ? 'text-orange-400' : 'text-red-400'}">${s.sirket}</div>
                 </div>` : ''}
             </div>
@@ -1696,9 +1696,9 @@ window.openSoforDetay = async function(soforId, ev) {
                 <div class="text-sm text-gray-300">${s.adres}</div>
             </div>` : ''}
             <div class="flex gap-2 pt-2 border-t border-white/5">
-                <button onclick="document.getElementById('sofor-detay-overlay').remove(); openModal('Şoför Güncelle','${soforId}')"
+                <button onclick="document.getElementById('sofor-detay-overlay').remove(); openModal('ÅžofÃ¶r GÃ¼ncelle','${soforId}')"
                     class="flex-1 py-3 text-[10px] font-bold bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
-                    <i data-lucide="edit-2" class="w-4 h-4"></i>Şoför Düzenle
+                    <i data-lucide="edit-2" class="w-4 h-4"></i>ÅžofÃ¶r DÃ¼zenle
                 </button>
                 ${s.telefon ? `<a href="https://wa.me/90${s.telefon.replace(/\\D/g,'')}?text=Merhaba%20${encodeURIComponent(s.ad_soyad.split(' ')[0])}" target="_blank"
                     class="flex-1 py-3 text-[10px] font-bold bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
@@ -1753,8 +1753,8 @@ async function fetchSoforler(sirketFilter) {
         if (tbody) tbody.innerHTML = '';
 
         if (soforler.length === 0) {
-            if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">Henüz kayıtlı şoför bulunmuyor. Yeni Şoför butonu ile ekleyin.</div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">Kayıt bulunamadı.</td></tr>';
+            if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">HenÃ¼z kayÄ±tlÄ± ÅŸofÃ¶r bulunmuyor. Yeni ÅžofÃ¶r butonu ile ekleyin.</div>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">KayÄ±t bulunamadÄ±.</td></tr>';
             return;
         }
 
@@ -1765,7 +1765,7 @@ async function fetchSoforler(sirketFilter) {
             const colorClass = colors[idx % colors.length];
 
             const sigortaColor = sofor.sigorta_durumu === 'SGK' ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                : sofor.sigorta_durumu === 'Bağkur' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                : sofor.sigorta_durumu === 'BaÄŸkur' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                     : 'bg-red-500/10 text-red-500 border-red-500/20';
 
             const sirketBadgeHtml = sofor.sirket ? `
@@ -1773,8 +1773,8 @@ async function fetchSoforler(sirketFilter) {
                     ${sofor.sirket}
                 </span>` : '';
 
-            const maasText = sofor.aylik_maas ? `₺${Number(sofor.aylik_maas).toLocaleString('tr-TR')} <span class="text-[9px] text-gray-500 ml-1 font-normal uppercase">Aylık</span>`
-                : (sofor.gunluk_ucret ? `₺${sofor.gunluk_ucret} <span class="text-[9px] text-gray-500 ml-1 font-normal uppercase">Günlük</span>` : '<span class="text-gray-500 text-sm font-normal italic">Belirtilmedi</span>');
+            const maasText = sofor.aylik_maas ? `â‚º${Number(sofor.aylik_maas).toLocaleString('tr-TR')} <span class="text-[9px] text-gray-500 ml-1 font-normal uppercase">AylÄ±k</span>`
+                : (sofor.gunluk_ucret ? `â‚º${sofor.gunluk_ucret} <span class="text-[9px] text-gray-500 ml-1 font-normal uppercase">GÃ¼nlÃ¼k</span>` : '<span class="text-gray-500 text-sm font-normal italic">Belirtilmedi</span>');
 
             const ehlHtml = sofor.ehliyet_sinifi ? `<span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flexitems-center gap-1"><i data-lucide="credit-card" class="w-3 h-3"></i>${sofor.ehliyet_sinifi}</span>` : '';
             const srcHtml = (sofor.src_belgesi && sofor.src_belgesi !== 'Yok') ? `<span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center gap-1"><i data-lucide="award" class="w-3 h-3"></i>${sofor.src_belgesi}</span>` : '';
@@ -1798,15 +1798,15 @@ async function fetchSoforler(sirketFilter) {
 
                         <div class="space-y-3 mb-4">
                             <div class="flex justify-between items-center bg-black/20 p-2 rounded-lg mb-2 border border-white/5">
-                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="truck" class="w-3 h-3"></i>Atanan Araç</span>
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="truck" class="w-3 h-3"></i>Atanan AraÃ§</span>
                                 <span class="text-xs font-bold text-white">${aracMap[sofor.id] || '<span class="text-gray-600 italic font-medium">Bilinmiyor/Yok</span>'}</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i>Telefon</span>
-                                <span class="text-xs font-semibold text-gray-300">${sofor.telefon || '—'}</span>
+                                <span class="text-xs font-semibold text-gray-300">${sofor.telefon || 'â€”'}</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="wallet" class="w-3 h-3"></i>Maaş</span>
+                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="wallet" class="w-3 h-3"></i>MaaÅŸ</span>
                                 <span class="text-xs font-bold text-white">${maasText}</span>
                             </div>
                             <div class="flex justify-between items-center">
@@ -1820,7 +1820,7 @@ async function fetchSoforler(sirketFilter) {
                     <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
                         ${sofor.belge_url ? `<a href="${sofor.belge_url}" target="_blank" class="text-[10px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="file-check" class="w-3 h-3"></i>Belge</a>` : '<div></div>'}
                         <div class="flex items-center gap-3">
-                            <button onclick="openModal('Şoför Güncelle', '${sofor.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>Düzenle</button>
+                            <button onclick="openModal('ÅžofÃ¶r GÃ¼ncelle', '${sofor.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>DÃ¼zenle</button>
                             <button onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Sil</button>
                         </div>
                     </div>
@@ -1840,7 +1840,7 @@ async function fetchSoforler(sirketFilter) {
                                     ${sofor.ad_soyad}
                                     ${sirketBadgeHtml}
                                 </div>
-                                <div class="text-[10px] text-orange-400 font-bold whitespace-nowrap mt-0.5"><i data-lucide="truck" class="w-2.5 h-2.5 inline-block mr-0.5"></i>${aracMap[sofor.id] || 'Araç Yok'}</div>
+                                <div class="text-[10px] text-orange-400 font-bold whitespace-nowrap mt-0.5"><i data-lucide="truck" class="w-2.5 h-2.5 inline-block mr-0.5"></i>${aracMap[sofor.id] || 'AraÃ§ Yok'}</div>
                                 <div class="text-[10px] font-mono text-gray-500 mt-0.5">${sofor.telefon || (sofor.tc_no || 'Tel/TC Yok')}</div>
                             </div>
                         </div>
@@ -1859,7 +1859,7 @@ async function fetchSoforler(sirketFilter) {
                     <td class="p-4 border-b border-white/5 text-right w-24">
                         <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                             ${sofor.belge_url ? `<a href="${sofor.belge_url}" target="_blank" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="Belge"><i data-lucide="file-check" class="w-3.5 h-3.5"></i></a>` : ''}
-                            <button onclick="openModal('Şoför Güncelle', '${sofor.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Düzenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openModal('ÅžofÃ¶r GÃ¼ncelle', '${sofor.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="DÃ¼zenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
                             <button onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" class="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all" title="Sil"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
                     </td>
@@ -1900,7 +1900,7 @@ async function fetchSoforFinans() {
         if (error) throw error;
         tbody.innerHTML = '';
         if (islemler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">İşlem bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Ä°ÅŸlem bulunmuyor.</td></tr>';
             return;
         }
         islemler.forEach(islem => {
@@ -1915,8 +1915,8 @@ async function fetchSoforFinans() {
                         <td class="px-6 py-5 whitespace-nowrap">
                             <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold border border-gray-200 text-gray-600 bg-gray-50">${islem.islem_turu}</span>
                         </td>
-                        <td class="px-6 py-5 whitespace-nowrap text-sm font-medium ${tutarClass}">${tutarPrefix}₺${Math.abs(islem.tutar).toLocaleString('tr-TR')}</td>
-                        <td class="px-6 py-5 whitespace-nowrap"><span class="text-sm font-medium text-gray-500">Tamamlandı</span></td>
+                        <td class="px-6 py-5 whitespace-nowrap text-sm font-medium ${tutarClass}">${tutarPrefix}â‚º${Math.abs(islem.tutar).toLocaleString('tr-TR')}</td>
+                        <td class="px-6 py-5 whitespace-nowrap"><span class="text-sm font-medium text-gray-500">TamamlandÄ±</span></td>
                         <td class="px-6 py-5 whitespace-nowrap text-right text-sm">
                             <button onclick="deleteRecord('sofor_finans', '${islem.id}', 'fetchSoforFinans')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
@@ -1938,7 +1938,7 @@ async function fetchTaseronFinans() {
         if (error) throw error;
         tbody.innerHTML = '';
         if (islemler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">KayÄ±t bulunmuyor.</td></tr>';
             return;
         }
         islemler.forEach(islem => {
@@ -1953,11 +1953,11 @@ async function fetchTaseronFinans() {
                             <div class="text-sm font-medium text-primary">${islem.araclar ? islem.araclar.plaka : 'Bilinmiyor'}</div>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap">
-                            <div class="text-xs text-gray-500 mb-1">Brüt: ₺${islem.anlasilan_tutar.toLocaleString('tr-TR')}</div>
-                            <div class="text-xs text-danger mb-1">Yakıt Kesintisi: -₺${islem.yakit_kesintisi.toLocaleString('tr-TR')}</div>
-                            <div class="text-sm font-medium text-primary border-t border-gray-100 pt-1 mt-1">Net: ₺${islem.net_hakedis.toLocaleString('tr-TR')}</div>
+                            <div class="text-xs text-gray-500 mb-1">BrÃ¼t: â‚º${islem.anlasilan_tutar.toLocaleString('tr-TR')}</div>
+                            <div class="text-xs text-danger mb-1">YakÄ±t Kesintisi: -â‚º${islem.yakit_kesintisi.toLocaleString('tr-TR')}</div>
+                            <div class="text-sm font-medium text-primary border-t border-gray-100 pt-1 mt-1">Net: â‚º${islem.net_hakedis.toLocaleString('tr-TR')}</div>
                         </td>
-                        <td class="px-6 py-5 whitespace-nowrap"><span class="text-sm font-medium text-gray-500">Kayıtlı</span></td>
+                        <td class="px-6 py-5 whitespace-nowrap"><span class="text-sm font-medium text-gray-500">KayÄ±tlÄ±</span></td>
                         <td class="px-6 py-5 whitespace-nowrap text-right text-sm">
                             <button onclick="deleteRecord('taseron_hakedis', '${islem.id}', 'fetchTaseronFinans')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
@@ -1987,7 +1987,7 @@ async function fetchSoforPuantaj() {
         const startDate = `${year} -${month}-01`;
         const endDate = `${year} -${month} -${daysInMonth} `;
 
-        // Verileri Çek
+        // Verileri Ã‡ek
         const [
             { data: soforler },
             { data: puantajlar }
@@ -1996,8 +1996,8 @@ async function fetchSoforPuantaj() {
             window.supabaseClient.from('sofor_puantaj').select('*').gte('tarih', startDate).lte('tarih', endDate)
         ]);
 
-        // Table Header (Günler)
-        let headerHtml = `< tr > <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider sticky left-0 bg-[#1a1c1e] z-10 w-48">Şoför / Günler</th>`;
+        // Table Header (GÃ¼nler)
+        let headerHtml = `< tr > <th class="px-4 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider sticky left-0 bg-[#1a1c1e] z-10 w-48">ÅžofÃ¶r / GÃ¼nler</th>`;
         for (let i = 1; i <= daysInMonth; i++) {
             headerHtml += `< th class="px-2 py-3 text-center text-[10px] font-bold text-gray-500 border-l border-white/5 w-8" > ${i}</th > `;
         }
@@ -2007,7 +2007,7 @@ async function fetchSoforPuantaj() {
         // Table Body
         tbody.innerHTML = '';
         if (!soforler || soforler.length === 0) {
-            tbody.innerHTML = `< tr > <td colspan="${daysInMonth + 1}" class="px-6 py-8 text-center text-sm text-gray-500 italic">Şoför bulunamadı.</td></tr > `;
+            tbody.innerHTML = `< tr > <td colspan="${daysInMonth + 1}" class="px-6 py-8 text-center text-sm text-gray-500 italic">ÅžofÃ¶r bulunamadÄ±.</td></tr > `;
             return;
         }
 
@@ -2022,11 +2022,11 @@ async function fetchSoforPuantaj() {
                 let cellClass = 'bg-transparent';
 
                 if (p) {
-                    if (p.durum === 'ÇALIŞTI') {
-                        cellContent = 'Ç';
+                    if (p.durum === 'Ã‡ALIÅžTI') {
+                        cellContent = 'Ã‡';
                         cellClass = 'bg-green-500/20 text-green-500 font-bold';
-                    } else if (p.durum === 'İZİNLİ') {
-                        cellContent = 'İ';
+                    } else if (p.durum === 'Ä°ZÄ°NLÄ°') {
+                        cellContent = 'Ä°';
                         cellClass = 'bg-blue-500/20 text-blue-500 font-bold';
                     } else if (p.durum === 'RAPORLU') {
                         cellContent = 'R';
@@ -2053,7 +2053,7 @@ async function fetchSoforPuantaj() {
         });
 
     } catch (e) {
-        console.error("Puantaj hatası:", e);
+        console.error("Puantaj hatasÄ±:", e);
     }
 }
 
@@ -2062,7 +2062,7 @@ async function fetchMusteriler() {
     const legacyTbody = document.getElementById('musteriler-tbody');
     if (!grid) return;
 
-    grid.innerHTML = `< div class="col-span-full dashboard-card py-12 text-center text-gray-500 animate-pulse" > Yükleniyor...</div > `;
+    grid.innerHTML = `< div class="col-span-full dashboard-card py-12 text-center text-gray-500 animate-pulse" > YÃ¼kleniyor...</div > `;
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -2081,7 +2081,7 @@ async function fetchMusteriler() {
             legacyTbody.innerHTML = '';
             (must || []).forEach(m => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `< td > ${m.ad}</td ><td>${m.yetkili_kisi_ad_soyad || '-'}</td><td>${m.vergi_no_daire || '-'}</td><td>${m.vade_gun || '-'} Gün</td>`;
+                tr.innerHTML = `< td > ${m.ad}</td ><td>${m.yetkili_kisi_ad_soyad || '-'}</td><td>${m.vergi_no_daire || '-'}</td><td>${m.vade_gun || '-'} GÃ¼n</td>`;
                 legacyTbody.appendChild(tr);
             });
         }
@@ -2089,7 +2089,7 @@ async function fetchMusteriler() {
         // Populate the puantaj select
         const selectEl = document.getElementById('excel-musteri-sec');
         if (selectEl) {
-            selectEl.innerHTML = '<option value="">— Fabrika / Müşteri Seç —</option>';
+            selectEl.innerHTML = '<option value="">â€” Fabrika / MÃ¼ÅŸteri SeÃ§ â€”</option>';
             (must || []).forEach(m => {
                 selectEl.innerHTML += `< option value = "${m.id}" > ${m.ad}</option > `;
             });
@@ -2098,8 +2098,8 @@ async function fetchMusteriler() {
         if (!must || must.length === 0) {
             grid.innerHTML = `< div class= "col-span-full dashboard-card py-16 text-center" >
                 <i data-lucide="building-2" class="w-12 h-12 mx-auto mb-3 text-gray-700"></i>
-                <p class="text-gray-500 font-medium">Henüz müşteri / fabrika kaydı yok.</p>
-                <button onclick="openModal('Yeni Müşteri Ekle')" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-xl text-sm">+ Müşteri Ekle</button>
+                <p class="text-gray-500 font-medium">HenÃ¼z mÃ¼ÅŸteri / fabrika kaydÄ± yok.</p>
+                <button onclick="openModal('Yeni MÃ¼ÅŸteri Ekle')" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-xl text-sm">+ MÃ¼ÅŸteri Ekle</button>
             </div > `;
             if (window.lucide) window.lucide.createIcons();
             return;
@@ -2127,10 +2127,10 @@ async function fetchMusteriler() {
                 const plaka = t.araclar?.plaka || 'Bilinmiyor';
                 let ucretStr = '';
                 if (isVardiya && t.vardiya_fiyat > 0) {
-                    ucretStr = `₺${Number(t.vardiya_fiyat).toLocaleString('tr-TR')
+                    ucretStr = `â‚º${Number(t.vardiya_fiyat).toLocaleString('tr-TR')
                         }/V`;
                 } else if (!isVardiya && t.tek_fiyat > 0) {
-                    ucretStr = `₺${Number(t.tek_fiyat).toLocaleString('tr-TR')}/T`;
+                    ucretStr = `â‚º${Number(t.tek_fiyat).toLocaleString('tr-TR')}/T`;
                 }
 
                 return `<div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 group">
@@ -2140,7 +2140,7 @@ async function fetchMusteriler() {
                     </div>
                     <div class="flex items-center gap-2">
                         ${ucretStr ? `<span class="text-[10px] text-green-400 font-bold">${ucretStr}</span>` : ''}
-                        <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-[10px] transition-all">✕</button>
+                        <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-[10px] transition-all">âœ•</button>
                     </div>
                 </div>`;
             };
@@ -2158,11 +2158,11 @@ async function fetchMusteriler() {
                         <div class="flex items-start justify-between gap-2">
                             <div>
                                 <h4 class="font-black text-white text-sm leading-tight">${m.ad}</h4>
-                                ${m.yetkili_kisi_ad_soyad ? `<p class="text-[10px] text-gray-400 mt-0.5">${m.yetkili_kisi_ad_soyad}${m.telefon ? ` • ${m.telefon}` : ''}</p>` : ''}
+                                ${m.yetkili_kisi_ad_soyad ? `<p class="text-[10px] text-gray-400 mt-0.5">${m.yetkili_kisi_ad_soyad}${m.telefon ? ` â€¢ ${m.telefon}` : ''}</p>` : ''}
                                 ${m.adres ? `<p class="text-[10px] text-gray-600 mt-0.5 truncate">${m.adres}</p>` : ''}
                             </div>
                             <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full text-[9px] font-black">${m.vade_gun || 0} Gün Vade</span>
+                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full text-[9px] font-black">${m.vade_gun || 0} GÃ¼n Vade</span>
                                 ${m.vergi_no_daire ? `<span class="text-[9px] text-gray-600 font-mono">${m.vergi_no_daire}</span>` : ''}
                             </div>
                         </div>
@@ -2173,25 +2173,25 @@ async function fetchMusteriler() {
                 <div class="px-4 pb-3 flex items-center gap-2 flex-wrap">
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                         <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                        <span class="text-[10px] font-bold text-orange-400">${vardiyaAraclar.length} Vardiya Araç</span>
+                        <span class="text-[10px] font-bold text-orange-400">${vardiyaAraclar.length} Vardiya AraÃ§</span>
                     </div>
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
+                        <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer AraÃ§</span>
                     </div>
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg ml-auto">
-                        <span class="text-[10px] font-bold text-gray-400">Toplam: ${araclar.length} araç</span>
+                        <span class="text-[10px] font-bold text-gray-400">Toplam: ${araclar.length} araÃ§</span>
                     </div>
                 </div>
 
                 <!-- Assigned Vehicles Expandable -->
                 <div class="border-t border-white/5">
                     <button onclick="toggleMusteriAraclar(this)" class="w-full px-4 py-2 text-[10px] font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between uppercase tracking-widest">
-                        <span class="flex items-center gap-2"><i data-lucide="truck" class="w-3 h-3"></i>Atanmış Araçlar</span>
+                        <span class="flex items-center gap-2"><i data-lucide="truck" class="w-3 h-3"></i>AtanmÄ±ÅŸ AraÃ§lar</span>
                         <i data-lucide="chevron-down" class="w-3 h-3 transition-transform musteri-arac-chevron"></i>
                     </button>
                     <div class="musteri-arac-panel hidden px-4 pb-3 pt-1 bg-black/20">
-                        ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">Henüz araç atanmamış.</p>`}
+                        ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">HenÃ¼z araÃ§ atanmamÄ±ÅŸ.</p>`}
                         <div class="flex gap-2 mt-2">
                             <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
                                 <i data-lucide="plus" class="w-3 h-3"></i> Arac Ekle
@@ -2207,10 +2207,10 @@ async function fetchMusteriler() {
                 <div class="border-t border-white/5 px-4 py-2 flex items-center justify-between">
                     <button onclick="openPuantajForMusteri('${m.id}')"
                         class="flex items-center gap-1.5 text-[10px] font-bold text-orange-400 hover:text-orange-300 transition-all">
-                        <i data-lucide="table-2" class="w-3 h-3"></i> Puantaj Aç
+                        <i data-lucide="table-2" class="w-3 h-3"></i> Puantaj AÃ§
                     </button>
                     <div class="flex items-center gap-3">
-                        <button onclick="openModal('Müşteri Güncelle', '${m.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-all">Düzenle</button>
+                        <button onclick="openModal('MÃ¼ÅŸteri GÃ¼ncelle', '${m.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-all">DÃ¼zenle</button>
                         <button onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-all">Sil</button>
                     </div>
                 </div>
@@ -2222,7 +2222,7 @@ async function fetchMusteriler() {
 
     } catch (e) {
         console.error(e);
-        grid.innerHTML = `<div class="col-span-full dashboard-card py-8 text-center text-red-400 font-bold">Veri hatası: ${e.message}</div>`;
+        grid.innerHTML = `<div class="col-span-full dashboard-card py-8 text-center text-red-400 font-bold">Veri hatasÄ±: ${e.message}</div>`;
     }
 }
 
@@ -2244,7 +2244,7 @@ window.openPuantajForMusteri = function (musteriId) {
 
 window.openMusteriAracTanim = function (musteriId, musteriAdi) {
     // Pre-fill the modal with the customer
-    openModal('Müşteriye Araç Tanımla');
+    openModal('MÃ¼ÅŸteriye AraÃ§ TanÄ±mla');
     setTimeout(() => {
         const sel = document.getElementById('tanim-musteri');
         if (sel) sel.value = musteriId;
@@ -2277,17 +2277,17 @@ window.loadExcelMusteriler = async function () {
         tbody.innerHTML = '';
 
         const selectEl = document.getElementById('excel-musteri-sec');
-        if (selectEl) selectEl.innerHTML = '<option value="">-- Müşteri Seç --</option>';
+        if (selectEl) selectEl.innerHTML = '<option value="">-- MÃ¼ÅŸteri SeÃ§ --</option>';
 
         if (must && must.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Kayıtlı müşteri bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">KayÄ±tlÄ± mÃ¼ÅŸteri bulunmuyor.</td></tr>';
             return;
         }
     } catch (err) { console.error(err); }
 };
 
 // ============================================
-// TOPLU ARAÇ EKLEME
+// TOPLU ARAÃ‡ EKLEME
 // ============================================
 window.openTopluAracEkle = function (musteriId, musteriAdi) {
     // If we have an existing openTopluAracModal, clear its state
@@ -2300,46 +2300,46 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
         <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
             <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
                 <div>
-                    <h2 class="text-lg font-black text-white uppercase tracking-wider">Toplu Araç Tanımlama</h2>
-                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisine/Fabrikasına Araç Ata</p>
+                    <h2 class="text-lg font-black text-white uppercase tracking-wider">Toplu AraÃ§ TanÄ±mlama</h2>
+                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} MÃ¼ÅŸterisine/FabrikasÄ±na AraÃ§ Ata</p>
                 </div>
-                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
+                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">âœ•</button>
             </div>
             
             <div class="p-6">
-                <!-- Üst Kontroller -->
+                <!-- Ãœst Kontroller -->
                 <div class="flex gap-4 mb-6">
                     <div class="flex-1">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Varsayılan Tarife Türü</label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">VarsayÄ±lan Tarife TÃ¼rÃ¼</label>
                         <select id="toplu-tarife-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
-                            <option value="Vardiya">Vardiya (Aylık/Günlük Sabit)</option>
-                            <option value="Tek">Tek Sefer (Tur Başı)</option>
+                            <option value="Vardiya">Vardiya (AylÄ±k/GÃ¼nlÃ¼k Sabit)</option>
+                            <option value="Tek">Tek Sefer (Tur BaÅŸÄ±)</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Araç Seçim Listesi -->
+                <!-- AraÃ§ SeÃ§im Listesi -->
                 <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
                     <div class="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Araç Kayıtları</h3>
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">AraÃ§ KayÄ±tlarÄ±</h3>
                         <div class="flex gap-3 text-[10px] font-bold">
-                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">Tümünü Seç</button>
+                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">TÃ¼mÃ¼nÃ¼ SeÃ§</button>
                             <span class="text-gray-600">|</span>
                             <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=false)" class="text-gray-500 hover:text-gray-400">Temizle</button>
                         </div>
                     </div>
                     
                     <div class="max-h-[400px] overflow-y-auto p-4 custom-scrollbar" id="toplu-arac-list">
-                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">Araçlar yükleniyor...</div>
+                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">AraÃ§lar yÃ¼kleniyor...</div>
                     </div>
                 </div>
             </div>
 
             <div class="p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
-                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
+                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">Ä°ptal</button>
                 <button onclick="kaydetTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white font-black text-sm shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
                     <i data-lucide="save" class="w-4 h-4"></i>
-                    Seçili Araçları Kaydet
+                    SeÃ§ili AraÃ§larÄ± Kaydet
                 </button>
             </div>
         </div>
@@ -2353,7 +2353,7 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
         if(!listDiv) return;
         
         if(res.error || !res.data || res.data.length === 0) {
-            listDiv.innerHTML = '<div class="text-center p-8 text-red-400 text-sm">Araç bilgileri alınamadı.</div>';
+            listDiv.innerHTML = '<div class="text-center p-8 text-red-400 text-sm">AraÃ§ bilgileri alÄ±namadÄ±.</div>';
             return;
         }
 
@@ -2373,8 +2373,8 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
 window.kaydetTopluAraclar = async function(musteriId) {
     const checked = Array.from(document.querySelectorAll('.toplu-arac-cb:checked')).map(cb => cb.value);
     if(checked.length === 0) {
-        if(window.Toast) window.Toast.error("Lütfen en az bir araç seçin.");
-        else alert("Lütfen en az bir araç seçin.");
+        if(window.Toast) window.Toast.error("LÃ¼tfen en az bir araÃ§ seÃ§in.");
+        else alert("LÃ¼tfen en az bir araÃ§ seÃ§in.");
         return;
     }
 
@@ -2410,16 +2410,16 @@ window.kaydetTopluAraclar = async function(musteriId) {
             if(error) throw error;
         }
 
-        if(window.Toast) window.Toast.success(`${toInsert.length} adet araç başarıyla atandı.`);
-        else alert(`${toInsert.length} adet araç başarıyla atandı.`);
+        if(window.Toast) window.Toast.success(`${toInsert.length} adet araÃ§ baÅŸarÄ±yla atandÄ±.`);
+        else alert(`${toInsert.length} adet araÃ§ baÅŸarÄ±yla atandÄ±.`);
         
         document.getElementById('toplu-arac-modal-overlay').remove();
         if(typeof window.fetchMusteriler==='function') window.fetchMusteriler();
         
     } catch(e) {
-        console.error("Toplu Kayıt Hatası:", e);
-        if(window.Toast) window.Toast.error("Kayıt hatası: " + e.message);
-        else alert("Kayıt hatası: " + e.message);
+        console.error("Toplu KayÄ±t HatasÄ±:", e);
+        if(window.Toast) window.Toast.error("KayÄ±t hatasÄ±: " + e.message);
+        else alert("KayÄ±t hatasÄ±: " + e.message);
         btn.innerHTML = origHtml;
         btn.disabled = false;
         if(window.lucide) window.lucide.createIcons();
@@ -2438,7 +2438,7 @@ async function fetchMusteriServis() {
         if (error) throw error;
         tbody.innerHTML = '';
         if (msp.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Servis kaydı bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Servis kaydÄ± bulunmuyor.</td></tr>';
             return;
         }
         msp.forEach(s => {
@@ -2453,7 +2453,7 @@ async function fetchMusteriServis() {
                             <span class="px-2 py-1 border border-gray-200 bg-gray-50 text-[10px] uppercase font-semibold text-gray-600">${s.vardiya}</span>
                         </td>
                         <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">${s.araclar ? s.araclar.plaka : '-'}</td>
-                        <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-primary">₺${s.gunluk_ucret.toLocaleString('tr-TR')}</td>
+                        <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-primary">â‚º${s.gunluk_ucret.toLocaleString('tr-TR')}</td>
                         <td class="px-6 py-5 whitespace-nowrap text-right text-sm">
                             <button onclick="deleteRecord('musteri_servis_puantaj', '${s.id}', 'fetchMusteriServis')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
@@ -2463,11 +2463,11 @@ async function fetchMusteriServis() {
     } catch (e) { console.error(e); }
 }
 
-/* === CARİ & BAKIM FETCH JS === */
+/* === CARÄ° & BAKIM FETCH JS === */
 async function fetchCariler() {
     const tbody = document.getElementById('cariler-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400 font-medium">Güncelleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400 font-medium">GÃ¼ncelleniyor...</td></tr>';
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -2490,18 +2490,18 @@ async function fetchCariler() {
 
         const carilerClean = window.sanitizeDataArray(cariler);
 
-        // Dashboard Güncelleme
+        // Dashboard GÃ¼ncelleme
         const cariCountEl = document.getElementById('ozet-cari-sayisi');
         if (cariCountEl) cariCountEl.textContent = carilerClean.length;
 
         tbody.innerHTML = '';
         if (carilerClean.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Henüz cari hesap bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">HenÃ¼z cari hesap bulunmuyor.</td></tr>';
             return;
         }
 
         carilerClean.forEach(c => {
-            // Borç Hesabı: Faturalar + Poliçeler + Bakımlar
+            // BorÃ§ HesabÄ±: Faturalar + PoliÃ§eler + BakÄ±mlar
             const cariFaturalar = (faturalar || []).filter(f => f.cari_id === c.id);
             const cariPoliceler = (policeler || []).filter(p => p.cari_id === c.id);
             const cariBakimlar = (bakimlar || []).filter(b => b.cari_id === c.id);
@@ -2510,13 +2510,13 @@ async function fetchCariler() {
                 cariPoliceler.reduce((sum, p) => sum + (Number(p.toplam_tutar) || 0), 0) +
                 cariBakimlar.reduce((sum, b) => sum + (Number(b.toplam_tutar) || 0), 0);
 
-            // Ödeme Hesabı
+            // Ã–deme HesabÄ±
             const cariOdemeler = (odemeler || []).filter(o => o.cari_id === c.id);
             const totalOdeme = cariOdemeler.reduce((sum, o) => sum + (Number(o.tutar) || 0), 0);
 
             const bakiye = totalBorc - totalOdeme;
 
-            // Aylık taksit yükü (bilgi amaçlı kalsın veya bakiye ile yer değiştirsin)
+            // AylÄ±k taksit yÃ¼kÃ¼ (bilgi amaÃ§lÄ± kalsÄ±n veya bakiye ile yer deÄŸiÅŸtirsin)
             let aylikYuk = 0;
             cariPoliceler.forEach(p => {
                 const tutar = Number(p.toplam_tutar) || 0;
@@ -2540,13 +2540,13 @@ async function fetchCariler() {
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${c.telefon || '-'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     <div class="font-bold ${bakiye > 0 ? 'text-danger' : 'text-green-600'}">
-                        ₺${bakiye.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        â‚º${bakiye.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
-                    ${aylikYuk > 0 ? `<div class="text-[10px] text-gray-400">Aylık Yük: ₺${aylikYuk.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</div>` : ''}
+                    ${aylikYuk > 0 ? `<div class="text-[10px] text-gray-400">AylÄ±k YÃ¼k: â‚º${aylikYuk.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</div>` : ''}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
-                    <button onclick="event.stopPropagation(); openModal('Yeni Fatura Kaydı', '${c.id}')" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase border border-blue-200 px-2 py-1 rounded bg-blue-50">Fatura Ekle</button>
-                    <button onclick="event.stopPropagation(); openModal('Cari Güncelle', '${c.id}')" class="text-green-600 hover:text-green-800 text-[10px] font-bold uppercase border border-green-200 px-2 py-1 rounded bg-green-50">Düzenle</button>
+                    <button onclick="event.stopPropagation(); openModal('Yeni Fatura KaydÄ±', '${c.id}')" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase border border-blue-200 px-2 py-1 rounded bg-blue-50">Fatura Ekle</button>
+                    <button onclick="event.stopPropagation(); openModal('Cari GÃ¼ncelle', '${c.id}')" class="text-green-600 hover:text-green-800 text-[10px] font-bold uppercase border border-green-200 px-2 py-1 rounded bg-green-50">DÃ¼zenle</button>
                     <button onclick="event.stopPropagation(); deleteRecord('cariler', '${c.id}', 'fetchCariler')" class="text-danger hover:text-red-800 text-xs font-bold uppercase">Sil</button>
                 </td>
             `;
@@ -2570,7 +2570,7 @@ async function fetchTaksitler() {
 
         tbody.innerHTML = '';
         if (!policeler || policeler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">Aktif taksitli işlem bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">Aktif taksitli iÅŸlem bulunamadÄ±.</td></tr>';
             return;
         }
 
@@ -2584,10 +2584,10 @@ async function fetchTaksitler() {
             tr.className = "hover:bg-gray-50 transition-colors";
             tr.innerHTML = `
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${cari ? cari.unvan : 'Bilinmeyen'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="text-xs text-gray-500 uppercase">${p.tur || 'BELİRSİZ'} POLİÇESİ</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₺${tutar.toLocaleString('tr-TR')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap"><span class="text-xs text-gray-500 uppercase">${p.tur || 'BELÄ°RSÄ°Z'} POLÄ°Ã‡ESÄ°</span></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">â‚º${tutar.toLocaleString('tr-TR')}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${taksit} Taksit</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-danger">₺${aylik.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-danger">â‚º${aylik.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                     `;
             tbody.appendChild(tr);
         });
@@ -2613,7 +2613,7 @@ async function fetchYakitlar() {
         if (error) throw error;
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">KayÄ±t bulunmuyor.</td></tr>';
             return;
         }
         data.forEach(y => {
@@ -2623,8 +2623,8 @@ async function fetchYakitlar() {
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${y.tarih}</td>
                         <td class="px-6 py-4 whitespace-nowrap font-bold text-primary">${y.araclar ? y.araclar.plaka : '-'}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">${y.litre} Lt</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₺${y.birim_fiyat}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">₺${(y.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">â‚º${y.birim_fiyat}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">â‚º${(y.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                             <button onclick="deleteRecord('yakit_takip', '${y.id}', 'fetchYakitlar')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
@@ -2640,11 +2640,11 @@ async function fetchSoforMaaslar() {
     if (!tbodyFinans && !tbodyCari) return;
 
     try {
-        // Seçilen Ay Filtresi
+        // SeÃ§ilen Ay Filtresi
         const puantajFilterStr = document.getElementById('filter-bordro-ay')?.value;
         const maasFilterEl = document.getElementById('filter-maas-ay');
 
-        // Maaş sekmesine ilk tıklandığında puantajdaki ay'ı baz al
+        // MaaÅŸ sekmesine ilk tÄ±klandÄ±ÄŸÄ±nda puantajdaki ay'Ä± baz al
         if (puantajFilterStr && maasFilterEl && !maasFilterEl.dataset.synced) {
             maasFilterEl.value = puantajFilterStr;
             maasFilterEl.dataset.synced = "true";
@@ -2655,15 +2655,15 @@ async function fetchSoforMaaslar() {
         const startDate = `${year}-${month}-01`;
         const endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
 
-        // Verileri çek
+        // Verileri Ã§ek
         let { data: soforler } = await window.supabaseClient.from('soforler').select('*');
         soforler = window.sanitizeDataArray(soforler || []);
         let bordroData = [];
         try {
             const { data: bd, error: be } = await window.supabaseClient.from('sofor_maas_bordro').select('*').eq('donem', filterVal);
             if (!be) bordroData = bd;
-            else console.warn("Bordro verisi çekilemedi (donem kolonu eksik olabilir):", be);
-        } catch (e) { console.warn("Bordro fetch hatası:", e); }
+            else console.warn("Bordro verisi Ã§ekilemedi (donem kolonu eksik olabilir):", be);
+        } catch (e) { console.warn("Bordro fetch hatasÄ±:", e); }
 
         const { data: puantajData } = await window.supabaseClient.from('sofor_puantaj').select('*').gte('tarih', startDate).lte('tarih', endDate);
         const { data: finansData } = await window.supabaseClient.from('sofor_finans').select('*').gte('tarih', startDate).lte('tarih', endDate);
@@ -2671,7 +2671,7 @@ async function fetchSoforMaaslar() {
         if (tbodyFinans) tbodyFinans.innerHTML = '';
         if (tbodyCari) tbodyCari.innerHTML = '';
         if (!soforler || soforler.length === 0) {
-            const noData = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Şoför bulunmuyor.</td></tr>';
+            const noData = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">ÅžofÃ¶r bulunmuyor.</td></tr>';
             if (tbodyFinans) tbodyFinans.innerHTML = noData;
             if (tbodyCari) tbodyCari.innerHTML = noData;
             return;
@@ -2682,23 +2682,23 @@ async function fetchSoforMaaslar() {
             const sPuantaj = puantajData ? puantajData.filter(p => p.sofor_id === s.id) : [];
             const sFinans = finansData ? finansData.filter(f => f.sofor_id === s.id) : [];
 
-            // Eğer manuel bordro girilmişse onu kullan, yoksa puantaj göre default hesapla
-            const pCalisilanGun = sPuantaj.filter(p => p.durum === 'ÇALIŞTI').length;
+            // EÄŸer manuel bordro girilmiÅŸse onu kullan, yoksa puantaj gÃ¶re default hesapla
+            const pCalisilanGun = sPuantaj.filter(p => p.durum === 'Ã‡ALIÅžTI').length;
             const pHarcirah = sPuantaj.reduce((acc, curr) => acc + (Number(curr.gunluk_harcirah) || 0), 0);
 
-            // Eğer bordro kaydı varsa oradaki değeri al, yoksa pCalisilanGun
+            // EÄŸer bordro kaydÄ± varsa oradaki deÄŸeri al, yoksa pCalisilanGun
             const calisilanGun = b && b.calisma_gun !== null ? Number(b.calisma_gun) : pCalisilanGun;
 
-            // Varsayılan Brüt (Bordroda değişiklik yoksa otomatik hesaplanan)
+            // VarsayÄ±lan BrÃ¼t (Bordroda deÄŸiÅŸiklik yoksa otomatik hesaplanan)
             let aylikMaas = Number(s.aylik_maas) || 0;
             let gunlukUcret = Number(s.gunluk_ucret) || 0;
             let calculatedWage = gunlukUcret > 0 ? gunlukUcret : (aylikMaas / 30);
             let defaultNet = (calisilanGun * calculatedWage) + pHarcirah;
 
-            // Kullanıcı bordroda sıfır değilse kullan, yoksa defaultNet
+            // KullanÄ±cÄ± bordroda sÄ±fÄ±r deÄŸilse kullan, yoksa defaultNet
             const netMaas = b && b.net_maas !== null && Number(b.net_maas) > 0 ? Number(b.net_maas) : defaultNet;
 
-            // Kesintiler (Finans Tablosu + Bordro Toplamı)
+            // Kesintiler (Finans Tablosu + Bordro ToplamÄ±)
             // Note: The logic from the new ui relies on Bordro overrides. If user modifies fields we should respect them.
             // But we also need backward compatibility with older avans records in finans.
             const sAvantajFromFinans = sFinans.filter(f => f.islem_turu === 'AVANS').reduce((acc, curr) => acc + (Number(curr.tutar) || 0), 0);
@@ -2708,7 +2708,7 @@ async function fetchSoforMaaslar() {
             const haciz = b ? (Number(b.haciz) || 0) : 0;
             const toplamAvans = avans + ceza + haciz;
 
-            // Toplam Hakediş
+            // Toplam HakediÅŸ
             const finalHakedis = Math.max(0, netMaas - toplamAvans);
 
             if (tbodyFinans) {
@@ -2720,15 +2720,15 @@ async function fetchSoforMaaslar() {
                         <div class="text-[10px] text-gray-500 uppercase tracking-tighter mt-1">${s.sigorta_durumu || 'SGK'}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 border-b border-white/5">
-                         <div>₺${calculatedWage > 0 ? calculatedWage.toLocaleString('tr-TR') : 0} / Gün ${gunlukUcret === 0 && aylikMaas > 0 ? '<span class="text-[9px] text-gray-500">(Aylıktan)</span>' : ''}</div>
+                         <div>â‚º${calculatedWage > 0 ? calculatedWage.toLocaleString('tr-TR') : 0} / GÃ¼n ${gunlukUcret === 0 && aylikMaas > 0 ? '<span class="text-[9px] text-gray-500">(AylÄ±ktan)</span>' : ''}</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 border-b border-white/5">
-                        <div class="font-bold text-white">${calisilanGun} Gün Çalışma</div>
+                        <div class="font-bold text-white">${calisilanGun} GÃ¼n Ã‡alÄ±ÅŸma</div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-400 font-medium border-b border-white/5">-₺${toplamAvans.toLocaleString('tr-TR')}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-400 font-medium border-b border-white/5">-â‚º${toplamAvans.toLocaleString('tr-TR')}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right border-b border-white/5">
-                        <div class="text-lg font-bold text-white">₺${finalHakedis.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
-                        <div class="text-[9px] text-gray-500 uppercase">Toplam Hakediş</div>
+                        <div class="text-lg font-bold text-white">â‚º${finalHakedis.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</div>
+                        <div class="text-[9px] text-gray-500 uppercase">Toplam HakediÅŸ</div>
                     </td>
                 `;
                 tbodyFinans.appendChild(tr);
@@ -2746,13 +2746,13 @@ async function fetchSoforMaaslar() {
                         ${filterVal}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-400 font-bold">
-                        ₺${netMaas.toLocaleString('tr-TR')}
+                        â‚º${netMaas.toLocaleString('tr-TR')}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-orange-400">
-                        -₺${toplamAvans}
+                        -â‚º${toplamAvans}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right">
-                        <span class="px-3 py-1 rounded-lg text-[10px] font-black bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-widest">ÖDEME HAZIR</span>
+                        <span class="px-3 py-1 rounded-lg text-[10px] font-black bg-green-500/10 text-green-500 border border-green-500/20 uppercase tracking-widest">Ã–DEME HAZIR</span>
                     </td>
                 `;
                 tbodyCari.appendChild(tr);
@@ -2782,9 +2782,9 @@ async function fetchBakimlar() {
         tbody.innerHTML = '';
         let totalGider = 0;
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Bakım kaydı bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">BakÄ±m kaydÄ± bulunmuyor.</td></tr>';
             const ozet = document.getElementById('ozet-bakim');
-            if (ozet) ozet.textContent = "0 ₺";
+            if (ozet) ozet.textContent = "0 â‚º";
             return;
         }
         data.forEach(b => {
@@ -2799,18 +2799,18 @@ async function fetchBakimlar() {
                             <span class="block text-xs text-gray-500">${b.aciklama}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-primary">₺${(b.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
+                            <div class="text-sm font-medium text-primary">â‚º${(b.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
                             <div class="text-[10px] text-gray-400 uppercase mt-0.5">${b.cariler ? b.cariler.unvan : '-'}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                            ${b.dosya_url ? `<a href="${b.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Dosyayı Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
+                            ${b.dosya_url ? `<a href="${b.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="DosyayÄ± GÃ¶r"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
                             <button onclick="deleteRecord('arac_bakimlari', '${b.id}', 'fetchBakimlar')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
                     `;
             tbody.appendChild(tr);
         });
         const ozet = document.getElementById('ozet-bakim');
-        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " â‚º";
     } catch (e) { console.error(e); }
 }
 
@@ -2824,9 +2824,9 @@ async function fetchPoliceler() {
         tbody.innerHTML = '';
         let totalGider = 0;
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Poliçe kaydı bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">PoliÃ§e kaydÄ± bulunmuyor.</td></tr>';
             const ozet = document.getElementById('ozet-police');
-            if (ozet) ozet.textContent = "0 ₺";
+            if (ozet) ozet.textContent = "0 â‚º";
             return;
         }
         data.forEach(p => {
@@ -2842,22 +2842,22 @@ async function fetchPoliceler() {
                             <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">${p.cariler ? p.cariler.unvan : '-'}</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-xs font-semibold text-gray-800 mb-1">${statusDot}Bitiş: ${p.bitis_tarihi}</span>
-                            <span class="block text-[10px] text-gray-500">Başlangıç: ${p.baslangic_tarihi}</span>
+                            <span class="block text-xs font-semibold text-gray-800 mb-1">${statusDot}BitiÅŸ: ${p.bitis_tarihi}</span>
+                            <span class="block text-[10px] text-gray-500">BaÅŸlangÄ±Ã§: ${p.baslangic_tarihi}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-primary">₺${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
+                            <div class="text-sm font-medium text-primary">â‚º${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
                             <div class="text-[10px] text-gray-500 uppercase mt-0.5 text-center bg-gray-100 rounded-sm py-0.5 inline-block px-2">${p.taksit_sayisi} Taksit</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                            ${p.dosya_url ? `<a href="${p.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Poliçeyi Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
+                            ${p.dosya_url ? `<a href="${p.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="PoliÃ§eyi GÃ¶r"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
                             <button onclick="deleteRecord('arac_policeler', '${p.id}', 'fetchPoliceler')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
                     `;
             tbody.appendChild(tr);
         });
         const ozet = document.getElementById('ozet-police');
-        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " â‚º";
     } catch (e) { console.error(e); }
 }
 async function fetchFinansDashboard() {
@@ -2889,10 +2889,10 @@ async function fetchFinansDashboard() {
             }
         });
 
-        (finans || []).forEach(f => { if (f.islem_turu === 'AVANS' || f.islem_turu === 'KESİNTİ (Ceza/Hasar)') avans += Number(f.tutar) || 0; });
+        (finans || []).forEach(f => { if (f.islem_turu === 'AVANS' || f.islem_turu === 'KESÄ°NTÄ° (Ceza/Hasar)') avans += Number(f.tutar) || 0; });
         (taseron || []).forEach(h => { taseronTop += Number(h.net_hakedis) || 0; });
 
-        const fmt = v => v > 0 ? '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) : '—';
+        const fmt = v => v > 0 ? 'â‚º' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) : 'â€”';
         const el1 = document.getElementById('fin-kpi-maas'); if (el1) el1.textContent = fmt(maas);
         const el2 = document.getElementById('fin-kpi-taseron'); if (el2) el2.textContent = fmt(taseronTop);
         const el3 = document.getElementById('fin-kpi-kesinti'); if (el3) el3.textContent = fmt(avans);
@@ -2902,7 +2902,7 @@ async function fetchFinansDashboard() {
 window.fetchTeklifler = async function fetchTeklifler() {
     const tbody = document.getElementById('teklifler-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center text-gray-500 italic"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto mb-2"></i>Teklifler güncelleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center text-gray-500 italic"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto mb-2"></i>Teklifler gÃ¼ncelleniyor...</td></tr>';
 
     try {
         const conn = window.checkSupabaseConnection();
@@ -2920,13 +2920,13 @@ window.fetchTeklifler = async function fetchTeklifler() {
 
         const tekliflerClean = window.sanitizeDataArray(teklifler || []);
 
-        // --- 15 DAKİKA KONTROLÜ (Otomatik Silme) ---
+        // --- 15 DAKÄ°KA KONTROLÃœ (Otomatik Silme) ---
         const now = Date.now();
         const deletionPromises = [];
         const validTeklifler = tekliflerClean.filter(t => {
             if (t.secildi && t.secenekler && t.secenekler.secilme_zamani) {
                 const diffMin = (now - t.secenekler.secilme_zamani) / 60000;
-                if (diffMin >= 15) { // 15 dakika dolmuş
+                if (diffMin >= 15) { // 15 dakika dolmuÅŸ
                     deletionPromises.push(window.supabaseClient.from('sigorta_teklifleri').delete().eq('id', t.id));
                     return false; // Listeye dahil etme
                 }
@@ -2935,21 +2935,21 @@ window.fetchTeklifler = async function fetchTeklifler() {
         });
 
         if (deletionPromises.length > 0) {
-            console.log(`[fetchTeklifler] ${deletionPromises.length} adet süresi dolan teklif siliniyor...`);
+
             await Promise.all(deletionPromises);
         }
 
         window._allTeklifData = validTeklifler;
 
         if (validTeklifler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center text-gray-400">Henüz teklif bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center text-gray-400">HenÃ¼z teklif bulunmuyor.</td></tr>';
             return;
         }
 
         const flatTeklifler = validTeklifler.map(t => ({ ...t, plaka: t.araclar ? t.araclar.plaka : '-' }));
         const bestPrices = {};
         flatTeklifler.forEach(t => {
-            const pType = (t.secenekler || {}).teklif_turu || t.police_turu || 'Trafik Sigortası';
+            const pType = (t.secenekler || {}).teklif_turu || t.police_turu || 'Trafik SigortasÄ±';
             const key = t.arac_id + '_' + pType;
             if (!bestPrices[key] || t.tutar < bestPrices[key]) {
                 bestPrices[key] = t.tutar;
@@ -2959,7 +2959,7 @@ window.fetchTeklifler = async function fetchTeklifler() {
         tbody.innerHTML = '';
         flatTeklifler.forEach(t => {
             const opts = t.secenekler || {};
-            const pType = opts.teklif_turu || t.police_turu || 'Trafik Sigortası';
+            const pType = opts.teklif_turu || t.police_turu || 'Trafik SigortasÄ±';
             const key = t.arac_id + '_' + pType;
             
             const isBest = t.tutar === bestPrices[key];
@@ -2971,14 +2971,14 @@ window.fetchTeklifler = async function fetchTeklifler() {
             else typeBadge = '<span class="px-2 py-0.5 bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded text-[10px] font-bold uppercase tracking-widest">Trafik</span>';
 
             const optList = [];
-            if (opts.imm) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">İMM:</span> <span class="text-[9px] text-gray-400">${opts.imm_limit || '-'}</span></div>`);
+            if (opts.imm) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">Ä°MM:</span> <span class="text-[9px] text-gray-400">${opts.imm_limit || '-'}</span></div>`);
             if (opts.yol_yardim) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">Yol Y.:</span> <span class="text-[9px] text-gray-400">Dahil</span></div>`);
-            if (opts.ikame_arac) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">İkame:</span> <span class="text-[9px] text-gray-400">${opts.ikame_gun || 'Mevcut'}</span></div>`);
+            if (opts.ikame_arac) optList.push(`<div class="whitespace-nowrap"><span class="text-[9px] font-bold text-green-400">Ä°kame:</span> <span class="text-[9px] text-gray-400">${opts.ikame_gun || 'Mevcut'}</span></div>`);
 
             const tCount = opts.taksit_sayisi || t.taksit_sayisi || 1;
             const taksitHtml = tCount > 1
-                ? `<div class="text-[10px] font-bold text-blue-400">${tCount} Taksit</div><div class="text-[9px] text-gray-500">₺${Number(t.tutar / tCount).toLocaleString('tr-TR')} x ${tCount}</div>`
-                : `<div class="text-[10px] font-bold text-gray-400">Peşin / Tek Çekim</div>`;
+                ? `<div class="text-[10px] font-bold text-blue-400">${tCount} Taksit</div><div class="text-[9px] text-gray-500">â‚º${Number(t.tutar / tCount).toLocaleString('tr-TR')} x ${tCount}</div>`
+                : `<div class="text-[10px] font-bold text-gray-400">PeÅŸin / Tek Ã‡ekim</div>`;
 
             const tr = document.createElement('tr');
             tr.className = `hover:bg-white/5 transition-colors border-b border-white/5 ${isSelected ? 'bg-green-500/10' : ''}`;
@@ -2987,13 +2987,13 @@ window.fetchTeklifler = async function fetchTeklifler() {
                     <div class="flex items-center gap-2">
                         ${t.plaka}
                         ${isBest && !isSelected ? '<span class="px-1.5 py-0.5 bg-orange-500 text-[8px] text-white rounded font-bold uppercase">En Uygun</span>' : ''}
-                        ${isSelected ? '<span class="px-1.5 py-0.5 bg-green-500 text-[8px] text-white rounded font-bold uppercase">✓ Seçildi</span>' : ''}
+                        ${isSelected ? '<span class="px-1.5 py-0.5 bg-green-500 text-[8px] text-white rounded font-bold uppercase">âœ“ SeÃ§ildi</span>' : ''}
                     </div>
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap text-xs">${typeBadge}</td>
                 <td class="px-5 py-3 whitespace-nowrap text-xs font-semibold text-gray-300">${t.firma_adi || '-'}</td>
                 <td class="px-5 py-3 whitespace-nowrap text-right">
-                    <div class="text-sm font-bold text-orange-400">₺${Number(t.tutar).toLocaleString('tr-TR')}</div>
+                    <div class="text-sm font-bold text-orange-400">â‚º${Number(t.tutar).toLocaleString('tr-TR')}</div>
                 </td>
                 <td class="px-5 py-3 whitespace-nowrap text-center">${taksitHtml}</td>
                 <td class="px-5 py-3 whitespace-nowrap">
@@ -3020,20 +3020,20 @@ window.fetchTeklifler = async function fetchTeklifler() {
 
     } catch (e) {
         console.error("Teklif Error:", e);
-        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-red-500 font-bold">⚠️ Hata: ${e.message || 'Veriler yüklenemedi'}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-red-500 font-bold">âš ï¸ Hata: ${e.message || 'Veriler yÃ¼klenemedi'}</td></tr>`;
     }
 };
 
-// --- OTOMATİK TEMİZLİK ZAMANLAYICISI ---
-// Teklif sayfası açıkken her dakika kontrol et ve süresi dolanları kaldır
+// --- OTOMATÄ°K TEMÄ°ZLÄ°K ZAMANLAYICISI ---
+// Teklif sayfasÄ± aÃ§Ä±kken her dakika kontrol et ve sÃ¼resi dolanlarÄ± kaldÄ±r
 if (!window._teklifCleanupInterval) {
     window._teklifCleanupInterval = setInterval(() => {
         const tableView = document.getElementById('teklif-table-view');
         const compareView = document.getElementById('teklif-compare-view');
-        // Eğer teklif modülü aktifse (gizli değilse) yenileme yap
+        // EÄŸer teklif modÃ¼lÃ¼ aktifse (gizli deÄŸilse) yenileme yap
         if ((tableView && !tableView.classList.contains('hidden')) ||
             (compareView && !compareView.classList.contains('hidden'))) {
-            console.log("[Cleanup] Süresi dolan teklifler taranıyor...");
+
             window.fetchTeklifler();
         }
     }, 60000); // 1 dakikada bir kontrol
@@ -3041,7 +3041,7 @@ if (!window._teklifCleanupInterval) {
 
 
 /* ==========================================
-   BORDRO SATIR GÜNCELLEME (INPLACE EDIT)
+   BORDRO SATIR GÃœNCELLEME (INPLACE EDIT)
    ========================================== */
 window.updateBordroRow = async function (soforId, field, value, kayitId) {
     try {
@@ -3068,18 +3068,18 @@ window.updateBordroRow = async function (soforId, field, value, kayitId) {
         }
 
         if (kayitId && kayitId !== 'undefined' && kayitId !== 'null' && kayitId !== '') {
-            // Var olan kaydı güncelle - sadece değişen alan
+            // Var olan kaydÄ± gÃ¼ncelle - sadece deÄŸiÅŸen alan
             const { error } = await window.supabaseClient
                 .from('sofor_maas_bordro')
                 .update(updateObj)
                 .eq('id', kayitId);
             if (error) throw error;
 
-            // Sync dashboard & maaş hakedişleri
+            // Sync dashboard & maaÅŸ hakediÅŸleri
             if (window.fetchFinansDashboard) window.fetchFinansDashboard();
             if (window.fetchSoforMaaslar) window.fetchSoforMaaslar();
         } else {
-            // İLK kaydet: tüm satır inputlarını topla (net_maas silinmesin)
+            // Ä°LK kaydet: tÃ¼m satÄ±r inputlarÄ±nÄ± topla (net_maas silinmesin)
             const rowData = {
                 sofor_id: soforId,
                 donem,
@@ -3100,10 +3100,10 @@ window.updateBordroRow = async function (soforId, field, value, kayitId) {
                 .single();
             if (error) throw error;
 
-            // Yeni kayit ID'sini tüm satır inputlarına yaz
-            // (bir sonraki değişiklikte INSERT yerine UPDATE yapsın)
+            // Yeni kayit ID'sini tÃ¼m satÄ±r inputlarÄ±na yaz
+            // (bir sonraki deÄŸiÅŸiklikte INSERT yerine UPDATE yapsÄ±n)
             if (newRec?.id && row) {
-                // Sync dashboard & maaş hakedişleri
+                // Sync dashboard & maaÅŸ hakediÅŸleri
                 if (window.fetchFinansDashboard) window.fetchFinansDashboard();
                 if (window.fetchSoforMaaslar) window.fetchSoforMaaslar();
 
@@ -3117,30 +3117,30 @@ window.updateBordroRow = async function (soforId, field, value, kayitId) {
                     if (actionCell.classList.contains('puantaj-edit-panel')) {
                         const delDiv = document.createElement('div');
                         delDiv.className = 'flex justify-end pt-1';
-                        delDiv.innerHTML = `<button onclick="deleteRecord('sofor_maas_bordro','${newRec.id}','fetchSoforMaasBordro')" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1 bordro-del-btn"><i data-lucide="trash-2" class="w-3 h-3"></i>Kaydı Sil</button>`;
+                        delDiv.innerHTML = `<button onclick="deleteRecord('sofor_maas_bordro','${newRec.id}','fetchSoforMaasBordro')" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1 bordro-del-btn"><i data-lucide="trash-2" class="w-3 h-3"></i>KaydÄ± Sil</button>`;
                         actionCell.appendChild(delDiv);
                     }
                 }
             }
         }
 
-        // Elden kolonunu anlık hesapla
+        // Elden kolonunu anlÄ±k hesapla
         if (row) {
             const net = calculatedNet !== null ? calculatedNet : getInput('net_maas');
             const topKesinti = getInput('avans') + getInput('ceza') + getInput('haciz') + getInput('mk_banka') + getInput('ideol_banka');
             const elden = Math.max(0, net - topKesinti);
 
-            // Visual Updates (Card Header Net Maaş)
+            // Visual Updates (Card Header Net MaaÅŸ)
             const netMaasHeader = row.querySelector('.text-lg.font-black.text-white');
             if (netMaasHeader) {
-                netMaasHeader.textContent = '₺' + net.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                netMaasHeader.textContent = 'â‚º' + net.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
 
             // Visual Updates (Kesinti & Elden displays)
             const kesintilerSpan = row.querySelector('span.text-\\[9px\\].text-gray-500');
             const eldenSpan = row.querySelector('span.text-\\[9px\\].font-bold.text-yellow-400');
-            if (kesintilerSpan) kesintilerSpan.textContent = `Kesintiler: ₺${topKesinti.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            if (eldenSpan) eldenSpan.textContent = `Elden: ₺${elden.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (kesintilerSpan) kesintilerSpan.textContent = `Kesintiler: â‚º${topKesinti.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (eldenSpan) eldenSpan.textContent = `Elden: â‚º${elden.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
             // Progress Bar Visual Updates
             const progressBars = row.querySelectorAll('.h-full');
@@ -3153,19 +3153,19 @@ window.updateBordroRow = async function (soforId, field, value, kayitId) {
             }
         }
 
-        // Toplamları arka planda temizce DB'den yeniden hesapla ve UI'a yansıt
+        // ToplamlarÄ± arka planda temizce DB'den yeniden hesapla ve UI'a yansÄ±t
         if (window.refreshPuantajTotals) {
             window.refreshPuantajTotals();
         }
 
     } catch (e) {
         console.error('[BORDRO UPDATE]', e);
-        showToast('❌ Kayıt güncellenemedi: ' + (e.message || 'Bilinmeyen hata'), 'error');
+        showToast('âŒ KayÄ±t gÃ¼ncellenemedi: ' + (e.message || 'Bilinmeyen hata'), 'error');
     }
 };
 
 /* ==========================================
-   AUTH - KULLANICI GİRİŞİ / ÇIKIŞ
+   AUTH - KULLANICI GÄ°RÄ°ÅžÄ° / Ã‡IKIÅž
    ========================================== */
 window.doLogin = async function () {
     const email = document.getElementById('auth-email').value.trim();
@@ -3174,28 +3174,28 @@ window.doLogin = async function () {
     const btn = document.getElementById('auth-login-btn');
 
     if (!email || !password) {
-        errBox.textContent = 'E-posta ve şifre zorunludur.';
+        errBox.textContent = 'E-posta ve ÅŸifre zorunludur.';
         errBox.classList.remove('hidden');
         return;
     }
 
-    btn.textContent = 'Giriş yapılıyor...';
+    btn.textContent = 'GiriÅŸ yapÄ±lÄ±yor...';
     btn.disabled = true;
     errBox.classList.add('hidden');
 
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') {
         document.getElementById('auth-overlay').style.display = 'none';
-        btn.textContent = 'Giriş Yap';
+        btn.textContent = 'GiriÅŸ Yap';
         btn.disabled = false;
         if (typeof window.initApp === 'function') window.initApp();
         return;
     }
 
-    // 10 sn timeout — fetch takılırsa butonu kurtarır
+    // 10 sn timeout â€” fetch takÄ±lÄ±rsa butonu kurtarÄ±r
     const timeout = setTimeout(() => {
-        btn.textContent = 'Giriş Yap';
+        btn.textContent = 'GiriÅŸ Yap';
         btn.disabled = false;
-        errBox.textContent = '⏱ Bağlantı zaman aşımı. İnternet bağlantınızı kontrol edin.';
+        errBox.textContent = 'â± BaÄŸlantÄ± zaman aÅŸÄ±mÄ±. Ä°nternet baÄŸlantÄ±nÄ±zÄ± kontrol edin.';
         errBox.classList.remove('hidden');
     }, 10000);
 
@@ -3204,22 +3204,22 @@ window.doLogin = async function () {
         clearTimeout(timeout);
 
         if (error) {
-            errBox.textContent = 'Giriş başarısız: ' + (error.message || 'Hatalı e-posta veya şifre.');
+            errBox.textContent = 'GiriÅŸ baÅŸarÄ±sÄ±z: ' + (error.message || 'HatalÄ± e-posta veya ÅŸifre.');
             errBox.classList.remove('hidden');
-            btn.textContent = 'Giriş Yap';
+            btn.textContent = 'GiriÅŸ Yap';
             btn.disabled = false;
             return;
         }
 
-        // Başarılı giriş
+        // BaÅŸarÄ±lÄ± giriÅŸ
         document.getElementById('auth-overlay').style.display = 'none';
-        btn.textContent = 'Giriş Yap';
+        btn.textContent = 'GiriÅŸ Yap';
         btn.disabled = false;
 
         const user = data.user;
         const userNameEl = document.getElementById('user-display-name');
         if (userNameEl && user) {
-            const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Kullanıcı';
+            const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'KullanÄ±cÄ±';
             userNameEl.textContent = displayName.substring(0, 2).toUpperCase();
             userNameEl.title = user.email;
         }
@@ -3228,10 +3228,10 @@ window.doLogin = async function () {
 
     } catch (err) {
         clearTimeout(timeout);
-        btn.textContent = 'Giriş Yap';
+        btn.textContent = 'GiriÅŸ Yap';
         btn.disabled = false;
         const msg = err?.message || String(err);
-        errBox.textContent = '❌ Hata: ' + msg;
+        errBox.textContent = 'âŒ Hata: ' + msg;
         errBox.classList.remove('hidden');
         console.error('[LOGIN]', err);
     }
@@ -3241,10 +3241,10 @@ window.doLogout = async function () {
     if (window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
         await window.supabaseClient.auth.signOut();
     }
-    // Auth overlay'i tekrar göster
+    // Auth overlay'i tekrar gÃ¶ster
     const overlay = document.getElementById('auth-overlay');
     if (overlay) overlay.style.display = 'flex';
-    // Form alanlarını temizle
+    // Form alanlarÄ±nÄ± temizle
     const emailEl = document.getElementById('auth-email');
     const passEl = document.getElementById('auth-password');
     if (emailEl) emailEl.value = '';
@@ -3252,7 +3252,7 @@ window.doLogout = async function () {
 };
 
 /* ==========================================
-   TEKLİF YÖNETİMİ
+   TEKLÄ°F YÃ–NETÄ°MÄ°
    ========================================== */
 window.setTeklifView = function (mode) {
     const tableView = document.getElementById('teklif-table-view');
@@ -3277,14 +3277,14 @@ window.setTeklifView = function (mode) {
     }
 };
 
-// Mükerrer fetchTeklifler kaldırıldı. Tek ve güncel versiyon satır 2419'da.
+// MÃ¼kerrer fetchTeklifler kaldÄ±rÄ±ldÄ±. Tek ve gÃ¼ncel versiyon satÄ±r 2419'da.
 window.renderTeklifCompare = function () {
     const container = document.getElementById('teklif-compare-container');
     if (!container) return;
     const data = window._allTeklifData || [];
 
     if (data.length === 0) {
-        container.innerHTML = '<div class="dashboard-card py-12 text-center text-gray-500"><p>Karşılaştırılacak teklif yok.</p></div>';
+        container.innerHTML = '<div class="dashboard-card py-12 text-center text-gray-500"><p>KarÅŸÄ±laÅŸtÄ±rÄ±lacak teklif yok.</p></div>';
         return;
     }
     const groups = {};
@@ -3292,7 +3292,7 @@ window.renderTeklifCompare = function () {
         let normTur = 'Bilinmeyen';
         const rawTur = (t.police_turu || '').toLowerCase().trim();
         if (rawTur.includes('kasko')) normTur = 'Kasko';
-        else if (rawTur.includes('koltuk')) normTur = 'Koltuk Sigortası';
+        else if (rawTur.includes('koltuk')) normTur = 'Koltuk SigortasÄ±';
         else if (rawTur.includes('trafik') || rawTur.includes('zorunlu') || rawTur.includes('sigort')) normTur = 'Trafik';
         else normTur = t.police_turu || 'Bilinmeyen';
 
@@ -3301,7 +3301,7 @@ window.renderTeklifCompare = function () {
         groups[key].teklifler.push(t);
     });
 
-    const fmt = v => v != null ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' ₺' : '—';
+    const fmt = v => v != null ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' â‚º' : 'â€”';
     container.innerHTML = Object.values(groups).map(g => {
         const sorted = [...g.teklifler].sort((a, b) => (a.tutar || 0) - (b.tutar || 0));
         const minTutar = sorted[0]?.tutar || 0;
@@ -3310,13 +3310,13 @@ window.renderTeklifCompare = function () {
             const isSelected = t.secildi;
             const border = isSelected ? 'border-green-500/50' : isMin ? 'border-orange-500/40' : 'border-white/10';
             const badge = isSelected
-                ? '<div class="text-[10px] font-black text-green-400 text-center mb-2">✓ SEÇİLDİ</div>'
-                : isMin ? '<div class="text-[10px] font-black text-orange-400 text-center mb-2">★ En Uygun</div>' : '';
+                ? '<div class="text-[10px] font-black text-green-400 text-center mb-2">âœ“ SEÃ‡Ä°LDÄ°</div>'
+                : isMin ? '<div class="text-[10px] font-black text-orange-400 text-center mb-2">â˜… En Uygun</div>' : '';
             return `<div class="flex-1 min-w-[180px] dashboard-card border ${border} flex flex-col gap-2 p-4">
                 ${badge}
                 <div class="text-sm font-bold text-center">${t.firma_adi || 'Firma?'}</div>
                 <div class="text-xl font-black text-center ${isMin ? 'text-orange-400' : 'text-white'}">${fmt(t.tutar)}</div>
-                <div class="text-[10px] text-gray-500 text-center">${t.taksit_sayisi ? t.taksit_sayisi + ' taksit' : 'Peşin'}</div>
+                <div class="text-[10px] text-gray-500 text-center">${t.taksit_sayisi ? t.taksit_sayisi + ' taksit' : 'PeÅŸin'}</div>
                 ${!isSelected ? `<button onclick="window.teklifSec('${t.id}')" class="mt-2 text-[10px] font-bold border border-green-500/30 text-green-400 hover:bg-green-500/10 rounded-lg py-1.5 transition-all">Onayla</button>` : ''}
             </div>`;
         }).join('');
@@ -3344,24 +3344,24 @@ window.teklifSec = async function (id) {
         const taksit_sayisi = opts.taksit_sayisi || row.taksit_sayisi || 1;
         const teklif_turu = opts.teklif_turu || row.police_turu || 'Trafik';
 
-        // Cari ID'yi güvenceye al (Eski kayıtlarda ID yoksa unvandan bul)
+        // Cari ID'yi gÃ¼venceye al (Eski kayÄ±tlarda ID yoksa unvandan bul)
         let resolvedCariId = row.cari_id;
         if (!resolvedCariId && row.firma_adi && window._cariMap) {
             const bul = Object.values(window._cariMap).find(c => c.unvan === row.firma_adi);
             if (bul) resolvedCariId = bul.id;
         }
 
-        // Başlangıç - Bitiş tarihlerini ayarla
+        // BaÅŸlangÄ±Ã§ - BitiÅŸ tarihlerini ayarla
         const baslangic_tarihi = row.baslangic_tarihi || new Date().toISOString().split('T')[0];
         let bitis_tarihi = row.bitis_tarihi;
         if (!bitis_tarihi) {
-            // Poliçe bitişi standart 1 yıl sonrasıdır
+            // PoliÃ§e bitiÅŸi standart 1 yÄ±l sonrasÄ±dÄ±r
             const bd = new Date(baslangic_tarihi);
             bd.setFullYear(bd.getFullYear() + 1);
             bitis_tarihi = bd.toISOString().split('T')[0];
         }
 
-        // --- 1. ÖNCE POLİÇE KAYDINI OLUŞTUR (HATA VERİRSE BURADA KESSİN, BUTON GİTMESİN) ---
+        // --- 1. Ã–NCE POLÄ°Ã‡E KAYDINI OLUÅžTUR (HATA VERÄ°RSE BURADA KESSÄ°N, BUTON GÄ°TMESÄ°N) ---
         const policeData = {
             arac_id: row.arac_id,
             police_turu: teklif_turu,
@@ -3374,13 +3374,13 @@ window.teklifSec = async function (id) {
 
         const { error: pErr } = await window.supabaseClient.from('arac_policeler').insert([policeData]);
         if (pErr) {
-            console.error('[TEKLİFSEC] Poliçe Oluşturma Hatası:', pErr.message);
-            if (typeof showToast === 'function') showToast('❌ Poliçe oluşturulamadı: ' + pErr.message, 'error');
-            return; // Hata varsa burada kes, işlem devam etmesin
+            console.error('[TEKLÄ°FSEC] PoliÃ§e OluÅŸturma HatasÄ±:', pErr.message);
+            if (typeof showToast === 'function') showToast('âŒ PoliÃ§e oluÅŸturulamadÄ±: ' + pErr.message, 'error');
+            return; // Hata varsa burada kes, iÅŸlem devam etmesin
         }
 
 
-        // --- 3. ARAÇ BİTİŞ TARİHLERİNİ GÜNCELLE ---
+        // --- 3. ARAÃ‡ BÄ°TÄ°Åž TARÄ°HLERÄ°NÄ° GÃœNCELLE ---
         const updateData = {};
         const turLower = String(teklif_turu).trim().toLowerCase();
 
@@ -3391,19 +3391,19 @@ window.teklifSec = async function (id) {
         }
 
         if (Object.keys(updateData).length > 0) {
-            console.log("[TEKLİFSEC] Araç kayıtları güncelleniyor:", updateData, "Araç ID:", row.arac_id);
+
             const { data: aracRes, error: updError } = await window.supabaseClient.from('araclar').update(updateData).eq('id', row.arac_id).select();
             if (updError) {
-                console.error("[TEKLİFSEC] Araç tarih güncelleme hatası:", updError);
-                if (typeof showToast === 'function') showToast('⚠️ Poliçe kesildi ancak araç tarihleri güncellenemedi: ' + updError.message, 'warning');
+                console.error("[TEKLÄ°FSEC] AraÃ§ tarih gÃ¼ncelleme hatasÄ±:", updError);
+                if (typeof showToast === 'function') showToast('âš ï¸ PoliÃ§e kesildi ancak araÃ§ tarihleri gÃ¼ncellenemedi: ' + updError.message, 'warning');
             } else {
-                console.log("[TEKLİFSEC] Araç tarihi başarıyla güncellendi.", aracRes);
+
             }
         } else {
-            console.warn(`[TEKLİFSEC] Poliçe türü (${teklif_turu}) tanınmadığı için aracın vize/kasko/sigorta tarihleri güncellenmedi.`);
+            console.warn(`[TEKLÄ°FSEC] PoliÃ§e tÃ¼rÃ¼ (${teklif_turu}) tanÄ±nmadÄ±ÄŸÄ± iÃ§in aracÄ±n vize/kasko/sigorta tarihleri gÃ¼ncellenmedi.`);
         }
 
-        // --- 4. HER ŞEY BAŞARILI İSE TEKLİFİ 'SEÇİLDİ' OLARAK İŞARETLE (Zaman Damgası Ekle) ---
+        // --- 4. HER ÅžEY BAÅžARILI Ä°SE TEKLÄ°FÄ° 'SEÃ‡Ä°LDÄ°' OLARAK Ä°ÅžARETLE (Zaman DamgasÄ± Ekle) ---
         await window.supabaseClient.from('sigorta_teklifleri')
             .update({ secildi: false })
             .eq('arac_id', row.arac_id);
@@ -3413,24 +3413,24 @@ window.teklifSec = async function (id) {
             .update({ secildi: true, secenekler: updatedOpts })
             .eq('id', id);
 
-        // --- 5. EKRANLARI YENİLE ---
+        // --- 5. EKRANLARI YENÄ°LE ---
         if (typeof window.refreshAllModules === 'function') window.refreshAllModules();
 
-        // Veritabanı gecikmesine karşı küçük bir timeout ile araçları yenile
+        // VeritabanÄ± gecikmesine karÅŸÄ± kÃ¼Ã§Ã¼k bir timeout ile araÃ§larÄ± yenile
         setTimeout(() => {
             if (typeof fetchAraclar === 'function') fetchAraclar();
         }, 500);
 
         if (typeof showToast === 'function') {
-            showToast('✅ Teklif Onaylandı! Poliçe kesildi ve Cari Hesaba borç işlendi.', 'success');
+            showToast('âœ… Teklif OnaylandÄ±! PoliÃ§e kesildi ve Cari Hesaba borÃ§ iÅŸlendi.', 'success');
         }
     } catch (e) {
-        console.error('[TEKLİFSEC]', e);
-        if (typeof showToast === 'function') showToast('❌ Beklenmeyen Hata: ' + e.message, 'error');
+        console.error('[TEKLÄ°FSEC]', e);
+        if (typeof showToast === 'function') showToast('âŒ Beklenmeyen Hata: ' + e.message, 'error');
     }
 };
 
-// Sayfa yüklendiğinde session kontrol et
+// Sayfa yÃ¼klendiÄŸinde session kontrol et
 (async function checkSession() {
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') {
         // DEV mode - overlay'i kapat
@@ -3446,7 +3446,7 @@ window.teklifSec = async function (id) {
         const user = session.user;
         const userNameEl = document.getElementById('user-display-name');
         if (userNameEl && user) {
-            const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Kullanıcı';
+            const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'KullanÄ±cÄ±';
             userNameEl.textContent = displayName.substring(0, 2).toUpperCase();
             userNameEl.title = user.email;
         }
@@ -3455,7 +3455,7 @@ window.teklifSec = async function (id) {
 })();
 
 /* ==========================================
-   DASHBOARD - GERÇEK VERİ & YAKLAŞAN ÖDEMELER
+   DASHBOARD - GERÃ‡EK VERÄ° & YAKLAÅžAN Ã–DEMELER
    ========================================== */
 window.fetchDashboardData = async function () {
     const conn = window.checkSupabaseConnection();
@@ -3504,16 +3504,16 @@ window.fetchDashboardData = async function () {
         const hakedisler_taseron = resHakedisTaseron.data || [];
         const hakedisler_servis = resHakedisServis.data || [];
 
-        // Yağ bakımı: Sütunlar yoksa hata vermesin (Supabase'e SQL eklenmeden de çalışsın)
+        // YaÄŸ bakÄ±mÄ±: SÃ¼tunlar yoksa hata vermesin (Supabase'e SQL eklenmeden de Ã§alÄ±ÅŸsÄ±n)
         let araclarYag = [];
         try {
-            // son_yag_tarihi kolonu DB'de yok, bu yüzden sorgudan çıkardık
+            // son_yag_tarihi kolonu DB'de yok, bu yÃ¼zden sorgudan Ã§Ä±kardÄ±k
             const { data: yd, error: ye } = await window.supabaseClient
                 .from('araclar').select('id, plaka, guncel_km, son_yag_km');
             if (!ye) araclarYag = yd || [];
         } catch (_) { /* sessizce atla */ }
 
-        const fmt = v => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' ₺';
+        const fmt = v => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' â‚º';
         const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
         // === KPI ===
@@ -3540,7 +3540,7 @@ window.fetchDashboardData = async function () {
 
         if (expiring15Days > 0 && typeof window.Toast !== 'undefined') {
             setTimeout(() => {
-                window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş! Lütfen Özmal Filo'dan kontrol edin.`);
+                window.Toast.warning(`âš ï¸ Dikkat: ${expiring15Days} aracÄ±nÄ±zÄ±n vize, kasko veya sigorta sÃ¼resi bitmek Ã¼zere (15 gÃ¼nden az) ya da dolmuÅŸ! LÃ¼tfen Ã–zmal Filo'dan kontrol edin.`);
             }, 1500);
         }
 
@@ -3552,8 +3552,8 @@ window.fetchDashboardData = async function () {
         setEl('kpi-gider', fmt(sumYakit + sumBakim));
 
         // === Donut Chart ===
-        const ozmal = (araclar || []).filter(a => a.mulkiyet_durumu === 'ÖZMAL').length;
-        const taseron = (araclar || []).filter(a => a.mulkiyet_durumu === 'TAŞERON').length;
+        const ozmal = (araclar || []).filter(a => a.mulkiyet_durumu === 'Ã–ZMAL').length;
+        const taseron = (araclar || []).filter(a => a.mulkiyet_durumu === 'TAÅžERON').length;
         const kiralik = (araclar?.length ?? 0) - ozmal - taseron;
         setEl('fleet-ozmal-count', ozmal);
         setEl('fleet-taseron-count', taseron);
@@ -3568,7 +3568,7 @@ window.fetchDashboardData = async function () {
             window._fleetDonutChart = new Chart(donutCanvas, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Özmal', 'Taşeron', 'Kiralık'],
+                    labels: ['Ã–zmal', 'TaÅŸeron', 'KiralÄ±k'],
                     datasets: [{ data: [ozmal, taseron, kiralik], backgroundColor: ['#f97316', '#3b82f6', '#a855f7'], borderWidth: 0, cutout: '78%' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}` } } } }
@@ -3578,7 +3578,7 @@ window.fetchDashboardData = async function () {
         // === Line Chart: Ciro vs Gider (son 6 ay) ===
         const lineCanvas = document.getElementById('mainChart');
         if (lineCanvas) {
-            // Basit label üret (son 6 ay)
+            // Basit label Ã¼ret (son 6 ay)
             const labels = [];
             const months = [];
             for (let i = 5; i >= 0; i--) {
@@ -3587,7 +3587,7 @@ window.fetchDashboardData = async function () {
                 months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
             }
 
-            // Paralel olarak sör al (son 6 ay)
+            // Paralel olarak sÃ¶r al (son 6 ay)
             const ciroByMonth = Array(6).fill(0);
             const giderByMonth = Array(6).fill(0);
 
@@ -3624,14 +3624,14 @@ window.fetchDashboardData = async function () {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` } } },
                     scales: {
-                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'K ₺' : v } },
+                        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', callback: v => v >= 1000 ? (v / 1000).toFixed(0) + 'K â‚º' : v } },
                         x: { grid: { display: false }, ticks: { color: '#6b7280' } }
                     }
                 }
             });
         }
 
-        // === Evrak Bitişleri Widget (90 gün) ===
+        // === Evrak BitiÅŸleri Widget (90 gÃ¼n) ===
         const evrakList = document.getElementById('evrak-bitis-list');
         if (evrakList) {
             const evrakItems = [];
@@ -3643,12 +3643,12 @@ window.fetchDashboardData = async function () {
             evrakItems.sort((a, b) => a.bitis.localeCompare(b.bitis));
 
             if (evrakItems.length === 0) {
-                evrakList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">90 gün içinde biten evrak yok.</p>';
+                evrakList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">90 gÃ¼n iÃ§inde biten evrak yok.</p>';
             } else {
                 evrakList.innerHTML = evrakItems.map(e => {
                     const days = Math.ceil((new Date(e.bitis) - today) / 86400000);
                     const cl = days < 0 ? 'text-red-400 bg-red-500/10 border-red-500/20' : days <= 14 ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-                    const label = days < 0 ? `${Math.abs(days)}g geçti` : `${days}g kaldı`;
+                    const label = days < 0 ? `${Math.abs(days)}g geÃ§ti` : `${days}g kaldÄ±`;
                     return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border ${cl}">
                         <div>
                             <span class="text-xs font-bold">${e.plaka}</span>
@@ -3660,7 +3660,7 @@ window.fetchDashboardData = async function () {
             }
         }
 
-        // === Yaklaşan Ödemeler Widget (30 gün içinde) ===
+        // === YaklaÅŸan Ã–demeler Widget (30 gÃ¼n iÃ§inde) ===
         const paymentsList = document.getElementById('upcoming-payments-list');
         if (paymentsList) {
             const paymentItems = [];
@@ -3668,20 +3668,20 @@ window.fetchDashboardData = async function () {
                 paymentItems.push({
                     desc: `${p.araclar?.plaka || '-'} / ${p.police_turu}`,
                     tarih: p.bitis_tarihi,
-                    tur: 'Poliçe'
+                    tur: 'PoliÃ§e'
                 });
             });
-            // TODO: İstendiğinde buraya faturalar ve finans taksitleri de eklenebilir.
+            // TODO: Ä°stendiÄŸinde buraya faturalar ve finans taksitleri de eklenebilir.
 
             paymentItems.sort((a, b) => a.tarih.localeCompare(b.tarih));
 
             if (paymentItems.length === 0) {
-                paymentsList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">30 gün içinde yaklaşan ödeme yok.</p>';
+                paymentsList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">30 gÃ¼n iÃ§inde yaklaÅŸan Ã¶deme yok.</p>';
             } else {
                 paymentsList.innerHTML = paymentItems.map(p => {
                     const days = Math.ceil((new Date(p.tarih) - today) / 86400000);
                     const cl = days < 0 ? 'text-red-400 bg-red-500/10 border-red-500/20' : days <= 7 ? 'text-orange-400 bg-orange-500/10 border-orange-500/20' : 'text-blue-400 bg-blue-500/10 border-blue-500/20';
-                    const label = days < 0 ? `${Math.abs(days)}g geçti` : `${days}g kaldı`;
+                    const label = days < 0 ? `${Math.abs(days)}g geÃ§ti` : `${days}g kaldÄ±`;
 
                     return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border ${cl} mb-1">
                         <div>
@@ -3694,16 +3694,16 @@ window.fetchDashboardData = async function () {
             }
         }
 
-        // === Yağ Bakımı Widget ===
+        // === YaÄŸ BakÄ±mÄ± Widget ===
         const yagList = document.getElementById('yag-bakim-list');
         if (yagList) {
             const yagItems = [];
             (araclarYag || []).forEach(a => {
                 const kmFarki = (a.guncel_km || 0) - (a.son_yag_km || 0);
-                // Yağ bakımı 10.000 KM'de bir oluyorsa:
+                // YaÄŸ bakÄ±mÄ± 10.000 KM'de bir oluyorsa:
                 const kalanKm = 10000 - kmFarki;
 
-                if (kalanKm <= 1000 && a.guncel_km > 0) { // Sadece 1.000 km altı kaldıysa veya geçildiyse Listele
+                if (kalanKm <= 1000 && a.guncel_km > 0) { // Sadece 1.000 km altÄ± kaldÄ±ysa veya geÃ§ildiyse Listele
                     yagItems.push({
                         plaka: a.plaka,
                         kalan: kalanKm,
@@ -3715,11 +3715,11 @@ window.fetchDashboardData = async function () {
             yagItems.sort((a, b) => a.kalan - b.kalan);
 
             if (yagItems.length === 0) {
-                yagList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">Yaklaşan yağ bakımı bulunmuyor.</p>';
+                yagList.innerHTML = '<p class="text-xs text-gray-500 text-center py-6">YaklaÅŸan yaÄŸ bakÄ±mÄ± bulunmuyor.</p>';
             } else {
                 yagList.innerHTML = yagItems.map(y => {
                     const cl = y.kalan < 0 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-                    const label = y.kalan < 0 ? `${Math.abs(y.kalan).toLocaleString('tr-TR')} KM GEÇTİ` : `${y.kalan.toLocaleString('tr-TR')} KM KALDI`;
+                    const label = y.kalan < 0 ? `${Math.abs(y.kalan).toLocaleString('tr-TR')} KM GEÃ‡TÄ°` : `${y.kalan.toLocaleString('tr-TR')} KM KALDI`;
 
                     return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border ${cl} mb-1">
                         <div>
@@ -3732,10 +3732,10 @@ window.fetchDashboardData = async function () {
             }
         }
 
-        // === Son İşlemler / Aktiviteler Widget ===
+        // === Son Ä°ÅŸlemler / Aktiviteler Widget ===
         const sonIslemlerTbody = document.getElementById('son-islemler-tbody');
         if (sonIslemlerTbody) {
-            // Son işlemleri çek (Fatura, Ödeme, Poliçe, Hakediş)
+            // Son iÅŸlemleri Ã§ek (Fatura, Ã–deme, PoliÃ§e, HakediÅŸ)
             const [recentFaturaRes, recentOdemeRes, recentHakedisRes] = await Promise.all([
                 window.supabaseClient.from('cari_faturalar').select('id, fatura_tarihi, aciklama, toplam_tutar, cariler(unvan)').order('fatura_tarihi', { ascending: false }).limit(5).then(r => r),
                 window.supabaseClient.from('cari_odemeler').select('id, tarih, odeme_turu, tutar, cariler(unvan)').order('tarih', { ascending: false }).limit(5).then(r => r),
@@ -3749,21 +3749,21 @@ window.fetchDashboardData = async function () {
             const recentHakedis = recentHakedisRes?.data || [];
 
             recentFatura.forEach(f => recentItems.push({ date: f.fatura_tarihi, detail: f.aciklama || 'Fatura Eklendi', type: 'FATURA', tutar: f.toplam_tutar, related: f.cariler?.unvan || '-' }));
-            recentOdeme.forEach(o => recentItems.push({ date: o.tarih, detail: o.odeme_turu || 'Ödeme', type: 'ÖDEME', tutar: o.tutar, related: o.cariler?.unvan || '-' }));
-            recentHakedis.forEach(h => recentItems.push({ date: h.sefer_tarihi, detail: h.guzergah || 'Sefer', type: 'HAKEDİŞ', tutar: h.net_hakedis, related: h.araclar?.plaka || '-' }));
+            recentOdeme.forEach(o => recentItems.push({ date: o.tarih, detail: o.odeme_turu || 'Ã–deme', type: 'Ã–DEME', tutar: o.tutar, related: o.cariler?.unvan || '-' }));
+            recentHakedis.forEach(h => recentItems.push({ date: h.sefer_tarihi, detail: h.guzergah || 'Sefer', type: 'HAKEDÄ°Åž', tutar: h.net_hakedis, related: h.araclar?.plaka || '-' }));
 
 
             recentItems.sort((a, b) => new Date(b.date) - new Date(a.date));
             recentItems = recentItems.slice(0, 10);
 
             if (recentItems.length === 0) {
-                sonIslemlerTbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-gray-500">Son işlem bulunmuyor.</td></tr>';
+                sonIslemlerTbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-gray-500">Son iÅŸlem bulunmuyor.</td></tr>';
             } else {
                 sonIslemlerTbody.innerHTML = recentItems.map(r => {
                     const typeColor = r.type === 'FATURA' ? 'text-red-400 bg-red-400/10' :
-                        r.type === 'ÖDEME' ? 'text-emerald-400 bg-emerald-400/10' :
+                        r.type === 'Ã–DEME' ? 'text-emerald-400 bg-emerald-400/10' :
                             'text-blue-400 bg-blue-400/10';
-                    const tutarColor = r.type === 'ÖDEME' ? 'text-emerald-500' : 'text-white';
+                    const tutarColor = r.type === 'Ã–DEME' ? 'text-emerald-500' : 'text-white';
 
                     return `<tr class="hover:bg-white/5 transition-colors">
                             <td class="pt-3 pb-3 px-2 text-xs text-gray-400">${window.formatDate ? window.formatDate(r.date) : r.date}</td>
@@ -3774,7 +3774,7 @@ window.fetchDashboardData = async function () {
                                      <span class="text-gray-500 truncate max-w-[150px]" title="${r.related}">${r.related}</span>
                                 </div>
                             </td>
-                            <td class="pt-3 pb-3 px-2 text-right font-black ${tutarColor}">₺${(r.tutar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                            <td class="pt-3 pb-3 px-2 text-right font-black ${tutarColor}">â‚º${(r.tutar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                        </tr>`;
                 }).join('');
             }
@@ -3787,12 +3787,12 @@ window.fetchDashboardData = async function () {
 };
 
 /* ==========================================
-   DOSYA YÖNETİMİ - SUPABASE STORAGE
+   DOSYA YÃ–NETÄ°MÄ° - SUPABASE STORAGE
    ========================================== */
 
 /**
- * Supabase Storage'a dosya yükler ve public URL döner.
- * @param {File} file - Yüklenecek dosya
+ * Supabase Storage'a dosya yÃ¼kler ve public URL dÃ¶ner.
+ * @param {File} file - YÃ¼klenecek dosya
  * @param {string} folder - 'policeler' | 'bakimlar' | 'soforler' | 'araclar'
  * @returns {string|null} Public URL ya da null
  */
@@ -3817,7 +3817,7 @@ window.uploadDosya = async function (file, folder = 'genel') {
 };
 
 /**
- * Dosyayı indirir (anchor tıklaması yöntemi)
+ * DosyayÄ± indirir (anchor tÄ±klamasÄ± yÃ¶ntemi)
  */
 window.dosyaIndir = function (url, filename) {
     const a = document.createElement('a');
@@ -3830,13 +3830,13 @@ window.dosyaIndir = function (url, filename) {
 };
 
 /* ==========================================
-   AYLIK MAAŞ BORDROSU
+   AYLIK MAAÅž BORDROSU
    ========================================== */
 
 
 
 window.silBordroKayit = async function (kayitId, soforId, adSoyad) {
-    if (!confirm(`${adSoyad} isimli personelin bu aya ait bordro kayıtlarını silmek istediğinize emin misiniz?`)) return;
+    if (!confirm(`${adSoyad} isimli personelin bu aya ait bordro kayÄ±tlarÄ±nÄ± silmek istediÄŸinize emin misiniz?`)) return;
 
     try {
         const { error } = await window.supabaseClient.from('sofor_maas_bordro').delete().eq('id', kayitId);
@@ -3847,8 +3847,8 @@ window.silBordroKayit = async function (kayitId, soforId, adSoyad) {
         if (window.fetchSoforMaaslar) window.fetchSoforMaaslar();
 
     } catch (e) {
-        console.error("Bordro silme hatası:", e);
-        alert("Silme başarısız: " + e.message);
+        console.error("Bordro silme hatasÄ±:", e);
+        alert("Silme baÅŸarÄ±sÄ±z: " + e.message);
     }
 };
 
@@ -3864,10 +3864,10 @@ window.fetchSoforMaasBordro = async function () {
     if (baslik) {
         const [y, m] = donem.split('-');
         const ay = new Date(y, m - 1).toLocaleString('tr-TR', { month: 'long', year: 'numeric' });
-        baslik.textContent = `${ay} — Personel Puantajı`;
+        baslik.textContent = `${ay} â€” Personel PuantajÄ±`;
     }
 
-    grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 animate-pulse">Yükleniyor...</div>`;
+    grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 animate-pulse">YÃ¼kleniyor...</div>`;
 
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
@@ -3910,14 +3910,14 @@ window.fetchSoforMaasBordro = async function () {
         let totals = { net_maas: 0, avans: 0, banka: 0, elden: 0 };
 
         if (allSoforler.length === 0) {
-            grid.innerHTML = `<div class="col-span-full py-16 text-center text-gray-500">Sistemde şoför kaydı bulunamadı.</div>`;
+            grid.innerHTML = `<div class="col-span-full py-16 text-center text-gray-500">Sistemde ÅŸofÃ¶r kaydÄ± bulunamadÄ±.</div>`;
             return;
         }
 
         grid.innerHTML = '';
 
-        const fmt = v => v > 0 ? '₺' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
-        const fmtBold = v => '₺' + Number(v || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmt = v => v > 0 ? 'â‚º' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : 'â€”';
+        const fmtBold = v => 'â‚º' + Number(v || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
         allSoforler.forEach(s => {
             const kayit = kayitMap[s.id];
@@ -3964,7 +3964,7 @@ window.fetchSoforMaasBordro = async function () {
 
             const plakaTag = plaka
                 ? `<span class="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black bg-orange-500/10 text-orange-400"><i data-lucide="truck" class="w-3 h-3"></i>${plaka}</span>`
-                : `<span class="text-[10px] text-gray-600">Araç atanmamış</span>`;
+                : `<span class="text-[10px] text-gray-600">AraÃ§ atanmamÄ±ÅŸ</span>`;
 
             // Progress bar for salary allocation
             const paidPct = net_maas > 0 ? Math.min(100, Math.round((topKesinti / net_maas) * 100)) : 0;
@@ -4006,7 +4006,7 @@ window.fetchSoforMaasBordro = async function () {
                     </div>
                     <div class="text-right flex-shrink-0">
                         <div class="text-lg font-black text-white">${fmtBold(net_maas)}</div>
-                        <div class="text-[9px] text-gray-500 uppercase tracking-widest">Net Maaş</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest">Net MaaÅŸ</div>
                     </div>
                 </div>
 
@@ -4014,7 +4014,7 @@ window.fetchSoforMaasBordro = async function () {
                 <div class="px-4 pt-3 pb-2 flex flex-wrap gap-2">
                     <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        <span class="text-[10px] font-bold text-blue-400">${calisma_gun > 0 ? calisma_gun + ' Gün' : 'Gün ?'}</span>
+                        <span class="text-[10px] font-bold text-blue-400">${calisma_gun > 0 ? calisma_gun + ' GÃ¼n' : 'GÃ¼n ?'}</span>
                     </div>
                     ${avans > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span><span class="text-[10px] font-bold text-orange-400">Avans: ${fmt(avans)}</span></div>` : ''}
                     ${ceza > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span class="text-[10px] font-bold text-red-400">Ceza: ${fmt(ceza)}</span></div>` : ''}
@@ -4037,45 +4037,45 @@ window.fetchSoforMaasBordro = async function () {
                 <!-- Expandable Edit Panel -->
                 <div class="border-t border-white/5">
                     <button onclick="togglePuantajEdit(this)" class="w-full px-4 py-2.5 text-[10px] font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between uppercase tracking-widest">
-                        <span class="flex items-center gap-2"><i data-lucide="pencil" class="w-3 h-3"></i>Düzenle / Detay</span>
+                        <span class="flex items-center gap-2"><i data-lucide="pencil" class="w-3 h-3"></i>DÃ¼zenle / Detay</span>
                         <i data-lucide="chevron-down" class="w-3 h-3 transition-transform puantaj-chevron"></i>
                     </button>
                     <div class="puantaj-edit-panel hidden px-4 pb-4 pt-2 space-y-3 bg-black/20">
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Çalışma Günü</label>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Ã‡alÄ±ÅŸma GÃ¼nÃ¼</label>
                                 ${gunInp}
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Net Maaş (₺)</label>
+                                <label class="block text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-1">Net MaaÅŸ (â‚º)</label>
                                 ${inp('net_maas', net_maas || '', 'text-blue-400')}
                             </div>
                         </div>
                         <div class="grid grid-cols-3 gap-3">
                             <div>
-                                <label class="block text-[9px] font-bold text-orange-400 uppercase tracking-widest mb-1">Avans (₺)</label>
+                                <label class="block text-[9px] font-bold text-orange-400 uppercase tracking-widest mb-1">Avans (â‚º)</label>
                                 ${inp('avans', avans || '', 'text-orange-400')}
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-red-400 uppercase tracking-widest mb-1">Ceza (₺)</label>
+                                <label class="block text-[9px] font-bold text-red-400 uppercase tracking-widest mb-1">Ceza (â‚º)</label>
                                 ${inp('ceza', ceza || '', 'text-red-400')}
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-purple-400 uppercase tracking-widest mb-1">Haciz (₺)</label>
+                                <label class="block text-[9px] font-bold text-purple-400 uppercase tracking-widest mb-1">Haciz (â‚º)</label>
                                 ${inp('haciz', haciz || '', 'text-purple-400')}
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
-                                <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">M.K Banka (₺)</label>
+                                <label class="block text-[9px] font-bold text-gray-400 uppercase tracking-widest mb-1">M.K Banka (â‚º)</label>
                                 ${inp('mk_banka', mk_banka || '', '')}
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-green-400 uppercase tracking-widest mb-1">İDEOL Banka (₺)</label>
+                                <label class="block text-[9px] font-bold text-green-400 uppercase tracking-widest mb-1">Ä°DEOL Banka (â‚º)</label>
                                 ${inp('ideol_banka', ideol_banka || '', 'text-green-400')}
                             </div>
                         </div>
-                        ${kayit ? `<div class="flex justify-end pt-1"><button onclick="deleteRecord('sofor_maas_bordro','${kayit.id}','fetchSoforMaasBordro')" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Kaydı Sil</button></div>` : ''}
+                        ${kayit ? `<div class="flex justify-end pt-1"><button onclick="deleteRecord('sofor_maas_bordro','${kayit.id}','fetchSoforMaasBordro')" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>KaydÄ± Sil</button></div>` : ''}
                     </div>
                 </div>
             `;
@@ -4083,21 +4083,21 @@ window.fetchSoforMaasBordro = async function () {
         });
 
         // Update totals bar
-        const fmtTotal = v => '₺' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+        const fmtTotal = v => 'â‚º' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         const nmEl = document.getElementById('total-net-maas');
         const avEl = document.getElementById('total-avans');
         const bnkEl = document.getElementById('total-ideol-banka');
         const elEl = document.getElementById('total-elden');
         if (nmEl) nmEl.textContent = fmtTotal(totals.net_maas);
-        if (avEl) avEl.textContent = totals.avans > 0 ? fmtTotal(totals.avans) : '—';
-        if (bnkEl) bnkEl.textContent = totals.banka > 0 ? fmtTotal(totals.banka) : '—';
+        if (avEl) avEl.textContent = totals.avans > 0 ? fmtTotal(totals.avans) : 'â€”';
+        if (bnkEl) bnkEl.textContent = totals.banka > 0 ? fmtTotal(totals.banka) : 'â€”';
         if (elEl) elEl.textContent = fmtTotal(totals.elden);
 
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
         console.error('[BORDRO]', e);
-        grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 font-bold">Veri çekilemedi: ${e.message}</div>`;
+        grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-400 font-bold">Veri Ã§ekilemedi: ${e.message}</div>`;
     }
 };
 
@@ -4158,14 +4158,14 @@ window.refreshPuantajTotals = async function () {
             totals.elden += elden;
         });
 
-        const fmtTotal = v => '₺' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+        const fmtTotal = v => 'â‚º' + Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         const nmEl = document.getElementById('total-net-maas');
         const avEl = document.getElementById('total-avans');
         const bnkEl = document.getElementById('total-ideol-banka');
         const elEl = document.getElementById('total-elden');
         if (nmEl) nmEl.textContent = fmtTotal(totals.net_maas);
-        if (avEl) avEl.textContent = totals.avans > 0 ? fmtTotal(totals.avans) : '—';
-        if (bnkEl) bnkEl.textContent = totals.banka > 0 ? fmtTotal(totals.banka) : '—';
+        if (avEl) avEl.textContent = totals.avans > 0 ? fmtTotal(totals.avans) : 'â€”';
+        if (bnkEl) bnkEl.textContent = totals.banka > 0 ? fmtTotal(totals.banka) : 'â€”';
         if (elEl) elEl.textContent = fmtTotal(totals.elden);
     } catch (e) {
         console.error('Silently generating totals failed', e);
@@ -4204,7 +4204,7 @@ window.puantajExport = function () {
         // Build a simple export table from the current data
         const donem = document.getElementById('filter-bordro-ay')?.value || 'bordro';
         const cards = document.querySelectorAll('#puantaj-cards-grid [data-sofor-id]');
-        if (!cards.length) { alert('Dışa aktarılacak veri yok.'); return; }
+        if (!cards.length) { alert('DÄ±ÅŸa aktarÄ±lacak veri yok.'); return; }
         const rows = [];
         cards.forEach(card => {
             const name = card.querySelector('.font-bold.text-white')?.textContent.trim() || '';
@@ -4213,14 +4213,14 @@ window.puantajExport = function () {
             card.querySelectorAll('input[data-field]').forEach(inp => {
                 inputs[inp.dataset.field] = inp.value || '0';
             });
-            rows.push({ 'Ad Soyad': name, 'Çalışma Gün': inputs.calisma_gun || '', 'Net Maaş': inputs.net_maas || '', 'Avans': inputs.avans || '', 'Ceza': inputs.ceza || '', 'Haciz': inputs.haciz || '', 'MK Banka': inputs.mk_banka || '', 'IDEOL Banka': inputs.ideol_banka || '' });
+            rows.push({ 'Ad Soyad': name, 'Ã‡alÄ±ÅŸma GÃ¼n': inputs.calisma_gun || '', 'Net MaaÅŸ': inputs.net_maas || '', 'Avans': inputs.avans || '', 'Ceza': inputs.ceza || '', 'Haciz': inputs.haciz || '', 'MK Banka': inputs.mk_banka || '', 'IDEOL Banka': inputs.ideol_banka || '' });
         });
         if (window.XLSX) {
             const ws = XLSX.utils.json_to_sheet(rows);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Puantaj');
             XLSX.writeFile(wb, `Puantaj_${donem}.xlsx`);
-        } else { alert('Excel kütüphanesi yüklenemedi.'); }
+        } else { alert('Excel kÃ¼tÃ¼phanesi yÃ¼klenemedi.'); }
     }
 };
 
@@ -4228,14 +4228,14 @@ window.puantajExport = function () {
 
 
 
-/* === TAŞERON HAKEDİŞ TAKİBİ (YENI) === */
+/* === TAÅžERON HAKEDÄ°Åž TAKÄ°BÄ° (YENI) === */
 window.fetchTaseronHakedis = async function () {
     const tbody = document.getElementById('taseron-hakedis-tbody');
     if (!tbody) return;
 
     const donem = document.getElementById('taseron-hakedis-month')?.value;
     if (!donem) {
-        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Lütfen bir dönem seçiniz.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">LÃ¼tfen bir dÃ¶nem seÃ§iniz.</td></tr>';
         return;
     }
 
@@ -4254,16 +4254,16 @@ window.fetchTaseronHakedis = async function () {
 
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dönemde hakediş kaydı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dÃ¶nemde hakediÅŸ kaydÄ± bulunamadÄ±.</td></tr>';
             return;
         }
 
-        // Firma bazlı grupla
+        // Firma bazlÄ± grupla
         const hakedisMap = {};
         data.forEach(h => {
-            const firma = h.araclar?.firma_adi || 'Bireysel / Diğer';
+            const firma = h.araclar?.firma_adi || 'Bireysel / DiÄŸer';
             if (!hakedisMap[firma]) hakedisMap[firma] = { count: 0, trips: 0, total: 0 };
-            hakedisMap[firma].count = 1; // Basit sayım
+            hakedisMap[firma].count = 1; // Basit sayÄ±m
             hakedisMap[firma].trips++;
             hakedisMap[firma].total += Number(h.anlasilan_tutar || 0);
         });
@@ -4284,12 +4284,12 @@ window.fetchTaseronHakedis = async function () {
         });
 
     } catch (e) {
-        console.error('Hakediş fetch hatası:', e);
+        console.error('HakediÅŸ fetch hatasÄ±:', e);
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 };
 
-/* === TAŞERON SEFER RAPORLARI (YENI) === */
+/* === TAÅžERON SEFER RAPORLARI (YENI) === */
 window.fetchTaseronSeferler = async function () {
     const tbody = document.getElementById('taseron-sefer-tbody');
     if (!tbody) return;
@@ -4305,7 +4305,7 @@ window.fetchTaseronSeferler = async function () {
 
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Henüz sefer kaydı yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">HenÃ¼z sefer kaydÄ± yok.</td></tr>';
             return;
         }
 
@@ -4322,7 +4322,7 @@ window.fetchTaseronSeferler = async function () {
         });
 
     } catch (e) {
-        console.error('Sefer raporu hatası:', e);
+        console.error('Sefer raporu hatasÄ±:', e);
         tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 };
@@ -4331,7 +4331,7 @@ window.fetchTaseronSeferler = async function () {
 window.fetchCariDetails = async function (cariId) {
     const tbody = document.getElementById('cari-detail-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Hazırlanıyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">HazÄ±rlanÄ±yor...</td></tr>';
 
     try {
         const [
@@ -4365,10 +4365,10 @@ window.fetchCariDetails = async function (cariId) {
 
         let entries = [];
 
-        (faturalar || []).forEach(f => entries.push({ id: f.id, table: 'cari_faturalar', tarih: f.fatura_tarihi || f.tarih, type: 'FATURA', desc: f.fatura_no ? `Fatura: ${f.fatura_no}` : (f.aciklama || 'Hizmet/Ürün Alımı'), borc: f.toplam_tutar, alacak: 0 }));
-        (odemeler || []).forEach(o => entries.push({ id: o.id, table: 'cari_odemeler', tarih: o.tarih, type: 'ÖDEME', desc: o.aciklama || 'Kasa/Banka Ödemesi', borc: 0, alacak: o.tutar }));
-        (policeler || []).forEach(p => entries.push({ id: p.id, table: 'arac_policeler', tarih: p.baslangic_tarihi, type: 'POLİÇE', desc: `${p.police_turu || p.tur || 'Sigorta'} Poliçesi (${p.araclar ? p.araclar.plaka : '-'})`, borc: p.toplam_tutar, alacak: 0 }));
-        (bakimlar || []).forEach(b => entries.push({ id: b.id, table: 'arac_bakimlari', tarih: b.islem_tarihi, type: 'BAKIM/TAMİR', desc: `${b.islem_turu || 'Bakım'} - ${b.aciklama || '-'} (${b.araclar ? b.araclar.plaka : '-'})`, borc: b.toplam_tutar, alacak: 0 }));
+        (faturalar || []).forEach(f => entries.push({ id: f.id, table: 'cari_faturalar', tarih: f.fatura_tarihi || f.tarih, type: 'FATURA', desc: f.fatura_no ? `Fatura: ${f.fatura_no}` : (f.aciklama || 'Hizmet/ÃœrÃ¼n AlÄ±mÄ±'), borc: f.toplam_tutar, alacak: 0 }));
+        (odemeler || []).forEach(o => entries.push({ id: o.id, table: 'cari_odemeler', tarih: o.tarih, type: 'Ã–DEME', desc: o.aciklama || 'Kasa/Banka Ã–demesi', borc: 0, alacak: o.tutar }));
+        (policeler || []).forEach(p => entries.push({ id: p.id, table: 'arac_policeler', tarih: p.baslangic_tarihi, type: 'POLÄ°Ã‡E', desc: `${p.police_turu || p.tur || 'Sigorta'} PoliÃ§esi (${p.araclar ? p.araclar.plaka : '-'})`, borc: p.toplam_tutar, alacak: 0 }));
+        (bakimlar || []).forEach(b => entries.push({ id: b.id, table: 'arac_bakimlari', tarih: b.islem_tarihi, type: 'BAKIM/TAMÄ°R', desc: `${b.islem_turu || 'BakÄ±m'} - ${b.aciklama || '-'} (${b.araclar ? b.araclar.plaka : '-'})`, borc: b.toplam_tutar, alacak: 0 }));
 
         entries.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
@@ -4394,7 +4394,7 @@ window.fetchCariDetails = async function (cariId) {
                 <td class="px-6 py-4 text-right text-green-500 font-bold">${e.alacak > 0 ? window.formatCurrency(e.alacak) : '-'}</td>
                 <td class="px-6 py-4 text-right ${currentBakiye > 0 ? 'text-orange-500' : 'text-green-400'} font-black text-base">${window.formatCurrency(currentBakiye)}</td>
                 <td class="px-6 py-4 text-center">
-                    <button onclick="deleteRecord('${e.table}', '${e.id}', 'refreshCariDetails')" class="text-[10px] text-red-500 hover:text-red-400 font-bold border border-red-500/20 px-2 py-1 rounded transition-all">SİL</button>
+                    <button onclick="deleteRecord('${e.table}', '${e.id}', 'refreshCariDetails')" class="text-[10px] text-red-500 hover:text-red-400 font-bold border border-red-500/20 px-2 py-1 rounded transition-all">SÄ°L</button>
                 </td>
             `;
             tbody.prepend(tr);
@@ -4418,9 +4418,9 @@ window.fetchCariDetails = async function (cariId) {
                 
                 const bakiyeMsj = currentBakiye > 0 
                   ? `${currentBakiye.toLocaleString('tr-TR')} TL BORCUNUZ` 
-                  : (currentBakiye < 0 ? `${Math.abs(currentBakiye).toLocaleString('tr-TR')} TL ALACAĞINIZ` : 'BORCUNUZ VEYA ALACAĞINIZ OLMADIĞI');
+                  : (currentBakiye < 0 ? `${Math.abs(currentBakiye).toLocaleString('tr-TR')} TL ALACAÄžINIZ` : 'BORCUNUZ VEYA ALACAÄžINIZ OLMADIÄžI');
                   
-                let text = `Merhaba Sayın ${cari.unvan}, sistemimizde an itibarıyla ${bakiyeMsj} bulunmaktadır.`;
+                let text = `Merhaba SayÄ±n ${cari.unvan}, sistemimizde an itibarÄ±yla ${bakiyeMsj} bulunmaktadÄ±r.`;
                 wpBtn.onclick = () => window.open(`https://wa.me/90${cari.telefon.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
             } else {
                 wpBtn.classList.remove('flex');
@@ -4432,11 +4432,11 @@ window.fetchCariDetails = async function (cariId) {
 
     } catch (e) {
         console.error(e);
-        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Veri yüklenirken bir hata oluştu.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Veri yÃ¼klenirken bir hata oluÅŸtu.</td></tr>';
     }
 }
 
-// === PERSONEL MAAŞ & BORDRO (YENİ) ===
+// === PERSONEL MAAÅž & BORDRO (YENÄ°) ===
 window.fetchMaaslar = async function () {
     const tbody = document.getElementById('maaslar-tbody');
     if (!tbody) return;
@@ -4456,7 +4456,7 @@ window.fetchMaaslar = async function () {
 
         tbody.innerHTML = '';
         if (soforler.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Personel bulunamadı.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Personel bulunamadÄ±.</td></tr>`;
             return;
         }
 
@@ -4474,11 +4474,11 @@ window.fetchMaaslar = async function () {
             islemler.forEach(f => {
                 const tur = (f.islem_turu || '').toUpperCase();
                 const tutar = Number(f.tutar || 0);
-                if (tur.includes('AVANS') || tur.includes('MAAŞ') || tur.includes('ÖDEME')) {
+                if (tur.includes('AVANS') || tur.includes('MAAÅž') || tur.includes('Ã–DEME')) {
                     toplamOdenen += tutar;
-                } else if (tur.includes('KESİNTİ') || tur.includes('CEZA')) {
+                } else if (tur.includes('KESÄ°NTÄ°') || tur.includes('CEZA')) {
                     toplamKesinti += tutar;
-                } else if (tur.includes('PRİM') || tur.includes('HARCIRAH')) {
+                } else if (tur.includes('PRÄ°M') || tur.includes('HARCIRAH')) {
                     netHakedis += tutar;
                 }
             });
@@ -4498,23 +4498,23 @@ window.fetchMaaslar = async function () {
                     </div>
                 </td>
                 <td class="px-6 py-4 font-bold text-gray-300">
-                    <div class="text-[10px] text-gray-500 font-normal uppercase tracking-widest block mb-0.5">Sbt: ${maas.toLocaleString('tr-TR')} ₺</div>
-                    ${netHakedis > 0 ? '<span class="text-green-400 text-xs">+' + netHakedis.toLocaleString('tr-TR') + ' ₺ (Ek)</span>' : '<span class="text-gray-600 text-xs">+0 ₺ (Ek)</span>'}
+                    <div class="text-[10px] text-gray-500 font-normal uppercase tracking-widest block mb-0.5">Sbt: ${maas.toLocaleString('tr-TR')} â‚º</div>
+                    ${netHakedis > 0 ? '<span class="text-green-400 text-xs">+' + netHakedis.toLocaleString('tr-TR') + ' â‚º (Ek)</span>' : '<span class="text-gray-600 text-xs">+0 â‚º (Ek)</span>'}
                 </td>
-                <td class="px-6 py-4 text-orange-400 font-bold">${toplamOdenen.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
-                <td class="px-6 py-4 text-red-400 font-bold">${toplamKesinti.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
-                <td class="px-6 py-4 text-right font-black ${bakiyeRenk} text-lg tracking-tight">${kalanBakiye.toLocaleString('tr-TR', {minimumFractionDigits:2})} ₺</td>
+                <td class="px-6 py-4 text-orange-400 font-bold">${toplamOdenen.toLocaleString('tr-TR', {minimumFractionDigits:2})} â‚º</td>
+                <td class="px-6 py-4 text-red-400 font-bold">${toplamKesinti.toLocaleString('tr-TR', {minimumFractionDigits:2})} â‚º</td>
+                <td class="px-6 py-4 text-right font-black ${bakiyeRenk} text-lg tracking-tight">${kalanBakiye.toLocaleString('tr-TR', {minimumFractionDigits:2})} â‚º</td>
             `;
             tbody.appendChild(tr);
         });
 
     } catch (e) {
-        console.error("fetchMaaslar hatası:", e);
-        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Maaş/Bordro verileri yüklenirken hata oluştu.</td></tr>';
+        console.error("fetchMaaslar hatasÄ±:", e);
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">MaaÅŸ/Bordro verileri yÃ¼klenirken hata oluÅŸtu.</td></tr>';
     }
 }
 
-// === KREDİ KARTLARI (KART CARİSİ) (YENİ) ===
+// === KREDÄ° KARTLARI (KART CARÄ°SÄ°) (YENÄ°) ===
 window.fetchKrediKartlari = async function () {
     const tbody = document.getElementById('kredi-kartlari-tbody');
     if (!tbody) return;
@@ -4522,7 +4522,7 @@ window.fetchKrediKartlari = async function () {
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
     try {
-        // 1. Kartları Çek
+        // 1. KartlarÄ± Ã‡ek
         const { data: kartlar, error: kartErr } = await window.supabaseClient
             .from('kredi_kartlari')
             .select('*')
@@ -4531,7 +4531,7 @@ window.fetchKrediKartlari = async function () {
         if (kartErr) throw kartErr;
         const kartlarClean = window.sanitizeDataArray(kartlar || []);
 
-        // 2. İşlemleri Çek
+        // 2. Ä°ÅŸlemleri Ã‡ek
         const { data: islemler, error: islemErr } = await window.supabaseClient
             .from('kredi_karti_islemleri')
             .select('*');
@@ -4541,11 +4541,11 @@ window.fetchKrediKartlari = async function () {
         tbody.innerHTML = '';
 
         if (!kartlar || kartlar.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Kayıtlı kredi kartı bulunmamaktadır.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">KayÄ±tlÄ± kredi kartÄ± bulunmamaktadÄ±r.</td></tr>`;
             return;
         }
 
-        // Kart bazlı işlemleri topla
+        // Kart bazlÄ± iÅŸlemleri topla
         const islemMap = {};
         (islemler || []).forEach(islem => {
             if (!islemMap[islem.kart_id]) {
@@ -4565,7 +4565,7 @@ window.fetchKrediKartlari = async function () {
             const harcanan = kIslem.tutar;
             const kullanilabilir = (limit - harcanan > 0) ? limit - harcanan : 0;
 
-            // Kart İşlemleri JSON'ını UI tarafına taşımak için buton içine gömüyoruz
+            // Kart Ä°ÅŸlemleri JSON'Ä±nÄ± UI tarafÄ±na taÅŸÄ±mak iÃ§in buton iÃ§ine gÃ¶mÃ¼yoruz
             const txDataStr = encodeURIComponent(JSON.stringify(kIslem.transactions));
 
             tr.innerHTML = `
@@ -4576,13 +4576,13 @@ window.fetchKrediKartlari = async function () {
                         </div>
                         <div>
                             <p class="font-bold text-white text-sm uppercase tracking-wide">${k.kart_adi}</p>
-                            <p class="text-[10px] text-gray-500 uppercase">Toplam ${kIslem.count} İşlem</p>
+                            <p class="text-[10px] text-gray-500 uppercase">Toplam ${kIslem.count} Ä°ÅŸlem</p>
                         </div>
                     </div>
                 </td>
                 <td class="px-6 py-4">
                     <p class="text-sm font-bold text-green-400">${window.formatCurrency(limit)}</p>
-                    <p class="text-[10px] text-gray-400">Özet Kull. Limit: <span class="text-white">${window.formatCurrency(kullanilabilir)}</span></p>
+                    <p class="text-[10px] text-gray-400">Ã–zet Kull. Limit: <span class="text-white">${window.formatCurrency(kullanilabilir)}</span></p>
                 </td>
                 <td class="px-6 py-4 text-orange-500 font-bold text-base">
                     ${window.formatCurrency(harcanan)}
@@ -4594,8 +4594,8 @@ window.fetchKrediKartlari = async function () {
                 </td>
                 <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                    ${kIslem.count > 0
-                    ? `<button onclick="window.showKartIslemleri(decodeURIComponent('${txDataStr}'), '${k.kart_adi}')" class="px-4 py-1.5 text-xs font-bold bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all">Detay (İşlemler)</button>`
-                    : '<span class="text-gray-600 text-[10px] italic">İşlem Yok</span>'}
+                    ? `<button onclick="window.showKartIslemleri(decodeURIComponent('${txDataStr}'), '${k.kart_adi}')" class="px-4 py-1.5 text-xs font-bold bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all">Detay (Ä°ÅŸlemler)</button>`
+                    : '<span class="text-gray-600 text-[10px] italic">Ä°ÅŸlem Yok</span>'}
                    <button onclick="deleteRecord('kredi_kartlari','${k.id}','fetchKrediKartlari')" class="text-danger text-[10px] font-bold hover:underline px-2">Sil</button>
                 </td>
             `;
@@ -4606,14 +4606,14 @@ window.fetchKrediKartlari = async function () {
 
     } catch (e) {
         console.error('[KARTLAR]', e);
-        tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">Veri çekilemedi: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">Veri Ã§ekilemedi: ${e.message}</td></tr>`;
     }
 }
 
-window.fetchTaksitler = async function (category = 'HEPSİ') {
+window.fetchTaksitler = async function (category = 'HEPSÄ°') {
     const tbody = document.getElementById('taksitler-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">YÃ¼kleniyor...</td></tr>';
 
     try {
         const { data: cariler } = await window.supabaseClient.from('cariler').select('id, unvan');
@@ -4628,7 +4628,7 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
 
         let combined = [];
 
-        // Poliçeleri ekle
+        // PoliÃ§eleri ekle
         (policeler || []).forEach(p => {
             combined.push({
                 cari_id: p.cari_id,
@@ -4641,15 +4641,15 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
             });
         });
 
-        // Bakım taksitlerini ekle (Eğer fatura taksitli vs ise şimdilik direkt borç olarak görelim)
+        // BakÄ±m taksitlerini ekle (EÄŸer fatura taksitli vs ise ÅŸimdilik direkt borÃ§ olarak gÃ¶relim)
         (bakimlar || []).forEach(b => {
             if (b.cari_id) {
                 combined.push({
                     cari_id: b.cari_id,
                     arac: b.araclar?.plaka || '-',
-                    tur: b.islem_turu || 'Bakım/Parça',
+                    tur: b.islem_turu || 'BakÄ±m/ParÃ§a',
                     tutar: Number(b.toplam_tutar) || 0,
-                    taksit: 1, // Bakımlarda şimdilik taksit mantığı yoksa 1
+                    taksit: 1, // BakÄ±mlarda ÅŸimdilik taksit mantÄ±ÄŸÄ± yoksa 1
                     date: b.islem_tarihi,
                     source: 'Bakim'
                 });
@@ -4663,7 +4663,7 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
 
         tbody.innerHTML = '';
         if (filtered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">Bu kategoride taksit veya ödeme kaydı bulunmamaktadır.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">Bu kategoride taksit veya Ã¶deme kaydÄ± bulunmamaktadÄ±r.</td></tr>';
             return;
         }
 
@@ -4689,7 +4689,7 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
                     </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${window.formatCurrency(p.tutar)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.taksit} Taksit / Aylık</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.taksit} Taksit / AylÄ±k</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-white">${window.formatCurrency(aylik)}</td>
             `;
             tbody.appendChild(tr);
@@ -4722,7 +4722,7 @@ window.fetchAylikOdemeOzeti = async function () {
             let aylikToplam = 0;
             let item_count = 0;
 
-            // Poliçe taksitleri
+            // PoliÃ§e taksitleri
             cariPoliceler.forEach(p => {
                 const tutar = Number(p.toplam_tutar) || 0;
                 const taksit = Number(p.taksit_sayisi) || 0;
@@ -4731,8 +4731,8 @@ window.fetchAylikOdemeOzeti = async function () {
                 item_count++;
             });
 
-            // Bakım masrafları (Şimdilik tek seferlik borç olarak bu aya yansıtıyoruz)
-            // Not: İleride bakım taksitlendirmesi gelirse burası güncellenmeli
+            // BakÄ±m masraflarÄ± (Åžimdilik tek seferlik borÃ§ olarak bu aya yansÄ±tÄ±yoruz)
+            // Not: Ä°leride bakÄ±m taksitlendirmesi gelirse burasÄ± gÃ¼ncellenmeli
             cariBakimlar.forEach(b => {
                 aylikToplam += Number(b.toplam_tutar) || 0;
                 item_count++;
@@ -4752,7 +4752,7 @@ window.fetchAylikOdemeOzeti = async function () {
 
         tbody.innerHTML = '';
         if (reportData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">Bu ay için bekleyen taksitli ödeme bulunmamaktadır.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-400">Bu ay iÃ§in bekleyen taksitli Ã¶deme bulunmamaktadÄ±r.</td></tr>';
             if (tfoot) tfoot.classList.add('hidden');
             return;
         }
@@ -4766,9 +4766,9 @@ window.fetchAylikOdemeOzeti = async function () {
                 <td class="px-6 py-5 font-bold text-white">${r.unvan}</td>
                 <td class="px-6 py-5"><span class="px-2 py-0.5 bg-gray-500/10 text-gray-400 text-[10px] uppercase font-bold rounded">${r.tur || 'Cari'}</span></td>
                 <td class="px-6 py-5 text-center font-bold text-gray-400">${r.count} Kalem</td>
-                <td class="px-6 py-5 text-right font-black text-orange-500 text-lg">₺${r.tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                <td class="px-6 py-5 text-right font-black text-orange-500 text-lg">â‚º${r.tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                 <td class="px-6 py-5 text-right">
-                    <button onclick="window.openCariDetail('${r.id}')" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-all" title="Detay Gör">
+                    <button onclick="window.openCariDetail('${r.id}')" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-all" title="Detay GÃ¶r">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
                 </td>
@@ -4779,7 +4779,7 @@ window.fetchAylikOdemeOzeti = async function () {
         if (tfoot) {
             tfoot.classList.remove('hidden');
             const totalEl = document.getElementById('total-aylik-odeme');
-            if (totalEl) totalEl.textContent = '₺' + grandTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+            if (totalEl) totalEl.textContent = 'â‚º' + grandTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         }
         if (window.lucide) window.lucide.createIcons();
 
@@ -4787,11 +4787,11 @@ window.fetchAylikOdemeOzeti = async function () {
 };
 
 window.refreshAllModules = function () {
-    console.log("[GLOBAL REFRESH] Tüm veriler arka planda güncelleniyor...");
+
     if (typeof window.fetchFinansDashboard === 'function') window.fetchFinansDashboard();
     if (typeof window.fetchAraclar === 'function') window.fetchAraclar();
     if (typeof window.fetchCariler === 'function') window.fetchCariler();
-    if (typeof window.fetchTaksitler === 'function') window.fetchTaksitler('HEPSİ');
+    if (typeof window.fetchTaksitler === 'function') window.fetchTaksitler('HEPSÄ°');
     if (typeof window.fetchBakimlar === 'function') window.fetchBakimlar();
     if (typeof window.fetchPoliceler === 'function') window.fetchPoliceler();
     if (typeof window.fetchMaaslar === 'function') window.fetchMaaslar();
@@ -4843,22 +4843,22 @@ window.fetchRaporlar = async function() {
     const [year, month] = ay.split('-').map(Number);
     const firstDay = `${ay}-01`;
     const lastDay = new Date(year, month, 0).toISOString().split('T')[0];
-    const fmt = (n) => '₺' + (n || 0).toLocaleString('tr-TR', {minimumFractionDigits:2});
+    const fmt = (n) => 'â‚º' + (n || 0).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
     try {
-        // --- Yakıt ---
+        // --- YakÄ±t ---
         const {data: yakitlar} = await window.supabaseClient.from('yakit_takip')
             .select('toplam_tutar, arac_id, araclar(plaka)').gte('tarih', firstDay).lte('tarih', lastDay);
 
-        // --- Bakım ---
+        // --- BakÄ±m ---
         const {data: bakimlar} = await window.supabaseClient.from('arac_bakimlari')
             .select('toplam_tutar, arac_id, araclar(plaka)').gte('islem_tarihi', firstDay).lte('islem_tarihi', lastDay);
 
-        // --- Poliçe / Sigorta ---
+        // --- PoliÃ§e / Sigorta ---
         const {data: policeler} = await window.supabaseClient.from('arac_policeler')
             .select('toplam_tutar, arac_id, araclar(plaka)').gte('baslangic_tarihi', firstDay).lte('baslangic_tarihi', lastDay);
 
-        // --- Maaş ---
+        // --- MaaÅŸ ---
         const {data: maaslar} = await window.supabaseClient.from('sofor_maas_bordro')
             .select('net_maas, avans, ceza, haciz').eq('donem', ay);
 
@@ -4871,7 +4871,7 @@ window.fetchRaporlar = async function() {
         const totalBakim = (bakimlar||[]).reduce((s,r) => s + parseFloat(r.toplam_tutar||0), 0);
         const totalPolice = (policeler||[]).reduce((s,r) => s + parseFloat(r.toplam_tutar||0), 0);
         const totalMaas = (maaslar||[]).reduce((s,r) => s + parseFloat(r.net_maas||0), 0);
-        const totalAvans = Math.abs((finanslar||[]).filter(f => f.islem_turu==='AVANS'||f.islem_turu==='KESİNTİ (Ceza/Hasar)').reduce((s,r) => s + parseFloat(r.tutar||0), 0));
+        const totalAvans = Math.abs((finanslar||[]).filter(f => f.islem_turu==='AVANS'||f.islem_turu==='KESÄ°NTÄ° (Ceza/Hasar)').reduce((s,r) => s + parseFloat(r.tutar||0), 0));
         const totalCiro = (maaslar||[]).reduce((s,r) => s + parseFloat(r.net_maas||0) + Math.abs(parseFloat(r.avans||0)) + parseFloat(r.ceza||0) + parseFloat(r.haciz||0), 0);
 
         // KPI update
@@ -4889,11 +4889,11 @@ window.fetchRaporlar = async function() {
         const gelirGiderTbody = document.getElementById('rapor-gelir-gider-tbody');
         if (gelirGiderTbody) {
             const rows = [
-                {label:'Yakıt Gideri', tur:'GİDER', tutar:totalYakit, color:'text-red-400'},
-                {label:'Bakım/Onarım Gideri', tur:'GİDER', tutar:totalBakim, color:'text-red-400'},
-                {label:'Sigorta/Poliçe Gideri', tur:'GİDER', tutar:totalPolice, color:'text-red-400'},
-                {label:'Personel Maaş Gideri', tur:'GİDER', tutar:totalMaas, color:'text-red-400'},
-                {label:'Avans/Kesinti Toplamı', tur:'GİDER', tutar:totalAvans, color:'text-orange-400'},
+                {label:'YakÄ±t Gideri', tur:'GÄ°DER', tutar:totalYakit, color:'text-red-400'},
+                {label:'BakÄ±m/OnarÄ±m Gideri', tur:'GÄ°DER', tutar:totalBakim, color:'text-red-400'},
+                {label:'Sigorta/PoliÃ§e Gideri', tur:'GÄ°DER', tutar:totalPolice, color:'text-red-400'},
+                {label:'Personel MaaÅŸ Gideri', tur:'GÄ°DER', tutar:totalMaas, color:'text-red-400'},
+                {label:'Avans/Kesinti ToplamÄ±', tur:'GÄ°DER', tutar:totalAvans, color:'text-orange-400'},
             ];
             const totalGider = rows.reduce((s,r) => s + r.tutar, 0);
             gelirGiderTbody.innerHTML = rows.map(r => `
@@ -4903,7 +4903,7 @@ window.fetchRaporlar = async function() {
                     <td class="p-3 text-right font-bold ${r.color}">${fmt(r.tutar)}</td>
                 </tr>
             `).join('') + `<tr class="border-t-2 border-orange-500/30 font-black">
-                <td class="p-3 text-orange-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GİDER</td>
+                <td class="p-3 text-orange-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GÄ°DER</td>
                 <td class="p-3 text-right text-orange-400 text-lg">${fmt(totalGider)}</td>
             </tr>`;
 
@@ -4927,7 +4927,7 @@ window.fetchRaporlar = async function() {
             } catch(e) { console.error('Chart error:', e); }
         }
 
-        // --- Araç Bazlı Gider Tablosu ---
+        // --- AraÃ§ BazlÄ± Gider Tablosu ---
         const aracTbody = document.getElementById('rapor-arac-tbody');
         if (aracTbody) {
             const aracMap = {};
@@ -4946,7 +4946,7 @@ window.fetchRaporlar = async function() {
 
             const aracRows = Object.values(aracMap).sort((a,b) => (b.yakit+b.bakim+b.police) - (a.yakit+a.bakim+a.police));
             if (aracRows.length === 0) {
-                aracTbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dönemde araç gideri bulunamadı.</td></tr>';
+                aracTbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dÃ¶nemde araÃ§ gideri bulunamadÄ±.</td></tr>';
             } else {
                 aracTbody.innerHTML = aracRows.map(a => {
                     const toplam = a.yakit + a.bakim + a.police;
@@ -4980,13 +4980,13 @@ window.fetchRaporlar = async function() {
 window.fetchRaporPersonel = async function(ay) {
     const tbody = document.getElementById('rapor-personel-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-xs text-gray-500">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-xs text-gray-500">YÃ¼kleniyor...</td></tr>';
     try {
         const {data: maaslar} = await window.supabaseClient.from('sofor_maas_bordro')
             .select('*, soforler(ad_soyad)').eq('donem', ay).order('net_maas', {ascending:false});
-        const fmt = (n) => '₺' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
+        const fmt = (n) => 'â‚º' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
         if (!maaslar || maaslar.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dönem için personel maaş kaydı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dÃ¶nem iÃ§in personel maaÅŸ kaydÄ± bulunamadÄ±.</td></tr>';
             return;
         }
         tbody.innerHTML = maaslar.map(m => {
@@ -5005,20 +5005,20 @@ window.fetchRaporPersonel = async function(ay) {
 };
 
 // ============================================================
-// RAPORLAR - MÜŞTERİ/SEFER TAB
+// RAPORLAR - MÃœÅžTERÄ°/SEFER TAB
 // ============================================================
 window.fetchRaporMusteri = async function(ay) {
     const tbody = document.getElementById('rapor-musteri-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500">YÃ¼kleniyor...</td></tr>';
     try {
         const {data: musteriler} = await window.supabaseClient.from('musteriler').select('id, ad');
         const {data: tanimlar} = await window.supabaseClient.from('musteri_arac_tanimlari')
             .select('musteri_id, tarife_turu, tek_fiyat, vardiya_fiyat');
 
-        const fmt = (n) => '₺' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
+        const fmt = (n) => 'â‚º' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
         if (!musteriler || musteriler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-gray-500 italic">Kayıtlı müşteri bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-gray-500 italic">KayÄ±tlÄ± mÃ¼ÅŸteri bulunamadÄ±.</td></tr>';
             return;
         }
 
@@ -5039,7 +5039,7 @@ window.fetchRaporMusteri = async function(ay) {
         }).filter(r => r.vardiya+r.tek > 0).sort((a,b) => b.hakedis - a.hakedis);
 
         if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-gray-500 italic">Bu dönemde araç tanımı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-gray-500 italic">Bu dÃ¶nemde araÃ§ tanÄ±mÄ± bulunamadÄ±.</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(r => `<tr class="hover:bg-white/5 transition-colors">
@@ -5054,19 +5054,19 @@ window.fetchRaporMusteri = async function(ay) {
 };
 
 // ============================================================
-// RAPORLAR - CARİ BAKİYE TAB
+// RAPORLAR - CARÄ° BAKÄ°YE TAB
 // ============================================================
 window.fetchRaporCari = async function() {
     const tbody = document.getElementById('rapor-cari-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-xs text-gray-500">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-xs text-gray-500">YÃ¼kleniyor...</td></tr>';
     try {
         const conn = window.checkSupabaseConnection();
-        if (!conn.ok) { tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-400">Bağlantı hatası</td></tr>'; return; }
+        if (!conn.ok) { tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-red-400">BaÄŸlantÄ± hatasÄ±</td></tr>'; return; }
         const {data: cariler} = await window.supabaseClient.from('cariler').select('id, unvan, tur').order('unvan');
         const {data: faturalar} = await window.supabaseClient.from('cari_faturalar').select('cari_id, toplam_tutar');
         const {data: odemeler} = await window.supabaseClient.from('cari_odemeler').select('cari_id, tutar');
-        const fmt = (n) => '₺' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
+        const fmt = (n) => 'â‚º' + (n||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
         const fatMap = {};
         (faturalar||[]).forEach(f => { fatMap[f.cari_id] = (fatMap[f.cari_id]||0) + parseFloat(f.toplam_tutar||0); });
@@ -5081,7 +5081,7 @@ window.fetchRaporCari = async function() {
         })).filter(c => c.borc > 0 || c.odenen > 0).sort((a,b) => b.bakiye - a.bakiye);
 
         if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Cari hesap kaydı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Cari hesap kaydÄ± bulunamadÄ±.</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(r => `<tr class="hover:bg-white/5 transition-colors">
@@ -5100,7 +5100,7 @@ window.fetchRaporCari = async function() {
 // RAPORLAR - EXCEL EXPORT
 // ============================================================
 window.exportRaporExcel = function(tab) {
-    if (!window.XLSX) { alert('SheetJS kütüphanesi yüklenemedi.'); return; }
+    if (!window.XLSX) { alert('SheetJS kÃ¼tÃ¼phanesi yÃ¼klenemedi.'); return; }
     const ay = document.getElementById('rapor-ay')?.value || 'rapor';
     const tableIds = {
         genel: 'rapor-genel-table', arac: 'rapor-arac-table',
@@ -5111,20 +5111,20 @@ window.exportRaporExcel = function(tab) {
     const label = tabLabels[tab] || tab;
     if (!tableId) return;
     const table = document.getElementById(tableId);
-    if (!table) { alert('Tablo bulunamadı.'); return; }
+    if (!table) { alert('Tablo bulunamadÄ±.'); return; }
     try {
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.table_to_sheet(table);
         XLSX.utils.book_append_sheet(wb, ws, label);
         XLSX.writeFile(wb, `Filo_${label}_${ay}.xlsx`);
-    } catch(e) { console.error(e); alert('Excel indirme hatası: ' + e.message); }
+    } catch(e) { console.error(e); alert('Excel indirme hatasÄ±: ' + e.message); }
 };
 
 // ============================================================
 // RAPORLAR - PDF EXPORT  
 // ============================================================
 window.exportRaporPDF = function(tab) {
-    if (!window.jspdf) { alert('jsPDF kütüphanesi yüklenemedi.'); return; }
+    if (!window.jspdf) { alert('jsPDF kÃ¼tÃ¼phanesi yÃ¼klenemedi.'); return; }
     const ay = document.getElementById('rapor-ay')?.value || 'rapor';
     const tableIds = {
         genel: 'rapor-genel-table', arac: 'rapor-arac-table',
@@ -5137,7 +5137,7 @@ window.exportRaporPDF = function(tab) {
     const tableId = tableIds[tab];
     if (!tableId) return;
     const table = document.getElementById(tableId);
-    if (!table) { alert('Tablo yüklenmedi. Önce bir dönem seçin.'); return; }
+    if (!table) { alert('Tablo yÃ¼klenmedi. Ã–nce bir dÃ¶nem seÃ§in.'); return; }
     try {
         const {jsPDF} = window.jspdf;
         const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
@@ -5193,17 +5193,17 @@ window.fetchDashboardData = async function() {
         const firstDay = `${ay}-01`;
         const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
 
-        // Aktif müşteri sayısı
+        // Aktif mÃ¼ÅŸteri sayÄ±sÄ±
         const {count: musteriCount} = await window.supabaseClient.from('musteriler').select('id', {count:'exact', head:true});
         const musteriEl = document.getElementById('kpi-musteri');
         if (musteriEl) musteriEl.textContent = musteriCount || 0;
 
-        // Taşeron hakediş
+        // TaÅŸeron hakediÅŸ
         const {data: hakedisler} = await window.supabaseClient.from('taseron_hakedis')
             .select('net_hakedis').gte('sefer_tarihi', firstDay).lte('sefer_tarihi', lastDay);
         const totalHakedis = (hakedisler||[]).reduce((s,r) => s + parseFloat(r.net_hakedis||0), 0);
         const taseronEl = document.getElementById('kpi-taseron-hakedis');
-        if (taseronEl) taseronEl.textContent = '₺' + totalHakedis.toLocaleString('tr-TR', {minimumFractionDigits:0});
+        if (taseronEl) taseronEl.textContent = 'â‚º' + totalHakedis.toLocaleString('tr-TR', {minimumFractionDigits:0});
 
         // Activity Feed
         await window.fetchSonAktiviteler();
@@ -5219,11 +5219,11 @@ window.fetchSonAktiviteler = async function() {
         if (!conn.ok) return;
 
         const typeColors = {
-            'Yakıt': 'bg-blue-500/10 text-blue-400',
-            'Bakım': 'bg-orange-500/10 text-orange-400',
-            'Maaş': 'bg-yellow-500/10 text-yellow-400',
+            'YakÄ±t': 'bg-blue-500/10 text-blue-400',
+            'BakÄ±m': 'bg-orange-500/10 text-orange-400',
+            'MaaÅŸ': 'bg-yellow-500/10 text-yellow-400',
             'Cari Fatura': 'bg-red-500/10 text-red-400',
-            'Poliçe': 'bg-pink-500/10 text-pink-400'
+            'PoliÃ§e': 'bg-pink-500/10 text-pink-400'
         };
 
         const [yakitRes, bakimRes, maasRes, fatRes, policeRes] = await Promise.all([
@@ -5235,21 +5235,21 @@ window.fetchSonAktiviteler = async function() {
         ]);
 
         const activities = [];
-        (yakitRes.data||[]).forEach(r => activities.push({tarih:r.tarih, tur:'Yakıt', detay:`${r.araclar?.plaka||'-'} - Yakıt`, tutar:r.toplam_tutar}));
-        (bakimRes.data||[]).forEach(r => activities.push({tarih:r.islem_tarihi, tur:'Bakım', detay:`${r.araclar?.plaka||'-'} - ${(r.aciklama||'').substring(0,30)}`, tutar:r.toplam_tutar}));
-        (maasRes.data||[]).forEach(r => activities.push({tarih:r.donem+'-01', tur:'Maaş', detay:`${r.soforler?.ad_soyad||'-'} Maaş`, tutar:r.net_maas}));
+        (yakitRes.data||[]).forEach(r => activities.push({tarih:r.tarih, tur:'YakÄ±t', detay:`${r.araclar?.plaka||'-'} - YakÄ±t`, tutar:r.toplam_tutar}));
+        (bakimRes.data||[]).forEach(r => activities.push({tarih:r.islem_tarihi, tur:'BakÄ±m', detay:`${r.araclar?.plaka||'-'} - ${(r.aciklama||'').substring(0,30)}`, tutar:r.toplam_tutar}));
+        (maasRes.data||[]).forEach(r => activities.push({tarih:r.donem+'-01', tur:'MaaÅŸ', detay:`${r.soforler?.ad_soyad||'-'} MaaÅŸ`, tutar:r.net_maas}));
         (fatRes.data||[]).forEach(r => activities.push({tarih:r.fatura_tarihi, tur:'Cari Fatura', detay:`${r.cariler?.unvan||'-'} - ${(r.aciklama||'').substring(0,25)}`, tutar:r.toplam_tutar}));
-        (policeRes.data||[]).forEach(r => activities.push({tarih:r.baslangic_tarihi, tur:'Poliçe', detay:`${r.araclar?.plaka||'-'} ${r.police_turu}`, tutar:r.toplam_tutar}));
+        (policeRes.data||[]).forEach(r => activities.push({tarih:r.baslangic_tarihi, tur:'PoliÃ§e', detay:`${r.araclar?.plaka||'-'} ${r.police_turu}`, tutar:r.toplam_tutar}));
 
         activities.sort((a,b) => new Date(b.tarih) - new Date(a.tarih));
         const top = activities.slice(0, 12);
 
         if (top.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Henüz kayıt yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">HenÃ¼z kayÄ±t yok.</td></tr>';
             return;
         }
 
-        const fmt = (n) => n != null ? '₺' + parseFloat(n).toLocaleString('tr-TR', {minimumFractionDigits:2}) : '-';
+        const fmt = (n) => n != null ? 'â‚º' + parseFloat(n).toLocaleString('tr-TR', {minimumFractionDigits:2}) : '-';
         tbody.innerHTML = top.map(a => {
             const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400';
             return `<tr class="hover:bg-white/5 transition-colors">
@@ -5269,7 +5269,7 @@ window.fetchSonAktiviteler = async function() {
 // ============================================
 
 window.fetchDashboard = async function() {
-  console.log('[Dashboard] Fetching data...');
+
   
   // Connection check
   const conn = window.checkSupabaseConnection();
@@ -5332,7 +5332,7 @@ window.fetchDashboard = async function() {
       gider: Array.isArray(yakitData) ? yakitData.reduce((sum, r) => sum + (parseFloat(r.toplam_tutar) || 0), 0) : 0,
     };
 
-    console.log('[Dashboard] Stats calculated:', stats);
+
 
     // Update DOM (XSS safe - textContent only)
     const updates = {
@@ -5340,8 +5340,8 @@ window.fetchDashboard = async function() {
       'stat-sofor-count': stats.sofor,
       'stat-evrak-count': stats.evrak,
       'stat-musteri-count': stats.musteri,
-      'stat-ciro': `${stats.ciro.toLocaleString('tr-TR')} ₺`,
-      'stat-gider': `${stats.gider.toLocaleString('tr-TR')} ₺`,
+      'stat-ciro': `${stats.ciro.toLocaleString('tr-TR')} â‚º`,
+      'stat-gider': `${stats.gider.toLocaleString('tr-TR')} â‚º`,
     };
 
     let updatedCount = 0;
@@ -5355,7 +5355,7 @@ window.fetchDashboard = async function() {
       }
     }
 
-    console.log(`[Dashboard] ✅ Updated ${updatedCount}/${Object.keys(updates).length} stats`);
+
 
     // Update chart if Chart.js available
     if (window.Chart && typeof window.updateCiroGiderChart === 'function') {
@@ -5363,30 +5363,30 @@ window.fetchDashboard = async function() {
     }
 
   } catch (error) {
-    console.error('[Dashboard] ❌ Fatal error:', error);
+    console.error('[Dashboard] âŒ Fatal error:', error);
     if (window.Toast && window.Toast.error) {
-      window.Toast.error(`Dashboard yüklenemedi: ${error.message}`);
+      window.Toast.error(`Dashboard yÃ¼klenemedi: ${error.message}`);
     } else {
-      alert(`Dashboard hatası: ${error.message}`);
+      alert(`Dashboard hatasÄ±: ${error.message}`);
     }
   }
 };
 
-// Güvenli başlatma fonksiyonu: Sadece başarılı giriş sonrası çağrılır
+// GÃ¼venli baÅŸlatma fonksiyonu: Sadece baÅŸarÄ±lÄ± giriÅŸ sonrasÄ± Ã§aÄŸrÄ±lÄ±r
 window.initApp = function() {
   if (window.appInitialized) return;
   window.appInitialized = true;
   
-  console.log('[App] Orijinal yükleme başlatılıyor...');
+
   if (window.supabaseClient && window.fetchDashboard) {
      window.fetchDashboard();
   }
 };
 
-console.log('[Dashboard] ✅ fetchDashboard registered');
+
 
 // ============================================
-// PHASE 2 - OPERASYON TAKVİMİ (GANTT CHART)
+// PHASE 2 - OPERASYON TAKVÄ°MÄ° (GANTT CHART)
 // ============================================
 
 window.fetchTakvim = async function() {
@@ -5394,7 +5394,7 @@ window.fetchTakvim = async function() {
     const selector = document.getElementById('takvim-ay-secici');
     if (!grid || !selector) return;
     
-    grid.innerHTML = '<div class="p-12 text-center text-gray-500 font-bold uppercase tracking-widest animate-pulse">Veriler yükleniyor...</div>';
+    grid.innerHTML = '<div class="p-12 text-center text-gray-500 font-bold uppercase tracking-widest animate-pulse">Veriler yÃ¼kleniyor...</div>';
 
     try {
         let selectedStr = selector.value;
@@ -5429,13 +5429,13 @@ window.fetchTakvim = async function() {
         const musteriler = window.sanitizeDataArray(musteriRes.data || []);
 
         const musteriMap = {};
-        musteriler.forEach(ms => { musteriMap[ms.id] = ms.ad || 'İsimsiz Fabrika'; });
+        musteriler.forEach(ms => { musteriMap[ms.id] = ms.ad || 'Ä°simsiz Fabrika'; });
         const aracLookup = {};
         araclar.forEach(a => { aracLookup[a.id] = a; });
 
         // MATRIX: musteri_id -> arac_id -> day -> {v, t}
         const musteriMatrix = {};
-        const calisanAraclar = new Set(); // Hangi aracın en az 1 sefere çıktığını tutalım
+        const calisanAraclar = new Set(); // Hangi aracÄ±n en az 1 sefere Ã§Ä±ktÄ±ÄŸÄ±nÄ± tutalÄ±m
 
         puantaj.forEach(p => {
              const mId = p.musteri_id || 'diger';
@@ -5452,28 +5452,28 @@ window.fetchTakvim = async function() {
         });
 
         let html = '<div class="flex border-b border-white/10 bg-[#0d0f11] sticky top-0 z-20 w-fit min-w-full shadow-2xl">';
-        html += '<div class="w-40 flex-shrink-0 p-3 font-bold text-xs text-gray-500 uppercase tracking-widest sticky left-0 bg-[#0d0f11] z-30 border-r border-white/10">FABRİKA & PLAKA</div>';
+        html += '<div class="w-40 flex-shrink-0 p-3 font-bold text-xs text-gray-500 uppercase tracking-widest sticky left-0 bg-[#0d0f11] z-30 border-r border-white/10">FABRÄ°KA & PLAKA</div>';
         for (let i=1; i<=daysInMonth; i++) {
             html += `<div class="w-8 flex-shrink-0 p-2 text-center font-bold text-[10px] text-gray-500 border-r border-white/5 flex items-center justify-center">${i}</div>`;
         }
         html += '</div>';
 
-        // MÜŞTERİ (FABRİKA) GRUPLARINI ÇİZ
+        // MÃœÅžTERÄ° (FABRÄ°KA) GRUPLARINI Ã‡Ä°Z
         for (const [mid, aracMap] of Object.entries(musteriMatrix)) {
-            const mUnvan = musteriMap[mid] || (mid === 'diger' ? 'Serbest / Diğer Seferler' : 'Kayıt Dışı Fabrika');
+            const mUnvan = musteriMap[mid] || (mid === 'diger' ? 'Serbest / DiÄŸer Seferler' : 'KayÄ±t DÄ±ÅŸÄ± Fabrika');
             
-            // Fabrika Header Satırı
+            // Fabrika Header SatÄ±rÄ±
             html += `<div class="flex sticky left-0 w-fit min-w-full bg-[#1b120c] border-y border-orange-500/20 group">`;
             html += `<div class="sticky left-0 w-40 flex-shrink-0 px-3 py-1.5 font-black text-[10px] text-orange-400 uppercase tracking-widest bg-[#1b120c] z-10 border-r border-orange-500/20 overflow-hidden text-ellipsis whitespace-nowrap" title="${mUnvan}">
                         <i data-lucide="building-2" class="w-3 h-3 inline mr-1 opacity-70"></i>${mUnvan}
                     </div>`;
-            // Boş hücreleri tamamla
+            // BoÅŸ hÃ¼creleri tamamla
             for (let i=1; i<=daysInMonth; i++) {
                 html += `<div class="w-8 flex-shrink-0 border-r border-white/5 opacity-20"></div>`;
             }
             html += `</div>`;
 
-            // Altındaki Araçları Çiz
+            // AltÄ±ndaki AraÃ§larÄ± Ã‡iz
             const sortedAracIds = Object.keys(aracMap).sort((a,b) => {
                 const p1 = (aracLookup[a]?.plaka || '').toLowerCase();
                 const p2 = (aracLookup[b]?.plaka || '').toLowerCase();
@@ -5481,7 +5481,7 @@ window.fetchTakvim = async function() {
             });
 
             sortedAracIds.forEach(aid => {
-                const a = aracLookup[aid] || {plaka: 'Silinmiş Araç', mulkiyet_durumu: '-'};
+                const a = aracLookup[aid] || {plaka: 'SilinmiÅŸ AraÃ§', mulkiyet_durumu: '-'};
                 html += `<div class="flex border-b border-white/5 hover:bg-white/5 transition-colors w-fit min-w-full group">`;
                 html += `<div class="w-40 flex-shrink-0 pl-6 pr-3 py-2 font-bold text-sm text-gray-300 sticky left-0 bg-[#0d0f11] z-10 border-r border-white/10 whitespace-nowrap overflow-hidden text-ellipsis group-hover:bg-[#15181c] transition-colors leading-tight">
                             ${a.plaka}
@@ -5502,7 +5502,7 @@ window.fetchTakvim = async function() {
                         </div>`;
                     } else {
                         html += `<div class="w-8 flex-shrink-0 border-r border-white/5 p-1 relative">
-                            <div class="w-full h-full rounded-sm border border-transparent group-hover:border-white/5 transition-all cursor-pointer" title="Boşta"></div>
+                            <div class="w-full h-full rounded-sm border border-transparent group-hover:border-white/5 transition-all cursor-pointer" title="BoÅŸta"></div>
                         </div>`;
                     }
                 }
@@ -5510,12 +5510,12 @@ window.fetchTakvim = async function() {
             });
         }
 
-        // HİÇ ÇALIŞMAYAN (YATAN) ARAÇLAR
+        // HÄ°Ã‡ Ã‡ALIÅžMAYAN (YATAN) ARAÃ‡LAR
         const yatanAraclar = araclar.filter(a => !calisanAraclar.has(a.id));
         if (yatanAraclar.length > 0) {
             html += `<div class="flex sticky left-0 w-fit min-w-full bg-[#1a1315] border-y border-red-500/20 group">`;
-            html += `<div class="sticky left-0 w-40 flex-shrink-0 px-3 py-1.5 font-black text-[10px] text-red-500 uppercase tracking-widest bg-[#1a1315] z-10 border-r border-red-500/20" title="Tabloda bu ay hiç tur atmamış/boşta kalmış araçlar.">
-                        <i data-lucide="parking-circle" class="w-3 h-3 inline mr-1 opacity-70"></i>PASİF & BOŞTA
+            html += `<div class="sticky left-0 w-40 flex-shrink-0 px-3 py-1.5 font-black text-[10px] text-red-500 uppercase tracking-widest bg-[#1a1315] z-10 border-r border-red-500/20" title="Tabloda bu ay hiÃ§ tur atmamÄ±ÅŸ/boÅŸta kalmÄ±ÅŸ araÃ§lar.">
+                        <i data-lucide="parking-circle" class="w-3 h-3 inline mr-1 opacity-70"></i>PASÄ°F & BOÅžTA
                     </div>`;
             for (let i=1; i<=daysInMonth; i++) html += `<div class="w-8 flex-shrink-0 border-r border-white/5 opacity-20"></div>`;
             html += `</div>`;
@@ -5534,14 +5534,14 @@ window.fetchTakvim = async function() {
         }
 
         if (araclar.length === 0) {
-            html += `<div class="p-8 text-center text-gray-500">Sistemde kayıtlı araç yok.</div>`;
+            html += `<div class="p-8 text-center text-gray-500">Sistemde kayÄ±tlÄ± araÃ§ yok.</div>`;
         }
 
         grid.innerHTML = html;
         if(window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[fetchTakvim]', e);
-        grid.innerHTML = `<div class="p-8 text-center text-red-500">Takvim yüklenemedi: ${e.message}</div>`;
+        grid.innerHTML = `<div class="p-8 text-center text-red-500">Takvim yÃ¼klenemedi: ${e.message}</div>`;
     }
 };
 
@@ -5569,7 +5569,7 @@ window.filterTakvim = function(kw) {
 
 
 // ============================================
-// ŞOFÖR PDKS & MAAŞ YÖNETİMİ & VADE ALARMLARI
+// ÅžOFÃ–R PDKS & MAAÅž YÃ–NETÄ°MÄ° & VADE ALARMLARI
 // ============================================
 window.fetchSoforMaas = async function() {
     const tbody = document.getElementById("maaslar-tbody");
@@ -5579,20 +5579,20 @@ window.fetchSoforMaas = async function() {
         if (error) throw error;
         const { data: kesintiler } = await window.supabaseClient.from("sofor_avans_kesinti").select("sofor_id, tutar");
         if (!soforler || soforler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Kayıtlı personel bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">KayÄ±tlÄ± personel bulunamadÄ±.</td></tr>';
             return;
         }
-        const fmt = n => "₺" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
+        const fmt = n => "â‚º" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
         let tc = 0, tn = 0;
         
         tbody.innerHTML = soforler.map(s => {
-            let baslik = `<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400/20 to-red-500/20 text-orange-500 font-bold flex items-center justify-center border border-orange-500/50">${s.ad_soyad.substring(0,2).toUpperCase()}</div><div><p class="font-bold text-white">${s.ad_soyad}</p><p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Kadro: Şoför</p></div></div>`;
+            let baslik = `<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-400/20 to-red-500/20 text-orange-500 font-bold flex items-center justify-center border border-orange-500/50">${s.ad_soyad.substring(0,2).toUpperCase()}</div><div><p class="font-bold text-white">${s.ad_soyad}</p><p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Kadro: ÅžofÃ¶r</p></div></div>`;
             let sumKesinti = (kesintiler||[]).filter(k => k.sofor_id === s.id).reduce((sum, item) => sum + parseFloat(item.tutar||0), 0);
             tc += sumKesinti;
             let rm = s.maas_tipi === "Sabit" ? parseFloat(s.sabit_maas||0) : 0;
             let net = rm - sumKesinti;
             tn += net;
-            let kHtml = sumKesinti > 0 ? `<div class="flex justify-end items-center gap-2"><span class="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer" title="Detaylar için Avans Ekle butonuna tıklayın">- ${fmt(sumKesinti)}</span></div>` : `<span class="text-xs text-gray-500 block text-right">Yok</span>`;
+            let kHtml = sumKesinti > 0 ? `<div class="flex justify-end items-center gap-2"><span class="text-xs font-bold text-red-500 bg-red-500/10 px-2 py-0.5 rounded cursor-pointer" title="Detaylar iÃ§in Avans Ekle butonuna tÄ±klayÄ±n">- ${fmt(sumKesinti)}</span></div>` : `<span class="text-xs text-gray-500 block text-right">Yok</span>`;
             
             return `<tr class="hover:bg-white/5 transition-all group">
                 <td class="p-4">${baslik}</td>
@@ -5623,17 +5623,17 @@ window.openAvansKesinti = async function(id, adSoyad) {
     document.getElementById("ak-tutar").value = "";
     document.getElementById("ak-aciklama").value = "";
     const tbody = document.getElementById("ak-gecmis-tbody");
-    tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">Yükleniyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">YÃ¼kleniyor...</td></tr>';
     document.getElementById("avans-kesinti-modal").classList.remove("hidden");
     document.getElementById("avans-kesinti-modal").classList.add("flex");
     try {
         const { data, error } = await window.supabaseClient.from("sofor_avans_kesinti").select("*").eq("sofor_id", id).order("tarih", {ascending: false});
         if(error) throw error;
         if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">Bu personelin geçmiş verisi yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-gray-500">Bu personelin geÃ§miÅŸ verisi yok.</td></tr>';
             return;
         }
-        const fmt = n => "₺" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
+        const fmt = n => "â‚º" + parseFloat(n||0).toLocaleString("tr-TR", {minimumFractionDigits:2});
         tbody.innerHTML = data.map(r => `<tr class="border-b border-white/5 hover:bg-white/5">
                 <td class="p-3">${r.tarih}</td>
                 <td class="p-3"><span class="px-2 py-0.5 bg-white/10 rounded text-xs font-bold text-gray-300">${r.tur}</span></td>
@@ -5645,7 +5645,7 @@ window.openAvansKesinti = async function(id, adSoyad) {
             </tr>`).join("");
         if(window.lucide) window.lucide.createIcons();
     } catch(err) {
-        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-red-500">Veri çekilemedi!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-xs text-red-500">Veri Ã§ekilemedi!</td></tr>';
     }
 };
 
@@ -5658,7 +5658,7 @@ window.saveAvansKesinti = async function() {
         aciklama: document.getElementById("ak-aciklama").value
     };
     if(!data.sofor_id || !data.tarih || !data.tur || isNaN(data.tutar) || data.tutar <= 0) {
-        if(window.Toast) window.Toast.warning("Lütfen geçerli bir tutar ve tarih giriniz.");
+        if(window.Toast) window.Toast.warning("LÃ¼tfen geÃ§erli bir tutar ve tarih giriniz.");
         return;
     }
     try {
@@ -5671,21 +5671,21 @@ window.saveAvansKesinti = async function() {
         document.getElementById("ak-aciklama").value = "";
     } catch(err) {
         console.error(err);
-        if(window.Toast) window.Toast.error("Kayıt hatası: " + err.message);
+        if(window.Toast) window.Toast.error("KayÄ±t hatasÄ±: " + err.message);
     }
 };
 
 window.silAvansKesinti = async function(id, soforId) {
-    if(!confirm("Bu işlemi silmek istediğinize emin misiniz? Şoförün net maaşına rakam geri yüklenecektir.")) return;
+    if(!confirm("Bu iÅŸlemi silmek istediÄŸinize emin misiniz? ÅžofÃ¶rÃ¼n net maaÅŸÄ±na rakam geri yÃ¼klenecektir.")) return;
     try {
         const { error } = await window.supabaseClient.from("sofor_avans_kesinti").delete().eq("id", id);
         if(error) throw error;
-        if(window.Toast) window.Toast.success("İşlem kalıcı olarak silindi.");
+        if(window.Toast) window.Toast.success("Ä°ÅŸlem kalÄ±cÄ± olarak silindi.");
         window.openAvansKesinti(soforId, document.getElementById("ak-sofor-ad").textContent);
         if(window.fetchSoforMaas) window.fetchSoforMaas();
     } catch(err) {
         console.error(err);
-        if(window.Toast) window.Toast.error("Silinirken hata oluştu!");
+        if(window.Toast) window.Toast.error("Silinirken hata oluÅŸtu!");
     }
 };
 
@@ -5718,10 +5718,10 @@ window.checkVadeAlarmlari = async function() {
                             <div class="p-2 bg-red-500/20 text-red-500 rounded-lg"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
                             <div>
                                 <h4 class="text-sm font-bold text-red-400 uppercase tracking-widest">${cB[cid].u}</h4>
-                                <p class="text-[11px] text-gray-400 font-bold">${d} gündür tahsilat bekleniyor. Ödenmemiş Bakiye Riski!</p>
+                                <p class="text-[11px] text-gray-400 font-bold">${d} gÃ¼ndÃ¼r tahsilat bekleniyor. Ã–denmemiÅŸ Bakiye Riski!</p>
                             </div>
                         </div>
-                        <div class="font-black text-white text-lg tracking-tight">₺${k.toLocaleString("tr-TR", {minimumFractionDigits:2})}</div>
+                        <div class="font-black text-white text-lg tracking-tight">â‚º${k.toLocaleString("tr-TR", {minimumFractionDigits:2})}</div>
                         <div class="absolute inset-0 bg-red-500/5 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all"></div>
                     </div>`;
                 }
