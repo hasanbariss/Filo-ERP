@@ -1,5 +1,5 @@
-﻿/**
- * app-fixes.js â€” IDEOL Filo ERP
+/**
+ * app-fixes.js — IDEOL Filo ERP
  * Sidebar collapse, mobile toggle, personel tabs, PDF font, searchable dropdowns, quick search
  * All code runs AFTER DOMContentLoaded to avoid conflicts with ui-manager.js
  */
@@ -184,7 +184,7 @@ function initSidebarCollapse() {
     // Inject collapse toggle button into sidebar top
     const collapseBtn = document.createElement('button');
     collapseBtn.id = 'sidebar-collapse-btn';
-    collapseBtn.title = 'MenÃ¼yÃ¼ Kapat/AÃ§';
+    collapseBtn.title = 'Menüyü Kapat/Aç';
     collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
     collapseBtn.style.cssText = 'position:fixed;top:1.25rem;left:246px;width:28px;height:28px;border-radius:50%;background:hsl(var(--bg-card));border:1px solid hsl(var(--border-strong));display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9999;color:hsl(var(--text-secondary));transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
     document.body.appendChild(collapseBtn);
@@ -234,16 +234,16 @@ function initMobilePreviewToggle() {
                 banner = document.createElement('div');
                 banner.id = 'mobile-preview-banner';
                 banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f97316,#ea580c);color:white;text-align:center;padding:6px 16px;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:12px;';
-                banner.innerHTML = '<span>ðŸ“± Mobil Ã–nizleme Modu (390px)</span><button onclick="window.toggleMobilePreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:700;">âœ• Kapat</button>';
+                banner.innerHTML = '<span>📱 Mobil Önizleme Modu (390px)</span><button onclick="window.toggleMobilePreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:700;">✕ Kapat</button>';
                 document.body.prepend(banner);
             }
             banner.style.display = 'flex';
-            if (label) label.textContent = 'MasaÃ¼stÃ¼';
+            if (label) label.textContent = 'Masaüstü';
             if (sidebar) sidebar.classList.remove('mobile-open');
         } else {
             const banner = document.getElementById('mobile-preview-banner');
             if (banner) banner.style.display = 'none';
-            if (label) label.textContent = 'Mobil Ã–nizleme';
+            if (label) label.textContent = 'Mobil Önizleme';
         }
     };
 }
@@ -386,14 +386,14 @@ function initSearchableSelects() {
                 const item = document.createElement('div');
                 item.className = 'searchable-select-option px-3 py-2 cursor-pointer text-sm transition-colors';
                 item.style.cssText = 'color:hsl(var(--text-primary));';
-                item.textContent = opt.text || 'â€”';
+                item.textContent = opt.text || '—';
                 item.dataset.value = opt.value;
                 item.addEventListener('mouseenter', function () { item.style.background = 'hsl(var(--bg-card-hover))'; });
                 item.addEventListener('mouseleave', function () { item.style.background = ''; });
                 item.addEventListener('click', function () {
                     select.value = opt.value;
                     select.dispatchEvent(new Event('change', { bubbles: true }));
-                    labelSpan.textContent = opt.text || 'â€”';
+                    labelSpan.textContent = opt.text || '—';
                     labelSpan.style.color = 'hsl(var(--text-primary))';
                     dropdown.classList.add('hidden');
                     searchInput.value = '';
@@ -410,7 +410,7 @@ function initSearchableSelects() {
                 labelSpan.textContent = selected.text;
                 labelSpan.style.color = 'hsl(var(--text-primary))';
             } else {
-                labelSpan.textContent = select.options[0]?.text || 'SeÃ§in...';
+                labelSpan.textContent = select.options[0]?.text || 'Seçin...';
                 labelSpan.style.color = 'hsl(var(--text-dim))';
             }
         }
@@ -469,7 +469,7 @@ function initSearchableSelects() {
 }
 
 // ============================================================
-// 6. QUICK SEARCH â€” navigate to module with results
+// 6. QUICK SEARCH — navigate to module with results
 // ============================================================
 function initQuickSearch() {
     const searchInput = document.getElementById('top-search');
@@ -478,9 +478,9 @@ function initQuickSearch() {
     let dropdownEl = null;
 
     const searchableData = [
-        { mod: 'module-filo', label: 'Ã–zmal Filo', icon: 'truck', keywords: ['arac', 'plaka', 'filo', 'ozmal', 'servis'] },
-        { mod: 'module-taseron', label: 'TaÅŸeron', icon: 'users-2', keywords: ['taseron', 'sefer', 'hakedis'] },
-        { mod: 'module-musteri', label: 'MÃ¼ÅŸteri', icon: 'users', keywords: ['musteri', 'fabrika', 'portfoy'] },
+        { mod: 'module-filo', label: 'Özmal Filo', icon: 'truck', keywords: ['arac', 'plaka', 'filo', 'ozmal', 'servis'] },
+        { mod: 'module-taseron', label: 'Taşeron', icon: 'users-2', keywords: ['taseron', 'sefer', 'hakedis'] },
+        { mod: 'module-musteri', label: 'Müşteri', icon: 'users', keywords: ['musteri', 'fabrika', 'portfoy'] },
         { mod: 'module-cari', label: 'Cari', icon: 'building-2', keywords: ['cari', 'fatura', 'borc', 'odeme'] },
         { mod: 'module-finans', label: 'Finans', icon: 'banknote', keywords: ['finans', 'yakit', 'taseron', 'aylik'] },
         { mod: 'module-personel', label: 'Personel', icon: 'user-cog', keywords: ['personel', 'maas', 'puantaj', 'avans', 'sofor', 'bordro', 'kesinti'] },
@@ -503,7 +503,7 @@ function initQuickSearch() {
         if (dropdownEl) dropdownEl.remove();
         if (!query || query.length < 1) return;
 
-        const q = query.toLowerCase().replace(/ÅŸ/g,'s').replace(/ÄŸ/g,'g').replace(/Ã¼/g,'u').replace(/Ã¶/g,'o').replace(/Ä±/g,'i').replace(/Ã§/g,'c').replace(/Ä°/g,'i');
+        const q = query.toLowerCase().replace(/ş/g,'s').replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ö/g,'o').replace(/ı/g,'i').replace(/ç/g,'c').replace(/İ/g,'i');
 
         const results = searchableData.filter(function (item) {
             return item.label.toLowerCase().includes(query.toLowerCase()) ||
@@ -518,14 +518,14 @@ function initQuickSearch() {
 
         const header = document.createElement('div');
         header.style.cssText = 'padding:8px 12px 4px;font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:hsl(var(--text-dim));';
-        header.textContent = 'ModÃ¼ller';
+        header.textContent = 'Modüller';
         dropdownEl.appendChild(header);
 
         results.forEach(function (item) {
             const row = document.createElement('button');
             row.type = 'button';
             row.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;font-size:0.85rem;font-weight:600;color:hsl(var(--text-primary));border:none;cursor:pointer;background:transparent;transition:background 0.15s;';
-            row.innerHTML = '<span style="padding:6px;background:hsl(var(--accent-orange),0.12);border-radius:8px;color:hsl(var(--accent-orange));"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#lucide-' + item.icon + '"/></svg></span><span>' + item.label + '</span><span style="margin-left:auto;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:hsl(var(--text-dim));padding:2px 6px;background:hsl(var(--bg-card-hover));border-radius:4px;">ModÃ¼le Git â†’</span>';
+            row.innerHTML = '<span style="padding:6px;background:hsl(var(--accent-orange),0.12);border-radius:8px;color:hsl(var(--accent-orange));"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#lucide-' + item.icon + '"/></svg></span><span>' + item.label + '</span><span style="margin-left:auto;font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:hsl(var(--text-dim));padding:2px 6px;background:hsl(var(--bg-card-hover));border-radius:4px;">Modüle Git →</span>';
             row.addEventListener('mouseenter', function () { row.style.background = 'hsl(var(--bg-card-hover))'; });
             row.addEventListener('mouseleave', function () { row.style.background = ''; });
             row.addEventListener('click', function () { navigateToModule(item.mod); searchInput.value = ''; });
@@ -635,7 +635,7 @@ window.exportRaporPDF = async function (tab) {
 };
 
 // ============================================================
-// 8. FIX: Modal null error â€” musteri-arac-tanim
+// 8. FIX: Modal null error — musteri-arac-tanim
 // ============================================================
 // Patch openMusteriAracTanim to safely handle pre-selection
 document.addEventListener('DOMContentLoaded', function () {
