@@ -1103,7 +1103,8 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const plaka = arac.plaka || 'Bilinmiyor';
             const marka = arac.marka_model || 'Bilinmiyor';
             const mulkiyet = arac.mulkiyet_durumu || 'ÖZMAL';
-            const sofor = arac.sofor_id && soforMap[arac.sofor_id] ? soforMap[arac.sofor_id] : '<span class="text-gray-400 italic">Atanmamış</span>';
+            const soforAdi = arac.sofor_id && soforMap[arac.sofor_id] ? soforMap[arac.sofor_id] : null;
+            const sofor = soforAdi ? soforAdi : '<span class="text-gray-400 italic">Atanmamış</span>';
 
             const vizeHtml = getStatusHtml(arac.vize_bitis, 'Vize', arac.id);
             const sigortaHtml = getStatusHtml(arac.sigorta_bitis, 'Sigorta', arac.id);
