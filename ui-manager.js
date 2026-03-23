@@ -2519,9 +2519,14 @@ window.printCariKart = function(plaka, month) {
     const rows = overlay.querySelectorAll('.musteri-calc-row');
     let detailRowsHtml = '';
     rows.forEach(row => {
-        const title = row.querySelector('.text-sm.font-bold.text-white')?.innerText || '';
-        const vdAdet = row.querySelector('.text-\\[10px\\].text-orange-400')?.innerText || '';
-        const tkAdet = row.querySelectorAll('.text-\\[10px\\].text-blue-400')[0]?.innerText || '';
+        const titleEl = row.querySelector('.font-black.text-white');
+        const title = titleEl ? titleEl.innerText.trim() : 'Fabrika';
+        
+        const vdAdetEl = row.querySelector('.text-orange-400');
+        const vdAdet = vdAdetEl ? vdAdetEl.innerText.replace(' Sefer', '').trim() : '0';
+        
+        const tkAdetEl = row.querySelector('.text-blue-400');
+        const tkAdet = tkAdetEl ? tkAdetEl.innerText.replace(' Sefer', '').trim() : '0';
         
         const vdFiyat = row.querySelector('.calc-vardiya-fiyat')?.value || '0';
         const tkFiyat = row.querySelector('.calc-tek-fiyat')?.value || '0';
