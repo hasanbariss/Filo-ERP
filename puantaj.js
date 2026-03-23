@@ -347,8 +347,14 @@ window.saveExcelGrid = async function () {
 
         // Önce mevcut db kayıtlarından bir harita çıkaralım
         const dbMap = {};
+        const dbIdsMap = {};
+        
         isolatedKayitlar.forEach(k => {
-            dbMap[`${k.arac_id}_${k.tarih}`] = k;
+            const key = `${k.arac_id}_${k.tarih}`;
+            if (!dbIdsMap[key]) dbIdsMap[key] = [];
+            dbIdsMap[key].push(k.id);
+            // keep the first one as representative for upsert
+            if (!dbMap[key]) dbMap[key] = k; 
         });
 
         toSaveOrUpdate.forEach(item => {
@@ -367,15 +373,24 @@ window.saveExcelGrid = async function () {
         Object.values(updatesByDateAndVehicle).forEach(item => {
             const v = String(item.vardiya || '').trim();
             const t = String(item.tek || '').trim();
+            const key = `${item.arac_id}_${item.tarih}`;
+            const existingIds = dbIdsMap[key] || [];
             
-            if (!v && !t && item.id) {
-                // Her ikisi de boş ve VT'de varsa tamamen sil
-                deleteIds.push(item.id);
-            } else if (!v && !t && !item.id) {
+            if (!v && !t && existingIds.length > 0) {
+                // Her ikisi de boş ve VT'de kayıt(lar) varsa tamamen sil
+                deleteIds.push(...existingIds);
+            } else if (!v && !t && existingIds.length === 0) {
                 // Veritabanında yok ve her ikisi de boş (yeni açılıp silinen) - geç
             } else {
                 if (!item.id) delete item.id;
                 upsertArray.push(item);
+                
+                // Eğer veritabanında aynı güne ait birden fazla kopya varsa (duplicate) diğerlerini temizle
+                if (existingIds.length > 1) {
+                    for (let x = 1; x < existingIds.length; x++) {
+                        deleteIds.push(existingIds[x]);
+                    }
+                }
             }
         });
 
