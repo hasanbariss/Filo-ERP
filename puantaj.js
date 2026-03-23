@@ -27,6 +27,10 @@ async function initPuantaj() {
         document.getElementById('header-title').textContent = `${musteriAdi} - Servis Puantajı`;
         document.getElementById('header-subtitle').textContent = `${months[ay - 1]} ${year} Dönemi`;
 
+        if (document.getElementById('filter-donem')) {
+            document.getElementById('filter-donem').value = monthStr;
+        }
+
         await loadGridData();
         
         if (typeof window.filterPuantaj === 'function') {
@@ -484,21 +488,21 @@ window.handlePrint = function() {
 
     let html = `
         <div style="font-family: sans-serif; color: #000; width: 100%;">
-            <div style="text-align:center; padding-bottom: 10px; margin-bottom: 15px;">
-                <h2 style="font-size: 1.2rem; font-weight: bold; margin: 0;">${headersTitle}</h2>
-                <p style="color: #333; font-size: 0.9rem; margin-top: 5px;">${headersSubtitle}</p>
+            <div style="text-align:center; padding-bottom: 5px; margin-bottom: 10px;">
+                <h2 style="font-size: 1.1rem; font-weight: bold; margin: 0;">${headersTitle}</h2>
+                <p style="color: #333; font-size: 0.85rem; margin-top: 3px;">${headersSubtitle}</p>
             </div>
             
-            <table class="print-table" style="width:100%; border-collapse: collapse; text-align:center; font-size: 10px; page-break-inside: auto;">
+            <table class="print-table" style="width:100%; border-collapse: collapse; text-align:center; font-size: 8.5px; page-break-inside: auto; table-layout: fixed;">
                 <thead>
                     <tr style="background-color: #f8fafc; font-weight: bold;">
-                        <th style="border: 1px solid #cbd5e1; padding: 4px; width: 65px;">ARAÇ</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 4px; width: 45px;">TÜR</th>`;
+                        <th style="border: 1px solid #cbd5e1; padding: 2px; width: 55px; overflow: hidden;">ARAÇ</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 2px; width: 35px; overflow: hidden;">TÜR</th>`;
                         
     for (let i = 1; i <= daysInMonth; i++) {
-        html += `<th style="border: 1px solid #cbd5e1; padding: 4px;">${i}</th>`;
+        html += `<th style="border: 1px solid #cbd5e1; padding: 2px;">${i}</th>`;
     }
-    html += `<th style="border: 1px solid #cbd5e1; padding: 4px; width: 35px; background-color: #f1f5f9;">TOP</th></tr></thead><tbody>`;
+    html += `<th style="border: 1px solid #cbd5e1; padding: 2px; width: 25px; background-color: #f1f5f9;">TOP</th></tr></thead><tbody>`;
 
     let hasData = false;
     let grandVardiya = 0;
@@ -515,10 +519,10 @@ window.handlePrint = function() {
         const bgPlaka = index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;';
 
         let vardiyaRowHTML = `<tr style="page-break-inside: avoid;">
-            <td rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; ${bgPlaka}">${arac.plaka}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 4px; color: #475569;">Vardiya</td>`;
+            <td rowspan="2" style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; overflow: hidden; ${bgPlaka}">${arac.plaka}</td>
+            <td style="border: 1px solid #cbd5e1; padding: 2px; color: #475569;">Vardiya</td>`;
         let tekRowHTML = `<tr style="page-break-inside: avoid;">
-            <td style="border: 1px solid #cbd5e1; padding: 4px; color: #475569; background-color: #fffaf0;">Tek</td>`;
+            <td style="border: 1px solid #cbd5e1; padding: 2px; color: #475569; background-color: #fffaf0;">Tek</td>`;
 
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -536,13 +540,13 @@ window.handlePrint = function() {
             if (vVal && !isNaN(parseInt(vVal))) { rowV += parseInt(vVal); colVardiya[i] += parseInt(vVal); grandVardiya += parseInt(vVal); }
             if (tVal && !isNaN(parseInt(tVal))) { rowT += parseInt(tVal); colTek[i] += parseInt(tVal); grandTek += parseInt(tVal); }
 
-            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; ${getPrintBg(vVal, 'v')}">${vVal}</td>`;
-            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; ${getPrintBg(tVal, 't')}">${tVal}</td>`;
+            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; ${getPrintBg(vVal, 'v')}">${vVal}</td>`;
+            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; ${getPrintBg(tVal, 't')}">${tVal}</td>`;
         }
         
         if (aracVeriVar) {
-            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
-            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
+            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
+            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
 
             html += vardiyaRowHTML + tekRowHTML;
             hasData = true;
@@ -550,29 +554,29 @@ window.handlePrint = function() {
     });
 
     if (!hasData) {
-        html += `<tr><td colspan="${daysInMonth + 3}" style="padding:20px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
+        html += `<tr><td colspan="${daysInMonth + 3}" style="padding:10px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
     } else {
         // Totals Rows
         html += `<tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #94a3b8;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; color: #475569; font-size: 9px;">VARDİYA TOPLAM:</td>`;
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 3px; text-align: right; color: #475569; font-size: 7.5px; overflow: hidden; white-space: nowrap;">VARDİYA TOP:</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">${colVardiya[i]}</td>`;
+            html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #475569;">${colVardiya[i]}</td>`;
         }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #0f172a;">${grandVardiya}</td></tr>`;
+        html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #0f172a;">${grandVardiya}</td></tr>`;
 
         html += `<tr style="background-color: #f8fafc; font-weight: bold;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; color: #475569; font-size: 9px;">TEK SEFER TOPLAM:</td>`;
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 3px; text-align: right; color: #475569; font-size: 7.5px; overflow: hidden; white-space: nowrap;">TEK SEFER TOP:</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">${colTek[i]}</td>`;
+            html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #475569;">${colTek[i]}</td>`;
         }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #0f172a;">${grandTek}</td></tr>`;
+        html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #0f172a;">${grandTek}</td></tr>`;
 
         html += `<tr style="background-color: #eef2ff; font-weight: 900; border-top: 2px solid #94a3b8;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 8px; text-align: right; color: #3730a3; font-size: 10px;">GENEL TOPLAM (V+T):</td>`;
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 4px; text-align: right; color: #3730a3; font-size: 8.5px; overflow: hidden; white-space: nowrap;">G. TOPLAM:</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 8px; color: #3730a3;">${colVardiya[i] + colTek[i]}</td>`;
+            html += `<td style="border: 1px solid #cbd5e1; padding: 4px; color: #3730a3;">${colVardiya[i] + colTek[i]}</td>`;
         }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 8px; color: #1e1b4b; background-color: #e0e7ff;">${grandVardiya + grandTek}</td></tr>`;
+        html += `<td style="border: 1px solid #cbd5e1; padding: 4px; color: #1e1b4b; background-color: #e0e7ff;">${grandVardiya + grandTek}</td></tr>`;
     }
 
     html += `</tbody></table></div>`;
@@ -598,6 +602,14 @@ function getPrintBg(val, type) {
         else return 'background-color: #fff7ed; color: #c2410c; font-weight: bold;';
     }
     return '';
+}
+
+window.changeDonem = function() {
+    const newDonem = document.getElementById('filter-donem').value;
+    if (newDonem) {
+        urlParams.set('ay', newDonem);
+        window.location.search = urlParams.toString();
+    }
 }
 
 if (document.readyState === 'loading') {
