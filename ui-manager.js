@@ -1403,6 +1403,38 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('police-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('police-odeme-cari', 'cariler', 'id', 'unvan');
         }, 50);
+    } else if (title === 'Poliçe Düzenle') {
+        content = `
+                    <p class="text-sm text-gray-400 mb-8">Poliçenizdeki bilgileri güncelleyin ve ödeme yaptığınız kredi kartını/notu belirtin.</p>
+                    <div class="space-y-6">
+                        <input type="hidden" id="edit-police-id" value="">
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Başlangıç</label>
+                                <input type="date" id="edit-police-baslangic" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Bitiş</label>
+                                <input type="date" id="edit-police-bitis" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
+                                <input type="number" step="0.01" id="edit-police-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Taksit</label>
+                                <input type="number" id="edit-police-taksit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hangi Kartla Kesildi? / Not</label>
+                            <input type="text" id="edit-police-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Garanti Bonus kartımla 6 taksit çektim.">
+                        </div>
+                    </div>
+                `;
     } else if (title === 'Yeni Fatura Kaydı') {
         content = `
                     <p class="text-sm text-gray-500 mb-6">Cari hesaba ait genel bir fatura veya belge kaydedin.</p>
@@ -2013,6 +2045,17 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-musteri-adres').value = data.adres || '';
                         document.getElementById('edit-musteri-vade').value = data.vade_gun || 30;
                         document.getElementById('edit-musteri-logo').value = data.logo_url || '';
+                    }
+                });
+            } else if (title === 'Poliçe Düzenle') {
+                window.supabaseClient.from('arac_policeler').select('*').eq('id', id).single().then(({ data }) => {
+                    if (data) {
+                        document.getElementById('edit-police-id').value = data.id;
+                        document.getElementById('edit-police-baslangic').value = data.baslangic_tarihi || '';
+                        document.getElementById('edit-police-bitis').value = data.bitis_tarihi || '';
+                        document.getElementById('edit-police-tutar').value = data.toplam_tutar || 0;
+                        document.getElementById('edit-police-taksit').value = data.taksit_sayisi || 1;
+                        document.getElementById('edit-police-aciklama').value = data.aciklama || '';
                     }
                 });
             } else if (title === 'Araç Güncelle') {

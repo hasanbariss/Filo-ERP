@@ -626,6 +626,27 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchPoliceler === 'function') fetchPoliceler();
             if (typeof fetchAraclar === 'function') fetchAraclar();
             if (typeof fetchTaksitler === 'function') fetchTaksitler();
+        } else if (formTitle === 'Poliçe Düzenle') {
+            const id = document.getElementById('edit-police-id').value;
+            const baslangic_tarihi = document.getElementById('edit-police-baslangic').value || null;
+            const bitis_tarihi = document.getElementById('edit-police-bitis').value || null;
+            const toplam_tutar = parseFloat(document.getElementById('edit-police-tutar').value) || 0;
+            const taksit_sayisi = parseInt(document.getElementById('edit-police-taksit').value) || 1;
+            const aciklama = document.getElementById('edit-police-aciklama').value || null;
+            
+            if (!id) throw new Error("Poliçe ID bulunamadı.");
+            
+            let payload = { baslangic_tarihi, bitis_tarihi, toplam_tutar, taksit_sayisi, aciklama };
+            let { error } = await window.supabaseClient.from('arac_policeler').update(payload).eq('id', id);
+            
+            if (error && error.message && (error.message.includes('could not find') || error.message.includes('not exist') || error.message.includes('could not identify column'))) {
+                delete payload.aciklama;
+                let fallback = await window.supabaseClient.from('arac_policeler').update(payload).eq('id', id);
+                error = fallback.error;
+                if (!error && window.Toast) window.Toast.info("Poliçe Notu için Supabase ayarı gerekli. Diğer veriler güncellendi.");
+            }
+            if (error) throw error;
+            if (typeof fetchPoliceler === 'function') fetchPoliceler();
         } else if (formTitle === 'Yeni Fatura Kaydı') {
             const cari_id = document.getElementById('fatura-cari-id').value;
             const fatura_tarihi = document.getElementById('fatura-tarih').value;
@@ -3544,9 +3565,11 @@ async function fetchPoliceler() {
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-primary">₺${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
                             <div class="text-[10px] text-gray-500 uppercase mt-0.5 text-center bg-gray-100 rounded-sm py-0.5 inline-block px-2">${p.taksit_sayisi} Taksit</div>
+                            ${p.aciklama ? `<div class="text-[10px] text-gray-500 mt-1 max-w-[150px] truncate" title="${p.aciklama}">Not: ${p.aciklama}</div>` : ''}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
                             ${p.dosya_url ? `<a href="${p.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Poliçeyi Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
+                            <button onclick="openModal('Poliçe Düzenle', '${p.id}')" class="text-blue-500 hover:text-blue-700 text-xs font-semibold uppercase tracking-wider">Düzenle</button>
                             <button onclick="deleteRecord('arac_policeler', '${p.id}', 'fetchPoliceler')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
                         </td>
                     `;
