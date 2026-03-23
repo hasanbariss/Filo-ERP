@@ -490,7 +490,6 @@ window.handlePrint = function() {
         <div style="font-family: sans-serif; color: #000; width: 100%; box-sizing: border-box; padding: 5mm; position: relative;">
             <div style="position: absolute; top: 3mm; right: 5mm; text-align: right; z-index: 10;">
                 <div style="font-size: 1.15rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; padding-bottom: 2px; margin-bottom: 2px;">IDEOL TURİZM</div>
-                <div style="font-size: 0.55rem; color: #555; font-weight: bold; letter-spacing: 0.5px;">FİLO YÖNETİM SİSTEMİ</div>
             </div>
             
             <div style="text-align:center; padding-bottom: 5px; margin-bottom: 5px; margin-top: 15px;">
