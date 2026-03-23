@@ -2212,12 +2212,15 @@ async function fetchMusteriler() {
                     </button>
                     <div class="musteri-arac-panel hidden px-4 pb-3 pt-1 bg-black/20">
                         ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">Henüz araç atanmamış.</p>`}
-                        <div class="flex gap-2 mt-2">
-                            <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="plus" class="w-3 h-3"></i> Arac Ekle
+                        <div class="flex gap-2 mt-2 flex-wrap">
+                            <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
+                                <i data-lucide="plus" class="w-3 h-3"></i> Ekle
                             </button>
-                            <button onclick="window.openTopluAracEkle('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-orange-400 hover:text-orange-300 border border-orange-500/20 hover:border-orange-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
+                            <button onclick="window.openTopluAracEkle('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-orange-400 hover:text-orange-300 border border-orange-500/20 hover:border-orange-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
                                 <i data-lucide="list-plus" class="w-3 h-3"></i> Toplu Ekle
+                            </button>
+                            <button onclick="window.openTopluAracSil('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i> Toplu Sil
                             </button>
                         </div>
                     </div>
@@ -2259,7 +2262,7 @@ window.openPuantajForMusteri = function (musteriId) {
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const url = `puantaj.html?musteri_id=${musteriId}&ay=${currentMonth}`;
-    window.open(url, `Puantaj_${musteriId}`, 'width=1800,height=950,center=1,titlebar=1,resizable=1,scrollbars=1');
+    window.open(url, `Puantaj_${musteriId}`, 'width=1500,height=850,center=1,titlebar=1,resizable=1,scrollbars=1');
 };
 
 window.openMusteriAracTanim = function (musteriId, musteriAdi) {
@@ -2336,6 +2339,10 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
                             <option value="Tek">Tek Sefer (Tur Başı)</option>
                         </select>
                     </div>
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Plaka Ara</label>
+                        <input type="text" id="toplu-arac-search" onkeyup="window.filterTopluAraclar()" placeholder="Plaka girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
+                    </div>
                 </div>
 
                 <!-- Araç Seçim Listesi -->
@@ -2379,14 +2386,23 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
 
         const araclar = res.data;
         listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + araclar.map(a => `
-            <label class="flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-white/20 bg-white/5 cursor-pointer transition-colors group">
+            <label class="toplu-arac-item flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-white/20 bg-white/5 cursor-pointer transition-colors group">
                 <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-orange-500 focus:ring-orange-500/50 focus:ring-offset-gray-900" value="${a.id}">
                 <div>
-                    <div class="font-bold text-white text-sm">${a.plaka}</div>
+                    <div class="plaka-text font-bold text-white text-sm">${a.plaka}</div>
                     <div class="text-[10px] text-gray-500 uppercase">${a.marka_model||'-'} <span class="opacity-50">(${a.mulkiyet_durumu})</span></div>
                 </div>
             </label>
         `).join('') + '</div>';
+    });
+};
+
+window.filterTopluAraclar = function() {
+    const term = document.getElementById('toplu-arac-search')?.value.toUpperCase() || '';
+    document.querySelectorAll('.toplu-arac-item').forEach(lbl => {
+        const plaka = lbl.querySelector('.plaka-text')?.innerText.toUpperCase() || '';
+        if (plaka.includes(term)) lbl.style.display = 'flex';
+        else lbl.style.display = 'none';
     });
 };
 
@@ -2443,6 +2459,156 @@ window.kaydetTopluAraclar = async function(musteriId) {
         btn.innerHTML = origHtml;
         btn.disabled = false;
         if(window.lucide) window.lucide.createIcons();
+    }
+};
+
+// ============================================
+// TOPLU ARAÇ SİLME
+// ============================================
+window.openTopluAracSil = function (musteriId, musteriAdi) {
+    const overlay = document.createElement('div');
+    overlay.id = "toplu-arac-sil-modal-overlay";
+    overlay.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-20 pb-20";
+    
+    overlay.innerHTML = `
+        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
+                <div>
+                    <h2 class="text-lg font-black text-white uppercase tracking-wider text-red-500">Toplu Araç Silme</h2>
+                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisinden Araçları Çıkar</p>
+                </div>
+                <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
+            </div>
+            
+            <div class="p-6">
+                <!-- Üst Kontroller -->
+                <div class="flex gap-4 mb-6">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Plaka Ara</label>
+                        <input type="text" id="toplu-sil-search" onkeyup="window.filterTopluSilAraclar()" placeholder="Plaka girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all">
+                    </div>
+                </div>
+
+                <!-- Araç Seçim Listesi -->
+                <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
+                    <div class="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
+                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Atanmış Araçlar</h3>
+                        <div class="flex gap-3 text-[10px] font-bold">
+                            <button onclick="document.querySelectorAll('.toplu-sil-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">Tümünü Seç</button>
+                            <span class="text-gray-600">|</span>
+                            <button onclick="document.querySelectorAll('.toplu-sil-cb').forEach(cb=>cb.checked=false)" class="text-gray-500 hover:text-gray-400">Temizle</button>
+                        </div>
+                    </div>
+                    
+                    <div class="max-h-[400px] overflow-y-auto p-4 custom-scrollbar" id="toplu-sil-list">
+                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">Araçlar yükleniyor...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
+                <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
+                <button onclick="silTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black text-sm shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    Seçili Araçları Sil
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    if(window.lucide) window.lucide.createIcons();
+
+    // Fetch currently assigned vehicles
+    window.supabaseClient
+        .from('musteri_arac_tanimlari')
+        .select(`
+            id,
+            arac_id,
+            araclar ( id, plaka, marka_model, mulkiyet_durumu )
+        `)
+        .eq('musteri_id', musteriId)
+        .then(res => {
+            const listDiv = document.getElementById('toplu-sil-list');
+            if(!listDiv) return;
+            
+            if(res.error || !res.data || res.data.length === 0) {
+                listDiv.innerHTML = '<div class="text-center p-8 text-gray-500 text-sm">Bu müşteriye atanmış araç bulunamadı.</div>';
+                return;
+            }
+
+            // sort by plaka
+            const data = res.data.sort((a,b) => {
+                const pa = a.araclar ? a.araclar.plaka : '';
+                const pb = b.araclar ? b.araclar.plaka : '';
+                return pa.localeCompare(pb);
+            });
+
+            listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + data.map(item => {
+                const a = item.araclar || {};
+                return `
+                <label class="toplu-sil-item flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-red-500/30 bg-white/5 hover:bg-red-500/5 cursor-pointer transition-colors group">
+                    <input type="checkbox" class="toplu-sil-cb w-4 h-4 rounded bg-black/50 border-white/20 text-red-500 focus:ring-red-500/50 focus:ring-offset-gray-900" value="${item.arac_id}">
+                    <div>
+                        <div class="plaka-text font-bold text-white text-sm">${a.plaka || 'Bilinmeyen'}</div>
+                        <div class="text-[10px] text-gray-500 uppercase">${a.marka_model||'-'} <span class="opacity-50">(${a.mulkiyet_durumu || '-'})</span></div>
+                    </div>
+                </label>
+                `;
+            }).join('') + '</div>';
+        });
+};
+
+window.filterTopluSilAraclar = function() {
+    const term = document.getElementById('toplu-sil-search')?.value.toUpperCase() || '';
+    document.querySelectorAll('.toplu-sil-item').forEach(lbl => {
+        const plaka = lbl.querySelector('.plaka-text')?.innerText.toUpperCase() || '';
+        if (plaka.includes(term)) lbl.style.display = 'flex';
+        else lbl.style.display = 'none';
+    });
+};
+
+window.silTopluAraclar = async function(musteriId) {
+    const checked = Array.from(document.querySelectorAll('.toplu-sil-cb:checked')).map(cb => cb.value);
+    if (checked.length === 0) {
+        if(window.Toast) window.Toast.error("Lütfen silinecek en az bir araç seçin.");
+        else alert("Lütfen silinecek en az bir araç seçin.");
+        return;
+    }
+
+    if (!confirm(`Seçili ${checked.length} aracı bu müşteriden çıkarmak istediğinize emin misiniz?`)) return;
+
+    const btn = document.querySelector('button[onclick*="silTopluAraclar"]');
+    let origHtml = '';
+    if (btn) {
+        origHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Siliniyor...';
+        btn.disabled = true;
+    }
+
+    try {
+        const { error } = await window.supabaseClient
+            .from('musteri_arac_tanimlari')
+            .delete()
+            .eq('musteri_id', musteriId)
+            .in('arac_id', checked);
+
+        if (error) throw error;
+
+        if (window.Toast) window.Toast.success(`${checked.length} adet araç başarıyla çıkarıldı.`);
+        else alert(`${checked.length} adet araç başarıyla çıkarıldı.`);
+        
+        document.getElementById('toplu-arac-sil-modal-overlay').remove();
+        if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
+        
+    } catch (e) {
+        console.error("Toplu Silme Hatası:", e);
+        if (window.Toast) window.Toast.error("Silme hatası: " + e.message);
+        else alert("Silme hatası: " + e.message);
+        if (btn) {
+            btn.innerHTML = origHtml;
+            btn.disabled = false;
+        }
+        if (window.lucide) window.lucide.createIcons();
     }
 };
 

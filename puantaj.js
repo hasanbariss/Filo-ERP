@@ -28,6 +28,10 @@ async function initPuantaj() {
         document.getElementById('header-subtitle').textContent = `${months[ay - 1]} ${year} Dönemi`;
 
         await loadGridData();
+        
+        if (typeof window.filterPuantaj === 'function') {
+            window.filterPuantaj();
+        }
     } catch (e) {
         alert("Init Hatası: " + e.message + "\nStack: " + e.stack);
         const hTitle = document.getElementById('header-title');
@@ -108,8 +112,12 @@ async function loadGridData() {
         isolatedAraclar.forEach((arac, index) => {
             const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
 
+            const relatedRecords = isolatedKayitlar.filter(k => k.arac_id === arac.id);
+            const aracVeriVar = relatedRecords.some(r => Boolean(r.vardiya) || Boolean(r.tek));
+            const dataStr = aracVeriVar ? 'true' : 'false';
+
             // --- VARDİYA ---
-            tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}">`;
+            tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
             tblHtml += `<td class="p-0 text-[11px] font-medium text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] leading-tight" style="width: 130px; min-width: 130px;" rowspan="2">
                             <div class="px-3 py-1.5 font-bold text-slate-900 break-all border-b border-slate-100" title="${arac.plaka}">${arac.plaka}</div>
                             <div class="flex flex-col">
@@ -146,7 +154,7 @@ async function loadGridData() {
             tblHtml += `</tr>`;
 
             // --- TEK SEFER ---
-            tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors" data-arac-id="${arac.id}">`;
+            tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
             let rowTekTotal = 0;
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -242,6 +250,13 @@ window.excelInputChanged = function (aracId, type, day) {
         dataObj.val_new = val;
     } else {
         isolatedGridData.push({ id: null, arac_id: aracId, tarih: dateCode, field: type, val_original: '', val_new: val });
+    }
+
+    // Satırın görünürlüğünün kaybolmamasını sağla
+    if (val !== '') {
+        document.querySelectorAll(`tr[data-arac-id="${aracId}"]`).forEach(tr => {
+            tr.setAttribute('data-has-data', 'true');
+        });
     }
 
     const daysInMonth = new Date(year, ay, 0).getDate();
@@ -424,10 +439,13 @@ window.filterPuantaj = function() {
     const rows = document.querySelectorAll('#excel-tbody tr[data-arac-id]');
     
     rows.forEach(tr => {
+        const aracId = tr.getAttribute('data-arac-id');
+        const hasData = tr.getAttribute('data-has-data') === 'true';
+
         if (selectedId === 'ALL') {
-            tr.style.display = '';
+             tr.style.display = hasData ? '' : 'none';
         } else {
-            if (tr.getAttribute('data-arac-id') === selectedId) {
+            if (aracId === selectedId) {
                 tr.style.display = '';
             } else {
                 tr.style.display = 'none';

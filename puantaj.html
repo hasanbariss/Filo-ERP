@@ -73,63 +73,64 @@
 
     <!-- Header Bar -->
     <header
-        class="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm z-20 shrink-0">
-        <div class="flex items-center gap-4">
-            <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 shadow-sm">
-                <i data-lucide="calendar-days" class="w-6 h-6"></i>
+        class="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between shadow-sm z-20 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="p-2 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100 shadow-sm flex items-center justify-center">
+                <i data-lucide="calendar-days" class="w-5 h-5"></i>
             </div>
             <div>
-                <h1 class="text-xl font-bold tracking-tight text-slate-900" id="header-title">Puantaj Yükleniyor...</h1>
-                <p class="text-xs font-medium text-slate-500" id="header-subtitle">Lütfen Bekleyin</p>
+                <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none" id="header-title">Puantaj Yükleniyor...</h1>
+                <p class="text-[10px] font-medium text-slate-500 mt-1" id="header-subtitle">Lütfen Bekleyin</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
             <!-- Summary Stats -->
-            <div class="flex items-center gap-6 mr-4 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200">
+            <div class="hidden md:flex items-center gap-4 bg-slate-50 px-3 py-1 rounded-lg border border-slate-200">
                 <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vardiya</p>
-                    <p class="text-lg font-black text-indigo-600 leading-none" id="summary-vardiya">0</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Vardiya</p>
+                    <p class="text-[13px] font-black text-indigo-600 leading-tight mt-0.5" id="summary-vardiya">0</p>
                 </div>
-                <div class="w-px h-8 bg-slate-200"></div>
+                <div class="w-px h-6 bg-slate-200"></div>
                 <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tek Sefer</p>
-                    <p class="text-lg font-black text-orange-500 leading-none" id="summary-tek">0</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Tek</p>
+                    <p class="text-[13px] font-black text-orange-500 leading-tight mt-0.5" id="summary-tek">0</p>
                 </div>
-                <div class="w-px h-8 bg-slate-200"></div>
+                <div class="w-px h-6 bg-slate-200"></div>
                 <div class="text-center">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Genel</p>
-                    <p class="text-lg font-black text-slate-800 leading-none" id="summary-genel">0</p>
+                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none">Genel</p>
+                    <p class="text-[13px] font-black text-slate-800 leading-tight mt-0.5" id="summary-genel">0</p>
                 </div>
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center gap-2 border-r border-slate-200 pr-4 mr-2">
-                <select id="filter-arac" onchange="window.filterPuantaj()" class="text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[150px]">
+            <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
+                <select id="filter-arac" onchange="window.filterPuantaj()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[120px]">
                     <option value="ALL">Tüm Araçlar</option>
                 </select>
-                <div class="w-px h-6 bg-slate-200 mx-1"></div>
-                <select id="bulk-fill-value" class="text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
+                <select id="bulk-fill-value" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                     <option value="1">1 (Tam)</option>
-                    <option value="X">X (Tatil/Yok)</option>
-                    <option value="R">R (Raporlu)</option>
-                    <option value="İ">İ (İzinli)</option>
+                    <option value="X">X (Tatil)</option>
+                    <option value="R">R (Rapor)</option>
+                    <option value="İ">İ (İzin)</option>
                 </select>
-                <button onclick="bulkFillAll()" class="px-3 py-1.5 text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 rounded-lg transition-colors flex items-center gap-1" title="Tüm Boşlukları Doldur">
-                    <i data-lucide="layers" class="w-4 h-4"></i> Tümü
+                <button onclick="bulkFillAll()" class="px-2 py-1 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 rounded-md transition-colors flex items-center gap-1" title="Tüm Boşlukları Doldur">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i> Tümü
                 </button>
-                <button onclick="autoFillWeekdays()" class="px-3 py-1.5 text-sm font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1" title="Sadece Hafta İçi Boşlukları Doldur">
-                    <i data-lucide="zap" class="w-4 h-4"></i> H. İçi
+                <button onclick="autoFillWeekdays()" class="px-2 py-1 text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 rounded-md transition-colors flex items-center gap-1" title="Sadece Hafta İçi Boşlukları Doldur">
+                    <i data-lucide="zap" class="w-3.5 h-3.5"></i> H. İçi
                 </button>
             </div>
+            <div class="w-px h-5 bg-slate-200 mx-1"></div>
             <button onclick="saveExcelGrid()"
-                class="px-5 py-2 text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-colors shadow-md shadow-indigo-600/20 flex items-center gap-2">
-                <i data-lucide="save" class="w-4 h-4"></i> Kaydet
+                class="px-3 py-1.5 text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-md transition-colors shadow-sm shadow-indigo-600/20 flex items-center gap-1.5">
+                <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
             </button>
             <button onclick="window.handlePrint()"
-                class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors"
                 title="Yazdır">
-                <i data-lucide="printer" class="w-5 h-5"></i>
+                <i data-lucide="printer" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
