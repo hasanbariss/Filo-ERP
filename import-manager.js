@@ -342,14 +342,14 @@
             const arac    = plakaMap[k.plaka] || null;
             const musteri = musteriMap[k.musteriAdi.toUpperCase().trim()] || null;
 
-            if (!arac)    errors.push(`Plaka "${k.plaka}" sistemde yok`);
-            if (!musteri) warnings.push(`Müşteri "${k.musteriAdi}" sistemde yok — yeni oluşturulacak`);
+            if (!arac)    warnings.push(`Plaka "${k.plaka}" sistemde yok — otomatik eklenecek.`);
+            if (!musteri) warnings.push(`Müşteri "${k.musteriAdi}" sistemde yok — yeni oluşturulacak.`);
 
             // Fabrika (Müşteri) atama kontrolü
             if (arac && musteri) {
                 const isAssigned = musteriAracSet.has(`${musteri.id}|${arac.id}`);
                 if (!isAssigned) {
-                    errors.push(`Plaka "${k.plaka}" şu anda ${k.musteriAdi} fabrikasına atanmış değil!`);
+                    warnings.push(`Plaka "${k.plaka}" şu an ${k.musteriAdi} fabrikasına atanmamış! Otomatik atanacak.`);
                 }
             }
 
@@ -472,10 +472,22 @@
         try {
             let servisCount      = 0;
             let yeniMusteriCount = 0;
+            let yeniAracCount    = 0;
+            let atamaCount       = 0;
             let hakedisCount     = 0;
 
             // Aynı müşteri adı için yeni oluşturmayı cache'le
             const yeniMusteriCache = {};
+            const yeniAracCache    = {};
+            const yeniAtamaCache   = new Set();
+
+            // validation adımında gelen set
+            // Ancak en taze halini tutmak için de yeniAtamaCache devrede
+            let musteriAracSetMap = new Set();
+            try {
+                const { data } = await supabase.from('musteri_arac_tanimlari').select('musteri_id, arac_id');
+                if(data) musteriAracSetMap = new Set(data.map(r => `${r.musteri_id}|${r.arac_id}`));
+            } catch(e){}
 
             for (const row of aktarilacaklar) {
                 // Müşteri ID bul ya da oluştur
@@ -498,10 +510,47 @@
                     }
                 }
 
+                // Araç ID bul ya da oluştur
+                let aracId = row.arac?.id || null;
+                if (!aracId) {
+                    if (yeniAracCache[row.plaka]) {
+                        aracId = yeniAracCache[row.plaka];
+                    } else {
+                        const { data: yeniArac, error: aErr } = await supabase
+                            .from('araclar')
+                            .insert({ 
+                                plaka: row.plaka,
+                                mulkiyet_durumu: 'ÖZ MAL',
+                                arac_turu: 'Minibüs' // Varsayılan değer
+                            })
+                            .select('id')
+                            .single();
+                        if (aErr) { console.error('Araç oluşturulamadı:', aErr); continue; }
+                        aracId = yeniArac.id;
+                        yeniAracCache[row.plaka] = aracId;
+                        yeniAracCount++;
+                    }
+                }
+
+                // Müşteri - Araç Ataması (Mevcut değilse)
+                const atamaKey = `${musteriId}|${aracId}`;
+                if (!musteriAracSetMap.has(atamaKey) && !yeniAtamaCache.has(atamaKey)) {
+                    const { error: atamaErr } = await supabase
+                        .from('musteri_arac_tanimlari')
+                        .insert({ musteri_id: musteriId, arac_id: aracId });
+                     
+                    if (atamaErr && atamaErr.code !== '23505') {
+                        console.error('Araç fabrikaya atanamadı:', atamaErr);
+                    } else {
+                        yeniAtamaCache.add(atamaKey);
+                        atamaCount++;
+                    }
+                }
+
                 // musteri_servis_puantaj'a yaz (Upsert via ID to prevent duplicate failures)
                 const payload = {
                     musteri_id: musteriId,
-                    arac_id:    row.arac.id,
+                    arac_id:    aracId,
                     tarih:      row.tarih,
                     vardiya:    row.vardiya,
                     tek:        row.tek,
@@ -522,16 +571,17 @@
                 }
 
                 // Taşeron araç ise taseron_hakedis'e de yaz
-                if (row.arac.mulkiyet_durumu === 'TAŞERON') {
+                const isTaseron = row.arac ? (row.arac.mulkiyet_durumu === 'TAŞERON') : false;
+                if (isTaseron) {
                     if (row.hakedis_list && row.hakedis_list.length > 0) {
                         for (const hakedis of row.hakedis_list) {
                             const { error: hErr } = await supabase
                                 .from('taseron_hakedis')
                                 .insert({
-                                    arac_id:         row.arac.id,
+                                    arac_id:         aracId,
                                     sefer_tarihi:    row.tarih,
                                     guzergah:        `${hakedis.guzergah} (${hakedis.giris_saati || ''})`,
-                                    anlasilan_tutar: row.arac.kira_bedeli || 0,
+                                    anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
                                     yakit_kesintisi: 0
                                 });
                             if (!hErr) hakedisCount++;
@@ -540,10 +590,10 @@
                         const { error: hErr } = await supabase
                             .from('taseron_hakedis')
                             .insert({
-                                arac_id:         row.arac.id,
+                                arac_id:         aracId,
                                 sefer_tarihi:    row.tarih,
                                 guzergah:        `${row.guzergah} (${row.giris_saati || ''})`,
-                                anlasilan_tutar: row.arac.kira_bedeli || 0,
+                                anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
                                 yakit_kesintisi: 0
                             });
                         if (!hErr) hakedisCount++;
@@ -552,8 +602,10 @@
             }
 
             let mesaj = `${servisCount} servis kaydı aktarıldı.`;
-            if (yeniMusteriCount > 0) mesaj += ` ${yeniMusteriCount} yeni müşteri oluşturuldu.`;
-            if (hakedisCount > 0)    mesaj += ` ${hakedisCount} taşeron hakediş eklendi.`;
+            if (yeniMusteriCount > 0) mesaj += ` ${yeniMusteriCount} yeni firma açıldı.`;
+            if (yeniAracCount > 0)    mesaj += ` ${yeniAracCount} yeni plaka eklendi.`;
+            if (atamaCount > 0)       mesaj += ` ${atamaCount} atanmamış plaka fabrikaya bağlandı.`;
+            if (hakedisCount > 0)     mesaj += ` ${hakedisCount} taşeron hakediş oluşturuldu.`;
 
             showImportToast(mesaj, 'success');
             window.closeImportModal();
