@@ -2018,11 +2018,11 @@ async function fetchTaseronFinans() {
         }
         const [year, month] = filterAy.split('-');
         const startDate = `${year}-${month}-01`;
-        const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
 
-        // 2. Data Fetching
+        // 2. Data Fetching — correct table: musteri_servis_puantaj
         const { data: puantajData, error: puantajErr } = await window.supabaseClient
-            .from('puantaj')
+            .from('musteri_servis_puantaj')
             .select('*')
             .gte('tarih', startDate)
             .lte('tarih', endDate);
