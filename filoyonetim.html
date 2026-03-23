@@ -1776,27 +1776,30 @@
                     <div id="content-taksitler" class="hidden p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                             <h3 class="text-lg font-bold">Aylık Ödeme Planı & Taksitler</h3>
-                            <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5">
+                            <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5 flex-wrap">
                                 <button onclick="filterTaksitler('HEPSİ')"
-                                    class="px-4 py-1.5 text-xs font-bold rounded-lg bg-orange-500 text-white"
+                                    class="px-4 py-1.5 text-xs font-bold rounded-lg bg-orange-500 text-white transition-colors"
                                     id="taksit-btn-all">Hepsi</button>
                                 <button onclick="filterTaksitler('Police')"
-                                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white"
+                                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white transition-colors"
                                     id="taksit-btn-police">Poliçeler</button>
                                 <button onclick="filterTaksitler('Bakim')"
-                                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white"
+                                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white transition-colors"
                                     id="taksit-btn-bakim">Bakım/Tamir</button>
+                                <button onclick="filterTaksitler('KrediKarti')"
+                                    class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white transition-colors"
+                                    id="taksit-btn-kredi">Kredi Kartı</button>
                             </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="premium-table">
                                 <thead>
                                     <tr>
-                                        <th>Cari / Unvan</th>
+                                        <th>Cari / Unvan / Kart</th>
                                         <th>Taksit Türü</th>
-                                        <th>Toplam Tutar</th>
-                                        <th>Taksit (Kalan/Ay)</th>
-                                        <th class="text-right">Aylık Tutar (₺)</th>
+                                        <th>Kalan Toplam (₺)</th>
+                                        <th>Taksit / Vade</th>
+                                        <th class="text-right">Aylık Yük / Tutar (₺)</th>
                                     </tr>
                                 </thead>
                                 <tbody id="taksitler-tbody">
@@ -1805,6 +1808,12 @@
                                             yükleniyor...</td>
                                     </tr>
                                 </tbody>
+                                <tfoot id="taksitler-tfoot">
+                                    <tr class="bg-white/5 font-bold border-t border-white/10 hidden" id="taksit-footer-row">
+                                        <td colspan="4" class="px-5 py-4 text-right text-gray-400 uppercase tracking-widest text-xs">Aylık Yekün (Toplam Yük)</td>
+                                        <td class="px-5 py-4 text-right text-orange-500 font-black text-xl" id="taksit-toplam-aylik">0,00 ₺</td>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     </div>

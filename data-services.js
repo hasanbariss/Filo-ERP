@@ -782,11 +782,20 @@ window.saveDataAndClose = async function (event) {
             const kart_sahibi = document.getElementById('kredi-kart-sahibi').value || null;
             let kart_no = document.getElementById('kredi-kart-no').value || null;
             if (kart_no) kart_no = kart_no.replace(/\s+/g, '');
-            const limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value);
+            let limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value);
+            if(isNaN(limit_tutari)) limit_tutari = 0;
 
-            if (!kart_adi || isNaN(limit_tutari)) throw new Error("Kart adı ve limit zorunludur.");
-            const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, kart_no, limit_tutari }]);
-            if (error) throw error;
+            if (!kart_adi) throw new Error("Kart adı zorunludur.");
+            
+            try {
+                const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, kart_no, limit_tutari }]);
+                if (error) throw error;
+            } catch(e) {
+                if(e.message && (e.message.includes('could not find') || e.message.includes('does not exist'))) {
+                    // Fallback in case kart_no isn't added yet
+                    await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, limit_tutari }]);
+                } else throw e;
+            }
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
         } else if (formTitle === 'Yeni Kart İşlemi') {
             const kart_id = document.getElementById('kredi-kart-secim').value;
@@ -796,10 +805,21 @@ window.saveDataAndClose = async function (event) {
             const toplam_tutar = parseFloat(document.getElementById('kart-islem-tutar').value) || 0;
 
             if (!kart_id || !islem_tarihi || !toplam_tutar) throw new Error("Kart, tarih ve tutar zorunludur.");
-            const { error } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
-                kart_id, islem_tarihi, taksit_sayisi, aciklama, toplam_tutar
-            }]);
-            if (error) throw error;
+            
+            try {
+                const { error } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
+                    kart_id, islem_tarihi, taksit_sayisi, aciklama, toplam_tutar
+                }]);
+                if (error) throw error;
+            } catch(e) {
+                if(e.message && (e.message.includes('could not find') || e.message.includes('does not exist'))) {
+                    // Fallback to minimal set (some users might not have aciklama or taksit)
+                    const { error: err2 } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
+                        kart_id, islem_tarihi, toplam_tutar
+                    }]);
+                    if(err2) throw err2;
+                } else throw e;
+            }
             if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
 
         // === SRP MODÜLLER: Evrak Arşivi & İş Emirleri ===
@@ -2460,41 +2480,48 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
             const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
             const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
 
-            let { data: existing, error: errExist } = await window.supabaseClient
-                .from('musteri_arac_tanimlari')
-                .select('id, tek_fiyat, vardiya_fiyat, kdv_oran, tev_oran')
-                .eq('arac_id', arac_id)
-                .eq('musteri_id', musteri_id)
-                .maybeSingle();
-
-            if (errExist) {
-                if(errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist') || errExist.message.includes('could not find'))){
-                    const { data: fbData } = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
-                    existing = fbData;
+            let existing = null;
+            try {
+                const res = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .select('id, tek_fiyat, vardiya_fiyat, kdv_oran, tev_oran')
+                    .eq('arac_id', arac_id)
+                    .eq('musteri_id', musteri_id)
+                    .maybeSingle();
+                if (res.error) throw res.error;
+                existing = res.data;
+            } catch (errExist) {
+                if (errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist') || errExist.message.includes('could not find'))) {
+                    const fallbackRes = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
+                    existing = fallbackRes.data;
                 } else {
                     throw errExist;
                 }
             }
 
             if (existing && existing.id) {
-                const { error: errUpd } = await window.supabaseClient
-                    .from('musteri_arac_tanimlari')
-                    .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
-                    .eq('id', existing.id);
-                if (errUpd) {
+                try {
+                    const updRes = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
+                        .eq('id', existing.id);
+                    if (updRes.error) throw updRes.error;
+                } catch (errUpd) {
                     if (errUpd.message && (errUpd.message.includes('could not identify column') || errUpd.message.includes('does not exist') || errUpd.message.includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
-                        if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
+                        if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
                     } else throw errUpd;
                 }
             } else {
-                const { error: errIns } = await window.supabaseClient
-                    .from('musteri_arac_tanimlari')
-                    .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
-                if (errIns) {
+                try {
+                    const insRes = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
+                    if (insRes.error) throw insRes.error;
+                } catch (errIns) {
                     if (errIns.message && (errIns.message.includes('could not identify column') || errIns.message.includes('does not exist') || errIns.message.includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
-                        if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
+                        if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
                     } else throw errIns;
                 }
             }
@@ -5367,19 +5394,48 @@ window.fetchKrediKartlari = async function () {
 
 window.fetchTaksitler = async function (category = 'HEPSİ') {
     const tbody = document.getElementById('taksitler-tbody');
+    const tfootRow = document.getElementById('taksit-footer-row');
+    const tfootTotal = document.getElementById('taksit-toplam-aylik');
     if (!tbody) return;
+    
+    // UI Update
+    const btns = ['all', 'police', 'bakim', 'kredi'];
+    btns.forEach(id => {
+        const btn = document.getElementById('taksit-btn-' + id);
+        if(!btn) return;
+        btn.classList.remove('bg-orange-500', 'text-white');
+        btn.classList.add('text-gray-500');
+    });
+    let activeBtnId = 'all';
+    if(category === 'Police') activeBtnId = 'police';
+    else if(category === 'Bakim') activeBtnId = 'bakim';
+    else if(category === 'KrediKarti') activeBtnId = 'kredi';
+    
+    const activeBtn = document.getElementById('taksit-btn-' + activeBtnId);
+    if(activeBtn) {
+        activeBtn.classList.remove('text-gray-500');
+        activeBtn.classList.add('bg-orange-500', 'text-white');
+    }
+
     tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">Yükleniyor...</td></tr>';
+    if(tfootRow) tfootRow.classList.add('hidden');
 
     try {
         const { data: cariler } = await window.supabaseClient.from('cariler').select('id, unvan');
 
-        let [
-            { data: policeler },
-            { data: bakimlar }
-        ] = await Promise.all([
-            window.supabaseClient.from('arac_policeler').select('*, araclar(plaka)'),
-            window.supabaseClient.from('arac_bakimlari').select('*, araclar(plaka)')
-        ]);
+        let policeler = [], bakimlar = [], krediIslemleri = [];
+        try {
+            const pRes = await window.supabaseClient.from('arac_policeler').select('*, araclar(plaka)');
+            policeler = pRes.data || [];
+        } catch(e) {}
+        try {
+            const bRes = await window.supabaseClient.from('arac_bakimlari').select('*, araclar(plaka)');
+            bakimlar = bRes.data || [];
+        } catch(e) {}
+        try {
+            const kRes = await window.supabaseClient.from('kredi_karti_islemleri').select('*, kredi_kartlari(kart_adi)');
+            krediIslemleri = kRes.data || [];
+        } catch(e) {}
 
         let combined = [];
 
@@ -5396,7 +5452,7 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
             });
         });
 
-        // Bakım taksitlerini ekle (Eğer fatura taksitli vs ise şimdilik direkt borç olarak görelim)
+        // Bakım taksitlerini ekle
         (bakimlar || []).forEach(b => {
             if (b.cari_id) {
                 combined.push({
@@ -5404,17 +5460,32 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
                     arac: b.araclar?.plaka || '-',
                     tur: b.islem_turu || 'Bakım/Parça',
                     tutar: Number(b.toplam_tutar) || 0,
-                    taksit: 1, // Bakımlarda şimdilik taksit mantığı yoksa 1
+                    taksit: 1, 
                     date: b.islem_tarihi,
                     source: 'Bakim'
                 });
             }
         });
 
+        // Kredi Kartı işlemleri
+        (krediIslemleri || []).forEach(k => {
+            combined.push({
+                cari_id: null,
+                kart_adi: k.kredi_kartlari?.kart_adi || 'Bilinmeyen Kart',
+                arac: k.aciklama || '-',
+                tur: 'Kredi Kartı',
+                tutar: Number(k.toplam_tutar) || 0,
+                taksit: Number(k.taksit_sayisi) || 1,
+                date: k.islem_tarihi,
+                source: 'KrediKarti'
+            });
+        });
+
         // Filtreleme
         let filtered = combined;
-        if (category === 'Police') filtered = combined.filter(c => c.source === 'Police');
-        else if (category === 'Bakim') filtered = combined.filter(c => c.source === 'Bakim');
+        if (category !== 'HEPSİ') {
+            filtered = combined.filter(c => c.source === category);
+        }
 
         tbody.innerHTML = '';
         if (filtered.length === 0) {
@@ -5424,22 +5495,29 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
 
         filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+        let currentMonthTotal = 0;
+
         filtered.forEach(p => {
-            const cari = cariler.find(c => c.id === p.cari_id);
+            const cari = cariler?.find(c => c.id === p.cari_id);
+            let title = p.source === 'KrediKarti' ? p.kart_adi : (cari ? cari.unvan : 'Bilinmeyen Cari');
+            let icon = p.source === 'Police' ? 'shield-check' : (p.source === 'KrediKarti' ? 'credit-card' : 'settings');
+            let colorClass = p.source === 'Police' ? 'bg-blue-500/10 text-blue-400' : (p.source === 'KrediKarti' ? 'bg-purple-500/10 text-purple-400' : 'bg-orange-500/10 text-orange-400');
+            
             const aylik = p.taksit > 0 ? (p.tutar / p.taksit) : p.tutar;
+            currentMonthTotal += aylik; // Aylık yüke ekle (basit hesapla, taksit bitip bitmediğine girmeden aylık taksit tutarını topluyoruz)
 
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50/5 transition-colors border-b border-white/5";
             tr.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-300">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="${p.source === 'Police' ? 'shield-check' : 'settings'}" class="w-3 h-3 text-gray-500"></i>
-                        ${cari ? cari.unvan : 'Bilinmeyen'}
+                        <i data-lucide="${icon}" class="w-4 h-4 text-gray-400"></i>
+                        ${title}
                     </div>
-                    <div class="text-[10px] text-gray-500 ml-5">${p.arac}</div>
+                    <div class="text-[10px] text-gray-500 ml-6 mt-1">${p.arac}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-0.5 ${p.source === 'Police' ? 'bg-blue-500/10 text-blue-400' : 'bg-orange-500/10 text-orange-400'} text-[10px] font-bold rounded uppercase">
+                    <span class="px-2 py-0.5 ${colorClass} text-[10px] font-bold rounded uppercase">
                         ${p.tur}
                     </span>
                 </td>
@@ -5449,6 +5527,11 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
             `;
             tbody.appendChild(tr);
         });
+        
+        if (tfootRow && tfootTotal) {
+            tfootTotal.innerText = window.formatCurrency(currentMonthTotal);
+            tfootRow.classList.remove('hidden');
+        }
         if (window.lucide) window.lucide.createIcons();
     } catch (e) { console.error(e); }
 }
