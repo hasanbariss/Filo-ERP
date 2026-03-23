@@ -3598,7 +3598,8 @@ async function fetchPoliceler() {
         
         let filteredData = data;
         if (window.currentPoliceFilter !== 'HEPSİ') {
-            filteredData = data.filter(p => p.police_turu === window.currentPoliceFilter);
+            const searchTerm = window.currentPoliceFilter.replace(' Sigortası', '').toLowerCase();
+            filteredData = data.filter(p => p.police_turu && p.police_turu.toLowerCase().includes(searchTerm));
         }
 
         tbody.innerHTML = '';
