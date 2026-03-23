@@ -287,6 +287,10 @@ function recalcAllTotals(daysInMonth) {
         const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
 
         isolatedAraclar.forEach(arac => {
+            // Görünür değilse atla
+            const tr = document.querySelector(`tr[data-arac-id="${arac.id}"]`);
+            if (tr && tr.style.display === 'none') return;
+
             const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
             const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
 
@@ -463,6 +467,11 @@ window.filterPuantaj = function() {
             }
         }
     });
+
+    const [year, mStr] = monthStr.split('-');
+    const ay = parseInt(mStr, 10);
+    const daysInMonth = new Date(year, ay, 0).getDate();
+    recalcAllTotals(daysInMonth);
 }
 
 window.handlePrint = function() {
