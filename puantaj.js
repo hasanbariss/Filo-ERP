@@ -21,7 +21,10 @@ async function initPuantaj() {
         const ay = parseInt(mStr, 10);
         const months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
-        document.getElementById('header-title').textContent = `Servis Puantajı`;
+        const { data: musteriData } = await window.supabaseClient.from('musteriler').select('ad').eq('id', musteriId).single();
+        const musteriAdi = musteriData ? musteriData.ad : 'Bilinmeyen Müşteri';
+
+        document.getElementById('header-title').textContent = `${musteriAdi} - Servis Puantajı`;
         document.getElementById('header-subtitle').textContent = `${months[ay - 1]} ${year} Dönemi`;
 
         await loadGridData();
@@ -70,6 +73,15 @@ async function loadGridData() {
             }
         }
 
+        const filterSelect = document.getElementById('filter-arac');
+        if (filterSelect) {
+            let opts = '<option value="ALL">Tüm Araçlar</option>';
+            isolatedAraclar.forEach(a => {
+                opts += `<option value="${a.id}">${a.plaka}</option>`;
+            });
+            filterSelect.innerHTML = opts;
+        }
+
         // Get puantaj records
         const { data: qKayitlar, error: kayitErr } = await window.supabaseClient
             .from('musteri_servis_puantaj')
@@ -97,7 +109,7 @@ async function loadGridData() {
             const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
 
             // --- VARDİYA ---
-            tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors">`;
+            tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}">`;
             tblHtml += `<td class="p-0 text-[11px] font-medium text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] leading-tight" style="width: 130px; min-width: 130px;" rowspan="2">
                             <div class="px-3 py-1.5 font-bold text-slate-900 break-all border-b border-slate-100" title="${arac.plaka}">${arac.plaka}</div>
                             <div class="flex flex-col">
@@ -134,7 +146,7 @@ async function loadGridData() {
             tblHtml += `</tr>`;
 
             // --- TEK SEFER ---
-            tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors">`;
+            tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors" data-arac-id="${arac.id}">`;
             let rowTekTotal = 0;
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -349,17 +361,38 @@ window.saveExcelGrid = async function () {
             if (item.field === 'tek') updatesByDateAndVehicle[key].tek = item.val_new;
         });
 
-        const upsertArray = Object.values(updatesByDateAndVehicle).map(item => {
-            // Remove null id to let Postgres serial auto-generate it
-            if (!item.id) delete item.id;
-            return item;
+        const upsertArray = [];
+        const deleteIds = [];
+
+        Object.values(updatesByDateAndVehicle).forEach(item => {
+            const v = String(item.vardiya || '').trim();
+            const t = String(item.tek || '').trim();
+            
+            if (!v && !t && item.id) {
+                // Her ikisi de boş ve VT'de varsa tamamen sil
+                deleteIds.push(item.id);
+            } else if (!v && !t && !item.id) {
+                // Veritabanında yok ve her ikisi de boş (yeni açılıp silinen) - geç
+            } else {
+                if (!item.id) delete item.id;
+                upsertArray.push(item);
+            }
         });
 
-        const { error } = await window.supabaseClient
-            .from('musteri_servis_puantaj')
-            .upsert(upsertArray); // defaults to Primary Key 'id' resolution
+        if (upsertArray.length > 0) {
+            const { error: upsertErr } = await window.supabaseClient
+                .from('musteri_servis_puantaj')
+                .upsert(upsertArray); 
+            if (upsertErr) throw upsertErr;
+        }
 
-        if (error) throw error;
+        if (deleteIds.length > 0) {
+            const { error: delErr } = await window.supabaseClient
+                .from('musteri_servis_puantaj')
+                .delete()
+                .in('id', deleteIds);
+            if (delErr) throw delErr;
+        }
 
         alert(`Mükemmel! ${toSaveOrUpdate.length} adet hücre başarıyla kaydedildi.`);
         window.location.reload(); // Re-fetch all clean state
@@ -369,6 +402,98 @@ window.saveExcelGrid = async function () {
         btn.innerHTML = ogHtml;
         lucide.createIcons();
     }
+}
+
+window.filterPuantaj = function() {
+    const selectedId = document.getElementById('filter-arac')?.value || 'ALL';
+    const rows = document.querySelectorAll('#excel-tbody tr[data-arac-id]');
+    
+    rows.forEach(tr => {
+        if (selectedId === 'ALL') {
+            tr.style.display = '';
+        } else {
+            if (tr.getAttribute('data-arac-id') === selectedId) {
+                tr.style.display = '';
+            } else {
+                tr.style.display = 'none';
+            }
+        }
+    });
+}
+
+window.handlePrint = function() {
+    const selectedId = document.getElementById('filter-arac')?.value || 'ALL';
+    const [year, mStr] = monthStr.split('-');
+    const ay = parseInt(mStr, 10);
+    const daysInMonth = new Date(year, ay, 0).getDate();
+    const headersTitle = document.getElementById('header-title').textContent;
+    const headersSubtitle = document.getElementById('header-subtitle').textContent;
+
+    let html = `
+        <div style="padding: 24px; font-family: sans-serif; color: #1e293b;">
+            <div style="text-align:center; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;">
+                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0;">${headersTitle}</h2>
+                <p style="color: #64748b; font-size: 1rem; margin-top: 8px;">${headersSubtitle}</p>
+            </div>
+            
+            <table style="width:100%; border-collapse: collapse; text-align:left; font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Plaka</th>
+                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Tarih</th>
+                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Tür</th>
+                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Değer</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    let hasData = false;
+
+    isolatedAraclar.forEach(arac => {
+        if (selectedId !== 'ALL' && arac.id.toString() !== selectedId) return;
+
+        for (let i = 1; i <= daysInMonth; i++) {
+            const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
+            const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
+            
+            if (vInp && vInp.value) {
+                html += `
+                    <tr>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${arac.plaka}</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; color:#475569;">${dateCode}</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color:#0284c7;">Vardiya</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${vInp.value}</td>
+                    </tr>
+                `;
+                hasData = true;
+            }
+            if (tInp && tInp.value) {
+                html += `
+                    <tr>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${arac.plaka}</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; color:#475569;">${dateCode}</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color:#ea580c;">Tek Sefer</td>
+                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${tInp.value}</td>
+                    </tr>
+                `;
+                hasData = true;
+            }
+        }
+    });
+
+    if (!hasData) {
+        html += `<tr><td colspan="4" style="padding:20px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
+    }
+
+    html += `</tbody></table></div>`;
+
+    const printSection = document.getElementById('print-section');
+    if(printSection) {
+        printSection.innerHTML = html;
+    }
+    window.print();
 }
 
 if (document.readyState === 'loading') {

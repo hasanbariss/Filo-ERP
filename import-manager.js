@@ -196,10 +196,10 @@
 
             const sonrakiPlaka = i + 1 < plakalar.length ? String(plakalar[i + 1] || '').trim() : '';
             if (sonrakiPlaka && sonrakiPlaka === plaka) {
-                // TAM vardiya: iki sütun birden
+                // TAM vardiya: iki sütun birden (yan yana aynı plaka 1 TAM vardiya sayılır)
                 result.push({
                     plaka,
-                    vardiya: '2',
+                    vardiya: '1',
                     tek: null,
                     giris_saati: timeCols[i].saat,
                     cikis_saati: timeCols[i + 1].saat

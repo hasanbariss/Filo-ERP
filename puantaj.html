@@ -51,6 +51,25 @@
             -webkit-appearance: none;
             margin: 0;
         }
+
+        /* Print Layout */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-section, #print-section * {
+                visibility: visible;
+            }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
     </style>
 </head>
 
@@ -90,6 +109,10 @@
 
             <!-- Actions -->
             <div class="flex items-center gap-2 border-r border-slate-200 pr-4 mr-2">
+                <select id="filter-arac" onchange="window.filterPuantaj()" class="text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 max-w-[150px]">
+                    <option value="ALL">Tüm Araçlar</option>
+                </select>
+                <div class="w-px h-6 bg-slate-200 mx-1"></div>
                 <select id="bulk-fill-value" class="text-sm font-bold bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="1">1 (Tam)</option>
                     <option value="X">X (Tatil/Yok)</option>
@@ -107,7 +130,7 @@
                 class="px-5 py-2 text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-colors shadow-md shadow-indigo-600/20 flex items-center gap-2">
                 <i data-lucide="save" class="w-4 h-4"></i> Kaydet
             </button>
-            <button onclick="window.print()"
+            <button onclick="window.handlePrint()"
                 class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
                 title="Yazdır">
                 <i data-lucide="printer" class="w-5 h-5"></i>
@@ -146,6 +169,9 @@
             </table>
         </div>
     </div>
+
+    <!-- Print Section: Hidden on screen, visible when printed -->
+    <div id="print-section" class="hidden"></div>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
