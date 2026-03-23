@@ -56,12 +56,17 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 0; /* Hides browser URL/Date headers */
+                margin: 0mm !important; /* Hides browser URL/Date headers */
             }
             body {
-                margin: 10mm !important; /* Move margin to body */
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                min-width: 100% !important;
                 overflow: visible !important;
                 height: auto !important;
+                display: block !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -71,7 +76,9 @@
             }
             #print-section {
                 display: block !important;
-                width: 100%;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
             table.print-table {
                 width: 100%;
