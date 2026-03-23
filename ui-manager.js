@@ -561,6 +561,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <select id="arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
                                     <option value="IDEOL">IDEOL</option>
+                                    <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
                             </div>
@@ -603,6 +604,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="IDEOL">IDEOL</option>
+                                    <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
                             </div>
@@ -1789,13 +1791,20 @@ window.openModal = function (title, id = null, extra = null) {
                                 <select id="edit-arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
                                     <option value="IDEOL">IDEOL</option>
+                                    <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Marka & Model</label>
-                            <input type="text" id="edit-arac-marka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Marka & Model</label>
+                                <input type="text" id="edit-arac-marka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Firma / Araç Sahibi</label>
+                                <input type="text" id="edit-arac-firma" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Taşeron / Bireysel İsim">
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -2014,6 +2023,8 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-arac-marka').value = data.marka_model || '';
                         document.getElementById('edit-arac-mulkiyet').value = data.mulkiyet_durumu || 'ÖZMAL';
                         document.getElementById('edit-arac-sirket').value = data.sirket || 'Belirtilmemiş';
+                        const firmaInput = document.getElementById('edit-arac-firma');
+                        if(firmaInput) firmaInput.value = data.firma_adi || '';
                     }
                 });
             }
@@ -2561,15 +2572,16 @@ window.handleOdemeTuruChange = function (value, prefix) {
 
 window.filterAraclar = function (filter) {
     // Tüm filtre butonlarını sıfırla
-    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk'].forEach(key => {
+    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk', 'dikkan'].forEach(key => {
         const btn = document.getElementById(`filter-btn-${key}`);
         if (btn) {
-            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'text-white');
+            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'bg-emerald-500', 'text-white');
             btn.classList.add('hover:bg-white/10');
             // Orijinal renkleri geri ver
             if (key === 'd2') btn.classList.add('text-blue-400');
             else if (key === 'd4s') btn.classList.add('text-purple-400');
             else if (key === 'ideol') btn.classList.add('text-orange-400');
+            else if (key === 'dikkan') btn.classList.add('text-emerald-400');
             else if (key === 'mk') btn.classList.add('text-red-400');
             else btn.classList.add('text-gray-400');
         }
@@ -2597,18 +2609,18 @@ window.filterAraclar = function (filter) {
 
 window.filterAraclarBySirket = function (sirket) {
     // Tüm araç filtrelerini temizle
-    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk'].forEach(key => {
+    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk', 'dikkan'].forEach(key => {
         const btn = document.getElementById(`filter-btn-${key}`);
         if (btn) {
-            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'text-white');
+            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'bg-emerald-500', 'text-white');
             btn.classList.add('hover:bg-white/10');
         }
     });
 
-    const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'M.K.' ? 'mk' : 'hepsi');
+    const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : (sirket === 'M.K.' ? 'mk' : 'hepsi'));
     const btn = document.getElementById(`filter-btn-${activeKey}`);
     if (btn) {
-        btn.classList.add(sirket === 'IDEOL' ? 'bg-orange-500' : 'bg-red-500', 'text-white');
+        btn.classList.add(sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-emerald-500' : 'bg-red-500'), 'text-white');
         btn.classList.remove('hover:bg-white/10');
     }
 
@@ -2616,18 +2628,18 @@ window.filterAraclarBySirket = function (sirket) {
 };
 
 window.filterSoforler = function (sirket) {
-    ['hepsi', 'ideol', 'mk'].forEach(key => {
+    ['hepsi', 'ideol', 'mk', 'dikkan'].forEach(key => {
         const btn = document.getElementById(`filter-sofor-btn-${key}`);
         if (btn) {
-            btn.classList.remove('bg-blue-500', 'bg-orange-500', 'bg-red-500', 'text-white');
+            btn.classList.remove('bg-blue-500', 'bg-orange-500', 'bg-red-500', 'bg-emerald-500', 'text-white');
             btn.classList.add('hover:bg-white/10');
         }
     });
 
-    const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'M.K.' ? 'mk' : 'hepsi');
+    const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : (sirket === 'M.K.' ? 'mk' : 'hepsi'));
     const btn = document.getElementById(`filter-sofor-btn-${activeKey}`);
     if (btn) {
-        const bgClass = sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'M.K.' ? 'bg-red-500' : 'bg-blue-500');
+        const bgClass = sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-emerald-500' : (sirket === 'M.K.' ? 'bg-red-500' : 'bg-blue-500'));
         btn.classList.add(bgClass, 'text-white');
         btn.classList.remove('hover:bg-white/10');
     }

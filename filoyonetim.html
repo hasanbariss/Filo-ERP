@@ -626,6 +626,8 @@
                                         <div class="w-px h-4 bg-white/10 mx-1"></div>
                                         <button id="filter-btn-ideol" onclick="window.filterAraclarBySirket('IDEOL')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all">IDEOL</button>
+                                        <button id="filter-btn-dikkan" onclick="window.filterAraclarBySirket('DİKKAN')"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all">DİKKAN</button>
                                         <button id="filter-btn-mk" onclick="window.filterAraclarBySirket('M.K.')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">M.K.</button>
                                     </div>
@@ -711,6 +713,8 @@
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all">Hepsi</button>
                                         <button id="filter-sofor-btn-ideol" onclick="window.filterSoforler('IDEOL')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all">IDEOL</button>
+                                        <button id="filter-sofor-btn-dikkan" onclick="window.filterSoforler('DİKKAN')"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all">DİKKAN</button>
                                         <button id="filter-sofor-btn-mk" onclick="window.filterSoforler('M.K.')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">M.K.</button>
                                     </div>
@@ -1457,28 +1461,36 @@
 
                     <!-- Taşeron Hakediş -->
                     <div id="content-taseron-finans" class="block p-6">
-                        <div class="flex justify-between items-center mb-8">
-                            <h3 class="text-lg font-bold">Taşeron & Sefer Yönetimi</h3>
-                            <button onclick="openModal('Yeni Sefer Hakedişi Ekle')"
-                                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20">
-                                + Sefer Gir
-                            </button>
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                            <div>
+                                <h3 class="text-lg font-bold">Taşeron Cari Hakediş (Özet)</h3>
+                                <p class="text-xs text-gray-500">Puantajdan çekilen aylık araç bazlı hakediş tablosu.</p>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <input type="month" id="filter-cari-hakedis-ay" onchange="fetchTaseronFinans()"
+                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
+                                <button onclick="window.print()"
+                                    class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                                    <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
+                                </button>
+                            </div>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="premium-table">
                                 <thead>
                                     <tr>
-                                        <th>Tarih / Rota</th>
-                                        <th>Araç / Taşeron</th>
-                                        <th>Hesap (Brüt/Yakıt/Net)</th>
-                                        <th>Tahsilat Durumu</th>
-                                        <th class="text-right">İşlemler</th>
+                                        <th>Araç Plakası</th>
+                                        <th class="text-center">Toplam Sefer (Vardiya / Tek)</th>
+                                        <th class="text-right">Geçici Brüt (₺)</th>
+                                        <th class="text-right text-orange-400">Yakıt Toplamı (₺)</th>
+                                        <th class="text-right text-green-400">Net Hakediş (₺)</th>
+                                        <th class="text-right">Detaylar</th>
                                     </tr>
                                 </thead>
                                 <tbody id="taseron-finans-tbody">
                                     <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Veriler
-                                            yükleniyor...</td>
+                                        <td colspan="6" class="py-12 text-center text-gray-500 italic">Dönem
+                                            seçiniz...</td>
                                     </tr>
                                 </tbody>
                             </table>

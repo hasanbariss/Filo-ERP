@@ -519,9 +519,7 @@
                         const { data: yeniArac, error: aErr } = await supabase
                             .from('araclar')
                             .insert({ 
-                                plaka: row.plaka,
-                                mulkiyet_durumu: 'ÖZ MAL',
-                                arac_turu: 'Minibüs' // Varsayılan değer
+                                plaka: row.plaka
                             })
                             .select('id')
                             .single();
