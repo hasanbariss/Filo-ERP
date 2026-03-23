@@ -639,7 +639,7 @@ window.saveDataAndClose = async function (event) {
             let payload = { baslangic_tarihi, bitis_tarihi, toplam_tutar, taksit_sayisi, aciklama };
             let { error } = await window.supabaseClient.from('arac_policeler').update(payload).eq('id', id);
             
-            if (error && error.message && (error.message.includes('could not find') || error.message.includes('not exist') || error.message.includes('could not identify column'))) {
+            if (error && error.message && (error.message.toLowerCase().includes('could not find') || error.message.toLowerCase().includes('not exist') || error.message.toLowerCase().includes('could not identify column'))) {
                 delete payload.aciklama;
                 let fallback = await window.supabaseClient.from('arac_policeler').update(payload).eq('id', id);
                 error = fallback.error;
@@ -791,7 +791,7 @@ window.saveDataAndClose = async function (event) {
                 const { error } = await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, kart_no, limit_tutari }]);
                 if (error) throw error;
             } catch(e) {
-                if(e.message && (e.message.includes('could not find') || e.message.includes('does not exist'))) {
+                if(e.message && (e.message.toLowerCase().includes('could not find') || e.message.toLowerCase().includes('does not exist'))) {
                     // Fallback in case kart_no isn't added yet
                     await window.supabaseClient.from('kredi_kartlari').insert([{ kart_adi, kart_sahibi, limit_tutari }]);
                 } else throw e;
@@ -812,7 +812,7 @@ window.saveDataAndClose = async function (event) {
                 }]);
                 if (error) throw error;
             } catch(e) {
-                if(e.message && (e.message.includes('could not find') || e.message.includes('does not exist'))) {
+                if(e.message && (e.message.toLowerCase().includes('could not find') || e.message.toLowerCase().includes('does not exist'))) {
                     // Fallback to minimal set (some users might not have aciklama or taksit)
                     const { error: err2 } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id, islem_tarihi, toplam_tutar
@@ -2491,7 +2491,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                 if (res.error) throw res.error;
                 existing = res.data;
             } catch (errExist) {
-                if (errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist') || errExist.message.includes('could not find'))) {
+                if (errExist.message && (errExist.message.toLowerCase().includes('could not identify column') || errExist.message.toLowerCase().includes('does not exist') || errExist.message.toLowerCase().includes('could not find'))) {
                     const fallbackRes = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
                     existing = fallbackRes.data;
                 } else {
@@ -2507,7 +2507,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                         .eq('id', existing.id);
                     if (updRes.error) throw updRes.error;
                 } catch (errUpd) {
-                    if (errUpd.message && (errUpd.message.includes('could not identify column') || errUpd.message.includes('does not exist') || errUpd.message.includes('could not find'))) {
+                    if (errUpd.message && (errUpd.message.toLowerCase().includes('could not identify column') || errUpd.message.toLowerCase().includes('does not exist') || errUpd.message.toLowerCase().includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
                         if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
                     } else throw errUpd;
@@ -2519,7 +2519,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                         .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
                     if (insRes.error) throw insRes.error;
                 } catch (errIns) {
-                    if (errIns.message && (errIns.message.includes('could not identify column') || errIns.message.includes('does not exist') || errIns.message.includes('could not find'))) {
+                    if (errIns.message && (errIns.message.toLowerCase().includes('could not identify column') || errIns.message.toLowerCase().includes('does not exist') || errIns.message.toLowerCase().includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
                         if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
                     } else throw errIns;
