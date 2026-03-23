@@ -471,41 +471,114 @@ window.closeCariDetail = function () {
 
 window.printCariEkstre = function () {
     const unvan = document.getElementById('cari-detail-unvan').innerText;
+    const tur = document.getElementById('cari-detail-tur').innerText;
+    const borc = document.getElementById('cari-detail-borc').innerText;
+    const odenen = document.getElementById('cari-detail-odenen').innerText;
+    const bakiye = document.getElementById('cari-detail-bakiye').innerText;
+    
+    const trs = document.querySelectorAll('#cari-detail-tbody tr');
+    let rowsHtml = '';
+    
+    trs.forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if(tds.length < 5) return;
+        
+        const tarih = tds[0].innerText;
+        const islemTuru = tds[1].innerText;
+        const borcTutar = tds[2].innerText;
+        const alacakTutar = tds[3].innerText;
+        const bakiyeTutar = tds[4].innerText;
+        
+        rowsHtml += `
+            <tr>
+                <td>${tarih}</td>
+                <td>${islemTuru}</td>
+                <td class="text-right text-red-600 font-bold">${borcTutar}</td>
+                <td class="text-right text-green-600 font-bold">${alacakTutar}</td>
+                <td class="text-right font-black">${bakiyeTutar}</td>
+            </tr>
+        `;
+    });
+
     const printWindow = window.open('', '_blank');
-    const content = document.querySelector('#cari-detail-modal .p-8').cloneNode(true);
-
-    // Remove scroll limits for print
-    content.style.maxHeight = 'none';
-    content.style.overflow = 'visible';
-
+    
     printWindow.document.write(`
         <html>
             <head>
-                <title>Cari Ekstre - ${unvan}</title>
-                <script src="https://cdn.tailwindcss.com"></script>
-                <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+                <title>Cari Hesap Ekstresi - ${unvan}</title>
                 <style>
-                    body { font-family: 'Outfit', sans-serif; background: white; color: black; padding: 40px; }
-                    .bg-white\\/5 { background: #f9fafb !important; border: 1px solid #e5e7eb !important; }
-                    .text-white { color: #111827 !important; }
-                    .text-gray-400, .text-gray-500 { color: #6b7280 !important; }
-                    .border-white\\/5, .border-white\\/10 { border-color: #e5e7eb !important; }
-                    tr { border-bottom: 1px solid #f3f4f6; }
-                    @media print { .no-print { display: none; } }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
+                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.5rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    .header-title h1 { margin: 0; font-size: 1.8rem; color: #111; text-transform: uppercase; }
+                    .header-title p { margin: 5px 0 0; color: #555; font-size: 14px; font-weight: bold; }
+                    
+                    .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+                    .summary-item { text-align: center; flex: 1; }
+                    .summary-item p { margin: 0 0 5px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+                    .summary-item h3 { margin: 0; font-size: 20px; color: #0f172a; }
+                    .summary-item-border { border-right: 1px solid #e2e8f0; }
+                    .summary-item.bakiye h3 { color: #ea580c; font-size: 24px; font-weight: 900; }
+                    
+                    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
+                    th { background: #f1f5f9; color: #475569; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 11px; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .text-red-600 { color: #dc2626; }
+                    .text-green-600 { color: #16a34a; }
+                    .font-bold { font-weight: bold; }
+                    .font-black { font-weight: 900; }
+                    
+                    .footer { text-align: center; font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 50px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
                 </style>
             </head>
             <body>
-                <h1 class="text-2xl font-black mb-8 border-b pb-4">Cari Hesap Ekstresi</h1>
-                ${content.innerHTML}
-                <div class="mt-12 text-xs text-gray-500 text-center italic">Bu rapor IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur.</div>
+                <div class="header-container">
+                    <div class="header-title">
+                        <h1>${unvan}</h1>
+                        <p>${tur} • Hesap Ekstresi</p>
+                    </div>
+                    <div class="ideol-logo">IDEOL TURİZM</div>
+                </div>
+                
+                <div class="summary-box">
+                    <div class="summary-item summary-item-border">
+                        <p>Toplam Borç</p>
+                        <h3>${borc}</h3>
+                    </div>
+                    <div class="summary-item summary-item-border">
+                        <p>Ödenen</p>
+                        <h3 class="text-green-600">${odenen}</h3>
+                    </div>
+                    <div class="summary-item bakiye">
+                        <p>Güncel Bakiye</p>
+                        <h3>${bakiye}</h3>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>İşlem Türü / No</th>
+                            <th class="text-right">Borç (+)</th>
+                            <th class="text-right">Alacak (-)</th>
+                            <th class="text-right">Kalan Bakiye</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml || '<tr><td colspan="5" class="text-center">İşlem geçmişi bulunmuyor.</td></tr>'}
+                    </tbody>
+                </table>
+                
+                <div class="footer">Bu hesap ekstresi IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
             </body>
         </html>
     `);
+    
     printWindow.document.close();
-    setTimeout(() => {
-        printWindow.print();
-        printWindow.close();
-    }, 500);
+    printWindow.setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
 };
 
 // Başlangıçta ilk sekmeyi aktif et
