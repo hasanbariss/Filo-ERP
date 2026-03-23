@@ -483,61 +483,89 @@ window.handlePrint = function() {
     const headersSubtitle = document.getElementById('header-subtitle').textContent;
 
     let html = `
-        <div style="padding: 24px; font-family: sans-serif; color: #1e293b;">
-            <div style="text-align:center; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;">
-                <h2 style="font-size: 1.5rem; font-weight: 800; margin: 0;">${headersTitle}</h2>
-                <p style="color: #64748b; font-size: 1rem; margin-top: 8px;">${headersSubtitle}</p>
+        <div style="font-family: sans-serif; color: #000; width: 100%;">
+            <div style="text-align:center; padding-bottom: 10px; margin-bottom: 15px;">
+                <h2 style="font-size: 1.2rem; font-weight: bold; margin: 0;">${headersTitle}</h2>
+                <p style="color: #333; font-size: 0.9rem; margin-top: 5px;">${headersSubtitle}</p>
             </div>
             
-            <table style="width:100%; border-collapse: collapse; text-align:left; font-size: 0.85rem;">
+            <table class="print-table" style="width:100%; border-collapse: collapse; text-align:center; font-size: 10px; page-break-inside: auto;">
                 <thead>
-                    <tr>
-                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Plaka</th>
-                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Tarih</th>
-                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Tür</th>
-                        <th style="padding:10px; border-bottom: 2px solid #cbd5e1; color:#334155;">Değer</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+                    <tr style="background-color: #f8fafc; font-weight: bold;">
+                        <th style="border: 1px solid #cbd5e1; padding: 4px; width: 65px;">ARAÇ</th>
+                        <th style="border: 1px solid #cbd5e1; padding: 4px; width: 45px;">TÜR</th>`;
+                        
+    for (let i = 1; i <= daysInMonth; i++) {
+        html += `<th style="border: 1px solid #cbd5e1; padding: 4px;">${i}</th>`;
+    }
+    html += `<th style="border: 1px solid #cbd5e1; padding: 4px; width: 35px; background-color: #f1f5f9;">TOP</th></tr></thead><tbody>`;
 
     let hasData = false;
+    let grandVardiya = 0;
+    let grandTek = 0;
+    let colVardiya = new Array(daysInMonth + 1).fill(0);
+    let colTek = new Array(daysInMonth + 1).fill(0);
 
-    isolatedAraclar.forEach(arac => {
-        if (selectedId !== 'ALL' && arac.id.toString() !== selectedId) return;
+    let rowsToPrint = isolatedAraclar.filter(arac => selectedId === 'ALL' || arac.id.toString() === selectedId);
+
+    rowsToPrint.forEach((arac, index) => {
+        let rowV = 0;
+        let rowT = 0;
+        const bgPlaka = index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;';
+
+        let vardiyaRowHTML = `<tr style="page-break-inside: avoid;">
+            <td rowspan="2" style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; ${bgPlaka}">${arac.plaka}</td>
+            <td style="border: 1px solid #cbd5e1; padding: 4px; color: #475569;">Vardiya</td>`;
+        let tekRowHTML = `<tr style="page-break-inside: avoid;">
+            <td style="border: 1px solid #cbd5e1; padding: 4px; color: #475569; background-color: #fffaf0;">Tek</td>`;
 
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
             const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
             const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
             
-            if (vInp && vInp.value) {
-                html += `
-                    <tr>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${arac.plaka}</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; color:#475569;">${dateCode}</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color:#0284c7;">Vardiya</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${vInp.value}</td>
-                    </tr>
-                `;
-                hasData = true;
-            }
-            if (tInp && tInp.value) {
-                html += `
-                    <tr>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${arac.plaka}</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; color:#475569;">${dateCode}</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 600; color:#ea580c;">Tek Sefer</td>
-                        <td style="padding:10px; border-bottom: 1px solid #f1f5f9; font-weight: 700;">${tInp.value}</td>
-                    </tr>
-                `;
-                hasData = true;
-            }
+            let vVal = vInp ? vInp.value : '';
+            let tVal = tInp ? tInp.value : '';
+
+            // calculations for totals
+            if (vVal && !isNaN(parseInt(vVal))) { rowV += parseInt(vVal); colVardiya[i] += parseInt(vVal); grandVardiya += parseInt(vVal); }
+            if (tVal && !isNaN(parseInt(tVal))) { rowT += parseInt(tVal); colTek[i] += parseInt(tVal); grandTek += parseInt(tVal); }
+
+            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; ${getPrintBg(vVal, 'v')}">${vVal}</td>`;
+            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; ${getPrintBg(tVal, 't')}">${tVal}</td>`;
         }
+        
+        vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
+        tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
+
+        html += vardiyaRowHTML + tekRowHTML;
+        hasData = true;
     });
 
     if (!hasData) {
-        html += `<tr><td colspan="4" style="padding:20px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
+        html += `<tr><td colspan="${daysInMonth + 3}" style="padding:20px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
+    } else {
+        // Totals Rows
+        html += `<tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #94a3b8;">
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; color: #475569; font-size: 9px;">VARDİYA TOPLAM:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) {
+            html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">${colVardiya[i]}</td>`;
+        }
+        html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #0f172a;">${grandVardiya}</td></tr>`;
+
+        html += `<tr style="background-color: #f8fafc; font-weight: bold;">
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 6px; text-align: right; color: #475569; font-size: 9px;">TEK SEFER TOPLAM:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) {
+            html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #475569;">${colTek[i]}</td>`;
+        }
+        html += `<td style="border: 1px solid #cbd5e1; padding: 6px; color: #0f172a;">${grandTek}</td></tr>`;
+
+        html += `<tr style="background-color: #eef2ff; font-weight: 900; border-top: 2px solid #94a3b8;">
+            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 8px; text-align: right; color: #3730a3; font-size: 10px;">GENEL TOPLAM (V+T):</td>`;
+        for (let i = 1; i <= daysInMonth; i++) {
+            html += `<td style="border: 1px solid #cbd5e1; padding: 8px; color: #3730a3;">${colVardiya[i] + colTek[i]}</td>`;
+        }
+        html += `<td style="border: 1px solid #cbd5e1; padding: 8px; color: #1e1b4b; background-color: #e0e7ff;">${grandVardiya + grandTek}</td></tr>`;
     }
 
     html += `</tbody></table></div>`;
@@ -546,7 +574,23 @@ window.handlePrint = function() {
     if(printSection) {
         printSection.innerHTML = html;
     }
-    window.print();
+
+    setTimeout(() => {
+        window.print();
+    }, 150);
+}
+
+function getPrintBg(val, type) {
+    if(!val) return '';
+    val = val.toUpperCase();
+    if (val === 'X') return 'background-color: #fee2e2; color: #dc2626; font-weight: bold;';
+    if (val === 'R') return 'background-color: #fef3c7; color: #d97706; font-weight: bold;';
+    if (val === 'İ' || val === 'I') return 'background-color: #f3e8ff; color: #9333ea; font-weight: bold;';
+    if (!isNaN(parseInt(val)) && parseInt(val) > 0) {
+        if (type === 'v') return 'background-color: #eff6ff; color: #1d4ed8; font-weight: bold;';
+        else return 'background-color: #fff7ed; color: #c2410c; font-weight: bold;';
+    }
+    return '';
 }
 
 if (document.readyState === 'loading') {

@@ -54,9 +54,15 @@
 
         /* Print Layout */
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm;
+            }
             body {
                 overflow: visible !important;
                 height: auto !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             body > header, 
             body > div:not(#print-section) {
@@ -64,6 +70,16 @@
             }
             #print-section {
                 display: block !important;
+                width: 100%;
+            }
+            table.print-table {
+                width: 100%;
+                table-layout: fixed;
+            }
+            table.print-table th, table.print-table td {
+                overflow: hidden;
+                white-space: nowrap;
+                text-align: center;
             }
         }
     </style>
