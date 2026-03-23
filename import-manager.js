@@ -268,6 +268,53 @@
     }
 
     // ══════════════════════════════════════════════════════════════════════
+    //  5.5. Aynı Araç ve Aynı Günü Birleştir (Consolidate)
+    // ══════════════════════════════════════════════════════════════════════
+    function consolidateKayitlar(kayitlar) {
+        const map = {};
+        const result = [];
+
+        kayitlar.forEach(k => {
+            const key = `${k.plaka}_${k.tarih}`;
+            if (!map[key]) {
+                const newObj = {
+                    musteriAdi: k.musteriAdi,
+                    tarih: k.tarih,
+                    guzergah: k.guzergah,
+                    plaka: k.plaka,
+                    vardiya_count: 0,
+                    tek_count: 0,
+                    giris_saati: k.giris_saati,
+                    cikis_saati: k.cikis_saati,
+                    hakedis_list: []
+                };
+                map[key] = newObj;
+                result.push(newObj);
+            }
+
+            const row = map[key];
+            if (k.vardiya && !isNaN(parseInt(k.vardiya))) row.vardiya_count += parseInt(k.vardiya);
+            if (k.tek     && !isNaN(parseInt(k.tek)))     row.tek_count     += parseInt(k.tek);
+
+            row.hakedis_list.push({
+                guzergah: k.guzergah,
+                giris_saati: k.giris_saati
+            });
+
+            if (row.guzergah !== k.guzergah && !row.guzergah.includes(k.guzergah)) {
+                row.guzergah += `, ${k.guzergah}`;
+            }
+        });
+
+        result.forEach(r => {
+            r.vardiya = r.vardiya_count > 0 ? String(r.vardiya_count) : null;
+            r.tek     = r.tek_count > 0     ? String(r.tek_count)     : null;
+        });
+
+        return result;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     //  6. Supabase Validasyonu
     // ══════════════════════════════════════════════════════════════════════
     async function validateKayitlar(kayitlar) {
@@ -476,16 +523,31 @@
 
                 // Taşeron araç ise taseron_hakedis'e de yaz
                 if (row.arac.mulkiyet_durumu === 'TAŞERON') {
-                    const { error: hErr } = await supabase
-                        .from('taseron_hakedis')
-                        .insert({
-                            arac_id:         row.arac.id,
-                            sefer_tarihi:    row.tarih,
-                            guzergah:        `${row.guzergah} (${row.giris_saati})`,
-                            anlasilan_tutar: row.arac.kira_bedeli || 0,
-                            yakit_kesintisi: 0
-                        });
-                    if (!hErr) hakedisCount++;
+                    if (row.hakedis_list && row.hakedis_list.length > 0) {
+                        for (const hakedis of row.hakedis_list) {
+                            const { error: hErr } = await supabase
+                                .from('taseron_hakedis')
+                                .insert({
+                                    arac_id:         row.arac.id,
+                                    sefer_tarihi:    row.tarih,
+                                    guzergah:        `${hakedis.guzergah} (${hakedis.giris_saati || ''})`,
+                                    anlasilan_tutar: row.arac.kira_bedeli || 0,
+                                    yakit_kesintisi: 0
+                                });
+                            if (!hErr) hakedisCount++;
+                        }
+                    } else {
+                        const { error: hErr } = await supabase
+                            .from('taseron_hakedis')
+                            .insert({
+                                arac_id:         row.arac.id,
+                                sefer_tarihi:    row.tarih,
+                                guzergah:        `${row.guzergah} (${row.giris_saati || ''})`,
+                                anlasilan_tutar: row.arac.kira_bedeli || 0,
+                                yakit_kesintisi: 0
+                            });
+                        if (!hErr) hakedisCount++;
+                    }
                 }
             }
 
@@ -533,8 +595,10 @@
             const kayitlar = parseExcelRows(rows, headerInfo);
             if (kayitlar.length === 0) throw new Error('İçe aktarılacak geçerli satır bulunamadı.');
 
-            showImportToast(`${kayitlar.length} sefer tespit edildi, doğrulanıyor...`, 'info');
-            const validated = await validateKayitlar(kayitlar);
+            const consolidated = consolidateKayitlar(kayitlar);
+
+            showImportToast(`${consolidated.length} sefer tespit edildi, doğrulanıyor...`, 'info');
+            const validated = await validateKayitlar(consolidated);
             window._importRows = validated;
             renderPreview(validated);
 
