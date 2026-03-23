@@ -511,6 +511,7 @@ window.handlePrint = function() {
     rowsToPrint.forEach((arac, index) => {
         let rowV = 0;
         let rowT = 0;
+        let aracVeriVar = false;
         const bgPlaka = index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;';
 
         let vardiyaRowHTML = `<tr style="page-break-inside: avoid;">
@@ -524,8 +525,12 @@ window.handlePrint = function() {
             const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
             const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
             
-            let vVal = vInp ? vInp.value : '';
-            let tVal = tInp ? tInp.value : '';
+            let vVal = vInp ? String(vInp.value).trim() : '';
+            let tVal = tInp ? String(tInp.value).trim() : '';
+            
+            if (vVal !== '' || tVal !== '') {
+                aracVeriVar = true;
+            }
 
             // calculations for totals
             if (vVal && !isNaN(parseInt(vVal))) { rowV += parseInt(vVal); colVardiya[i] += parseInt(vVal); grandVardiya += parseInt(vVal); }
@@ -535,11 +540,13 @@ window.handlePrint = function() {
             tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; ${getPrintBg(tVal, 't')}">${tVal}</td>`;
         }
         
-        vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
-        tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
+        if (aracVeriVar) {
+            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
+            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 4px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
 
-        html += vardiyaRowHTML + tekRowHTML;
-        hasData = true;
+            html += vardiyaRowHTML + tekRowHTML;
+            hasData = true;
+        }
     });
 
     if (!hasData) {

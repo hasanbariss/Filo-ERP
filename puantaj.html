@@ -56,9 +56,10 @@
         @media print {
             @page {
                 size: A4 landscape;
-                margin: 8mm;
+                margin: 0; /* Hides browser URL/Date headers */
             }
             body {
+                margin: 10mm !important; /* Move margin to body */
                 overflow: visible !important;
                 height: auto !important;
                 -webkit-print-color-adjust: exact !important;
