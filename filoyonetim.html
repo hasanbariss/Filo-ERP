@@ -1743,7 +1743,11 @@
                     <div id="content-police" class="hidden p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                             <h3 class="text-lg font-bold">Sigorta & Kasko Takibi</h3>
-                            <div class="flex items-center gap-4">
+                            <div class="flex flex-wrap items-center gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-400 hover:text-white">
+                                    <input type="checkbox" id="police-detay-toggle" onchange="window.isDetailedViewPolice = this.checked; fetchPoliceler()" class="rounded bg-black/50 border border-white/20 text-orange-500 w-4 h-4 cursor-pointer focus:ring-orange-500">
+                                    Detaylı Liste
+                                </label>
                                 <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5 hidden md:flex">
                                     <button onclick="filterPoliceler('HEPSİ')" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-orange-500 text-white transition-all" id="police-btn-all">Hepsi</button>
                                     <button onclick="filterPoliceler('Trafik Sigortası')" class="px-4 py-1.5 text-xs font-bold rounded-lg text-gray-500 hover:text-white transition-all" id="police-btn-trafik">Trafik Sig.</button>
@@ -1758,7 +1762,7 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="premium-table" id="police-table">
-                                <thead>
+                                <thead id="police-thead">
                                     <tr>
                                         <th>Araç Plaka</th>
                                         <th>Poliçe Tipi & Acente</th>
@@ -1776,7 +1780,12 @@
                     <div id="content-taksitler" class="hidden p-6">
                         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                             <h3 class="text-lg font-bold">Aylık Ödeme Planı & Taksitler</h3>
-                            <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5 flex-wrap">
+                            <div class="flex gap-2 bg-white/5 p-1 rounded-xl border border-white/5 flex-wrap items-center">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-400 hover:text-white px-2">
+                                    <input type="checkbox" id="taksitler-detay-toggle" onchange="window.isDetailedViewTaksit = this.checked; if(typeof fetchTaksitler === 'function') fetchTaksitler(window.currentTaksitFilter || 'HEPSİ')" class="rounded bg-black/50 border border-white/20 text-orange-500 w-4 h-4 cursor-pointer focus:ring-orange-500">
+                                    Detaylı Liste
+                                </label>
+                                <div class="w-px h-6 bg-white/10 hidden md:block mx-1"></div>
                                 <button onclick="filterTaksitler('HEPSİ')"
                                     class="px-4 py-1.5 text-xs font-bold rounded-lg bg-orange-500 text-white transition-colors"
                                     id="taksit-btn-all">Hepsi</button>
@@ -1793,7 +1802,7 @@
                         </div>
                         <div class="overflow-x-auto">
                             <table class="premium-table">
-                                <thead>
+                                <thead id="taksitler-thead">
                                     <tr>
                                         <th>Cari / Unvan / Kart</th>
                                         <th>Taksit Türü</th>
@@ -1810,7 +1819,7 @@
                                 </tbody>
                                 <tfoot id="taksitler-tfoot">
                                     <tr class="bg-white/5 font-bold border-t border-white/10 hidden" id="taksit-footer-row">
-                                        <td colspan="4" class="px-5 py-4 text-right text-gray-400 uppercase tracking-widest text-xs">Aylık Yekün (Toplam Yük)</td>
+                                        <td colspan="4" class="px-5 py-4 text-right text-gray-400 uppercase tracking-widest text-xs" id="taksit-footer-label">Aylık Yekün (Toplam Yük)</td>
                                         <td class="px-5 py-4 text-right text-orange-500 font-black text-xl" id="taksit-toplam-aylik">0,00 ₺</td>
                                     </tr>
                                 </tfoot>

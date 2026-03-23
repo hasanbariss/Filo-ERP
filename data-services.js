@@ -3602,6 +3602,17 @@ async function fetchPoliceler() {
             filteredData = data.filter(p => p.police_turu && p.police_turu.toLowerCase().includes(searchTerm));
         }
 
+        const isDetailed = window.isDetailedViewPolice || false;
+        
+        const thead = document.getElementById('police-thead');
+        if(thead) {
+            if(isDetailed) {
+                thead.innerHTML = `<tr><th>Araç Plaka</th><th>Poliçe Tipi & Acente</th><th>Başlangıç & Bitiş D.</th><th>Tutar, Taksit & Açıklama</th><th class="text-right">İşlemler</th></tr>`;
+            } else {
+                thead.innerHTML = `<tr><th>Araç Plaka</th><th>Poliçe Tipi</th><th>Bitiş D.</th><th>Tutar</th><th class="text-right">İşlemler</th></tr>`;
+            }
+        }
+
         tbody.innerHTML = '';
         let totalGider = 0;
         if (filteredData.length === 0) {
@@ -3615,28 +3626,42 @@ async function fetchPoliceler() {
             const isGecerli = new Date(p.bitis_tarihi) > new Date();
             const statusDot = isGecerli ? '<span class="w-2 h-2 rounded-full bg-green-500 inline-block mr-1"></span>' : '<span class="w-2 h-2 rounded-full bg-danger inline-block mr-1"></span>';
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors";
-            tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap font-bold text-primary">${p.araclar ? p.araclar.plaka : '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-700">${p.police_turu}</div>
-                            <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">${p.cariler ? p.cariler.unvan : '-'}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-xs font-semibold text-gray-800 mb-1">${statusDot}Bitiş: ${p.bitis_tarihi}</span>
-                            <span class="block text-[10px] text-gray-500">Başlangıç: ${p.baslangic_tarihi}</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-primary">₺${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
-                            <div class="text-[10px] text-gray-500 uppercase mt-0.5 text-center bg-gray-100 rounded-sm py-0.5 inline-block px-2">${p.taksit_sayisi} Taksit</div>
-                            ${p.aciklama ? `<div class="text-[10px] text-gray-500 mt-1 max-w-[150px] truncate" title="${p.aciklama}">Not: ${p.aciklama}</div>` : ''}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                            ${p.dosya_url ? `<a href="${p.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Poliçeyi Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
-                            <button onclick="openModal('Poliçe Düzenle', '${p.id}')" class="text-blue-500 hover:text-blue-700 text-xs font-semibold uppercase tracking-wider">Düzenle</button>
-                            <button onclick="deleteRecord('arac_policeler', '${p.id}', 'fetchPoliceler')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
-                        </td>
-                    `;
+            tr.className = "hover:bg-gray-50 transition-colors border-b border-gray-100";
+            
+            if(isDetailed) {
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap font-bold text-primary">${p.araclar ? p.araclar.plaka : '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-700">${p.police_turu}</div>
+                        <div class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">${p.cariler ? p.cariler.unvan : '-'}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="block text-xs font-semibold text-gray-800 mb-1">${statusDot}Bitiş: ${p.bitis_tarihi}</span>
+                        <span class="block text-[10px] text-gray-500">Başlangıç: ${p.baslangic_tarihi}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-primary">₺${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
+                        <div class="text-[10px] text-gray-500 uppercase mt-0.5 text-center bg-gray-100 rounded-sm py-0.5 inline-block px-2">${p.taksit_sayisi} Taksit</div>
+                        ${p.aciklama ? `<div class="text-[10px] text-gray-500 mt-1 max-w-[150px] truncate" title="${p.aciklama}">Not: ${p.aciklama}</div>` : ''}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                        ${p.dosya_url ? `<a href="${p.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Poliçeyi Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
+                        <button onclick="openModal('Poliçe Düzenle', '${p.id}')" class="text-blue-500 hover:text-blue-700 text-[10px] font-semibold uppercase tracking-wider">Düzenle</button>
+                        <button onclick="deleteRecord('arac_policeler', '${p.id}', 'fetchPoliceler')" class="text-danger hover:text-red-800 text-[10px] font-semibold uppercase tracking-wider">Sil</button>
+                    </td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td class="px-6 py-3 whitespace-nowrap font-bold text-gray-800">${p.araclar ? p.araclar.plaka : '-'}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-sm font-medium text-gray-600">${p.police_turu}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-xs font-semibold text-gray-700">${statusDot}${p.bitis_tarihi}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-orange-600">₺${(p.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm space-x-2">
+                        <button onclick="openModal('Poliçe Düzenle', '${p.id}')" class="text-blue-500 hover:text-blue-700 text-[10px] font-semibold uppercase tracking-wider">Düzenle</button>
+                        <button onclick="deleteRecord('arac_policeler', '${p.id}', 'fetchPoliceler')" class="text-danger hover:text-red-800 text-[10px] font-semibold uppercase tracking-wider">Sil</button>
+                    </td>
+                `;
+            }
             tbody.appendChild(tr);
         });
         const ozet = document.getElementById('ozet-police');
@@ -5497,6 +5522,19 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
         filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
         let currentMonthTotal = 0;
+        
+        const isDetailed = window.isDetailedViewTaksit || false;
+        const thead = document.getElementById('taksitler-thead');
+        const tfootLabel = document.getElementById('taksit-footer-label');
+        if(thead) {
+            if(isDetailed) {
+                thead.innerHTML = `<tr><th>Cari / Unvan / Kart</th><th>Açıklama / Plaka</th><th>Taksit Türü</th><th>Kalan Toplam (₺)</th><th>Taksit / Vade</th><th class="text-right">Aylık Yük / Tutar (₺)</th></tr>`;
+                if(tfootLabel) tfootLabel.colSpan = 5;
+            } else {
+                thead.innerHTML = `<tr><th>Kime Ödenecek (Cari/Kart)</th><th>Tür</th><th>Kalan Toplam (₺)</th><th class="text-right">Aylık Yük / Tutar (₺)</th></tr>`;
+                if(tfootLabel) tfootLabel.colSpan = 3;
+            }
+        }
 
         filtered.forEach(p => {
             const cari = cariler?.find(c => c.id === p.cari_id);
@@ -5505,27 +5543,48 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
             let colorClass = p.source === 'Police' ? 'bg-blue-500/10 text-blue-400' : (p.source === 'KrediKarti' ? 'bg-purple-500/10 text-purple-400' : 'bg-orange-500/10 text-orange-400');
             
             const aylik = p.taksit > 0 ? (p.tutar / p.taksit) : p.tutar;
-            currentMonthTotal += aylik; // Aylık yüke ekle (basit hesapla, taksit bitip bitmediğine girmeden aylık taksit tutarını topluyoruz)
+            currentMonthTotal += aylik; 
 
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50/5 transition-colors border-b border-white/5";
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-300">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="${icon}" class="w-4 h-4 text-gray-400"></i>
-                        ${title}
-                    </div>
-                    <div class="text-[10px] text-gray-500 ml-6 mt-1">${p.arac}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 py-0.5 ${colorClass} text-[10px] font-bold rounded uppercase">
-                        ${p.tur}
-                    </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${window.formatCurrency(p.tutar)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.taksit} Taksit / Aylık</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-white">${window.formatCurrency(aylik)}</td>
-            `;
+            
+            if(isDetailed) {
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-300">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="${icon}" class="w-4 h-4 text-gray-400"></i>
+                            ${title}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-[10px] text-gray-400 font-medium">
+                        ${p.arac}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 py-0.5 ${colorClass} text-[10px] font-bold rounded uppercase">
+                            ${p.tur}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">${window.formatCurrency(p.tutar)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${p.taksit} Taksit / Aylık</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-white">${window.formatCurrency(aylik)}</td>
+                `;
+            } else {
+                tr.innerHTML = `
+                    <td class="px-6 py-3 whitespace-nowrap text-sm font-bold text-gray-300">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="${icon}" class="w-4 h-4 text-gray-400"></i>
+                            <span class="truncate max-w-[150px]" title="${title}">${title}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-3 whitespace-nowrap">
+                        <span class="px-2 py-0.5 ${colorClass} text-[10px] font-bold rounded uppercase">
+                            ${p.tur}
+                        </span>
+                    </td>
+                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-400">${window.formatCurrency(p.tutar)}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-black text-white">${window.formatCurrency(aylik)}</td>
+                `;
+            }
             tbody.appendChild(tr);
         });
         
