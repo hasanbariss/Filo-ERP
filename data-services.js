@@ -2228,9 +2228,35 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-4 pt-3 border-t border-white/10 flex justify-between items-center">
-                            <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Tutar:</span>
-                            <span class="text-white font-black text-base row-toplam bg-white/5 px-3 py-1 rounded-lg">₺0,00</span>
+                        <div class="grid grid-cols-2 gap-3 mt-3">
+                            <div class="bg-white/5 p-3 rounded-xl border border-emerald-500/20 focus-within:border-emerald-500/50 transition-colors">
+                                <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-2">KDV %</div>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" min="0" max="100" step="1" class="calc-kdv-oran w-full bg-transparent text-emerald-300 text-sm font-black border-none focus:outline-none py-1" value="0">
+                                    <span class="text-gray-500 text-xs font-bold">%</span>
+                                </div>
+                            </div>
+                            <div class="bg-white/5 p-3 rounded-xl border border-yellow-500/20 focus-within:border-yellow-500/50 transition-colors">
+                                <div class="text-[10px] text-yellow-400 font-bold uppercase tracking-wider mb-2">TEV %</div>
+                                <div class="flex items-center gap-1">
+                                    <input type="number" min="0" max="100" step="1" class="calc-tev-oran w-full bg-transparent text-yellow-300 text-sm font-black border-none focus:outline-none py-1" value="0">
+                                    <span class="text-gray-500 text-xs font-bold">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-white/10 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Brüt Tutar:</span>
+                                <span class="text-white font-black text-sm row-toplam">₺0,00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-emerald-400 uppercase font-bold tracking-widest">+ KDV:</span>
+                                <span class="text-emerald-300 font-bold text-xs row-kdv-tutar">+₺0,00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-yellow-400 uppercase font-bold tracking-widest">- TEV:</span>
+                                <span class="text-yellow-300 font-bold text-xs row-tev-tutar">-₺0,00</span>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -2288,14 +2314,22 @@ window.openCariHakedisDetay = async function(arac_id) {
                 </div>
 
                 <div class="p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
-                    <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-2.5">
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Brüt Kazanç</span>
                             <span class="text-lg text-gray-300 font-black" id="modal-brut-total">₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center pb-4 border-b border-dashed border-white/10">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-emerald-400 font-bold">+ Toplam KDV</span>
+                            <span class="text-base text-emerald-300 font-black" id="modal-kdv-total">+₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-yellow-400 font-bold">- Toplam TEV (Stopaj)</span>
+                            <span class="text-base text-yellow-300 font-black" id="modal-tev-total">-₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10">
                             <span class="text-sm text-gray-400 font-bold">Toplam Yakıt Kesintisi</span>
-                            <span class="text-lg text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
+                            <span class="text-base text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
                         </div>
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-xl text-white font-black uppercase tracking-widest">NET HAKEDİŞ</span>
@@ -2310,6 +2344,8 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         const calculateTotals = () => {
             let totalBrut = 0;
+            let totalKdv = 0;
+            let totalTev = 0;
             const counts = data.musteriDetay;
             
             overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
@@ -2320,14 +2356,25 @@ window.openCariHakedisDetay = async function(arac_id) {
                 const vCount = counts[mId]?.vardiya || 0;
                 const tCount = counts[mId]?.tek || 0;
                 
-                const rowTotal = (vCount * vFiyat) + (tCount * tFiyat);
-                row.querySelector('.row-toplam').innerText = '₺' + rowTotal.toLocaleString('tr-TR', {minimumFractionDigits:2, maximumFractionDigits:2});
-                totalBrut += rowTotal;
+                const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
+                const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
+                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat);
+                const rowKdv = rowBrut * (kdvOran / 100);
+                const rowTev = rowBrut * (tevOran / 100);
+                const rowTotal = rowBrut;
+                row.querySelector('.row-toplam').innerText = '₺' + rowBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                const kdvEl2 = row.querySelector('.row-kdv-tutar'); if(kdvEl2) kdvEl2.innerText = '+₺' + rowKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                const tevEl2 = row.querySelector('.row-tev-tutar'); if(tevEl2) tevEl2.innerText = '-₺' + rowTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                totalBrut += rowBrut;
+                totalKdv += rowKdv;
+                totalTev += rowTev;
             });
 
             document.getElementById('modal-brut-total').innerText = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const kdvTotalEl = document.getElementById('modal-kdv-total'); if(kdvTotalEl) kdvTotalEl.innerText = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const tevTotalEl = document.getElementById('modal-tev-total'); if(tevTotalEl) tevTotalEl.innerText = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
             const yakit = parseFloat(document.getElementById('modal-yakit-total').getAttribute('data-val')) || 0;
-            const net = totalBrut - yakit;
+            const net = totalBrut + totalKdv - totalTev - yakit;
             
             const netEl = document.getElementById('modal-net-total');
             netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
@@ -2342,7 +2389,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         calculateTotals();
 
-        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat').forEach(inp => {
+        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
 
