@@ -98,11 +98,13 @@ async function loadGridData() {
         isolatedKayitlar = qKayitlar || [];
 
         // Build THEAD
-        let thHtml = `<tr><th class="px-3 py-2.5 text-left text-[10px] font-bold text-slate-600 uppercase tracking-wider sticky left-0 bg-slate-50 z-10 border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0]" style="width: 130px; min-width: 130px;">ARAÇ ${ay}/${year} [${daysInMonth}]</th>`;
+        let thHtml = `<tr>
+            <th class="px-3 py-2.5 text-left text-[11px] font-extrabold text-slate-700 uppercase tracking-wider sticky left-0 bg-slate-100 z-20 border-b border-r border-slate-300 shadow-[1px_0_0_0_#cbd5e1]" style="width: 90px; min-width: 90px; max-width: 90px;">ARAÇ</th>
+            <th class="px-2 py-2.5 text-left text-[10px] font-bold text-slate-600 uppercase tracking-wider sticky left-[90px] bg-slate-50 z-20 border-b border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px;">TÜR</th>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            thHtml += `<th class="p-0 py-2.5 text-center text-[11px] font-semibold text-slate-600 border-l border-b border-slate-200" style="width: 38px; min-width: 38px; max-width: 38px;">${i}</th>`;
+            thHtml += `<th class="p-0 py-2.5 text-center text-[11px] font-semibold text-slate-600 border-r border-b border-slate-200" style="width: 38px; min-width: 38px; max-width: 38px;">${i}</th>`;
         }
-        thHtml += '<th class="px-0 py-2.5 text-center text-[10px] font-bold text-slate-600 border-l border-b border-slate-200 uppercase tracking-wider sticky right-0 bg-slate-50 z-10 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;">TOP</th></tr>';
+        thHtml += `<th class="px-0 py-2.5 text-center text-[10px] font-bold text-slate-600 border-r border-b border-slate-200 uppercase tracking-wider sticky right-0 bg-slate-50 z-20 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;">TOP</th></tr>`;
         thead.innerHTML = thHtml;
 
         let tblHtml = '';
@@ -110,7 +112,7 @@ async function loadGridData() {
 
         // Build TBODY
         isolatedAraclar.forEach((arac, index) => {
-            const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/40';
+            const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
 
             const relatedRecords = isolatedKayitlar.filter(k => k.arac_id === arac.id);
             const aracVeriVar = relatedRecords.some(r => Boolean(r.vardiya) || Boolean(r.tek));
@@ -118,12 +120,15 @@ async function loadGridData() {
 
             // --- VARDİYA ---
             tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
-            tblHtml += `<td class="p-0 text-[11px] font-medium text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] leading-tight" style="width: 130px; min-width: 130px;" rowspan="2">
-                            <div class="px-3 py-1.5 font-bold text-slate-900 break-all border-b border-slate-100" title="${arac.plaka}">${arac.plaka}</div>
-                            <div class="flex flex-col">
-                                <div class="px-3 text-[9px] text-slate-500 flex items-center justify-between" style="height: 26px;"><span>Vardiya:</span></div>
-                                <div class="px-3 text-[9px] text-slate-500 flex items-center justify-between bg-orange-50/20" style="height: 26px;"><span>Tek Sfr:</span></div>
-                            </div>
+            
+            // First Column - Plate (Spans 2 rows)
+            tblHtml += `<td class="p-2 text-[11px] font-bold text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] uppercase text-center align-middle" style="width: 90px; min-width: 90px; max-width: 90px;" rowspan="2" title="${arac.plaka}">
+                            ${arac.plaka}
+                        </td>`;
+            
+            // Second Column - Vardiya Label
+            tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
+                            Vardiya
                         </td>`;
 
             let rowVardiyaTotal = 0;
@@ -143,18 +148,24 @@ async function loadGridData() {
                 else if (safeVal.toUpperCase() === 'İ' || safeVal.toUpperCase() === 'I') bgClass = 'bg-purple-50 text-purple-600 font-bold';
                 else if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-blue-50/60 text-blue-700 font-bold';
 
-                tblHtml += `<td class="p-0 border-l border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
+                tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
                             <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="vardiya" data-day="${i}" value="${safeVal}"
-                            class="w-full text-center text-[11px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-orange-500 focus:bg-white p-0 m-0 border-none ${bgClass} transition-all"
-                            style="height: 26px; line-height: 26px;"
+                            class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
+                            style="height: 28px; line-height: 28px;"
                             onchange="window.excelInputChanged('${arac.id}', 'vardiya', ${i})">
                         </td>`;
             }
-            tblHtml += `<td class="px-0 py-0 text-center text-[11px] font-bold text-slate-700 border-l border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-vardiya">${rowVardiyaTotal}</td>`;
+            tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-vardiya">${rowVardiyaTotal}</td>`;
             tblHtml += `</tr>`;
 
             // --- TEK SEFER ---
             tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
+            
+            // Second Column - Tek Sefer Label
+            tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] bg-orange-50/30 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
+                            Tek
+                        </td>`;
+            
             let rowTekTotal = 0;
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -172,40 +183,40 @@ async function loadGridData() {
                 else if (safeVal.toUpperCase() === 'İ' || safeVal.toUpperCase() === 'I') bgClass = 'bg-purple-50 text-purple-600 font-bold';
                 else if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-orange-50/60 text-orange-700 font-bold';
 
-                tblHtml += `<td class="p-0 border-l border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
+                tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
                             <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="tek" data-day="${i}" value="${safeVal}"
-                            class="w-full text-center text-[11px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-orange-500 focus:bg-white p-0 m-0 border-none ${bgClass} transition-all"
-                            style="height: 26px; line-height: 26px;"
+                            class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
+                            style="height: 28px; line-height: 28px;"
                             onchange="window.excelInputChanged('${arac.id}', 'tek', ${i})">
                         </td>`;
             }
-            tblHtml += `<td class="px-0 py-0 text-center text-[11px] font-bold text-slate-700 border-l border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-tek">${rowTekTotal}</td>`;
+            tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-tek">${rowTekTotal}</td>`;
             tblHtml += `</tr>`;
         });
 
         // Totals Rows
         tblHtml += `<tr class="bg-slate-50 border-t-2 border-slate-300">`;
-        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right">VARDİYA TOPLAM:</td>`;
+        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right" colspan="2">VARDİYA TOPLAM:</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-2 text-center text-[11px] font-bold text-slate-600 border-l border-b border-slate-200 bg-slate-50" id="coltotal-vardiya-${i}">0</td>`;
+            tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-bold text-slate-600 border-r border-b border-slate-200 bg-slate-50" id="coltotal-vardiya-${i}">0</td>`;
         }
-        tblHtml += `<td class="px-0 py-2 text-center text-[11px] font-black text-slate-800 border-l border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-vardiya">0</td>`;
+        tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-black text-slate-800 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-vardiya">0</td>`;
         tblHtml += `</tr>`;
 
         tblHtml += `<tr class="bg-slate-50">`;
-        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right">TEK SEFER TOPLAM:</td>`;
+        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right" colspan="2">TEK SEFER TOPLAM:</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-2 text-center text-[11px] font-bold text-slate-600 border-l border-b border-slate-200 bg-slate-50" id="coltotal-tek-${i}">0</td>`;
+            tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-bold text-slate-600 border-r border-b border-slate-200 bg-slate-50" id="coltotal-tek-${i}">0</td>`;
         }
-        tblHtml += `<td class="px-0 py-2 text-center text-[11px] font-black text-slate-800 border-l border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-tek">0</td>`;
+        tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-black text-slate-800 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-tek">0</td>`;
         tblHtml += `</tr>`;
 
-        tblHtml += `<tr class="bg-slate-100 border-t-2 border-slate-300">`;
-        tblHtml += `<td class="px-3 py-3 text-[11px] font-black text-slate-800 whitespace-nowrap sticky left-0 bg-slate-100 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#cbd5e1] text-right">GENEL (V+T):</td>`;
+        tblHtml += `<tr class="bg-indigo-50 border-t-2 border-slate-300">`;
+        tblHtml += `<td class="px-3 py-3 text-[11px] font-black text-indigo-900 whitespace-nowrap sticky left-0 bg-indigo-50 z-10 border-r border-b border-indigo-200 shadow-[1px_0_0_0_#c7d2fe] text-right uppercase tracking-wider" colspan="2">Genel Toplam (V+T):</td>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-3 text-center text-[12px] font-bold text-slate-800 border-l border-b border-slate-200 bg-slate-100" id="geneltotal-col-${i}">0</td>`;
+            tblHtml += `<td class="px-0 py-3 text-center text-[13px] font-black text-indigo-800 border-r border-b border-indigo-200 bg-indigo-50" id="geneltotal-col-${i}">0</td>`;
         }
-        tblHtml += `<td class="px-0 py-3 text-center text-[12px] font-black text-slate-900 border-l border-b border-slate-200 bg-slate-100 sticky right-0 shadow-[-1px_0_0_0_#cbd5e1]" id="geneltotal-grand">0</td>`;
+        tblHtml += `<td class="px-0 py-3 text-center text-[13px] font-black text-indigo-950 border-r border-b border-indigo-200 bg-indigo-100 sticky right-0 shadow-[-1px_0_0_0_#c7d2fe]" id="geneltotal-grand">0</td>`;
         tblHtml += `</tr>`;
 
         tbody.innerHTML = tblHtml;
