@@ -339,12 +339,24 @@ window.saveDataAndClose = async function (event) {
             const koltuk_dosya_url = document.getElementById('evrak-koltuk-url')?.value || null;
 
             if (!arac_id) throw new Error("Araç ID bulunamadı.");
-            const { error } = await window.supabaseClient.from('araclar').update({
+            let payload = {
                 vize_bitis, vize_dosya_url,
                 sigorta_bitis, sigorta_dosya_url,
                 kasko_bitis, kasko_dosya_url,
                 koltuk_bitis, koltuk_dosya_url
-            }).eq('id', arac_id);
+            };
+            let { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
+
+            if (error && error.message && (error.message.includes('could not identify column') || error.message.includes('does not exist'))) {
+                delete payload.koltuk_bitis;
+                delete payload.koltuk_dosya_url;
+                const fallbackRes = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
+                error = fallbackRes.error;
+                if (!error && window.Toast) {
+                    window.Toast.info("Koltuk Poliçesi sütunları Supabase'de yok. Diğer evraklar başarıyla kaydedildi.");
+                }
+            }
+
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
         } else if (formTitle === 'Müşteriye Araç Tanımla') {
@@ -2432,7 +2444,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                 .maybeSingle();
 
             if (errExist) {
-                if(errExist.message && errExist.message.includes('could not identify column')){
+                if(errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist'))){
                     const { data: fbData } = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
                     existing = fbData;
                 } else {
@@ -2446,7 +2458,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                     .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
                     .eq('id', existing.id);
                 if (errUpd) {
-                    if (errUpd.message && errUpd.message.includes('could not identify column')) {
+                    if (errUpd.message && (errUpd.message.includes('could not identify column') || errUpd.message.includes('does not exist'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
                         if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
                     } else throw errUpd;
@@ -2456,7 +2468,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                     .from('musteri_arac_tanimlari')
                     .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
                 if (errIns) {
-                    if (errIns.message && errIns.message.includes('could not identify column')) {
+                    if (errIns.message && (errIns.message.includes('could not identify column') || errIns.message.includes('does not exist'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
                         if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
                     } else throw errIns;
