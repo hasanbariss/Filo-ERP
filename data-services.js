@@ -2031,6 +2031,13 @@ async function fetchTaseronFinans() {
         const { data: tanimlar } = await window.supabaseClient
             .from('musteri_arac_tanimlari')
             .select('*');
+
+        // Fetch musteriler (factory names) upfront
+        const { data: musteriListesi } = await window.supabaseClient
+            .from('musteriler')
+            .select('id, ad');
+        const musteriAdMap = {};
+        musteriListesi?.forEach(m => musteriAdMap[m.id] = m.ad || '-');
             
         const { data: yakitlar } = await window.supabaseClient
             .from('yakit_takip')
@@ -2066,7 +2073,7 @@ async function fetchTaseronFinans() {
                     summary[aId].tek += t;
 
                     if(!summary[aId].musteriDetay[mId]) {
-                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, vardiya_fiyat: 0, tek_fiyat: 0 };
+                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, vardiya_fiyat: 0, tek_fiyat: 0, musteri_ad: musteriAdMap[mId] || '?' };
                         const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId);
                         if(tanim) {
                             summary[aId].musteriDetay[mId].vardiya_fiyat = parseFloat(tanim.vardiya_fiyat) || 0;
@@ -2171,9 +2178,10 @@ window.openCariHakedisDetay = async function(arac_id) {
     if(window.lucide) window.lucide.createIcons();
 
     try {
-        const { data: musteriler } = await window.supabaseClient.from('musteriler').select('id, ad, unvan');
+        const { data: musteriler, error: mErr } = await window.supabaseClient.from('musteriler').select('id, ad');
+        if(mErr) console.warn('Musteriler fetch error:', mErr);
         const musteriMap = {};
-        musteriler?.forEach(m => musteriMap[m.id] = m.ad || m.unvan || 'Bilinmeyen');
+        musteriler?.forEach(m => musteriMap[m.id] = m.ad || '-');
         
         const [year, m] = month.split('-');
         const startDate = `${year}-${m}-01`;
@@ -2194,7 +2202,7 @@ window.openCariHakedisDetay = async function(arac_id) {
             factoriesHTML = `<div class="space-y-4">`;
             mIds.forEach(mId => {
                 const md = data.musteriDetay[mId];
-                const unvan = musteriMap[mId] || 'Bilinmeyen Müşteri/Fabrika';
+                const unvan = md.musteri_ad || musteriMap[mId] || `Fabrika ID: ${mId}`;
                 factoriesHTML += `
                     <div class="bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
                         <div class="font-black text-sm text-white mb-4 flex items-center gap-2">
