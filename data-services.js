@@ -2331,6 +2331,9 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <p class="text-xs text-gray-400 mt-1">${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
                     </div>
                     <div class="flex items-center gap-3">
+                        <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
+                            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Yazdır
+                        </button>
                         <button onclick="window.saveHakedisFiyatlar('${arac_id}', this)" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
                             <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
                         </button>
@@ -2465,7 +2468,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                 .maybeSingle();
 
             if (errExist) {
-                if(errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist'))){
+                if(errExist.message && (errExist.message.includes('could not identify column') || errExist.message.includes('does not exist') || errExist.message.includes('could not find'))){
                     const { data: fbData } = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
                     existing = fbData;
                 } else {
@@ -2479,7 +2482,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                     .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
                     .eq('id', existing.id);
                 if (errUpd) {
-                    if (errUpd.message && (errUpd.message.includes('could not identify column') || errUpd.message.includes('does not exist'))) {
+                    if (errUpd.message && (errUpd.message.includes('could not identify column') || errUpd.message.includes('does not exist') || errUpd.message.includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
                         if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
                     } else throw errUpd;
@@ -2489,7 +2492,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
                     .from('musteri_arac_tanimlari')
                     .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
                 if (errIns) {
-                    if (errIns.message && (errIns.message.includes('could not identify column') || errIns.message.includes('does not exist'))) {
+                    if (errIns.message && (errIns.message.includes('could not identify column') || errIns.message.includes('does not exist') || errIns.message.includes('could not find'))) {
                         await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
                         if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
                     } else throw errIns;
@@ -3531,6 +3534,33 @@ async function fetchBakimlar() {
     } catch (e) { console.error(e); }
 }
 
+window.currentPoliceFilter = 'HEPSİ';
+window.filterPoliceler = function(type) {
+    window.currentPoliceFilter = type;
+    
+    // UI Update
+    const btns = ['all', 'trafik', 'kasko', 'koltuk'];
+    btns.forEach(id => {
+        const btn = document.getElementById('police-btn-' + id);
+        if(!btn) return;
+        btn.classList.remove('bg-orange-500', 'text-white');
+        btn.classList.add('text-gray-500');
+    });
+    
+    let activeBtnId = 'all';
+    if(type === 'Trafik Sigortası') activeBtnId = 'trafik';
+    else if(type === 'Kasko') activeBtnId = 'kasko';
+    else if(type === 'Koltuk Sigortası') activeBtnId = 'koltuk';
+    
+    const activeBtn = document.getElementById('police-btn-' + activeBtnId);
+    if(activeBtn) {
+        activeBtn.classList.remove('text-gray-500');
+        activeBtn.classList.add('bg-orange-500', 'text-white');
+    }
+    
+    fetchPoliceler();
+};
+
 async function fetchPoliceler() {
     const tbody = document.getElementById('police-tbody');
     if (!tbody) return;
@@ -3538,15 +3568,21 @@ async function fetchPoliceler() {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
         const { data, error } = await window.supabaseClient.from('arac_policeler').select('*, araclar:araclar(plaka), cariler:cariler(unvan)').order('id', { ascending: false });
         if (error) throw error;
+        
+        let filteredData = data;
+        if (window.currentPoliceFilter !== 'HEPSİ') {
+            filteredData = data.filter(p => p.police_turu === window.currentPoliceFilter);
+        }
+
         tbody.innerHTML = '';
         let totalGider = 0;
-        if (data.length === 0) {
+        if (filteredData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Poliçe kaydı bulunmuyor.</td></tr>';
             const ozet = document.getElementById('ozet-police');
             if (ozet) ozet.textContent = "0 ₺";
             return;
         }
-        data.forEach(p => {
+        filteredData.forEach(p => {
             totalGider += (p.toplam_tutar || 0);
             const isGecerli = new Date(p.bitis_tarihi) > new Date();
             const statusDot = isGecerli ? '<span class="w-2 h-2 rounded-full bg-green-500 inline-block mr-1"></span>' : '<span class="w-2 h-2 rounded-full bg-danger inline-block mr-1"></span>';

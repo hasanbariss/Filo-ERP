@@ -2478,32 +2478,175 @@ window.printTaseronRapor = function () {
             <head>
                 <title>Taşeron Ay Sonu Raporu - ${month}</title>
                 <style>
-                    body { font-family: 'Segoe UI', sans-serif; padding: 20px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                    th { bg-color: #f2f2f2; }
-                    .header { text-align: center; margin-bottom: 30px; }
-                    .premium-table { width: 100%; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #111; }
+                    .header-container { position: relative; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+                    .header-title { text-align: center; }
+                    .header-title h1 { margin: 0; font-size: 1.5rem; color: #111; }
+                    .header-title p { margin: 5px 0 0; color: #444; }
+                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.25rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
+                    th { background-color: #f8fafc; color: #111; font-weight: bold; }
                     .text-right { text-align: right; }
                     .text-center { text-align: center; }
-                    .text-orange-400 { color: #f97316; }
-                    .text-red-500 { color: #ef4444; }
-                    .text-green-400 { color: #22c55e; }
-                    tfoot { font-bold: true; background: #fafafa; }
+                    .text-orange-400 { color: #ea580c !important; font-weight: bold; }
+                    .text-red-500 { color: #dc2626 !important; font-weight: bold; }
+                    .text-green-400 { color: #16a34a !important; font-weight: bold; }
+                    tfoot { font-weight: bold; background: #f1f5f9; }
                 </style>
             </head>
             <body>
-                <div class="header">
-                    <h1>Taşeron Ay Sonu Hesap Özeti</h1>
-                    <p>Dönem: ${month}</p>
+                <div class="header-container">
+                    <div class="ideol-logo">IDEOL TURİZM</div>
+                    <div class="header-title">
+                        <h1>Taşeron Ay Sonu Hesap Özeti</h1>
+                        <p>Dönem: ${month}</p>
+                    </div>
                 </div>
                 ${tableHtml}
             </body>
         </html>
     `);
     win.document.close();
-    win.print();
+    win.setTimeout(() => { win.print(); win.close(); }, 500);
 };
+
+window.printCariKart = function(plaka, month) {
+    const overlay = document.getElementById('cari-kart-modal-overlay');
+    if (!overlay) return;
+
+    // We collect the clean data to print
+    const rows = overlay.querySelectorAll('.musteri-calc-row');
+    let detailRowsHtml = '';
+    rows.forEach(row => {
+        const title = row.querySelector('.text-sm.font-bold.text-white')?.innerText || '';
+        const vdAdet = row.querySelector('.text-\\[10px\\].text-orange-400')?.innerText || '';
+        const tkAdet = row.querySelectorAll('.text-\\[10px\\].text-blue-400')[0]?.innerText || '';
+        
+        const vdFiyat = row.querySelector('.calc-vardiya-fiyat')?.value || '0';
+        const tkFiyat = row.querySelector('.calc-tek-fiyat')?.value || '0';
+        const kdvOran = row.querySelector('.calc-kdv-oran')?.value || '0';
+        const tevOran = row.querySelector('.calc-tev-oran')?.value || '0';
+        
+        const rowBrut = row.querySelector('.row-brut-tutar')?.innerText || '₺0,00';
+        const rowKdv = row.querySelector('.row-kdv-tutar')?.innerText || '+₺0,00';
+        const rowTev = row.querySelector('.row-tev-tutar')?.innerText || '-₺0,00';
+
+        detailRowsHtml += `
+            <div class="calc-section">
+                <h3>${title}</h3>
+                <table class="detail-table">
+                    <tr>
+                        <th>Vardiya Sefer (${vdAdet})</th>
+                        <th>Tek Sefer (${tkAdet})</th>
+                        <th>KDV %</th>
+                        <th>TEV %</th>
+                    </tr>
+                    <tr>
+                        <td>₺${vdFiyat}</td>
+                        <td>₺${tkFiyat}</td>
+                        <td>%${kdvOran}</td>
+                        <td>%${tevOran}</td>
+                    </tr>
+                </table>
+                <div class="row-totals">
+                    <p>Brüt Tutar: <strong>${rowBrut}</strong></p>
+                    <p class="text-green-400">+ KDV (%${kdvOran}): <strong>${rowKdv}</strong></p>
+                    <p class="text-red-500">- TEV (%${tevOran}): <strong>${rowTev}</strong></p>
+                </div>
+            </div>
+        `;
+    });
+
+    const netTotal = overlay.querySelector('#modal-net-total')?.innerText || '₺0,00';
+    const brutTotal = overlay.querySelector('#modal-brut-total')?.innerText || '₺0,00';
+    const kdvTotal = overlay.querySelector('#modal-kdv-total')?.innerText || '+₺0,00';
+    const tevTotal = overlay.querySelector('#modal-tev-total')?.innerText || '-₺0,00';
+    
+    const yakitTotalVal = overlay.querySelector('#modal-yakit-total')?.innerText || '-₺0,00';
+    
+    // YAKIT ROWS
+    let yakitHtml = '<p style="color:#666; font-size:12px; margin-top:5px;">Hiç yakıt alımı bulunmuyor.</p>';
+    const yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
+    if (yakitDivs.length > 0) {
+        yakitHtml = '<table class="yakit-table"><tr><th>Tarih</th><th>Açıklama</th><th class="text-right">Tutar</th></tr>';
+        yakitDivs.forEach(yd => {
+            const tarih = yd.querySelector('.text-xs.font-bold')?.innerText || '';
+            const desc = yd.querySelector('.text-\\[10px\\].text-gray-400') ? yd.querySelector('.text-\\[10px\\].text-gray-400').innerText : '';
+            const val = yd.querySelector('.text-sm.font-black.text-orange-400')?.innerText || '';
+            yakitHtml += `<tr><td>${tarih}</td><td>${desc}</td><td class="text-right text-orange-400 font-bold">${val}</td></tr>`;
+        });
+        yakitHtml += '</table>';
+    }
+
+    const win = window.open('', '', 'height=800,width=900');
+    win.document.write(`
+        <html>
+            <head>
+                <title>Cari Hesap Dökümü - ${plaka}</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 25px; color: #111; line-height: 1.4; }
+                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
+                    .header-title { text-align: center; }
+                    .header-title h1 { margin: 0; font-size: 1.5rem; color: #111; }
+                    .header-title p { margin: 5px 0 0; color: #444; }
+                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.25rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    
+                    .section-title { font-size: 14px; font-weight: bold; color: #555; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; margin-bottom: 10px; }
+                    .calc-section { border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
+                    .calc-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+                    
+                    .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; }
+                    .detail-table th, .detail-table td { border: 1px solid #cbd5e1; padding: 6px; text-align: center; }
+                    .detail-table th { background: #f1f5f9; color: #475569; font-weight: bold; }
+                    .row-totals { text-align: right; font-size: 13px; line-height: 1.6; }
+                    .row-totals p { margin: 2px 0; }
+                    
+                    .yakit-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 5px; }
+                    .yakit-table th, .yakit-table td { border-bottom: 1px solid #eee; padding: 6px 4px; text-align: left; }
+                    .yakit-table th { color: #64748b; font-weight: bold; }
+                    
+                    .grand-totals { margin-top: 30px; border-top: 2px solid #111; padding-top: 15px; float: right; width: 350px; }
+                    .grand-totals div { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
+                    .net-hakedis { font-size: 20px !important; font-weight: 900; color: #16a34a; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+                    
+                    .text-right { text-align: right; }
+                    .text-orange-400 { color: #ea580c; }
+                    .text-red-500 { color: #dc2626; }
+                    .text-green-400 { color: #16a34a; }
+                    .clearfix::after { content: ""; clear: both; display: table; }
+                </style>
+            </head>
+            <body>
+                <div class="header-container">
+                    <div class="ideol-logo">IDEOL TURİZM</div>
+                    <div class="header-title">
+                        <h1>Cari Kart: ${plaka}</h1>
+                        <p>${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
+                    </div>
+                </div>
+                
+                <div class="section-title">Hizmet Fiyatlandırma</div>
+                ${detailRowsHtml}
+                
+                <div class="section-title">Yakıt Kesintileri</div>
+                ${yakitHtml}
+                
+                <div class="grand-totals">
+                    <div><span>Toplam Brüt Kazanç</span> <strong>${brutTotal}</strong></div>
+                    <div class="text-green-400"><span>+ Toplam KDV</span> <strong>${kdvTotal}</strong></div>
+                    <div class="text-red-500"><span>- Toplam TEV (Stopaj)</span> <strong>${tevTotal}</strong></div>
+                    <div class="text-orange-400"><span>- Toplam Yakıt Kesintisi</span> <strong>${yakitTotalVal}</strong></div>
+                    <div class="net-hakedis"><span>NET HAKEDİŞ</span> <span>${netTotal}</span></div>
+                </div>
+                <div class="clearfix"></div>
+            </body>
+        </html>
+    `);
+    win.document.close();
+    win.setTimeout(() => { win.print(); win.close(); }, 500);
+};
+
 
 /* === 9. HARİTA & ROTA MANTIĞI === */
 window.mainMap = null;
