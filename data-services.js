@@ -2171,9 +2171,9 @@ window.openCariHakedisDetay = async function(arac_id) {
     if(window.lucide) window.lucide.createIcons();
 
     try {
-        const { data: musteriler } = await window.supabaseClient.from('musteriler').select('id, unvan');
+        const { data: musteriler } = await window.supabaseClient.from('musteriler').select('id, ad, unvan');
         const musteriMap = {};
-        musteriler?.forEach(m => musteriMap[m.id] = m.unvan);
+        musteriler?.forEach(m => musteriMap[m.id] = m.ad || m.unvan || 'Bilinmeyen');
         
         const [year, m] = month.split('-');
         const startDate = `${year}-${m}-01`;
