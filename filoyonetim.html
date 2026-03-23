@@ -825,26 +825,18 @@
                 </div>
 
                 <!-- 1. ARAÇ & FİRMA LİSTESİ -->
-                <div id="taseron-content-liste" class="block space-y-6">
-                    <div class="bg-[#1a1c1e] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="taseron-table">
-                                <thead>
-                                    <tr>
-                                        <th>Araç Bilgisi</th>
-                                        <th>Firma / Sahip</th>
-                                        <th>Sürücü</th>
-                                        <th>Kira Bedeli</th>
-                                        <th class="text-right">İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="taseron-tbody">
-                                    <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Taşeron verileri
-                                            yükleniyor...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                <div id="taseron-content-liste" class="block space-y-6 px-2">
+                    <div class="flex items-center justify-between gap-4 mb-2">
+                        <p class="text-xs text-gray-500">Sadece <span class="text-pink-400 font-bold">TAŞERON</span> olarak işaretlenen araçlar listelenmektedir.</p>
+                        <input type="search" id="search-taseron" oninput="window.filterTaseronCards(this.value)" placeholder="Plaka veya Firma Ara..."
+                            class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-pink-500 w-48 transition-colors">
+                    </div>
+                    <div id="taseron-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                        <div class="col-span-full py-16 text-center">
+                            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <i data-lucide="loader-2" class="w-8 h-8 text-gray-600 animate-spin"></i>
+                            </div>
+                            <p class="text-gray-500 font-medium">Taşeron araçlar yükleniyor...</p>
                         </div>
                     </div>
                 </div>

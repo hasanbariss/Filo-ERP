@@ -95,10 +95,22 @@ window.saveDataAndClose = async function (event) {
             const firma_adi = document.getElementById('edit-arac-firma')?.value || null;
 
             if (!plaka || !id) throw new Error("Plaka zorunludur.");
-            const { error } = await window.supabaseClient.from('araclar').update({ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket, firma_adi }).eq('id', id);
+
+            // Önce firma_adi dahil güncellemeyi dene (sütun yoksa graceful fallback)
+            let updatePayload = { plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket, firma_adi };
+            let { error } = await window.supabaseClient.from('araclar').update(updatePayload).eq('id', id);
+
+            if (error && error.message && error.message.includes('firma_adi')) {
+                // firma_adi sütunu henüz yoksa, onsuz güncelle
+                const { plaka: p, marka_model, mulkiyet_durumu, belge_turu: bt, sirket: s } = { plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket };
+                const fallbackRes = await window.supabaseClient.from('araclar').update({ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket }).eq('id', id);
+                error = fallbackRes.error;
+            }
 
             if (error) throw error;
+            // Listeyi yenile: hem özmal hem taşeron kartlarını güncelle
             if (typeof fetchAraclar === 'function') fetchAraclar();
+            if (typeof fetchTaseronlar === 'function') fetchTaseronlar();
         } else if (formTitle === 'Yeni Şoför Ekle') {
             const ad_soyad = document.getElementById('sofor-ad').value?.trim();
             const telefon = document.getElementById('sofor-telefon').value?.trim();
@@ -1557,13 +1569,16 @@ window.openAracDetay = async function(aracId) {
 
 
 async function fetchTaseronlar() {
+    let grid = document.getElementById('taseron-cards-grid');
+    // Backward compat: fallback to tbody if grid not found
     const tbody = document.getElementById('taseron-tbody');
-    if (!tbody) return;
+    const container = grid || tbody;
+    if (!container) return;
 
     try {
         const conn = window.checkSupabaseConnection();
         if (!conn.ok) {
-            tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">${conn.msg}</td></tr>`;
+            container.innerHTML = `<div class="col-span-full py-12 text-center text-red-500 font-bold">${conn.msg}</div>`;
             return;
         }
 
@@ -1575,52 +1590,91 @@ async function fetchTaseronlar() {
 
         if (error) throw error;
 
-        tbody.innerHTML = '';
+        if (grid) {
+            grid.innerHTML = '';
+            if (!taseronlar || taseronlar.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-16 text-center">
+                    <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="truck" class="w-8 h-8 text-gray-600"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">Taşeron araç bulunamadı.</p>
+                    <p class="text-xs text-gray-600 mt-1">Araçları "Araç Güncelle" modalından TAŞERON olarak işaretleyin.</p>
+                </div>`;
+                if (window.lucide) window.lucide.createIcons();
+                return;
+            }
 
-        if (taseronlar.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Kayıtlı taşeron araç bulunmuyor.</td></tr>';
-            return;
-        }
-
-        taseronlar.forEach(a => {
-            const soforGoster = a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">Atanmamış</span>';
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="flex items-center">
-                        <div class="p-2 bg-pink-500/10 rounded-lg text-pink-500 mr-3">
-                            <i data-lucide="truck" class="w-4 h-4"></i>
+            taseronlar.forEach(a => {
+                const soforAdi = a.soforler ? a.soforler.ad_soyad : null;
+                const firmaAdi = a.firma_adi || null;
+                const card = document.createElement('div');
+                card.className = 'bg-[#1a1c1e] border border-white/5 rounded-2xl p-5 flex flex-col gap-4 hover:border-pink-500/30 transition-all group shadow-lg';
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-pink-500/10 rounded-xl text-pink-400 group-hover:bg-pink-500/20 transition-all">
+                                <i data-lucide="truck" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="text-base font-black text-white tracking-wider">${a.plaka}</div>
+                                <div class="text-[10px] text-gray-500 uppercase mt-0.5">${a.marka_model || 'Marka Belirtilmemiş'}</div>
+                            </div>
                         </div>
-                        <div>
-                            <div class="text-sm font-bold text-white">${a.plaka}</div>
-                            <div class="text-[10px] text-gray-500 uppercase">${a.marka_model || '-'}</div>
+                        <span class="text-[9px] font-black text-pink-400 bg-pink-500/10 border border-pink-500/20 px-2 py-1 rounded-lg uppercase tracking-widest">Taşeron</span>
+                    </div>
+
+                    <div class="space-y-2 border-t border-white/5 pt-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5 text-gray-500 flex-shrink-0"></i>
+                            <span class="text-xs text-gray-400 truncate">${firmaAdi || '<span class="italic text-gray-600">Firma belirtilmemiş</span>'}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="user" class="w-3.5 h-3.5 text-gray-500 flex-shrink-0"></i>
+                            <span class="text-xs text-gray-400 truncate">${soforAdi || '<span class="italic text-gray-600">Şoför atanmamış</span>'}</span>
                         </div>
                     </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    ${a.firma_adi || 'Bireysel / Belirtilmemiş'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    ${soforGoster}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="text-sm font-bold text-white">${window.formatCurrency(a.kira_bedeli || 0)}</span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button onclick="openModal('Araç Güncelle', '${a.id}')" class="text-orange-500 hover:text-orange-400 mr-3 transition-all">Düzenle</button>
-                    <button onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" class="text-gray-500 hover:text-red-500 transition-all">Sil</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+
+                    <div class="flex gap-2 pt-1">
+                        <button onclick="openModal('Araç Güncelle', '${a.id}')" class="flex-1 py-2 text-xs font-bold bg-white/5 hover:bg-orange-500/20 text-gray-300 hover:text-orange-400 rounded-xl transition-all border border-white/5 hover:border-orange-500/30">Düzenle</button>
+                        <button onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" class="px-3 py-2 text-xs font-bold bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-xl transition-all border border-white/5 hover:border-red-500/30">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        } else if (tbody) {
+            tbody.innerHTML = '';
+            if (!taseronlar || taseronlar.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">Kayıtlı taşeron araç bulunmuyor.</td></tr>';
+            } else {
+                taseronlar.forEach(a => {
+                    const soforGoster = a.soforler ? a.soforler.ad_soyad : '<span class="text-xs italic text-gray-600">Atanmamış</span>';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td class="px-6 py-4">${a.plaka}</td><td class="px-6 py-4 text-sm text-gray-400">${a.firma_adi || '-'}</td><td class="px-6 py-4 text-sm text-gray-400">${soforGoster}</td><td class="px-6 py-4 text-right text-sm"><button onclick="openModal('Araç Güncelle', '${a.id}')" class="text-orange-500 mr-3">Düzenle</button><button onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" class="text-gray-500 hover:text-red-500">Sil</button></td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
 
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
         console.error('Taşeron fetch hatası:', e);
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
+        const c = document.getElementById('taseron-cards-grid') || document.getElementById('taseron-tbody');
+        if(c) c.innerHTML = `<div class="col-span-full text-center text-red-500 p-4 font-bold">Hata: ${e.message}</div>`;
     }
 }
+
+window.filterTaseronCards = function(q) {
+    const grid = document.getElementById('taseron-cards-grid');
+    if (!grid) return;
+    const query = q.trim().toLowerCase();
+    Array.from(grid.children).forEach(card => {
+        const text = card.innerText?.toLowerCase() || '';
+        card.style.display = (query === '' || text.includes(query)) ? '' : 'none';
+    });
+};
 
 /* =====================================================
    ŞOFÖR DETAY OVERLAY — ŞOför kartına tıklayınca açılır
@@ -2000,8 +2054,11 @@ async function fetchTaseronFinans() {
                 if (!summary[aId]) {
                     summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
-                const v = parseInt(p.vardiya) || 0;
-                const t = parseInt(p.tek) || 0;
+                // vardiya & tek can be stored as strings like '2' or numbers
+                const vStr = String(p.vardiya || '').trim();
+                const tStr = String(p.tek || '').trim();
+                const v = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
+                const t = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
                 const mId = p.musteri_id;
                 
                 if(v > 0 || t > 0) {
