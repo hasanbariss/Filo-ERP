@@ -487,7 +487,7 @@ window.handlePrint = function() {
     const headersSubtitle = document.getElementById('header-subtitle').textContent;
 
     let html = `
-        <div style="font-family: sans-serif; color: #000; width: 100%; box-sizing: border-box; padding: 10mm;">
+        <div style="font-family: sans-serif; color: #000; width: 100%; box-sizing: border-box; padding: 5mm;">
             <div style="text-align:center; padding-bottom: 5px; margin-bottom: 10px;">
                 <h2 style="font-size: 1.1rem; font-weight: bold; margin: 0;">${headersTitle}</h2>
                 <p style="color: #333; font-size: 0.85rem; margin-top: 3px;">${headersSubtitle}</p>
