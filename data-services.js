@@ -747,7 +747,8 @@ window.saveDataAndClose = async function (event) {
         } else if (formTitle === 'Yeni Kredi Kartı') {
             const kart_adi = document.getElementById('kredi-kart-adi').value;
             const kart_sahibi = document.getElementById('kredi-kart-sahibi').value || null;
-            const kart_no = document.getElementById('kredi-kart-no').value || null;
+            let kart_no = document.getElementById('kredi-kart-no').value || null;
+            if (kart_no) kart_no = kart_no.replace(/\s+/g, '');
             const limit_tutari = parseFloat(document.getElementById('kredi-kart-limit').value);
 
             if (!kart_adi || isNaN(limit_tutari)) throw new Error("Kart adı ve limit zorunludur.");
@@ -2296,9 +2297,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i> Cari Kart: <span class="text-orange-400">${data.plaka}</span></h2>
                         <p class="text-xs text-gray-400 mt-1">${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
                     </div>
-                    <button onclick="document.getElementById('cari-kart-modal-overlay').remove()" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.saveHakedisFiyatlar('${arac_id}', this)" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
+                            <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
+                        </button>
+                        <button onclick="document.getElementById('cari-kart-modal-overlay').remove()" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
@@ -2396,6 +2402,86 @@ window.openCariHakedisDetay = async function(arac_id) {
     } catch (e) {
         console.error(e);
         overlay.innerHTML = `<div class="bg-white p-6 rounded text-red-500 font-bold">Hata oluştu: ${e.message} <button class="ml-4 underline blur-none text-black" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>`;
+    }
+};
+
+window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
+    if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+    const overlay = document.getElementById('cari-kart-modal-overlay');
+    if (!overlay) return;
+
+    const originalHtml = btnEl.innerHTML;
+    btnEl.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Sabredin...';
+    btnEl.disabled = true;
+    if(window.lucide) window.lucide.createIcons();
+
+    try {
+        const rows = overlay.querySelectorAll('.musteri-calc-row');
+        for (const row of rows) {
+            const musteri_id = row.getAttribute('data-mid');
+            const tk = parseFloat(row.querySelector('.calc-tek-fiyat')?.value) || 0;
+            const vd = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value) || 0;
+            const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
+            const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
+
+            let { data: existing, error: errExist } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select('id, tek_fiyat, vardiya_fiyat, kdv_oran, tev_oran')
+                .eq('arac_id', arac_id)
+                .eq('musteri_id', musteri_id)
+                .maybeSingle();
+
+            if (errExist) {
+                if(errExist.message && errExist.message.includes('could not identify column')){
+                    const { data: fbData } = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
+                    existing = fbData;
+                } else {
+                    throw errExist;
+                }
+            }
+
+            if (existing && existing.id) {
+                const { error: errUpd } = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
+                    .eq('id', existing.id);
+                if (errUpd) {
+                    if (errUpd.message && errUpd.message.includes('could not identify column')) {
+                        await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
+                        if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
+                    } else throw errUpd;
+                }
+            } else {
+                const { error: errIns } = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
+                if (errIns) {
+                    if (errIns.message && errIns.message.includes('could not identify column')) {
+                        await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
+                        if (window.Toast) window.Toast.info(`KDV/TEV oranları DB'de tanımlı değil, sadece fiyatlar kaydedildi.`);
+                    } else throw errIns;
+                }
+            }
+        }
+        
+        if (window.Toast) { window.Toast.success('Fiyatlar başarıyla güncellendi.'); }
+        else { 
+            const toast = document.createElement('div');
+            toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:10000;padding:12px 20px;border-radius:10px;background:rgba(22,163,74,0.92);color:white;font-size:0.8rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,0.25);backdrop-filter:blur(8px);`;
+            toast.textContent = `✓ Fiyatlar başarıyla güncellendi`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        if (typeof fetchTaseronFinans === 'function') setTimeout(fetchTaseronFinans, 300);
+
+    } catch (error) {
+        console.error("Fiyat Kaydetme Hatası:", error);
+        alert(error.message || "Kaydedilirken hata oluştu.");
+    } finally {
+        btnEl.innerHTML = originalHtml;
+        btnEl.disabled = false;
+        if(window.lucide) window.lucide.createIcons();
     }
 };
 
