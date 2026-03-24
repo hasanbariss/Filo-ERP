@@ -3907,12 +3907,17 @@ window.importYakitExcel = async function(event) {
                         pBirim = parseFloat((pTutar / pLitre).toFixed(4));
                     }
 
+                    const yyyy = dt.getFullYear();
+                    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+                    const dd = String(dt.getDate()).padStart(2, '0');
+                    const localISODate = `${yyyy}-${mm}-${dd}`;
+
                     rawRecords.push({
                         displayTarih: displayTarih,
                         displayLitre: displayLitre,
                         displayTutar: displayTutar,
-                        sortableDT: dt.toISOString(),
-                        tarih: dt.toISOString(),
+                        sortableDT: localISODate,
+                        tarih: localISODate,
                         formattedPlaka: formatted,
                         aracId: vehicle ? vehicle.id : null,
                         litre: pLitre,
