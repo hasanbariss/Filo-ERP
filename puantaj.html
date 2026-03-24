@@ -131,6 +131,12 @@
             <div class="flex items-center gap-1.5 border-l border-slate-200 pl-2 ml-1">
                 <input type="month" id="filter-donem" onchange="window.changeDonem()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 cursor-pointer" title="Dönem Seç">
                 <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
+                <select id="filter-owner" onchange="window.filterPuantaj()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <option value="Tümü">Tümü</option>
+                    <option value="ÖZMAL">Özmal</option>
+                    <option value="TAŞERON">Taşeron</option>
+                </select>
+                <div class="w-px h-4 bg-slate-200 mx-0.5"></div>
                 <select id="filter-arac" onchange="window.filterPuantaj()" class="text-xs font-bold bg-slate-50 border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 max-w-[120px]">
                     <option value="ALL">Tüm Araçlar</option>
                 </select>

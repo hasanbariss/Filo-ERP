@@ -59,7 +59,7 @@ async function loadGridData() {
         // Get tools matching customer ID
         const { data: tanimlar, error: tanimErr } = await window.supabaseClient
             .from('musteri_arac_tanimlari')
-            .select('*, araclar(id, plaka)')
+            .select('*, araclar(id, plaka, mulkiyet_durumu)')
             .eq('musteri_id', musteriId);
 
         if (tanimErr) throw tanimErr;
@@ -76,7 +76,8 @@ async function loadGridData() {
                 seenIds.add(t.araclar.id);
                 isolatedAraclar.push({
                     id: t.araclar.id,
-                    plaka: t.araclar.plaka
+                    plaka: t.araclar.plaka,
+                    mulkiyet: t.araclar.mulkiyet_durumu
                 });
             }
         }
@@ -455,20 +456,29 @@ window.saveExcelGrid = async function () {
 
 window.filterPuantaj = function() {
     const selectedId = document.getElementById('filter-arac')?.value || 'ALL';
+    const selectedOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
     const rows = document.querySelectorAll('#excel-tbody tr[data-arac-id]');
     
     rows.forEach(tr => {
         const aracId = tr.getAttribute('data-arac-id');
         const hasData = tr.getAttribute('data-has-data') === 'true';
 
-        if (selectedId === 'ALL') {
-             tr.style.display = hasData ? '' : 'none';
-        } else {
-            if (aracId === selectedId) {
-                tr.style.display = '';
+        // Find the vehicle in our isolated list to get its ownership status
+        const arac = isolatedAraclar.find(a => a.id.toString() === aracId);
+        const aracMulkiyet = (arac?.mulkiyet || 'Diğer').toUpperCase();
+
+        const matchesVehicle = (selectedId === 'ALL' || aracId === selectedId);
+        const matchesOwner = (selectedOwner === 'TÜMÜ' || aracMulkiyet === selectedOwner);
+
+        if (matchesVehicle && matchesOwner) {
+            // "ALL" and "TÜMÜ" case: only show those with data
+            if (selectedId === 'ALL' && selectedOwner === 'TÜMÜ') {
+                tr.style.display = hasData ? '' : 'none';
             } else {
-                tr.style.display = 'none';
+                tr.style.display = '';
             }
+        } else {
+            tr.style.display = 'none';
         }
     });
 
@@ -509,12 +519,18 @@ window.handlePrint = function() {
     html += `<th style="border: 1px solid #cbd5e1; padding: 2px; width: 25px; background-color: #f1f5f9;">TOP</th></tr></thead><tbody>`;
 
     let hasData = false;
+    const selectedOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
+    let rowsToPrint = isolatedAraclar.filter(arac => {
+        const matchesVehicle = (selectedId === 'ALL' || arac.id.toString() === selectedId);
+        const aracMulkiyet = (arac.mulkiyet || 'Diğer').toUpperCase();
+        const matchesOwner = (selectedOwner === 'TÜMÜ' || aracMulkiyet === selectedOwner);
+        return matchesVehicle && matchesOwner;
+    });
+
     let grandVardiya = 0;
     let grandTek = 0;
     let colVardiya = new Array(daysInMonth + 1).fill(0);
     let colTek = new Array(daysInMonth + 1).fill(0);
-
-    let rowsToPrint = isolatedAraclar.filter(arac => selectedId === 'ALL' || arac.id.toString() === selectedId);
 
     rowsToPrint.forEach((arac, index) => {
         let rowV = 0;

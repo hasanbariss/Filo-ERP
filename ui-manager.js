@@ -101,7 +101,6 @@ navButtons.forEach(btn => {
             if (typeof fetchCariler === 'function') fetchCariler();
         } else if (targetId === 'module-finans') {
             if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
-            if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
         } else if (targetId === 'module-raporlar') {
             if (typeof fetchRaporlar === 'function') fetchRaporlar();
         } else if (targetId === 'module-takvim') {
@@ -1502,12 +1501,21 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="number" id="edit-police-taksit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hangi Kartla Kesildi? / Not</label>
-                            <input type="text" id="edit-police-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Garanti Bonus kartımla 6 taksit çektim.">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Hangi Kartla Kesildi? / Not</label>
+                                <input type="text" id="edit-police-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Garanti Bonus kartımla 6 taksit çektim.">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kayıtlı Kredi Kartı (Varsa)</label>
+                                <select id="edit-police-kredi-karti" class="w-full bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 text-orange-400 focus:outline-none focus:border-orange-500 transition-all font-medium"></select>
+                            </div>
                         </div>
                     </div>
                 `;
+        setTimeout(() => {
+            loadSelectOptions('edit-police-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
+        }, 50);
     } else if (title === 'Yeni Fatura Kaydı') {
         content = `
                     <p class="text-sm text-gray-500 mb-6">Cari hesaba ait genel bir fatura veya belge kaydedin.</p>
@@ -2129,6 +2137,25 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-police-tutar').value = data.toplam_tutar || 0;
                         document.getElementById('edit-police-taksit').value = data.taksit_sayisi || 1;
                         document.getElementById('edit-police-aciklama').value = data.aciklama || '';
+                        
+                        // Kredi kartı bağlantısı var mı kontrol et
+                        window.supabaseClient.from('kredi_karti_islemleri')
+                            .select('kart_id')
+                            .ilike('aciklama', `%[POLİÇE ID: ${data.id}]%`)
+                            .limit(1).single().then(res => {
+                                if(res && res.data) {
+                                    // Dropdown'un yüklenmesi biraz sürebileceği için setInterval ile kontrol edin
+                                    const selectEl = document.getElementById('edit-police-kredi-karti');
+                                    let attempts = 0;
+                                    const iv = setInterval(() => {
+                                        if (selectEl.options.length > 1 || attempts > 20) {
+                                            clearInterval(iv);
+                                            selectEl.value = res.data.kart_id;
+                                        }
+                                        attempts++;
+                                    }, 100);
+                                }
+                            });
                     }
                 });
             } else if (title === 'Araç Güncelle') {
@@ -2591,6 +2618,7 @@ window.printCariKart = function(plaka, month) {
     // We collect the clean data to print
     const rows = overlay.querySelectorAll('.musteri-calc-row');
     let detailRowsHtml = '';
+    
     rows.forEach(row => {
         const titleEl = row.querySelector('.font-black.text-white');
         const title = titleEl ? titleEl.innerText.trim() : 'Fabrika';
@@ -2606,33 +2634,31 @@ window.printCariKart = function(plaka, month) {
         const kdvOran = row.querySelector('.calc-kdv-oran')?.value || '0';
         const tevOran = row.querySelector('.calc-tev-oran')?.value || '0';
         
-        const rowBrut = row.querySelector('.row-brut-tutar')?.innerText || '₺0,00';
+        const rowBrut = row.querySelector('.row-toplam')?.innerText || '₺0,00';
         const rowKdv = row.querySelector('.row-kdv-tutar')?.innerText || '+₺0,00';
         const rowTev = row.querySelector('.row-tev-tutar')?.innerText || '-₺0,00';
 
         detailRowsHtml += `
-            <div class="calc-section">
-                <h3>${title}</h3>
-                <table class="detail-table">
-                    <tr>
-                        <th>Vardiya Sefer (${vdAdet})</th>
-                        <th>Tek Sefer (${tkAdet})</th>
-                        <th>KDV %</th>
-                        <th>TEV %</th>
-                    </tr>
-                    <tr>
-                        <td>₺${vdFiyat}</td>
-                        <td>₺${tkFiyat}</td>
-                        <td>%${kdvOran}</td>
-                        <td>%${tevOran}</td>
-                    </tr>
-                </table>
-                <div class="row-totals">
-                    <p>Brüt Tutar: <strong>${rowBrut}</strong></p>
-                    <p class="text-green-400">+ KDV (%${kdvOran}): <strong>${rowKdv}</strong></p>
-                    <p class="text-red-500">- TEV (%${tevOran}): <strong>${rowTev}</strong></p>
-                </div>
-            </div>
+            <tr>
+                <td class="client-cell">
+                    <span class="client-name">${title}</span>
+                </td>
+                <td class="text-center detail-cell">
+                    <span class="count-badge vd">${vdAdet}</span> <span class="price-val">× ₺${vdFiyat}</span>
+                </td>
+                <td class="text-center detail-cell">
+                    <span class="count-badge tk">${tkAdet}</span> <span class="price-val">× ₺${tkFiyat}</span>
+                </td>
+                <td class="text-right brut-cell">${rowBrut}</td>
+                <td class="text-right tax-cell">
+                    <div class="tax-pct">%${kdvOran} KDV</div>
+                    <div class="tax-val pos">${rowKdv}</div>
+                </td>
+                <td class="text-right tax-cell">
+                    <div class="tax-pct">%${tevOran} TEV</div>
+                    <div class="tax-val neg">${rowTev}</div>
+                </td>
+            </tr>
         `;
     });
 
@@ -2640,21 +2666,28 @@ window.printCariKart = function(plaka, month) {
     const brutTotal = overlay.querySelector('#modal-brut-total')?.innerText || '₺0,00';
     const kdvTotal = overlay.querySelector('#modal-kdv-total')?.innerText || '+₺0,00';
     const tevTotal = overlay.querySelector('#modal-tev-total')?.innerText || '-₺0,00';
-    
     const yakitTotalVal = overlay.querySelector('#modal-yakit-total')?.innerText || '-₺0,00';
     
-    // YAKIT ROWS
-    let yakitHtml = '<p style="color:#666; font-size:12px; margin-top:5px;">Hiç yakıt alımı bulunmuyor.</p>';
+    let yakitHtml = '<p class="empty-yakit">Hiç yakıt alımı bulunmuyor.</p>';
     const yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
     if (yakitDivs.length > 0) {
-        yakitHtml = '<table class="yakit-table"><tr><th>Tarih</th><th>Açıklama</th><th class="text-right">Tutar</th></tr>';
+        yakitHtml = `
+            <table class="yakit-table">
+                <tbody>
+        `;
         yakitDivs.forEach(yd => {
             const tarih = yd.querySelector('.text-xs.font-bold')?.innerText || '';
             const desc = yd.querySelector('.text-\\[10px\\].text-gray-400') ? yd.querySelector('.text-\\[10px\\].text-gray-400').innerText : '';
             const val = yd.querySelector('.text-sm.font-black.text-orange-400')?.innerText || '';
-            yakitHtml += `<tr><td>${tarih}</td><td>${desc}</td><td class="text-right text-orange-400 font-bold">${val}</td></tr>`;
+            yakitHtml += `
+                <tr>
+                    <td class="y-date">${tarih}</td>
+                    <td class="y-desc">${desc}</td>
+                    <td class="text-right y-val">${val}</td>
+                </tr>
+            `;
         });
-        yakitHtml += '</table>';
+        yakitHtml += '</tbody></table>';
     }
 
     const win = window.open('', '', 'height=800,width=900');
@@ -2662,67 +2695,120 @@ window.printCariKart = function(plaka, month) {
         <html>
             <head>
                 <title>Cari Hesap Dökümü - ${plaka}</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 25px; color: #111; line-height: 1.4; }
-                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-                    .header-title { text-align: center; }
-                    .header-title h1 { margin: 0; font-size: 1.5rem; color: #111; }
-                    .header-title p { margin: 5px 0 0; color: #444; }
-                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.25rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Inter', system-ui, sans-serif; padding: 30px 40px; color: #1e293b; background: #fff; line-height: 1.4; font-size: 11px; }
+                    @page { size: portrait; margin: 0; }
                     
-                    .section-title { font-size: 14px; font-weight: bold; color: #555; text-transform: uppercase; border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-top: 25px; margin-bottom: 10px; }
-                    .calc-section { border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #fafafa; }
-                    .calc-section h3 { margin: 0 0 10px 0; font-size: 15px; color: #333; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+                    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+                    .header-left h1 { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+                    .header-left p { color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px; }
+                    .logo-text { font-size: 16px; font-weight: 900; color: #ea580c; font-style: italic; }
                     
-                    .detail-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 12px; }
-                    .detail-table th, .detail-table td { border: 1px solid #cbd5e1; padding: 6px; text-align: center; }
-                    .detail-table th { background: #f1f5f9; color: #475569; font-weight: bold; }
-                    .row-totals { text-align: right; font-size: 13px; line-height: 1.6; }
-                    .row-totals p { margin: 2px 0; }
+                    .section-title { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
                     
-                    .yakit-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 5px; }
-                    .yakit-table th, .yakit-table td { border-bottom: 1px solid #eee; padding: 6px 4px; text-align: left; }
-                    .yakit-table th { color: #64748b; font-weight: bold; }
+                    .master-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    .master-table th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 9px; padding: 8px 12px; text-align: left; border-bottom: 1px solid #f1f5f9; }
+                    .master-table td { padding: 8px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
                     
-                    .grand-totals { margin-top: 30px; border-top: 2px solid #111; padding-top: 15px; float: right; width: 350px; }
-                    .grand-totals div { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; }
-                    .net-hakedis { font-size: 20px !important; font-weight: 900; color: #16a34a; border-top: 1px dashed #ccc; padding-top: 10px; margin-top: 10px; }
+                    .client-cell { width: 22%; }
+                    .client-name { font-weight: 700; color: #334155; font-size: 11px; }
+                    
+                    .detail-cell { width: 18%; }
+                    .count-badge { display: inline-block; padding: 1px 5px; border-radius: 4px; font-weight: 800; font-size: 10px; }
+                    .count-badge.vd { background: #fff7ed; color: #ea580c; }
+                    .count-badge.tk { background: #f0f9ff; color: #0284c7; }
+                    .price-val { color: #94a3b8; font-size: 10px; font-weight: 500; }
+                    
+                    .brut-cell { font-weight: 800; color: #1e293b; font-size: 12px; width: 15%; }
+                    
+                    .tax-cell { width: 13%; }
+                    .tax-pct { font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 1px; }
+                    .tax-val { font-weight: 600; font-size: 10px; }
+                    .tax-val.pos { color: #16a34a; }
+                    .tax-val.neg { color: #dc2626; }
+                    
+                    .yakit-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+                    .yakit-table td { padding: 4px 0; border-bottom: 1px solid #f8fafc; font-size: 10px; }
+                    .y-date { color: #64748b; font-weight: 600; width: 60px; }
+                    .y-desc { color: #94a3b8; }
+                    .y-val { color: #ea580c; font-weight: 700; }
+                    .empty-yakit { color: #cbd5e1; font-size: 10px; font-style: italic; }
+                    
+                    .footer-grid { display: grid; grid-template-columns: 1fr 280px; gap: 40px; margin-top: 15px; }
+                    
+                    .summary-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; padding: 18px; }
+                    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; font-weight: 500; color: #64748b; }
+                    .summary-row b { color: #1e293b; font-weight: 700; }
+                    .net-box { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+                    .net-label { font-size: 12px; font-weight: 800; color: #0f172a; }
+                    .net-value { font-size: 20px; font-weight: 900; color: #16a34a; letter-spacing: -0.5px; }
+                    
+                    .doc-footer { margin-top: 50px; padding-top: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; color: #cbd5e1; font-size: 9px; font-weight: 600; }
                     
                     .text-right { text-align: right; }
-                    .text-orange-400 { color: #ea580c; }
-                    .text-red-500 { color: #dc2626; }
-                    .text-green-400 { color: #16a34a; }
-                    .clearfix::after { content: ""; clear: both; display: table; }
+                    .text-center { text-align: center; }
                 </style>
             </head>
             <body>
-                <div class="header-container">
-                    <div class="ideol-logo">IDEOL TURİZM</div>
-                    <div class="header-title">
+                <div class="header">
+                    <div class="header-left">
                         <h1>Cari Kart: ${plaka}</h1>
-                        <p>${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
+                        <p>${month} Dönemi Hakediş Detayları</p>
+                    </div>
+                    <div class="logo-text">IDEOL TURİZM</div>
+                </div>
+                
+                <div class="section">
+                    <span class="section-title">Hizmet Dökümü</span>
+                    <table class="master-table">
+                        <thead>
+                            <tr>
+                                <th>Fabrika</th>
+                                <th class="text-center">Vardiya</th>
+                                <th class="text-center">Tek Sefer</th>
+                                <th class="text-right">Brüt Toplam</th>
+                                <th class="text-right">KDV</th>
+                                <th class="text-right">TEV</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${detailRowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="footer-grid">
+                    <div>
+                        <span class="section-title">Yakıt Kesintileri</span>
+                        ${yakitHtml}
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-row"><span>Brüt Hakediş</span> <b>${brutTotal}</b></div>
+                        <div class="summary-row"><span>KDV Toplamı</span> <b style="color:#16a34a">${kdvTotal}</b></div>
+                        <div class="summary-row"><span>Stopaj/TEV Kes.</span> <b style="color:#dc2626">${tevTotal}</b></div>
+                        <div class="summary-row"><span>Yakıt Kesintisi</span> <b style="color:#ea580c">${yakitTotalVal}</b></div>
+                        
+                        <div class="net-box">
+                            <span class="net-label">NET HAKEDİŞ</span>
+                            <span class="net-value">${netTotal}</span>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="section-title">Hizmet Fiyatlandırma</div>
-                ${detailRowsHtml}
-                
-                <div class="section-title">Yakıt Kesintileri</div>
-                ${yakitHtml}
-                
-                <div class="grand-totals">
-                    <div><span>Toplam Brüt Kazanç</span> <strong>${brutTotal}</strong></div>
-                    <div class="text-green-400"><span>+ Toplam KDV</span> <strong>${kdvTotal}</strong></div>
-                    <div class="text-red-500"><span>- Toplam TEV (Stopaj)</span> <strong>${tevTotal}</strong></div>
-                    <div class="text-orange-400"><span>- Toplam Yakıt Kesintisi</span> <strong>${yakitTotalVal}</strong></div>
-                    <div class="net-hakedis"><span>NET HAKEDİŞ</span> <span>${netTotal}</span></div>
+                <div class="doc-footer">
+                    <span>${new Date().toLocaleString('tr-TR')}</span>
+                    <span>IDEOL Filo Yönetim | www.ideoltur.com</span>
                 </div>
-                <div class="clearfix"></div>
             </body>
         </html>
     `);
     win.document.close();
-    win.setTimeout(() => { win.print(); win.close(); }, 500);
+    win.setTimeout(() => { win.print(); win.close(); }, 700);
 };
 
 
@@ -2832,6 +2918,42 @@ window.handleOdemeTuruChange = function (value, prefix) {
 
     if (ccContainer) ccContainer.classList.toggle('hidden', value !== 'KREDİ KARTI');
     if (cariContainer) cariContainer.classList.toggle('hidden', value !== 'CARİ HESABI');
+};
+
+window.filterYakitlar = function (mulkiyet, sirket) {
+    window.currentYakitMulkiyet = mulkiyet;
+    window.currentYakitSirket = sirket;
+
+    // Tüm filtre butonlarının renklerini sıfırla
+    ['hepsi', 'ozmal', 'taseron', 'ideol', 'dikkan', 'mk'].forEach(key => {
+        const btn = document.getElementById(`filter-yakit-btn-${key}`);
+        if (btn) {
+            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-emerald-500', 'bg-red-500', 'text-white');
+            btn.classList.add('text-gray-400', 'hover:bg-white/10');
+        }
+    });
+
+    // Mülkiyet butonunu vurgula
+    const mulkKey = mulkiyet === 'ÖZMAL' ? 'ozmal' : (mulkiyet === 'TAŞERON' ? 'taseron' : 'hepsi');
+    const mulkBtn = document.getElementById(`filter-yakit-btn-${mulkKey}`);
+    if (mulkBtn) {
+        mulkBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
+        mulkBtn.classList.add('bg-orange-500', 'text-white');
+    }
+
+    // Şirket butonunu vurgula (hepsi değilse)
+    if (sirket !== 'hepsi') {
+        const sirketKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : 'mk');
+        const sirketBtn = document.getElementById(`filter-yakit-btn-${sirketKey}`);
+        if (sirketBtn) {
+            sirketBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
+            if (sirket === 'IDEOL') sirketBtn.classList.add('bg-blue-500', 'text-white');
+            else if (sirket === 'DİKKAN') sirketBtn.classList.add('bg-emerald-500', 'text-white');
+            else if (sirket === 'M.K.') sirketBtn.classList.add('bg-red-500', 'text-white');
+        }
+    }
+
+    if (typeof fetchYakitlar === 'function') fetchYakitlar();
 };
 
 window.filterAraclar = function (filter) {

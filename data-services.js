@@ -434,6 +434,8 @@ window.saveDataAndClose = async function (event) {
             }
 
             if (typeof fetchYakitlar === 'function') fetchYakitlar();
+            if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
+            if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
         } else if (formTitle === 'Yeni Cari Hesap') {
             let unvan = document.getElementById('cari-unvan').value;
             const tur = document.getElementById('cari-tur').value;
@@ -606,7 +608,7 @@ window.saveDataAndClose = async function (event) {
                     const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi: tarihIcin,
                         taksit_sayisi: taksit_sayisi,
-                        aciklama: `[${police_turu}] Poliçe Ödemesi`, toplam_tutar
+                        aciklama: `[${police_turu}] Poliçe Ödemesi [POLİÇE ID: ${policeData?.[0]?.id}]`, tutar: toplam_tutar
                     }]);
                     if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
                 }
@@ -633,6 +635,7 @@ window.saveDataAndClose = async function (event) {
             const toplam_tutar = parseFloat(document.getElementById('edit-police-tutar').value) || 0;
             const taksit_sayisi = parseInt(document.getElementById('edit-police-taksit').value) || 1;
             const aciklama = document.getElementById('edit-police-aciklama').value || null;
+            const kredi_karti_id = document.getElementById('edit-police-kredi-karti')?.value || null;
             
             if (!id) throw new Error("Poliçe ID bulunamadı.");
             
@@ -646,7 +649,30 @@ window.saveDataAndClose = async function (event) {
                 if (!error && window.Toast) window.Toast.info("Poliçe Notu için Supabase ayarı gerekli. Diğer veriler güncellendi.");
             }
             if (error) throw error;
+            
+            // Kredi Kartı Senkronizasyonu
+            const odemeAciklamaTag = `[POLİÇE ID: ${id}]`;
+            const guncelAciklama = `[Poliçe Düzenleme] ${aciklama || ''} ${odemeAciklamaTag}`;
+            
+            if (kredi_karti_id) {
+                const existing = await window.supabaseClient.from('kredi_karti_islemleri').select('id').ilike('aciklama', `%${odemeAciklamaTag}%`).single();
+                if (existing && existing.data) {
+                    await window.supabaseClient.from('kredi_karti_islemleri').update({
+                        kart_id: kredi_karti_id, tutar: toplam_tutar, taksit_sayisi: taksit_sayisi,
+                        islem_tarihi: baslangic_tarihi || new Date().toISOString().split('T')[0], aciklama: guncelAciklama
+                    }).eq('id', existing.data.id);
+                } else {
+                    await window.supabaseClient.from('kredi_karti_islemleri').insert([{
+                        kart_id: kredi_karti_id, tutar: toplam_tutar, taksit_sayisi: taksit_sayisi,
+                        islem_tarihi: baslangic_tarihi || new Date().toISOString().split('T')[0], aciklama: guncelAciklama
+                    }]);
+                }
+            } else {
+                await window.supabaseClient.from('kredi_karti_islemleri').delete().ilike('aciklama', `%${odemeAciklamaTag}%`);
+            }
+            
             if (typeof fetchPoliceler === 'function') fetchPoliceler();
+            if (typeof fetchKrediKartlari === 'function') fetchKrediKartlari();
         } else if (formTitle === 'Yeni Fatura Kaydı') {
             const cari_id = document.getElementById('fatura-cari-id').value;
             const fatura_tarihi = document.getElementById('fatura-tarih').value;
@@ -896,11 +922,11 @@ window.deleteRecord = async function (tableName, id, fetchFunctionName) {
 
         try {
             if (tableName === 'cariler') {
-
                 await handleCariDeletion(id);
             } else if (tableName === 'soforler') {
-
                 await handleSoforDeletion(id);
+            } else if (tableName === 'arac_policeler') {
+                await window.supabaseClient.from('kredi_karti_islemleri').delete().ilike('aciklama', `%[POLİÇE ID: ${id}]%`);
             }
 
 
@@ -2063,6 +2089,9 @@ async function fetchTaseronFinans() {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
         tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Veriler hesaplanıyor...</td></tr>';
 
+        // Get Ownership Filter
+        const ownerFilter = document.getElementById('fin-filter-owner')?.value || 'Tümü';
+
         // 1. Ay filtresini al
         let filterAy = document.getElementById('filter-cari-hakedis-ay')?.value;
         if (!filterAy) {
@@ -2074,7 +2103,7 @@ async function fetchTaseronFinans() {
         const startDate = `${year}-${month}-01`;
         const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
 
-        // 2. Data Fetching — correct table: musteri_servis_puantaj
+        // 2. Data Fetching
         const { data: puantajData, error: puantajErr } = await window.supabaseClient
             .from('musteri_servis_puantaj')
             .select('*')
@@ -2086,7 +2115,6 @@ async function fetchTaseronFinans() {
             .from('musteri_arac_tanimlari')
             .select('*');
 
-        // Fetch musteriler (factory names) upfront
         const { data: musteriListesi } = await window.supabaseClient
             .from('musteriler')
             .select('id, ad');
@@ -2112,10 +2140,14 @@ async function fetchTaseronFinans() {
         if (puantajData) {
             puantajData.forEach(p => {
                 const aId = p.arac_id;
+                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+                
+                if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
+
                 if (!summary[aId]) {
                     summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
-                // vardiya & tek can be stored as strings like '2' or numbers
                 const vStr = String(p.vardiya || '').trim();
                 const tStr = String(p.tek || '').trim();
                 const v = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
@@ -2127,11 +2159,13 @@ async function fetchTaseronFinans() {
                     summary[aId].tek += t;
 
                     if(!summary[aId].musteriDetay[mId]) {
-                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, vardiya_fiyat: 0, tek_fiyat: 0, musteri_ad: musteriAdMap[mId] || '?' };
+                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, vardiya_fiyat: 0, tek_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
                         const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId);
                         if(tanim) {
                             summary[aId].musteriDetay[mId].vardiya_fiyat = parseFloat(tanim.vardiya_fiyat) || 0;
                             summary[aId].musteriDetay[mId].tek_fiyat = parseFloat(tanim.tek_fiyat) || 0;
+                            summary[aId].musteriDetay[mId].kdv_oran = parseFloat(tanim.kdv_oran) || 0;
+                            summary[aId].musteriDetay[mId].tev_oran = parseFloat(tanim.tev_oran) || 0;
                         }
                     }
                     summary[aId].musteriDetay[mId].vardiya += v;
@@ -2143,6 +2177,11 @@ async function fetchTaseronFinans() {
         if (yakitlar) {
             yakitlar.forEach(y => {
                 const aId = y.arac_id;
+                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+                
+                if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
+
                 if (!summary[aId]) {
                     summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
@@ -2151,17 +2190,20 @@ async function fetchTaseronFinans() {
         }
 
         Object.values(summary).forEach(row => {
-            let totalBrut = 0;
+            let totalBrutOfRow = 0;
             Object.values(row.musteriDetay).forEach(md => {
-                totalBrut += (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat);
+                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat);
             });
-            row.brut = totalBrut;
+            row.brut = totalBrutOfRow;
         });
 
-        // Taseron veya yakıtı olanları sırala
-        const rows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
+        let rows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
 
-        // 4. Render
+        const plakaFilter = document.getElementById('taseron-finans-search')?.value?.toUpperCase();
+        if (plakaFilter) {
+            rows = rows.filter(r => r.plaka.toUpperCase().includes(plakaFilter));
+        }
+
         tbody.innerHTML = '';
         if (rows.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Bu dönem için kayıt bulunamadı.</td></tr>';
@@ -2182,18 +2224,18 @@ async function fetchTaseronFinans() {
             totalNet += net;
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors cursor-pointer group";
+            tr.className = "hover:bg-gray-50 transition-colors cursor-pointer group border-b border-gray-100";
             tr.onclick = () => window.openCariHakedisDetay(row.arac_id);
             tr.innerHTML = `
-                <td class="px-6 py-5 whitespace-nowrap"><div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div></td>
-                <td class="px-6 py-5 whitespace-nowrap text-center">
+                <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div></td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${row.vardiya} V</span>
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold" title="Tek Sefer">${row.tek} T</span>
                 </td>
-                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${row.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-5 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-5 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${row.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
                     Detay Gör &rarr;
                 </td>
             `;
@@ -2211,10 +2253,139 @@ async function fetchTaseronFinans() {
             <td></td>
         `;
         tbody.appendChild(tfoot);
+        
+        // Update global KPIs (only if specifically in hakedis view)
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(totalBrut);
+        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(totalYakit);
+        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(totalNet);
 
     } catch (e) {
         console.error("fetchTaseronFinans error:", e);
         if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Veriler yüklenirken hata oluştu.</td></tr>`;
+    }
+}
+
+async function fetchTaseronAylikRapor() {
+    const tbody = document.getElementById('taseron-rapor-tbody');
+    const tfoot = document.getElementById('taseron-rapor-tfoot');
+    if (!tbody) return;
+
+    try {
+        if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+        tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Rapor hazırlanıyor...</td></tr>';
+        if(tfoot) tfoot.classList.add('hidden');
+
+        // Get Ownership and Date Filters
+        const ownerFilter = document.getElementById('fin-filter-owner')?.value || 'Tümü';
+        let filterAy = document.getElementById('filter-taseron-rapor-ay')?.value;
+        if (!filterAy) {
+            filterAy = new Date().toISOString().slice(0, 7);
+            const el = document.getElementById('filter-taseron-rapor-ay');
+            if(el) el.value = filterAy;
+        }
+
+        const [year, month] = filterAy.split('-');
+        const startDate = `${year}-${month}-01`;
+        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
+
+        // Parallel Fetch Data
+        const [puantajRes, tanimRes, yakitRes, bakimRes, aracRes] = await Promise.all([
+            window.supabaseClient.from('musteri_servis_puantaj').select('*').gte('tarih', startDate).lte('tarih', endDate),
+            window.supabaseClient.from('musteri_arac_tanimlari').select('*'),
+            window.supabaseClient.from('yakit_takip').select('*').gte('tarih', startDate).lte('tarih', endDate),
+            window.supabaseClient.from('arac_bakimlari').select('*').gte('islem_tarihi', startDate).lte('islem_tarihi', endDate),
+            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu')
+        ]);
+
+        const aracMap = {};
+        aracRes.data?.forEach(a => aracMap[a.id] = a);
+
+        const summary = {};
+
+        // Aggregate Group data
+        const addRow = (aid) => {
+            if (!summary[aid]) summary[aid] = { plaka: aracMap[aid]?.plaka || '?', sefer: 0, brut: 0, yakit: 0, servis: 0, net: 0 };
+        };
+
+        (puantajRes.data || []).forEach(p => {
+            const aid = p.arac_id;
+            const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+            const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+            if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
+
+            addRow(aid);
+            const v = parseInt(p.vardiya) || 0;
+            const t = parseInt(p.tek) || 0;
+            summary[aid].sefer += (v + t);
+
+            const tanim = tanimRes.data?.find(x => x.musteri_id === p.musteri_id && x.arac_id === aid);
+            if(tanim) {
+                summary[aid].brut += (v * (tanim.vardiya_fiyat || 0)) + (t * (tanim.tek_fiyat || 0));
+            }
+        });
+
+        (yakitRes.data || []).forEach(y => {
+            const aid = y.arac_id;
+            const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+            const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+            if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
+            
+            addRow(aid);
+            summary[aid].yakit += parseFloat(y.toplam_tutar) || 0;
+        });
+
+        (bakimRes.data || []).forEach(b => {
+             const aid = b.arac_id;
+             const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+             const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+             if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
+             
+             addRow(aid);
+             summary[aid].servis += parseFloat(b.toplam_tutar) || 0;
+        });
+
+        // Render table
+        tbody.innerHTML = '';
+        let gtSefer=0, gtBrut=0, gtYakit=0, gtServis=0, gtNet=0;
+
+        const sortedRows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
+        
+        if (sortedRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu filtrelerle kayıt bulunamadı.</td></tr>';
+            return;
+        }
+
+        sortedRows.forEach(row => {
+            row.net = row.brut - row.yakit - row.servis;
+            gtSefer += row.sefer; gtBrut += row.brut; gtYakit += row.yakit; gtServis += row.servis; gtNet += row.net;
+
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-white/5 transition-colors border-b border-white/5";
+            tr.innerHTML = `
+                <td class="px-6 py-4 font-bold text-white">${row.plaka}</td>
+                <td class="px-6 py-4 text-center text-gray-400 font-mono">${row.sefer}</td>
+                <td class="px-6 py-4 text-right font-bold text-gray-300">₺${row.brut.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-bold text-orange-400">₺${row.yakit.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-bold text-red-400">₺${row.servis.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-black text-green-400">₺${row.net.toLocaleString('tr-TR')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Update Footers
+        if(tfoot) {
+            tfoot.classList.remove('hidden');
+            document.getElementById('total-taseron-sefer').textContent = gtSefer;
+            document.getElementById('total-taseron-brut').textContent = '₺' + gtBrut.toLocaleString('tr-TR');
+            document.getElementById('total-taseron-yakit').textContent = '₺' + gtYakit.toLocaleString('tr-TR');
+            document.getElementById('total-taseron-servis').textContent = '₺' + gtServis.toLocaleString('tr-TR');
+            document.getElementById('total-taseron-net').textContent = '₺' + gtNet.toLocaleString('tr-TR');
+        }
+
+    } catch (e) {
+        console.error("fetchTaseronAylikRapor error:", e);
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-8">Hata: ${e.message}</td></tr>`;
     }
 }
 
@@ -2286,14 +2457,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                             <div class="bg-white/5 p-3 rounded-xl border border-emerald-500/20 focus-within:border-emerald-500/50 transition-colors">
                                 <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-2">KDV %</div>
                                 <div class="flex items-center gap-1">
-                                    <input type="number" min="0" max="100" step="1" class="calc-kdv-oran w-full bg-transparent text-emerald-300 text-sm font-black border-none focus:outline-none py-1" value="0">
+                                    <input type="number" min="0" max="100" step="1" class="calc-kdv-oran w-full bg-transparent text-emerald-300 text-sm font-black border-none focus:outline-none py-1" value="${md.kdv_oran || 0}">
                                     <span class="text-gray-500 text-xs font-bold">%</span>
                                 </div>
                             </div>
                             <div class="bg-white/5 p-3 rounded-xl border border-yellow-500/20 focus-within:border-yellow-500/50 transition-colors">
                                 <div class="text-[10px] text-yellow-400 font-bold uppercase tracking-wider mb-2">TEV %</div>
                                 <div class="flex items-center gap-1">
-                                    <input type="number" min="0" max="100" step="1" class="calc-tev-oran w-full bg-transparent text-yellow-300 text-sm font-black border-none focus:outline-none py-1" value="0">
+                                    <input type="number" min="0" max="100" step="1" class="calc-tev-oran w-full bg-transparent text-yellow-300 text-sm font-black border-none focus:outline-none py-1" value="${md.tev_oran || 0}">
                                     <span class="text-gray-500 text-xs font-bold">%</span>
                                 </div>
                             </div>
@@ -2700,29 +2871,17 @@ async function fetchMusteriler() {
             const initials = m.ad.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
             const colorIdx = m.ad.charCodeAt(0) % colors.length;
             const araclar = tanimMap[m.id] || [];
-            const vardiyaAraclar = araclar.filter(t => t.tarife_turu === 'Vardiya');
-            const tekAraclar = araclar.filter(t => t.tarife_turu === 'Tek');
+            const vardiyaAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('vardiya'));
+            const tekAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('tek'));
 
             const buildAracChip = (t) => {
-                const isVardiya = t.tarife_turu === 'Vardiya';
+                const isVardiya = t.tarife_turu?.toLowerCase().includes('vardiya');
                 const plaka = t.araclar?.plaka || 'Bilinmiyor';
-                let ucretStr = '';
-                if (isVardiya && t.vardiya_fiyat > 0) {
-                    ucretStr = `₺${Number(t.vardiya_fiyat).toLocaleString('tr-TR')
-                        }/V`;
-                } else if (!isVardiya && t.tek_fiyat > 0) {
-                    ucretStr = `₺${Number(t.tek_fiyat).toLocaleString('tr-TR')}/T`;
-                }
-
-                return `<div class="flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 group">
-                    <div class="flex items-center gap-2">
-                        <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${isVardiya ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'} uppercase">${t.tarife_turu}</span>
-                        <span class="text-xs font-bold text-white font-mono">${plaka}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        ${ucretStr ? `<span class="text-[10px] text-green-400 font-bold">${ucretStr}</span>` : ''}
-                        <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-[10px] transition-all">✕</button>
-                    </div>
+                
+                return `<div class="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg group hover:border-white/20 transition-all">
+                    <span class="px-1 py-0.5 rounded-[4px] text-[8px] font-black ${isVardiya ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'} uppercase">${isVardiya ? 'VRD' : 'TEK'}</span>
+                    <span class="text-[10px] font-bold text-white font-mono">${plaka}</span>
+                    <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="ml-1 text-gray-600 hover:text-red-400 text-[10px] transition-all">✕</button>
                 </div>`;
             };
 
@@ -2771,9 +2930,11 @@ async function fetchMusteriler() {
                         <span class="flex items-center gap-2"><i data-lucide="truck" class="w-3 h-3"></i>Atanmış Araçlar</span>
                         <i data-lucide="chevron-down" class="w-3 h-3 transition-transform musteri-arac-chevron"></i>
                     </button>
-                    <div class="musteri-arac-panel hidden px-4 pb-3 pt-1 bg-black/20">
-                        ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">Henüz araç atanmamış.</p>`}
-                        <div class="flex gap-2 mt-2 flex-wrap">
+                    <div class="musteri-arac-panel hidden px-4 pb-3 pt-2 bg-black/20">
+                        <div class="flex flex-wrap gap-2 mb-3">
+                            ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">Henüz araç atanmamış.</p>`}
+                        </div>
+                        <div class="flex gap-2 flex-wrap border-t border-white/5 pt-3">
                             <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
                                 <i data-lucide="plus" class="w-3 h-3"></i> Ekle
                             </button>
@@ -3346,10 +3507,26 @@ async function fetchYakitlar() {
     if (!tbody) return;
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
-
-        let query = window.supabaseClient.from('yakit_takip').select('*, araclar(plaka)').order('tarih', { ascending: false });
-
+        
+        // Get Filters
+        const mulkiyetFilter = window.currentYakitMulkiyet || 'hepsi';
+        const sirketFilter = window.currentYakitSirket || 'hepsi';
         const filterVal = document.getElementById('filter-yakit-ay')?.value;
+
+        // "ilgili araçların mülkiyeti ve şirketini" getirebilmek için join mantığını genişletiyoruz
+        let query = window.supabaseClient
+            .from('yakit_takip')
+            .select('*, araclar!inner(plaka, mulkiyet_durumu, sirket)')
+            .order('tarih', { ascending: false });
+
+        if (mulkiyetFilter !== 'hepsi') {
+            query = query.eq('araclar.mulkiyet_durumu', mulkiyetFilter);
+        }
+
+        if (sirketFilter !== 'hepsi') {
+            query = query.eq('araclar.sirket', sirketFilter);
+        }
+
         if (filterVal) {
             const [year, month] = filterVal.split('-');
             const daysInMonth = new Date(year, parseInt(month), 0).getDate();
@@ -3358,28 +3535,609 @@ async function fetchYakitlar() {
 
         const { data, error } = await query;
         if (error) throw error;
+        
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunmuyor.</td></tr>';
             return;
         }
+
+        // GRUPLAMA MANTIĞI
+        const groups = {};
         data.forEach(y => {
-            const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors";
-            tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${y.tarih}</td>
-                        <td class="px-6 py-4 whitespace-nowrap font-bold text-primary">${y.araclar ? y.araclar.plaka : '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">${y.litre} Lt</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₺${y.birim_fiyat}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">₺${(y.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                            <button onclick="deleteRecord('yakit_takip', '${y.id}', 'fetchYakitlar')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
-                        </td>
-                    `;
-            tbody.appendChild(tr);
+            const plaka = y.araclar ? y.araclar.plaka : 'BİLİNMİYOR';
+            if (!groups[plaka]) {
+                groups[plaka] = { items: [], totalLitre: 0, totalTutar: 0 };
+            }
+            groups[plaka].items.push(y);
+            groups[plaka].totalLitre += (y.litre || 0);
+            groups[plaka].totalTutar += (y.toplam_tutar || 0);
         });
-    } catch (e) { console.error(e); }
+
+        // SIRALAMA: Plaka ismine göre
+        const sortedPlakas = Object.keys(groups).sort((a,b) => a.localeCompare(b));
+
+        sortedPlakas.forEach(plaka => {
+            const g = groups[plaka];
+            
+            // Grup içi tarih sıralaması (Mazot alım tarihleri sırayla) - En yeniden en eskiye
+            g.items.sort((a,b) => new Date(b.tarih) - new Date(a.tarih));
+            
+            // Plaka Başlık Satırı
+            const headTr = document.createElement('tr');
+            headTr.className = "bg-gray-50/50 border-t-2 border-gray-100";
+            headTr.innerHTML = `
+                <td class="px-6 py-3 font-black text-gray-900 bg-white/50" colspan="2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-6 bg-orange-500 rounded-full"></span>
+                        ${plaka}
+                    </div>
+                </td>
+                <td class="px-6 py-3 text-xs text-gray-400 font-bold uppercase tracking-widest">TARİHÇE</td>
+                <td class="px-6 py-3 text-xs text-gray-400 font-bold uppercase tracking-widest">LİTRE</td>
+                <td class="px-6 py-3 text-xs text-gray-400 font-bold uppercase tracking-widest">BİRİM F.</td>
+                <td class="px-6 py-3 text-xs text-gray-400 font-bold uppercase tracking-widest">TOTAL</td>
+                <td class="px-6 py-3"></td>
+            `;
+            tbody.appendChild(headTr);
+
+            // Detay Satırları
+            g.items.forEach(y => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50/30 transition-colors border-b border-gray-50";
+                tr.innerHTML = `
+                    <td class="px-6 py-2 whitespace-nowrap">
+                        <input type="checkbox" name="yakit-checkbox" value="${y.id}" onchange="updateYakitBulkDeleteBtn()" 
+                            class="rounded border-gray-300 text-orange-500 focus:ring-orange-500 w-4 h-4">
+                    </td>
+                    <td colspan="1"></td>
+                    <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-600">${formatTurkishDate(y.tarih)}</td>
+                    <td class="px-6 py-2 whitespace-nowrap text-sm font-medium text-blue-600">${y.litre.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}LT</td>
+                    <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-400">₺${y.birim_fiyat}</td>
+                    <td class="px-6 py-2 whitespace-nowrap text-sm font-semibold text-gray-700">₺${(y.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
+                    <td class="px-6 py-2 whitespace-nowrap text-right text-sm">
+                        <button onclick="deleteRecord('yakit_takip', '${y.id}', 'fetchYakitlar')" class="text-gray-300 hover:text-danger p-1 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Alt Toplam Satırı
+            const footTr = document.createElement('tr');
+            footTr.className = "bg-orange-50/30 border-b border-orange-100";
+            footTr.innerHTML = `
+                <td colspan="3" class="px-6 py-2 text-right text-[10px] font-black text-orange-600 uppercase tracking-widest">${plaka} TOPLAMI:</td>
+                <td class="px-6 py-2 whitespace-nowrap text-sm font-black text-blue-700">${g.totalLitre.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}LT</td>
+                <td></td>
+                <td class="px-6 py-2 whitespace-nowrap text-sm font-black text-orange-700">₺${g.totalTutar.toLocaleString('tr-TR')}</td>
+                <td></td>
+            `;
+            tbody.appendChild(footTr);
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+
+        // Reset Master Checkbox and Delete Button
+        const master = document.getElementById('yakit-master-checkbox');
+        if (master) master.checked = false;
+        const bulkBtn = document.getElementById('yakit-bulk-delete-btn');
+        if (bulkBtn) bulkBtn.classList.add('hidden');
+
+    } catch (e) { console.error("fetchYakitlar error:", e); }
 }
+
+// --- Bulk Management ---
+window.toggleAllYakitCheckboxes = function(master) {
+    const checkboxes = document.querySelectorAll('input[name="yakit-checkbox"]');
+    checkboxes.forEach(cb => cb.checked = master.checked);
+    updateYakitBulkDeleteBtn();
+};
+
+window.updateYakitBulkDeleteBtn = function() {
+    const checkedCount = document.querySelectorAll('input[name="yakit-checkbox"]:checked').length;
+    const btn = document.getElementById('yakit-bulk-delete-btn');
+    if (btn) {
+        if (checkedCount > 0) {
+            btn.classList.remove('hidden');
+            btn.innerHTML = `<i data-lucide="trash-2" class="w-4 h-4"></i> ${checkedCount} Seçilenleri Sil`;
+            if (window.lucide) window.lucide.createIcons();
+        } else {
+            btn.classList.add('hidden');
+        }
+    }
+};
+
+window.deleteSelectedYakitlar = async function() {
+    const checked = document.querySelectorAll('input[name="yakit-checkbox"]:checked');
+    const ids = Array.from(checked).map(cb => cb.value);
+    if (!ids.length) return;
+
+    if (!confirm(`${ids.length} adet yakıt kaydını silmek istediğinize emin misiniz?`)) return;
+
+    try {
+        const { error } = await window.supabaseClient.from('yakit_takip').delete().in('id', ids);
+        if (error) throw error;
+        if (window.Toast) window.Toast.success(`${ids.length} kayıt silindi.`);
+        fetchYakitlar();
+    } catch (e) {
+        console.error(e);
+        if (window.Toast) window.Toast.error("Silme hatası: " + e.message);
+    }
+};
+
+// Tarih & Saat Formatı (14.03.2026 15:30)
+// Tarih Formatı (14.03.2026)
+function formatTurkishDate(iso) {
+    if (!iso) return "";
+    try {
+        const parts = iso.split('T');
+        const datePart = parts[0];
+        const [y, m, d] = datePart.split('-');
+        return `${parseInt(d).toString().padStart(2,'0')}.${m.padStart(2,'0')}.${y}`;
+    } catch(e) { return iso; }
+}
+
+// Plaka formatlama yardımcısı (0 siral, boşluklu)
+function formatPlakaForDB(p) {
+    if (!p) return "";
+    let clean = String(p).replace(/\s+/g, '').toUpperCase();
+    clean = clean.replace(/^0+/, ''); 
+    const m = clean.match(/^(\d+)([A-Z]+)(\d+)$/);
+    if (m) return `${m[1]} ${m[2]} ${m[3]}`;
+    return clean;
+}
+
+window.importYakitExcel = async function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!window.XLSX) { alert("Excel kütüphanesi yüklenemedi!"); return; }
+
+    showYakitImportPreview([], "Dosya okunuyor...");
+    
+    try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                updateYakitImportStatus("Veriler çözümleniyor...");
+                const data = new Uint8Array(e.target.result);
+                
+                let ws;
+                const decoder = new TextDecoder('windows-1254');
+                const textForm = decoder.decode(data).substring(0, 1500).toLowerCase();
+                
+                if (textForm.includes('<frameset')) {
+                    throw new Error("Yüklediğiniz dosya sadece bir dış kabuk (frameset). Lütfen verinin kendisini içeren 'Export_dosyalar/sheet001.htm' dosyasını yükleyin veya mevcut dosyayı Excel'de açıp Farklı Kaydet diyerek .xlsx formatında kaydedin.");
+                }
+
+                if (textForm.includes('<html') || textForm.includes('<table')) {
+                    const fullText = decoder.decode(data);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(fullText, 'text/html');
+                    const table = doc.querySelector('table');
+                    if (!table) throw new Error("HTML formatında dosya yüklendi fakat içinde tablo bulunamadı.");
+                    
+                    // raw: true enforces treating everything as string, bypassing SheetJS American format number bugs
+                    ws = window.XLSX.utils.table_to_sheet(table, { raw: true });
+                } else {
+                    const workbook = window.XLSX.read(data, { type: 'array', cellDates: true, cellNF: true, cellText: true });
+                    ws = workbook.Sheets[workbook.SheetNames[0]];
+                }
+                
+                if (!ws['!ref']) throw new Error("Excel sayfası boş görünüyor.");
+                
+                // 1. Zeki Başlık Satırı Arama (İlk 10 satırı tarayıp Plaka ve Tarih olanı bulur)
+                let headerRowIndex = 0;
+                let headers = [];
+                for (let r = 0; r < 10; r++) {
+                    const row = XLSX.utils.sheet_to_json(ws, { header: 1, range: r, raw: false })[0] || [];
+                    const rowText = row.map(h => String(h || "").toLowerCase().trim());
+                    if (rowText.some(h => h.includes('plaka')) && rowText.some(h => h.includes('tarih'))) {
+                        headerRowIndex = r;
+                        headers = rowText;
+                        break;
+                    }
+                    if (r === 0) headers = rowText; // Fallback
+                }
+
+                // Geliştirilmiş Sütun Bulucu (Blacklist destekli)
+                const findIdx = (keywords, blacklist = []) => {
+                    return headers.findIndex(h => 
+                        keywords.some(k => h.includes(k)) && 
+                        !blacklist.some(b => h.includes(b))
+                    );
+                };
+                
+                // Tutar (KDV'li asıl rakamı bulmak için çok kritik)
+                // Önce en spesifik 'Genel Toplam' gruplarını arıyoruz, KDV ve Matrah sütunlarını eliyoruz.
+                const tutarBlacklist = ['kdv', 'matrah', 'iskonto', 'ötv', 'vergi', 'isk.', 'indirim'];
+                let idxTutar = findIdx(['genel toplam', 'ödenecek', 'fatura tutarı', 'net tutar', 'toplam tutar'], tutarBlacklist);
+                if (idxTutar === -1) idxTutar = findIdx(['toplam', 'total'], tutarBlacklist);
+                
+                // Eğer hala bulunamadıysa veya kullanıcı 7. sütun dediyse (index 6), onu bir kontrol edelim
+                if (idxTutar === -1) idxTutar = 6; 
+
+                const idx = {
+                    tarih: findIdx(['tarih', 'gün', 'date']),
+                    plaka: findIdx(['plaka', 'araç', 'plate']),
+                    litre: findIdx(['litre', 'miktar', 'vol', 'qty', 'quantity']),
+                    tutar: idxTutar,
+                    birim: findIdx(['birim', 'fiyat', 'price'])
+                };
+                
+                // Hata ayıklama için başlık isimlerini sakla
+                const detectedHeaders = {
+                    tarih: idx.tarih !== -1 ? headers[idx.tarih] : "Bulunamadı",
+                    plaka: idx.plaka !== -1 ? headers[idx.plaka] : "Bulunamadı",
+                    litre: idx.litre !== -1 ? headers[idx.litre] : "Bulunamadı",
+                    tutar: headers[idxTutar] || "7. Sütun",
+                    birim: idx.birim !== -1 ? headers[idx.birim] : "Otomatik"
+                };
+
+                if (idx.tarih === -1 || idx.plaka === -1) {
+                    throw new Error("Gerekli sütunlar (Tarih, Plaka, Litre) bulunamadı. Lütfen başlıkları kontrol edin.");
+                }
+
+                const range = XLSX.utils.decode_range(ws['!ref']);
+                const { data: araclar } = await window.supabaseClient.from('araclar').select('id, plaka');
+                const cleanPlaka = (p) => String(p || "").replace(/\s+/g, '').replace(/^0+/, '').toUpperCase();
+                const aracMap = {};
+                (araclar || []).forEach(a => { aracMap[cleanPlaka(a.plaka)] = { id: a.id, plaka: a.plaka }; });
+
+                const parseTrNumber = (valStr) => {
+                    if (valStr === null || valStr === undefined) return 0;
+                    let s = String(valStr).trim().replace(/\s+/g, '');
+                    if (s === "") return 0;
+
+                    // Eğer Excel'den 4.406,25 gibi gelmişse
+                    if (s.includes(',') && s.includes('.')) {
+                        if (s.lastIndexOf(',') > s.lastIndexOf('.')) return parseFloat(s.replace(/\./g, '').replace(',', '.')) || 0;
+                        else return parseFloat(s.replace(/,/g, '')) || 0;
+                    }
+
+                    // Tek bir ayraç varsa (Virgül veya Nokta)
+                    // Yakıt faturasında 100 liranın altında tutar pek olmaz (istisna harici)
+                    // 3 hane kuralı en garantisidir.
+                    if (s.includes(',') || s.includes('.')) {
+                        const sep = s.includes(',') ? ',' : '.';
+                        const parts = s.split(sep);
+                        if (parts.length === 2 && parts[1].length === 3) return parseFloat(s.replace(/[,\.]/g, '')) || 0;
+                        return parseFloat(s.replace(',', '.')) || 0;
+                    }
+                    return parseFloat(s) || 0;
+                };
+
+                const rawRecords = [];
+                for (let R = headerRowIndex + 1; R <= range.e.r; R++) {
+                    const addrP = XLSX.utils.encode_cell({ r: R, c: idx.plaka }), cellP = ws[addrP];
+                    if (!cellP || !cellP.v) continue;
+
+                    const rawPlaka = String(cellP.v), cleaned = cleanPlaka(rawPlaka), formatted = formatPlakaForDB(rawPlaka);
+                    if (!cleaned || !formatted) continue;
+
+                    const vehicle = aracMap[cleaned];
+                    const addrT = XLSX.utils.encode_cell({ r: R, c: idx.tarih }), cellT = ws[addrT];
+                    let dt = null;
+
+                    // 1. Text-First Katı DD.MM.YYYY Parçalama (Ağırlıklı Görünen Metne Güvenilir)
+                    let textVal = cellT ? (cellT.w || String(cellT.v)) : null;
+                    let parsed = false;
+                    
+                    if (textVal) {
+                        textVal = textVal.toString().toLowerCase().trim().split(' ')[0]; // Sadece tarih
+                        const parts = textVal.split(/[\/\.\-]/).filter(p => p.trim() !== '');
+                        
+                        if (parts.length >= 2) {
+                            let d = parseInt(parts[0]);
+                            let mRaw = parts[1];
+                            let m = NaN;
+                            
+                            // Aylar metin ise (06-Oca-26 gibi)
+                            if (isNaN(parseInt(mRaw))) {
+                                const ayMap = { 'oca':1, 'şub':2, 'sub':2, 'mar':3, 'nis':4, 'may':5, 'haz':6, 'tem':7, 'ağu':8, 'agu':8, 'eyl':9, 'eki':10, 'kas':11, 'ara':12, 'jan':1, 'feb':2, 'apr':4, 'jun':6, 'jul':7, 'aug':8, 'sep':9, 'oct':10, 'nov':11, 'dec':12 };
+                                for (const [k, v] of Object.entries(ayMap)) {
+                                    if (mRaw.includes(k)) { m = v; break; }
+                                }
+                            } else { m = parseInt(mRaw); }
+
+                            let y = new Date().getFullYear();
+                            if (parts.length >= 3) {
+                                let yStr = parts[2].replace(/\D/g, '');
+                                y = parseInt(yStr.length === 2 ? '20' + yStr : yStr);
+                                if (yStr.length === 2 && y < 2000) y += 2000;
+                            }
+
+                            if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                                // ABD Yanılgısını Düzelt (Eğer parçalar matematiken M/D/Y olmak ZORUNDAYSA)
+                                // Not: Türkiye'de genel format her zaman D/M/Y'dir. O yüzden inatçı D/M varsayılır.
+                                if (d <= 12 && m > 12) {
+                                    let temp = d; d = m; m = temp; // 01/15/2026 => D:15, M:1
+                                } else if (d > 31) {
+                                    y = d; d = parseInt(parts[2]); // 2026/01/15 formatı
+                                }
+                                
+                                dt = new Date(y, m - 1, d, 0, 0, 0);
+                                parsed = true;
+                            }
+                        }
+                    }
+
+                    // 2. Eğer Text Parsing çuvallarsa Excel Native Value'su (Serial No veya JS Date)
+                    if (!parsed || !dt || isNaN(dt.getTime())) {
+                        if (cellT && cellT.v instanceof Date) dt = cellT.v;
+                        else if (cellT && typeof cellT.v === 'number') dt = new Date(Math.round((cellT.v - 25569) * 86400 * 1000));
+                    }
+                    
+                    if (!dt || isNaN(dt.getTime())) continue;
+                    dt.setHours(0,0,0,0); // Garanti
+
+                    const displayTarih = `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`;
+                    
+                    const addrL = XLSX.utils.encode_cell({ r: R, c: idx.litre }), cellL = ws[addrL];
+                    const rawL = cellL ? (cellL.w || String(cellL.v || "0")) : "0";
+                    let lText = rawL.replace(/\D/g, '');
+                    let displayLitre = lText.length > 2 ? lText.slice(0, -2) + "," + lText.slice(-2) + "LT" : "0," + lText.padStart(2, '0') + "LT";
+                    
+                    const addrTur = idx.tutar !== -1 ? XLSX.utils.encode_cell({ r: R, c: idx.tutar }) : null;
+                    const cellTur = addrTur ? ws[addrTur] : null;
+                    const displayTutar = cellTur ? (cellTur.w || String(cellTur.v || "0")) : "0";
+
+                    const addrBir = idx.birim !== -1 ? XLSX.utils.encode_cell({ r: R, c: idx.birim }) : null;
+                    const cellBir = addrBir ? ws[addrBir] : null;
+                    const displayBirim = cellBir ? (cellBir.w || String(cellBir.v || "0")) : "0";
+
+                    // Sadece string parsing'e güveniyoruz çünkü numeric cell logic locale bağımlı sapıtabiliyor
+                    const pLitre = parseTrNumber(displayLitre.replace('LT',''));
+                    const pTutar = parseTrNumber(displayTutar);
+                    let pBirim = parseTrNumber(displayBirim);
+
+                    // Eğer Excel'de birim fiyat sütunu yoksa veya eksikse, tutar/litre den hesapla
+                    if (pBirim <= 0 && pLitre > 0 && pTutar > 0) {
+                        pBirim = parseFloat((pTutar / pLitre).toFixed(4));
+                    }
+
+                    rawRecords.push({
+                        displayTarih: displayTarih,
+                        displayLitre: displayLitre,
+                        displayTutar: displayTutar,
+                        sortableDT: dt.toISOString(),
+                        tarih: dt.toISOString(),
+                        formattedPlaka: formatted,
+                        aracId: vehicle ? vehicle.id : null,
+                        litre: pLitre,
+                        tutar: pTutar,
+                        birim: pBirim
+                    });
+                }
+
+                const groupedMap = {};
+                rawRecords.forEach(r => {
+                    if (!groupedMap[r.formattedPlaka]) {
+                        groupedMap[r.formattedPlaka] = { plaka: r.formattedPlaka, aracId: r.aracId, items: [], totalLitre: 0, totalTutar: 0 };
+                    }
+                    groupedMap[r.formattedPlaka].items.push(r);
+                    groupedMap[r.formattedPlaka].totalLitre += r.litre;
+                    groupedMap[r.formattedPlaka].totalTutar += r.tutar;
+                });
+
+                const finalGroups = Object.values(groupedMap).sort((a,b) => a.plaka.localeCompare(b.plaka));
+                finalGroups.forEach(g => {
+                    g.items.sort((a,b) => a.sortableDT.localeCompare(b.sortableDT)); // Kronolojik sıralama
+                });
+
+                showYakitImportPreview(finalGroups, null, detectedHeaders);
+                event.target.value = ""; 
+            } catch (err) { updateYakitImportStatus("Hata: " + err.message, true); }
+        };
+        reader.readAsArrayBuffer(file);
+    } catch (e) { updateYakitImportStatus("Hata oluştu.", true); }
+};
+
+
+
+window.showYakitImportPreview = function(groups, initialStatus = null, detectedHeaders = null) {
+    try {
+        const existing = document.getElementById('yakit-import-preview-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'yakit-import-preview-overlay';
+        overlay.className = "fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4";
+        
+        const isLoading = initialStatus !== null;
+        let totalRows = 0, grandTotalLitre = 0, grandTotalTutar = 0;
+        
+        if (!isLoading && groups) {
+            groups.forEach(g => {
+                totalRows += g.items.length;
+                grandTotalLitre += g.totalLitre;
+                grandTotalTutar += g.totalTutar;
+            });
+        }
+        
+        overlay.innerHTML = `
+            <div class="bg-[#0b0d0f] border border-white/10 rounded-[2rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-white/5">
+                <div class="p-8 border-b border-white/10 bg-white/[0.02] flex justify-between items-center bg-gradient-to-r from-orange-500/5 to-transparent">
+                    <div>
+                        <h3 class="text-2xl font-black text-white flex items-center gap-4 tracking-tighter">
+                            <span class="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20 shadow-inner">
+                                <i data-lucide="fuel" class="w-6 h-6 text-orange-500"></i>
+                            </span>
+                            Yakıt İçe Aktarma Önizleme
+                        </h3>
+                        ${!isLoading ? `<div class="mt-4 flex flex-wrap items-center gap-4 bg-white/5 py-2.5 px-5 rounded-xl border border-white/10 w-fit shadow-md">
+                            <div class="flex items-center gap-2" title="Toplam Plaka Sayısı">
+                                <i data-lucide="car" class="w-4 h-4 text-gray-400"></i>
+                                <span class="text-white font-black">${groups.length}</span>
+                                <span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Plaka</span> 
+                            </div>
+                            <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
+                            <div class="flex items-center gap-2" title="Toplam Kayıt Sayısı">
+                                <i data-lucide="list" class="w-4 h-4 text-gray-400"></i>
+                                <span class="text-white font-black">${totalRows}</span>
+                                <span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Kayıt</span>
+                            </div>
+                            <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
+                            <div class="flex items-center gap-2" title="Genel Toplam Litre">
+                                <i data-lucide="droplet" class="w-4 h-4 text-blue-400"></i>
+                                <span class="text-blue-400 font-black">${grandTotalLitre.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}LT</span>
+                                <span class="text-blue-400/50 text-[10px] font-bold uppercase tracking-wider">Toplam Litre</span>
+                            </div>
+                            <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
+                            <div class="flex items-center gap-2" title="Genel Toplam Tutar">
+                                <i data-lucide="coins" class="w-4 h-4 text-orange-500"></i>
+                                <span class="text-orange-500 font-black text-lg">₺${grandTotalTutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                ${detectedHeaders ? `<span class="text-gray-500 text-[9px] font-bold ml-1 italic group-hover:text-orange-400/50 transition-colors uppercase tracking-widest">[SÜTUN: ${detectedHeaders.tutar}]</span>` : ''}
+                            </div>
+                        </div>` : `<p id="yakit-import-status-text" class="text-sm font-bold text-gray-400 mt-2">${initialStatus}</p>`}
+                    </div>
+                </div>
+                
+                <div class="flex-1 overflow-auto p-8 bg-gradient-to-b from-transparent to-white/[0.01]">
+                    ${isLoading ? `
+                        <div class="h-full flex flex-col items-center justify-center gap-6 py-24">
+                            <div id="yakit-import-status-icon" class="w-20 h-20 border-[6px] border-orange-500/10 border-t-orange-500 rounded-full animate-spin shadow-lg shadow-orange-500/10"></div>
+                            <p class="text-white text-lg font-bold tracking-tight animate-pulse">Veriler Hazırlanıyor...</p>
+                        </div>
+                    ` : `
+                        <div class="space-y-6">
+                            ${groups.map(g => `
+                                <div class="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden group hover:border-orange-500/30 transition-all shadow-sm">
+                                    <!-- Plaka Başlığı -->
+                                    <div class="p-4 bg-white/[0.03] flex items-center justify-between border-b border-white/5">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-lg font-black font-mono text-white bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">${g.plaka}</span>
+                                            ${g.aracId 
+                                                ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20 font-black tracking-widest uppercase">MEVCUT ARAÇ</span>'
+                                                : '<span class="text-[10px] bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full border border-orange-500/20 font-black tracking-widest uppercase animate-pulse">YENİ ARAÇ EKLENECEK</span>'
+                                            }
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-1">PLAKA TOPLAMI</div>
+                                            <div class="flex items-center gap-4">
+                                                <span class="text-sm font-bold text-blue-400">${g.totalLitre.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}LT</span>
+                                                <span class="text-sm font-black text-orange-500">₺${g.totalTutar.toLocaleString('tr-TR')}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Tarih Detayları -->
+                                    <div class="divide-y divide-white/5 px-4">
+                                        ${g.items.map(r => `
+                                            <div class="py-3 flex justify-between items-center text-sm">
+                                                <span class="text-gray-400 font-medium">${r.displayTarih}</span>
+                                                <div class="flex items-center gap-6">
+                                                    <span class="text-gray-300 font-mono w-28 text-right">${r.displayLitre}</span>
+                                                    <span class="text-orange-400 font-mono font-black w-32 text-right">₺${r.tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+
+                <div class="p-8 border-t border-white/10 bg-white/[0.03] flex justify-between items-center">
+                    <button onclick="document.getElementById('yakit-import-preview-overlay').remove()" class="px-8 py-3 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition-all border border-white/10 hover:bg-white/5">İptal Et</button>
+                    ${!isLoading ? `
+                        <button onclick="confirmYakitImport()" class="px-10 py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                            Verileri Onayla ve Kaydet
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        if (window.lucide) window.lucide.createIcons();
+        if (!isLoading) {
+            // Flatten back for confirm function but keep the objects
+            window.allYakitRecordsToProcess = groups.flatMap(g => g.items);
+        }
+    } catch (err) { alert("Hata: " + err.message); }
+};
+
+// Durum güncelleme yardımcısı
+function updateYakitImportStatus(message, isError = false) {
+    const statusEl = document.getElementById('yakit-import-status-text');
+    const loadingIcon = document.getElementById('yakit-import-status-icon');
+    if (statusEl) {
+        statusEl.innerText = message;
+        statusEl.className = isError ? "text-red-400 font-bold" : "text-gray-400";
+    }
+    if (loadingIcon && isError) {
+        loadingIcon.innerHTML = '<i data-lucide="alert-circle" class="w-8 h-8 text-red-500"></i>';
+        if (window.lucide) window.lucide.createIcons();
+    }
+}
+
+window.confirmYakitImport = async function() {
+    const records = window.allYakitRecordsToProcess;
+    if (!records || !records.length) {
+        alert("İşlenecek kayıt bulunamadı.");
+        return;
+    }
+
+    const overlay = document.getElementById('yakit-import-preview-overlay');
+    const btn = overlay.querySelector('button[onclick="confirmYakitImport()"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></i> İşleniyor...';
+
+    try {
+        // 1. Yeni araçları belirle ve oluştur
+        const newPlates = [...new Set(records.filter(r => !r.aracId).map(r => r.formattedPlaka))];
+        const plateToIdMap = {};
+
+        if (newPlates.length > 0) {
+            console.log("Yeni araçlar oluşturuluyor:", newPlates);
+            for (const plaka of newPlates) {
+                // Önce DB'de var mı diye tekrar kontrol (yarış durumunu önlemek için)
+                const { data: existing } = await window.supabaseClient.from('araclar').select('id').eq('plaka', plaka).single();
+                if (existing) {
+                    plateToIdMap[plaka] = existing.id;
+                } else {
+                    const { data: inserted, error: insErr } = await window.supabaseClient.from('araclar').insert([{
+                        plaka: plaka,
+                        mulkiyet_durumu: 'DIŞ ARAÇ (YENİ)',
+                        sirket: 'BİLİNMİYOR'
+                    }]).select();
+                    if (insErr) throw insErr;
+                    plateToIdMap[plaka] = inserted[0].id;
+                }
+            }
+        }
+
+        // 2. Payload hazırla (aracId'leri güncelle)
+        const payload = records.map(r => ({
+            tarih: r.sortableDT,
+            arac_id: r.aracId || plateToIdMap[r.formattedPlaka],
+            litre: r.litre,
+            birim_fiyat: r.birim,
+            toplam_tutar: r.tutar
+        }));
+
+        // 3. Yakıt kayıtlarını ekle
+        const { error: yakitErr } = await window.supabaseClient.from('yakit_takip').insert(payload);
+        if (yakitErr) throw yakitErr;
+
+        if (window.Toast) window.Toast.success(`${payload.length} adet yakıt kaydı ve ${newPlates.length} yeni araç başarıyla eklendi.`);
+        overlay.remove();
+        fetchYakitlar();
+        if (typeof fetchAraclar === 'function') fetchAraclar();
+        if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
+        if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+        
+    } catch (e) {
+        console.error(e);
+        alert("Hata oluştu: " + e.message);
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Tümünü Onayla ve Kaydet';
+    }
+};
 
 async function fetchSoforMaaslar() {
     const tbodyFinans = document.getElementById('sofor-maas-tbody');
@@ -3676,35 +4434,61 @@ async function fetchFinansDashboard() {
         const start = `${y}-${m}-01`;
         const end = `${y}-${m}-${new Date(y, now.getMonth() + 1, 0).getDate()}`;
 
-        const { data: finans } = await window.supabaseClient.from('sofor_finans').select('islem_turu, tutar').gte('tarih', start).lte('tarih', end);
-        const { data: taseron } = await window.supabaseClient.from('taseron_hakedis').select('net_hakedis').gte('sefer_tarihi', start).lte('sefer_tarihi', end);
-        const { data: soforler } = await window.supabaseClient.from('soforler').select('id, aylik_maas, gunluk_ucret');
-        const { data: bordroData } = await window.supabaseClient.from('sofor_maas_bordro').select('*').eq('donem', `${y}-${m}`);
+        // Get Ownership Filter
+        const ownerFilter = document.getElementById('fin-filter-owner')?.value || 'Tümü';
 
-        let maas = 0, avans = 0, taseronTop = 0;
+        // Fetch Puantaj, Tanimlar, Yakit and Vehicles (for filtering)
+        const [puantajRes, tanimRes, yakitRes, aracRes] = await Promise.all([
+            window.supabaseClient.from('musteri_servis_puantaj').select('arac_id, vardiya, tek, musteri_id').gte('tarih', start).lte('tarih', end),
+            window.supabaseClient.from('musteri_arac_tanimlari').select('musteri_id, arac_id, vardiya_fiyat, tek_fiyat'),
+            window.supabaseClient.from('yakit_takip').select('arac_id, toplam_tutar').gte('tarih', start).lte('tarih', end),
+            window.supabaseClient.from('araclar').select('id, mulkiyet_durumu')
+        ]);
 
-        const kayitMap = {};
-        (bordroData || []).forEach(k => { kayitMap[k.sofor_id] = k; });
+        const aracStatusMap = {};
+        (aracRes.data || []).forEach(a => aracStatusMap[a.id] = a.mulkiyet_durumu);
 
-        (soforler || []).forEach(s => {
-            const kayit = kayitMap[s.id];
-            if (kayit && Number(kayit.net_maas || 0) > 0) {
-                maas += Number(kayit.net_maas);
-            } else {
-                let gunlukUcret = Number(kayit?.gunluk_ucret || s.gunluk_ucret) || (Number(s.aylik_maas || 0) / 30) || 0;
-                let calisanGun = Number(kayit?.calisma_gun || 0);
-                if (calisanGun > 0) maas += (calisanGun * gunlukUcret);
+        let totalBrut = 0;
+        let totalYakit = 0;
+
+        // Calculate Fuel (Filtered)
+        const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
+        (yakitRes.data || []).forEach(y => { 
+            const mulkiyet = (aracStatusMap[y.arac_id] || 'Diğer').toUpperCase();
+            if (currentFilter === 'TÜMÜ' || mulkiyet === currentFilter) {
+                totalYakit += parseFloat(y.toplam_tutar) || 0; 
             }
         });
 
-        (finans || []).forEach(f => { if (f.islem_turu === 'AVANS' || f.islem_turu === 'KESİNTİ (Ceza/Hasar)') avans += Number(f.tutar) || 0; });
-        (taseron || []).forEach(h => { taseronTop += Number(h.net_hakedis) || 0; });
+        // Calculate Gross (Filtered)
+        if (puantajRes.data) {
+            const priceMap = {};
+            (tanimRes.data || []).forEach(t => {
+                priceMap[`${t.musteri_id}_${t.arac_id}`] = { v: t.vardiya_fiyat || 0, t: t.tek_fiyat || 0 };
+            });
 
-        const fmt = v => v > 0 ? '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) : '—';
-        const el1 = document.getElementById('fin-kpi-maas'); if (el1) el1.textContent = fmt(maas);
-        const el2 = document.getElementById('fin-kpi-taseron'); if (el2) el2.textContent = fmt(taseronTop);
-        const el3 = document.getElementById('fin-kpi-kesinti'); if (el3) el3.textContent = fmt(avans);
-    } catch (e) { console.error(e); }
+            puantajRes.data.forEach(p => {
+                const mulkiyet = (aracStatusMap[p.arac_id] || 'Diğer').toUpperCase();
+                if (currentFilter === 'TÜMÜ' || mulkiyet === currentFilter) {
+                    const key = `${p.musteri_id}_${p.arac_id}`;
+                    const prices = priceMap[key] || { v: 0, t: 0 };
+                    const v = parseInt(p.vardiya) || 0;
+                    const t = parseInt(p.tek) || 0;
+                    totalBrut += (v * prices.v) + (t * prices.t);
+                }
+            });
+        }
+
+        const net = totalBrut - totalYakit;
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        
+        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(totalBrut);
+        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(totalYakit);
+        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(net);
+        
+        const legacyMaas = document.getElementById('fin-kpi-maas'); if (legacyMaas) legacyMaas.textContent = '—';
+
+    } catch (e) { console.error("fetchFinansDashboard error:", e); }
 }
 
 window.fetchTeklifler = async function fetchTeklifler() {
@@ -5066,9 +5850,16 @@ window.fetchTaseronHakedis = async function () {
             return;
         }
 
+        // Plaka filtresi
+        const plakaFilter = document.getElementById('taseron-hakedis-search')?.value?.toUpperCase();
+        let filteredData = data;
+        if (plakaFilter) {
+            filteredData = data.filter(h => (h.araclar?.plaka || '').toUpperCase().includes(plakaFilter));
+        }
+
         // Firma bazlı grupla
         const hakedisMap = {};
-        data.forEach(h => {
+        filteredData.forEach(h => {
             const firma = h.araclar?.firma_adi || 'Bireysel / Diğer';
             if (!hakedisMap[firma]) hakedisMap[firma] = { count: 0, trips: 0, total: 0 };
             hakedisMap[firma].count = 1; // Basit sayım
@@ -5928,8 +6719,8 @@ window.fetchRaporMusteri = async function(ay) {
 
         const rows = musteriler.map(m => {
             const araclar = tanimMap[m.id] || [];
-            const vardiyaAraclar = araclar.filter(t => t.tarife_turu === 'Vardiya');
-            const tekAraclar = araclar.filter(t => t.tarife_turu === 'Tek');
+            const vardiyaAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('vardiya'));
+            const tekAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('tek'));
             // Simple monthly estimate: 22 working days
             const aylikHakedis = vardiyaAraclar.reduce((s,t) => s + ((parseFloat(t.vardiya_fiyat)||0)*22), 0)
                 + tekAraclar.reduce((s,t) => s + (parseFloat(t.tek_fiyat)||0), 0);
