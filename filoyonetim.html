@@ -1434,6 +1434,8 @@
                                     <button id="filter-yakit-btn-dikkan" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'DİKKAN')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">DİKKAN</button>
                                     <button id="filter-yakit-btn-mk" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'M.K.')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">M.K.</button>
                                 </div>
+                                <input type="text" id="yakit-search" placeholder="Plaka Ara..." oninput="if(typeof fetchYakitlar === 'function') fetchYakitlar()"
+                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
                                 <input type="month" id="filter-yakit-ay" onchange="fetchYakitlar()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
                                 

@@ -3541,14 +3541,21 @@ async function fetchYakitlar() {
         if (error) throw error;
         
         tbody.innerHTML = '';
-        if (data.length === 0) {
+        
+        let filteredData = data;
+        const plakaFilter = document.getElementById('yakit-search')?.value?.toUpperCase();
+        if (plakaFilter) {
+            filteredData = data.filter(y => (y.araclar?.plaka || '').toUpperCase().includes(plakaFilter));
+        }
+
+        if (filteredData.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">Kayıt bulunmuyor.</td></tr>';
             return;
         }
 
         // GRUPLAMA MANTIĞI
         const groups = {};
-        data.forEach(y => {
+        filteredData.forEach(y => {
             const plaka = y.araclar ? y.araclar.plaka : 'BİLİNMİYOR';
             if (!groups[plaka]) {
                 groups[plaka] = { items: [], totalLitre: 0, totalTutar: 0 };
