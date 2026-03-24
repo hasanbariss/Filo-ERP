@@ -2207,6 +2207,10 @@ async function fetchTaseronFinans() {
         tbody.innerHTML = '';
         if (rows.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Bu dönem için kayıt bulunamadı.</td></tr>';
+            const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+            const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(0);
+            const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(0);
+            const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(0);
             return;
         }
 
@@ -3596,7 +3600,7 @@ async function fetchYakitlar() {
                     <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-400">₺${y.birim_fiyat}</td>
                     <td class="px-6 py-2 whitespace-nowrap text-sm font-semibold text-gray-700">₺${(y.toplam_tutar || 0).toLocaleString('tr-TR')}</td>
                     <td class="px-6 py-2 whitespace-nowrap text-right text-sm">
-                        <button onclick="deleteRecord('yakit_takip', '${y.id}', 'fetchYakitlar')" class="text-gray-300 hover:text-danger p-1 transition-colors">
+                        <button onclick="deleteRecord('yakit_takip', '${y.id}', 'refreshYakitAndKPIs')" class="text-gray-300 hover:text-danger p-1 transition-colors">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
                         </button>
                     </td>
@@ -3629,6 +3633,12 @@ async function fetchYakitlar() {
 }
 
 // --- Bulk Management ---
+window.refreshYakitAndKPIs = function() {
+    if (typeof fetchYakitlar === 'function') fetchYakitlar();
+    if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
+    if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+};
+
 window.toggleAllYakitCheckboxes = function(master) {
     const checkboxes = document.querySelectorAll('input[name="yakit-checkbox"]');
     checkboxes.forEach(cb => cb.checked = master.checked);
@@ -3660,7 +3670,7 @@ window.deleteSelectedYakitlar = async function() {
         const { error } = await window.supabaseClient.from('yakit_takip').delete().in('id', ids);
         if (error) throw error;
         if (window.Toast) window.Toast.success(`${ids.length} kayıt silindi.`);
-        fetchYakitlar();
+        if (typeof window.refreshYakitAndKPIs === 'function') window.refreshYakitAndKPIs();
     } catch (e) {
         console.error(e);
         if (window.Toast) window.Toast.error("Silme hatası: " + e.message);
