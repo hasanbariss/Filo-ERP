@@ -6608,17 +6608,17 @@ window.fetchRaporlar = async function() {
             ];
             const totalGider = rows.reduce((s,r) => s + r.tutar, 0);
             gelirGiderTbody.innerHTML = rows.map(r => `
-                <tr class="hover:bg-white/5 transition-colors">
-                    <td class="p-3 font-medium text-sm">${r.label}</td>
+                <tr class="hover:bg-white/5 transition-colors border-b border-white/5">
+                    <td class="p-3 font-medium text-sm text-gray-300">${r.label}</td>
                     <td class="p-3 text-center"><span class="px-2 py-0.5 bg-red-500/10 text-red-400 text-[10px] uppercase font-bold rounded">${r.tur}</span></td>
                     <td class="p-3 text-right font-bold ${r.color}">${fmt(r.tutar)}</td>
                 </tr>
-            `).join('') + `<tr class="border-t-2 border-orange-500/30 font-black">
-                <td class="p-3 text-orange-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GİDER</td>
-                <td class="p-3 text-right text-orange-400 text-lg">${fmt(totalGider)}</td>
+            `).join('') + `<tr class="border-t-2 border-emerald-500/30 bg-emerald-500/5 font-black">
+                <td class="p-4 text-emerald-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GİDER</td>
+                <td class="p-4 text-right text-emerald-400 text-lg">${fmt(totalGider)}</td>
             </tr>`;
 
-            // Chart
+            // Chart 1: Category Distribution
             try {
                 const ctx = document.getElementById('raporGelirGiderChart')?.getContext('2d');
                 if (ctx) {
@@ -6630,41 +6630,93 @@ window.fetchRaporlar = async function() {
                             datasets: [{ data: rows.map(r => r.tutar), backgroundColor: ['#3b82f6','#f97316','#ec4899','#eab308','#a855f7'], borderWidth: 0 }]
                         },
                         options: { 
-                            responsive: true, maintainAspectRatio: false, 
-                            plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 10 }, padding: 10 } } } 
+                            responsive: true, maintainAspectRatio: false, cutout: '70%',
+                            plugins: { legend: { position: 'right', labels: { color: '#9ca3af', font: { size: 10, weight: 'bold' }, padding: 15, usePointStyle: true } } } 
                         }
                     });
                 }
             } catch(e) { console.error('Chart error:', e); }
+
+            // Highlights calculation
+            const topCategory = rows.length > 0 ? rows.reduce((prev, current) => (prev.tutar > current.tutar) ? prev : current) : null;
+            if (topCategory) {
+                const hCat = document.getElementById('highlight-top-category');
+                const hCatVal = document.getElementById('highlight-top-category-val');
+                if (hCat) hCat.textContent = topCategory.label;
+                if (hCatVal) hCatVal.textContent = fmt(topCategory.tutar);
+            }
         }
+
+        // --- Araç Bazlı Analiz & Chart 2 ---
+        const aracMap = {};
+        (yakitlar||[]).forEach(r => {
+            const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit:0, bakim:0, police:0};
+            aracMap[pid].yakit += parseFloat(r.toplam_tutar||0);
+        });
+        (bakimlar||[]).forEach(r => {
+            const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit_bakim:0, bakim:0, police:0}; // Note: fix bakim typo
+            if(!aracMap[pid].bakim) aracMap[pid].bakim = 0;
+            aracMap[pid].bakim += parseFloat(r.toplam_tutar||0);
+        });
+        (policeler||[]).forEach(r => {
+            const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit:0, bakim:0, police:0};
+            aracMap[pid].police += parseFloat(r.toplam_tutar||0);
+        });
+
+        const aracRows = Object.values(aracMap).sort((a,b) => (b.yakit+(b.bakim||0)+b.police) - (a.yakit+(a.bakim||0)+a.police));
+
+        // Highlights: Top Vehicle
+        if (aracRows.length > 0) {
+            const topArac = aracRows[0];
+            const hArac = document.getElementById('highlight-top-arac');
+            const hAracVal = document.getElementById('highlight-top-arac-val');
+            if (hArac) hArac.textContent = topArac.plaka;
+            if (hAracVal) hAracVal.textContent = fmt(topArac.yakit + (topArac.bakim||0) + topArac.police);
+        }
+        const hActive = document.getElementById('highlight-active-count');
+        if (hActive) hActive.textContent = aracRows.length;
+
+        // Chart 2: Top 10 Vehicles Bar
+        try {
+            const ctx2 = document.getElementById('raporAracHarcamaChart')?.getContext('2d');
+            if (ctx2) {
+                if (window._raporAracChart) window._raporAracChart.destroy();
+                const top10 = aracRows.slice(0, 10);
+                window._raporAracChart = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: top10.map(a => a.plaka),
+                        datasets: [
+                            { label: 'Yakit', data: top10.map(a => a.yakit), backgroundColor: '#3b82f6' },
+                            { label: 'Bakim', data: top10.map(a => a.bakim||0), backgroundColor: '#f97316' },
+                            { label: 'Police', data: top10.map(a => a.police), backgroundColor: '#ec4899' }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { stacked: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 10 } } },
+                            y: { stacked: true, grid: { display: false }, ticks: { color: '#fff', font: { size: 10, weight: 'bold' } } }
+                        }
+                    }
+                });
+            }
+        } catch(e) { console.error('Chart 2 error:', e); }
 
         // --- Araç Bazlı Gider Tablosu ---
         const aracTbody = document.getElementById('rapor-arac-tbody');
         if (aracTbody) {
-            const aracMap = {};
-            (yakitlar||[]).forEach(r => {
-                const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit:0, bakim:0, police:0};
-                aracMap[pid].yakit += parseFloat(r.toplam_tutar||0);
-            });
-            (bakimlar||[]).forEach(r => {
-                const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit:0, bakim:0, police:0};
-                aracMap[pid].bakim += parseFloat(r.toplam_tutar||0);
-            });
-            (policeler||[]).forEach(r => {
-                const pid = r.arac_id; if(!aracMap[pid]) aracMap[pid] = {plaka:r.araclar?.plaka||pid, yakit:0, bakim:0, police:0};
-                aracMap[pid].police += parseFloat(r.toplam_tutar||0);
-            });
-
-            const aracRows = Object.values(aracMap).sort((a,b) => (b.yakit+b.bakim+b.police) - (a.yakit+a.bakim+a.police));
             if (aracRows.length === 0) {
                 aracTbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dönemde araç gideri bulunamadı.</td></tr>';
             } else {
                 aracTbody.innerHTML = aracRows.map(a => {
-                    const toplam = a.yakit + a.bakim + a.police;
+                    const toplam = a.yakit + (a.bakim||0) + a.police;
                     return `<tr class="hover:bg-white/5 transition-colors">
                         <td class="p-3 font-bold">${a.plaka}</td>
                         <td class="p-3 text-right text-blue-400">${fmt(a.yakit)}</td>
-                        <td class="p-3 text-right text-orange-400">${fmt(a.bakim)}</td>
+                        <td class="p-3 text-right text-orange-400">${fmt(a.bakim||0)}</td>
                         <td class="p-3 text-right text-pink-400">${fmt(a.police)}</td>
                         <td class="p-3 text-right font-black text-white">${fmt(toplam)}</td>
                     </tr>`;
@@ -6882,6 +6934,158 @@ window.exportRaporPDF = function(tab) {
         }
         doc.save(`Filo_${tabTitles[tab]?.replace(/\s+/g,'_')}_${ay}.pdf`);
     } catch(e) { console.error(e); alert('PDF olusturma hatasi: ' + e.message); }
+};
+
+// ============================================================
+// RAPORLAR - PROFESSIONAL PRINT (HTML Based)
+// ============================================================
+window.handleRaporPrint = function(tab) {
+    const printSection = document.getElementById('print-section');
+    if (!printSection) return;
+
+    const ay = document.getElementById('rapor-ay')?.value || 'rapor';
+    const reportTitle = {
+        genel: 'Genel Özet Raporu',
+        arac: 'Araç Gider Raporu',
+        personel: 'Personel Maaş Raporu',
+        musteri: 'Müşteri Sefer Raporu',
+        cari: 'Cari Bakiye Raporu'
+    }[tab] || 'Sistem Raporu';
+
+    let printHTML = `
+        <div style="font-family: 'Inter', sans-serif; color: #111;">
+            <!-- Report Header -->
+            <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
+                <div>
+                    <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #000;">IDEOL TURİZM</h1>
+                    <p style="font-size: 12px; color: #666; margin: 3px 0 0 0;">Filo Yönetim & Operasyonel Raporlama</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 14px; font-weight: 700; background: #000; color: #fff; padding: 4px 12px; border-radius: 4px; display: inline-block;">${reportTitle}</div>
+                    <p style="font-size: 10px; color: #999; margin: 8px 0 0 0;">Dönem: ${ay}</p>
+                    <p style="font-size: 10px; color: #999; margin: 2px 0 0 0;">Tarih: ${new Date().toLocaleString('tr-TR')}</p>
+                </div>
+            </div>
+    `;
+
+    if (tab === 'genel') {
+        // Summary Cards for Print
+        const kpis = [
+            { label: 'Yakıt', val: document.getElementById('rapor-yakit')?.textContent || '0 TL', color: '#3b82f6' },
+            { label: 'Bakım', val: document.getElementById('rapor-bakim')?.textContent || '0 TL', color: '#f97316' },
+            { label: 'Sigorta', val: document.getElementById('rapor-police')?.textContent || '0 TL', color: '#ec4899' },
+            { label: 'Maaş', val: document.getElementById('rapor-maas')?.textContent || '0 TL', color: '#eab308' },
+            { label: 'Avans', val: document.getElementById('rapor-avans')?.textContent || '0 TL', color: '#a855f7' },
+            { label: 'Ciro', val: document.getElementById('rapor-ciro')?.textContent || '0 TL', color: '#10b981' }
+        ];
+
+        printHTML += `
+            <div class="print-grid" style="margin-bottom: 30px;">
+                ${kpis.map(k => `
+                    <div class="print-card" style="border-left: 4px solid ${k.color};">
+                        <div style="font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase;">${k.label}</div>
+                        <div style="font-size: 18px; font-weight: 800; color: #000; margin-top: 5px;">${k.val}</div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Highlights Section for Print -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
+                    <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">En Çok Harcayan Araç</div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${document.getElementById('highlight-top-arac')?.textContent || '-'}</div>
+                    <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">${document.getElementById('highlight-top-arac-val')?.textContent || '0 TL'}</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
+                    <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">En Yüksek Gider Kalemi</div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${document.getElementById('highlight-top-category')?.textContent || '-'}</div>
+                    <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">${document.getElementById('highlight-top-category-val')?.textContent || '0 TL'}</div>
+                </div>
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
+                    <div style="font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px;">Aktif Araç Sayısı</div>
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a;">${document.getElementById('highlight-active-count')?.textContent || '0'}</div>
+                    <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">İşlem gören araçlar</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-bottom: 30px;">
+                <!-- Tables -->
+                <div class="print-card" style="margin-bottom: 0;">
+                    <h3 style="font-size: 12px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 1px solid #EEE; padding-bottom: 6px;">Gider Kalemleri</h3>
+                    <table id="print-table-genel">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Kalem</th>
+                                <th style="text-align: center;">Tür</th>
+                                <th style="text-align: right;">Tutar (₺)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Array.from(document.querySelectorAll('#rapor-gelir-gider-tbody tr')).map(tr => {
+                                const cells = tr.querySelectorAll('td');
+                                if (cells.length < 3) return '';
+                                const isTotal = tr.classList.contains('font-black');
+                                return `
+                                    <tr style="${isTotal ? 'background: #f1f5f9; font-weight: 800;' : ''}">
+                                        <td style="padding: 8px 6px;">${cells[0].textContent}</td>
+                                        <td style="padding: 8px 6px; text-align: center;">${cells[1].textContent}</td>
+                                        <td style="padding: 8px 6px; text-align: right;">${cells[2].textContent}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Charts -->
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="print-card" style="margin-bottom: 0; text-align: center;">
+                        <div style="font-size: 10px; font-weight: 700; color: #666; margin-bottom: 10px; text-align: left; border-bottom: 1px solid #eee; padding-bottom: 5px;">Kategori Dağılımı</div>
+                        <img src="${document.getElementById('raporGelirGiderChart')?.toDataURL('image/png')}" style="max-width: 100%; height: 160px; object-fit: contain;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="print-card">
+                <div style="font-size: 10px; font-weight: 700; color: #666; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">En Yüksek Harcamalı Araçlar (Top 10)</div>
+                <img src="${document.getElementById('raporAracHarcamaChart')?.toDataURL('image/png')}" style="width: 100%; height: 300px; object-fit: contain;">
+            </div>
+        `;
+    } else {
+        // Generic table print for other tabs
+        const sourceTable = document.getElementById({
+            arac: 'rapor-arac-table',
+            personel: 'rapor-personel-table',
+            musteri: 'rapor-musteri-table',
+            cari: 'rapor-cari-table'
+        }[tab]);
+
+        if (sourceTable) {
+            printHTML += `
+                <div class="print-card">
+                    <table>
+                        <thead>
+                            ${sourceTable.querySelector('thead').innerHTML}
+                        </thead>
+                        <tbody>
+                            ${sourceTable.querySelector('tbody').innerHTML}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+    }
+
+    printHTML += `
+            <!-- Footer -->
+            <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: space-between; font-size: 9px; color: #999;">
+                <div>IDEOL Filo ERP - Akıllı Raporlama Modülü</div>
+                <div>Bu belge sistem tarafından otomatik oluşturulmuştur.</div>
+            </div>
+        </div>
+    `;
+
+    printSection.innerHTML = printHTML;
+    window.print();
 };
 
 // ============================================================

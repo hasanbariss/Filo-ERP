@@ -2920,6 +2920,15 @@ window.handleOdemeTuruChange = function (value, prefix) {
     if (cariContainer) cariContainer.classList.toggle('hidden', value !== 'CARİ HESABI');
 };
 
+window.openYakitRaporu = function () {
+    const period = document.getElementById('filter-yakit-ay')?.value || new Date().toISOString().substring(0, 7);
+    const mulkiyet = window.currentYakitMulkiyet || 'hepsi';
+    const sirket = window.currentYakitSirket || 'hepsi';
+
+    const url = `yakit_raporu.html?ay=${period}&mulkiyet=${mulkiyet}&sirket=${sirket}`;
+    window.open(url, '_blank');
+};
+
 window.filterYakitlar = function (mulkiyet, sirket) {
     window.currentYakitMulkiyet = mulkiyet;
     window.currentYakitSirket = sirket;
