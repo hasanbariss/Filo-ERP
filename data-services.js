@@ -2103,17 +2103,43 @@ async function fetchTaseronFinans() {
         const startDate = `${year}-${month}-01`;
         const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
 
-        // 2. Data Fetching
-        const { data: puantajData, error: puantajErr } = await window.supabaseClient
-            .from('musteri_servis_puantaj')
-            .select('*')
-            .gte('tarih', startDate)
-            .lte('tarih', endDate);
-        if (puantajErr) throw puantajErr;
+        // 2. Data Fetching (Paginated)
+        let puantajData = [];
+        let pFrom = 0;
+        const pStep = 1000;
+        while (true) {
+            const { data: pBatch, error: pErr } = await window.supabaseClient
+                .from('musteri_servis_puantaj')
+                .select('*')
+                .gte('tarih', startDate)
+                .lte('tarih', endDate)
+                .order('tarih', { ascending: true })
+                .order('id', { ascending: true })
+                .range(pFrom, pFrom + pStep - 1);
 
-        const { data: tanimlar } = await window.supabaseClient
-            .from('musteri_arac_tanimlari')
-            .select('*');
+            if (pErr) throw pErr;
+            if (!pBatch || pBatch.length === 0) break;
+            puantajData = puantajData.concat(pBatch);
+            if (pBatch.length < pStep) break;
+            pFrom += pStep;
+        }
+
+        // Pagination for tanimlar (Fetch current period + Global defaults)
+        let tanimlar = [];
+        let rFrom = 0;
+        const rStep = 1000;
+        while (true) {
+            const { data: pTanim, error: tErr } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select('*')
+                .or(`donem.eq.${filterAy},donem.is.null`)
+                .order('id', { ascending: true })
+                .range(rFrom, rFrom + rStep - 1);
+            if (tErr || !pTanim || pTanim.length === 0) break;
+            tanimlar = tanimlar.concat(pTanim);
+            if (pTanim.length < rStep) break;
+            rFrom += rStep;
+        }
 
         const { data: musteriListesi } = await window.supabaseClient
             .from('musteriler')
@@ -2121,11 +2147,22 @@ async function fetchTaseronFinans() {
         const musteriAdMap = {};
         musteriListesi?.forEach(m => musteriAdMap[m.id] = m.ad || '-');
             
-        const { data: yakitlar } = await window.supabaseClient
-            .from('yakit_takip')
-            .select('*')
-            .gte('tarih', startDate)
-            .lte('tarih', endDate);
+        // Paginated Yakitlar Fetch
+        let yakitlar = [];
+        let yFrom = 0;
+        const yStep = 1000;
+        while (true) {
+            const { data: yBatch, error: yErr } = await window.supabaseClient
+                .from('yakit_takip')
+                .select('*')
+                .gte('tarih', startDate)
+                .lte('tarih', endDate)
+                .range(yFrom, yFrom + yStep - 1);
+            if (yErr || !yBatch || yBatch.length === 0) break;
+            yakitlar = yakitlar.concat(yBatch);
+            if (yBatch.length < yStep) break;
+            yFrom += yStep;
+        }
 
         const { data: araclar } = await window.supabaseClient
             .from('araclar')
@@ -2146,30 +2183,38 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 const vStr = String(p.vardiya || '').trim();
                 const tStr = String(p.tek || '').trim();
                 const v = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
                 const t = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
                 const mId = p.musteri_id;
+                const mStr = String(p.mesai || '').trim();
+                const m = isNaN(mStr) || mStr === '' ? 0 : parseInt(mStr);
                 
-                if(v > 0 || t > 0) {
+                if(v > 0 || t > 0 || m > 0) {
                     summary[aId].vardiya += v;
                     summary[aId].tek += t;
+                    summary[aId].mesai = (summary[aId].mesai || 0) + m;
 
                     if(!summary[aId].musteriDetay[mId]) {
-                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, vardiya_fiyat: 0, tek_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
-                        const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId);
+                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, mesai: 0, vardiya_fiyat: 0, tek_fiyat: 0, mesai_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
+                        // Find match: Try specific month first, then global (null)
+                        const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && x.donem === filterAy) 
+                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (!x.donem || x.donem === ''));
+
                         if(tanim) {
                             summary[aId].musteriDetay[mId].vardiya_fiyat = parseFloat(tanim.vardiya_fiyat) || 0;
                             summary[aId].musteriDetay[mId].tek_fiyat = parseFloat(tanim.tek_fiyat) || 0;
+                            summary[aId].musteriDetay[mId].mesai_fiyat = parseFloat(tanim.mesai_fiyat) || 0;
                             summary[aId].musteriDetay[mId].kdv_oran = parseFloat(tanim.kdv_oran) || 0;
                             summary[aId].musteriDetay[mId].tev_oran = parseFloat(tanim.tev_oran) || 0;
                         }
                     }
                     summary[aId].musteriDetay[mId].vardiya += v;
                     summary[aId].musteriDetay[mId].tek += t;
+                    summary[aId].musteriDetay[mId].mesai = (summary[aId].musteriDetay[mId].mesai || 0) + m;
                 }
             });
         }
@@ -2183,7 +2228,7 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 summary[aId].yakit += parseFloat(y.toplam_tutar) || 0;
             });
@@ -2192,7 +2237,7 @@ async function fetchTaseronFinans() {
         Object.values(summary).forEach(row => {
             let totalBrutOfRow = 0;
             Object.values(row.musteriDetay).forEach(md => {
-                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat);
+                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat) + ((md.mesai || 0) * (md.mesai_fiyat || 0));
             });
             row.brut = totalBrutOfRow;
         });
@@ -2234,7 +2279,8 @@ async function fetchTaseronFinans() {
                 <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div></td>
                 <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${row.vardiya} V</span>
-                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold" title="Tek Sefer">${row.tek} T</span>
+                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${row.tek} T</span>
+                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${row.mesai || 0} M</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${row.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
@@ -2250,7 +2296,7 @@ async function fetchTaseronFinans() {
         tfoot.className = "bg-white/5 border-t-2 border-gray-200 shadow-sm";
         tfoot.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary">GENEL TOPLAM</td>
-            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T</td>
+            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T - ${rows.reduce((s,r) => s+(r.mesai||0), 0)} M</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
@@ -2293,14 +2339,46 @@ async function fetchTaseronAylikRapor() {
         const startDate = `${year}-${month}-01`;
         const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
 
-        // Parallel Fetch Data
-        const [puantajRes, tanimRes, yakitRes, bakimRes, aracRes] = await Promise.all([
-            window.supabaseClient.from('musteri_servis_puantaj').select('*').gte('tarih', startDate).lte('tarih', endDate),
-            window.supabaseClient.from('musteri_arac_tanimlari').select('*'),
+        // Parallel Fetch Data (Small tables)
+        const [yakitRes, bakimRes, aracRes] = await Promise.all([
             window.supabaseClient.from('yakit_takip').select('*').gte('tarih', startDate).lte('tarih', endDate),
             window.supabaseClient.from('arac_bakimlari').select('*').gte('islem_tarihi', startDate).lte('islem_tarihi', endDate),
             window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu')
         ]);
+
+        // Paginated Puantaj Fetch (MUST be paginated to exceed 1000 rows)
+        let puantajData = [];
+        let pf = 0;
+        const ps = 1000;
+        while (true) {
+            const { data: batch, error } = await window.supabaseClient
+                .from('musteri_servis_puantaj')
+                .select('*')
+                .gte('tarih', startDate)
+                .lte('tarih', endDate)
+                .order('id', { ascending: true })
+                .range(pf, pf + ps - 1);
+            if (error || !batch || batch.length === 0) break;
+            puantajData = puantajData.concat(batch);
+            if (batch.length < ps) break;
+            pf += ps;
+        }
+
+        // Paginated Tanimlar Fetch
+        let tanimlar = [];
+        let tf = 0;
+        const ts = 1000;
+        while (true) {
+            const { data: pt, error: te } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select('*')
+                .order('id', { ascending: true })
+                .range(tf, tf + ts - 1);
+            if (te || !pt || pt.length === 0) break;
+            tanimlar = tanimlar.concat(pt);
+            if (pt.length < ts) break;
+            tf += ts;
+        }
 
         const aracMap = {};
         aracRes.data?.forEach(a => aracMap[a.id] = a);
@@ -2312,7 +2390,7 @@ async function fetchTaseronAylikRapor() {
             if (!summary[aid]) summary[aid] = { plaka: aracMap[aid]?.plaka || '?', sefer: 0, brut: 0, yakit: 0, servis: 0, net: 0 };
         };
 
-        (puantajRes.data || []).forEach(p => {
+        (puantajData || []).forEach(p => {
             const aid = p.arac_id;
             const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
             const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
@@ -2321,11 +2399,16 @@ async function fetchTaseronAylikRapor() {
             addRow(aid);
             const v = parseInt(p.vardiya) || 0;
             const t = parseInt(p.tek) || 0;
-            summary[aid].sefer += (v + t);
+            const m = parseInt(p.mesai) || 0;
 
-            const tanim = tanimRes.data?.find(x => x.musteri_id === p.musteri_id && x.arac_id === aid);
-            if(tanim) {
-                summary[aid].brut += (v * (tanim.vardiya_fiyat || 0)) + (t * (tanim.tek_fiyat || 0));
+            if(v > 0 || t > 0 || m > 0) {
+                addRow(aid);
+                summary[aid].sefer += (v + t + m);
+
+                const tanim = tanimlar?.find(x => x.musteri_id === p.musteri_id && x.arac_id === aid);
+                if(tanim) {
+                    summary[aid].brut += (v * (tanim.vardiya_fiyat || 0)) + (t * (tanim.tek_fiyat || 0)) + (m * (tanim.mesai_fiyat || 0));
+                }
             }
         });
 
@@ -2456,6 +2539,16 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-tek-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.tek_fiyat}">
                                 </div>
                             </div>
+                            <!-- Mesai Row -->
+                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
+                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+                                    <span>Mesai (Dikkan Özel)</span> <span class="text-emerald-400">${md.mesai || 0} Sefer</span>
+                                </div>
+                                <div class="flex items-center gap-2 relative">
+                                    <span class="text-gray-400 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
+                                    <input type="number" step="0.01" class="calc-mesai-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.mesai_fiyat || 0}">
+                                </div>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3 mt-3">
                             <div class="bg-white/5 p-3 rounded-xl border border-emerald-500/20 focus-within:border-emerald-500/50 transition-colors">
@@ -2529,7 +2622,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> Yazdır
                         </button>
-                        <button onclick="window.saveHakedisFiyatlar('${arac_id}', this)" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
+                        <button onclick="window.saveHakedisFiyatlar('${arac_id}', this, '${month}')" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
                             <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
                         </button>
                         <button onclick="document.getElementById('cari-kart-modal-overlay').remove()" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
@@ -2592,10 +2685,12 @@ window.openCariHakedisDetay = async function(arac_id) {
                 
                 const vCount = counts[mId]?.vardiya || 0;
                 const tCount = counts[mId]?.tek || 0;
+                const mCount = counts[mId]?.mesai || 0;
+                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat').value) || 0;
                 
                 const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
                 const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
-                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat);
+                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat) + (mCount * mFiyat);
                 const rowKdv = rowBrut * (kdvOran / 100);
                 const rowTev = rowBrut * (tevOran / 100);
                 const rowTotal = rowBrut;
@@ -2626,7 +2721,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         calculateTotals();
 
-        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
+        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
 
@@ -2636,7 +2731,7 @@ window.openCariHakedisDetay = async function(arac_id) {
     }
 };
 
-window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
+window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
     const overlay = document.getElementById('cari-kart-modal-overlay');
     if (!overlay) return;
@@ -2648,74 +2743,112 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl) {
 
     try {
         const rows = overlay.querySelectorAll('.musteri-calc-row');
+        const taseronAy = specificDonem || document.getElementById('taseron-ay')?.value;
+
         for (const row of rows) {
             const musteri_id = row.getAttribute('data-mid');
             const tk = parseFloat(row.querySelector('.calc-tek-fiyat')?.value) || 0;
             const vd = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value) || 0;
+            const mf = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value) || 0;
             const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
             const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
 
-            let existing = null;
-            try {
-                const res = await window.supabaseClient
+            // Try update with all fields including donem check
+            const { data: updRes, error: updErr } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .update({ 
+                    tek_fiyat: tk, 
+                    vardiya_fiyat: vd, 
+                    mesai_fiyat: mf, 
+                    kdv_oran, 
+                    tev_oran, 
+                    tarife_turu: 'Vardiya' 
+                })
+                .eq('arac_id', arac_id)
+                .eq('musteri_id', musteri_id)
+                .eq('donem', taseronAy)
+                .select('id');
+
+            let isSaved = !updErr && updRes && updRes.length > 0;
+
+            if (updErr && updErr.message && (updErr.message.toLowerCase().includes('column') || updErr.message.toLowerCase().includes('does not exist'))) {
+                // Fallback update
+                const { data: fallbackUpd, error: fbErr } = await window.supabaseClient
                     .from('musteri_arac_tanimlari')
-                    .select('id, tek_fiyat, vardiya_fiyat, kdv_oran, tev_oran')
+                    .update({ 
+                        tek_fiyat: tk, 
+                        vardiya_fiyat: vd, 
+                        mesai_fiyat: mf, 
+                        tarife_turu: 'Vardiya' 
+                    })
                     .eq('arac_id', arac_id)
                     .eq('musteri_id', musteri_id)
-                    .maybeSingle();
-                if (res.error) throw res.error;
-                existing = res.data;
-            } catch (errExist) {
-                if (errExist.message && (errExist.message.toLowerCase().includes('could not identify column') || errExist.message.toLowerCase().includes('does not exist') || errExist.message.toLowerCase().includes('could not find'))) {
-                    const fallbackRes = await window.supabaseClient.from('musteri_arac_tanimlari').select('id, tek_fiyat, vardiya_fiyat').eq('arac_id', arac_id).eq('musteri_id', musteri_id).maybeSingle();
-                    existing = fallbackRes.data;
-                } else {
-                    throw errExist;
-                }
+                    .eq('donem', taseronAy)
+                    .select('id');
+                
+                if (!fbErr && fallbackUpd && fallbackUpd.length > 0) isSaved = true;
+            } else if (updErr) {
+                console.error("Save Update Error:", updErr);
+                throw updErr;
             }
 
-            if (existing && existing.id) {
-                try {
-                    const updRes = await window.supabaseClient
-                        .from('musteri_arac_tanimlari')
-                        .update({ tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran })
-                        .eq('id', existing.id);
-                    if (updRes.error) throw updRes.error;
-                } catch (errUpd) {
-                    if (errUpd.message && (errUpd.message.toLowerCase().includes('could not identify column') || errUpd.message.toLowerCase().includes('does not exist') || errUpd.message.toLowerCase().includes('could not find'))) {
-                        await window.supabaseClient.from('musteri_arac_tanimlari').update({ tek_fiyat: tk, vardiya_fiyat: vd }).eq('id', existing.id);
-                        if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
-                    } else throw errUpd;
-                }
-            } else {
-                try {
-                    const insRes = await window.supabaseClient
-                        .from('musteri_arac_tanimlari')
-                        .insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd, kdv_oran, tev_oran }]);
-                    if (insRes.error) throw insRes.error;
-                } catch (errIns) {
-                    if (errIns.message && (errIns.message.toLowerCase().includes('could not identify column') || errIns.message.toLowerCase().includes('does not exist') || errIns.message.toLowerCase().includes('could not find'))) {
-                        await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ arac_id, musteri_id, tarife_turu: 'Vardiya Gideri', tek_fiyat: tk, vardiya_fiyat: vd }]);
-                        if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
-                    } else throw errIns;
+            // If no record was updated, attempt insert
+            if (!isSaved) {
+                const { data: insRes, error: insErr } = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .insert([{ 
+                        arac_id, 
+                        musteri_id, 
+                        donem: taseronAy,
+                        tarife_turu: 'Vardiya', 
+                        tek_fiyat: tk, 
+                        vardiya_fiyat: vd, 
+                        mesai_fiyat: mf, 
+                        kdv_oran, 
+                        tev_oran 
+                    }])
+                    .select('id');
+                
+                if (insErr && insErr.message && (insErr.message.toLowerCase().includes('column') || insErr.message.toLowerCase().includes('does not exist'))) {
+                    // Fallback insert
+                    await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ 
+                        arac_id, 
+                        musteri_id, 
+                        donem: taseronAy,
+                        tarife_turu: 'Vardiya', 
+                        tek_fiyat: tk, 
+                        vardiya_fiyat: vd,
+                        mesai_fiyat: mf
+                    }]);
+                    if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
+                } else if (insErr && !insErr.message?.includes('duplicate key')) {
+                    console.error("Save Insert Error:", insErr);
+                    throw insErr;
                 }
             }
         }
         
-        if (window.Toast) { window.Toast.success('Fiyatlar başarıyla güncellendi.'); }
-        else { 
+        if (window.Toast) { 
+            window.Toast.success('Fiyatlar başarıyla güncellendi. Liste yenileniyor...'); 
+        } else { 
             const toast = document.createElement('div');
             toast.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:10000;padding:12px 20px;border-radius:10px;background:rgba(22,163,74,0.92);color:white;font-size:0.8rem;font-weight:700;box-shadow:0 8px 30px rgba(0,0,0,0.25);backdrop-filter:blur(8px);`;
-            toast.textContent = `✓ Fiyatlar başarıyla güncellendi`;
+            toast.textContent = `✓ Fiyatlar başarıyla güncellendi. Liste yenileniyor...`;
             document.body.appendChild(toast);
             setTimeout(() => toast.remove(), 3000);
         }
         
-        if (typeof fetchTaseronFinans === 'function') setTimeout(fetchTaseronFinans, 300);
+        // Tabloyu ve başlıkları güncelle
+        if (typeof fetchTaseronFinans === 'function') {
+            await fetchTaseronFinans();
+        }
+
+        // Modal kapatılıyor
+        if (overlay) overlay.remove();
 
     } catch (error) {
         console.error("Fiyat Kaydetme Hatası:", error);
-        alert(error.message || "Kaydedilirken hata oluştu.");
+        alert("Kaydedilemedi: " + (error.message || error.details || "Bilinmeyen hata"));
     } finally {
         btnEl.innerHTML = originalHtml;
         btnEl.disabled = false;
@@ -2796,10 +2929,10 @@ async function fetchSoforPuantaj() {
                     cellClass = 'text-gray-700';
                 }
 
-                rowHtml += `< td class="px-1 py-3 text-center text-xs border-l border-white/5 cursor-pointer hover:bg-white/5 ${cellClass}"
-                onclick = "openModal('Yeni Puantaj Gir', '${s.id}', '${dateStr}')" >
+                rowHtml += `<td class="px-1 py-3 text-center text-xs border-l border-white/5 cursor-pointer hover:bg-white/5 ${cellClass}"
+                onclick="openModal('Yeni Puantaj Gir', '${s.id}', '${dateStr}')">
                     ${cellContent}
-                            </td > `;
+                            </td>`;
             }
 
             const tr = document.createElement('tr');
@@ -2815,29 +2948,54 @@ async function fetchSoforPuantaj() {
 
 async function fetchMusteriler() {
     const grid = document.getElementById('musteri-cards-grid');
-    const legacyTbody = document.getElementById('musteriler-tbody');
     if (!grid) return;
 
-    grid.innerHTML = `< div class="col-span-full dashboard-card py-12 text-center text-gray-500 animate-pulse" > Yükleniyor...</div > `;
+    grid.innerHTML = `<div class="col-span-full dashboard-card py-12 text-center text-gray-500 animate-pulse">Yükleniyor...</div>`;
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+        
+        // Müşterileri çek
+        const { data: must, error: mErr } = await window.supabaseClient
+            .from('musteriler')
+            .select('*')
+            .order('olusturulma_tarihi', { ascending: false });
 
-        const [
-            { data: must, error },
-            { data: tanimlar }
-        ] = await Promise.all([
-            window.supabaseClient.from('musteriler').select('*').order('olusturulma_tarihi', { ascending: false }),
-            window.supabaseClient.from('musteri_arac_tanimlari').select('*, araclar(id, plaka)').order('id', { ascending: true })
-        ]);
-        if (error) throw error;
+        if (mErr) throw mErr;
 
-        // Populate legacy table for export compat
+        // Atamaları PAGINATED çek (1000 sınırı aşmak için)
+        let tanimlar = [];
+        let rangeFrom = 0;
+        const rangeStep = 1000;
+        
+        while (true) {
+            const { data: part, error: tErr } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select('*, araclar(id, plaka)')
+                .order('id', { ascending: true })
+                .range(rangeFrom, rangeFrom + rangeStep - 1);
+            
+            if (tErr) {
+                console.error('Tanimlar fetch error at range', rangeFrom, tErr);
+                break;
+            }
+            
+            if (!part || part.length === 0) break;
+            
+            tanimlar = tanimlar.concat(part);
+            if (part.length < rangeStep) break;
+            rangeFrom += rangeStep;
+        }
+
+        console.log(`[fetchMusteriler] Müşteriler: ${must?.length || 0}, Toplam Atamalar: ${tanimlar?.length || 0}`);
+
+        // Populate legacy table if exists
+        const legacyTbody = document.getElementById('musteri-list-tbody');
         if (legacyTbody) {
             legacyTbody.innerHTML = '';
             (must || []).forEach(m => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `< td > ${m.ad}</td ><td>${m.yetkili_kisi_ad_soyad || '-'}</td><td>${m.vergi_no_daire || '-'}</td><td>${m.vade_gun || '-'} Gün</td>`;
+                tr.innerHTML = `<td>${m.ad || m.unvan}</td><td>${m.yetkili_kisi_ad_soyad || '-'}</td><td>${m.vergi_no_daire || '-'}</td><td>${m.vade_gun || '-'} Gün</td>`;
                 legacyTbody.appendChild(tr);
             });
         }
@@ -2847,16 +3005,16 @@ async function fetchMusteriler() {
         if (selectEl) {
             selectEl.innerHTML = '<option value="">— Fabrika / Müşteri Seç —</option>';
             (must || []).forEach(m => {
-                selectEl.innerHTML += `< option value = "${m.id}" > ${m.ad}</option > `;
+                selectEl.innerHTML += `<option value="${m.id}">${m.ad || m.unvan}</option>`;
             });
         }
 
         if (!must || must.length === 0) {
-            grid.innerHTML = `< div class= "col-span-full dashboard-card py-16 text-center" >
+            grid.innerHTML = `<div class="col-span-full dashboard-card py-16 text-center">
                 <i data-lucide="building-2" class="w-12 h-12 mx-auto mb-3 text-gray-700"></i>
                 <p class="text-gray-500 font-medium">Henüz müşteri / fabrika kaydı yok.</p>
                 <button onclick="openModal('Yeni Müşteri Ekle')" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-xl text-sm">+ Müşteri Ekle</button>
-            </div > `;
+            </div>`;
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -2875,15 +3033,25 @@ async function fetchMusteriler() {
             const initials = m.ad.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
             const colorIdx = m.ad.charCodeAt(0) % colors.length;
             const araclar = tanimMap[m.id] || [];
+            const isDikkan = m.ad?.toUpperCase().includes('DİKKAN');
             const vardiyaAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('vardiya'));
             const tekAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('tek'));
+            const mesaiAraclar = isDikkan ? araclar.filter(t => t.mesai_fiyat > 0 || t.tarife_turu?.toLowerCase().includes('mesai')) : [];
 
             const buildAracChip = (t) => {
                 const isVardiya = t.tarife_turu?.toLowerCase().includes('vardiya');
                 const plaka = t.araclar?.plaka || 'Bilinmiyor';
+                let label = isVardiya ? 'VRD' : 'TEK';
+                let labelColor = isVardiya ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400';
+
+                if (isDikkan) {
+                    const isMesai = t.tarife_turu?.toLowerCase().includes('mesai') || t.mesai_fiyat > 0;
+                    label = isMesai ? 'MES' : 'TEK';
+                    labelColor = isMesai ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400';
+                }
                 
                 return `<div class="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg group hover:border-white/20 transition-all">
-                    <span class="px-1 py-0.5 rounded-[4px] text-[8px] font-black ${isVardiya ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'} uppercase">${isVardiya ? 'VRD' : 'TEK'}</span>
+                    <span class="px-1 py-0.5 rounded-[4px] text-[8px] font-black ${labelColor} uppercase">${label}</span>
                     <span class="text-[10px] font-bold text-white font-mono">${plaka}</span>
                     <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="ml-1 text-gray-600 hover:text-red-400 text-[10px] transition-all">✕</button>
                 </div>`;
@@ -2915,14 +3083,25 @@ async function fetchMusteriler() {
 
                 <!-- Vehicle Stats Chips -->
                 <div class="px-4 pb-3 flex items-center gap-2 flex-wrap">
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                        <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                        <span class="text-[10px] font-bold text-orange-400">${vardiyaAraclar.length} Vardiya Araç</span>
-                    </div>
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
-                    </div>
+                    ${isDikkan ? `
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span class="text-[10px] font-bold text-emerald-400">${mesaiAraclar.length} Mesai Araç</span>
+                        </div>
+                    ` : `
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
+                            <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
+                            <span class="text-[10px] font-bold text-orange-400">${vardiyaAraclar.length} Vardiya Araç</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                            <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
+                        </div>
+                    `}
                     <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg ml-auto">
                         <span class="text-[10px] font-bold text-gray-400">Toplam: ${araclar.length} araç</span>
                     </div>
@@ -3061,8 +3240,13 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
                     <div class="flex-1">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Varsayılan Tarife Türü</label>
                         <select id="toplu-tarife-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
-                            <option value="Vardiya">Vardiya (Aylık/Günlük Sabit)</option>
-                            <option value="Tek">Tek Sefer (Tur Başı)</option>
+                            ${musteriAdi.toUpperCase().includes('DİKKAN') ? `
+                                <option value="Tek">Tek Sefer (Tur Başı)</option>
+                                <option value="Mesai">Mesai (Dikkan Özel)</option>
+                            ` : `
+                                <option value="Vardiya">Vardiya (Aylık/Günlük Sabit)</option>
+                                <option value="Tek">Tek Sefer (Tur Başı)</option>
+                            `}
                         </select>
                     </div>
                     <div class="flex-1">

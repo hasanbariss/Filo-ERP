@@ -219,43 +219,46 @@
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto pr-2" id="main-nav-buttons">
-            <button data-target="module-dashboard" class="nav-link active">
+            <button data-target="module-dashboard" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all active">
                 <i data-lucide="layout-dashboard"></i> Genel Bakış
             </button>
-            <button data-target="module-filo" class="nav-link">
+            <button data-target="module-filo" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="truck"></i> Özmal Filo
             </button>
-            <button data-target="module-taseron" class="nav-link">
+            <button data-target="module-taseron" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="users-2"></i> Taşeron Yönetimi
             </button>
-            <button data-target="module-gps" class="nav-link">
+            <button data-target="module-gps" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="map-pin"></i> Canlı Takip
             </button>
-            <button data-target="module-personel" class="nav-link">
+            <button data-target="module-personel" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="user-cog"></i> Personel
             </button>
-            <button data-target="module-musteri" class="nav-link">
-                <i data-lucide="users"></i> Müşteri Portföyü
+            <button data-target="module-musteri" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
+                <i data-lucide="users"></i> Fabrikalar
             </button>
-            <button data-target="module-cari" class="nav-link">
-                <i data-lucide="building-2"></i> Cari İşlemler
+            <button data-target="module-cari" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
+                <i data-lucide="building-2"></i> Cariler
             </button>
-            <button data-target="module-finans" class="nav-link">
+            <button data-target="module-finans" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="banknote"></i> Taşeron Hakediş
             </button>
-            <button data-target="module-raporlar" class="nav-link">
+            <button data-target="module-raporlar" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="bar-chart-3"></i> Raporlar
             </button>
-            <button data-target="module-teklifler" class="nav-link">
+            <button data-target="module-dikkan" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
+                <i data-lucide="factory"></i> Dikkan
+            </button>
+            <button data-target="module-teklifler" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="file-text"></i> Teklif Yönetimi
             </button>
-                        <button data-target="module-takvim" class="nav-link">
+            <button data-target="module-takvim" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="calendar-days"></i> Operasyon Takvimi
             </button>
-            <button data-target="module-evrak-arsivi" class="nav-link">
+            <button data-target="module-evrak-arsivi" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="folder-open"></i> Evrak Arşivi
             </button>
-            <button data-target="module-is-emirleri" class="nav-link">
+            <button data-target="module-is-emirleri" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="clipboard-list"></i> İş Emirleri
             </button>
         </nav>
@@ -308,6 +311,79 @@
 
             <!-- Is Emirleri Module -->
             <div id="module-is-emirleri" class="main-module hidden stagger-in"></div>
+
+            <!-- Dikkan Module -->
+            <div id="module-dikkan" class="main-module hidden stagger-in">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h2 class="text-3xl font-black tracking-tight text-emerald-400 mb-1">Dikkan</h2>
+                        <p class="text-sm font-medium text-gray-400">Dikkan fabrikasına özel günlük puantaj ve sefer yönetimi.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Import Card -->
+                    <div class="dashboard-card border-emerald-500/20 bg-emerald-500/5">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                <i data-lucide="file-up" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">Günlük Excel İçe Aktar</h3>
+                                <p class="text-xs text-gray-500">Dikkan formatındaki Excel dosyasını buraya yükleyin.</p>
+                            </div>
+                        </div>
+
+                        <div 
+                            class="border-2 border-dashed border-emerald-500/30 rounded-2xl p-8 text-center hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all cursor-pointer group"
+                            onclick="document.getElementById('dikkan-file-input').click()"
+                        >
+                            <input type="file" id="dikkan-file-input" class="hidden" accept=".xlsx,.xls" onchange="window.handleDikkanImport(this.files[0])">
+                            <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                <i data-lucide="upload" class="w-8 h-8 text-emerald-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-white mb-1">Excel Dosyasını Seçin</p>
+                            <p class="text-xs text-gray-500 italic">Sadece Dikkan günlük rapor formatı</p>
+                        </div>
+
+                        <!-- Sample Download Button -->
+                        <div class="mt-4">
+                            <button 
+                                onclick="if(window.downloadDikkanSample) window.downloadDikkanSample()"
+                                class="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 group"
+                            >
+                                <i data-lucide="download" class="w-4 h-4 group-hover:bounce"></i>
+                                Örnek Excel İndir (Taslak)
+                            </button>
+                        </div>
+                        
+                        <div class="mt-6 p-4 bg-black/30 rounded-xl border border-white/5">
+                            <h4 class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-3">İşleme Kuralları</h4>
+                            <ul class="space-y-2 text-xs text-gray-400">
+                                <li class="flex items-center gap-2"><i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> 07:00 Sabak -> 1 Tek Sefer</li>
+                                <li class="flex items-center gap-2"><i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> 18:00 Çıkış -> 1 Tek Sefer</li>
+                                <li class="flex items-center gap-2"><i data-lucide="zap" class="w-3.5 h-3.5 text-orange-400"></i> 21:00 Mesai -> 1 Mesai Seferi</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div class="dashboard-card opacity-50 border-white/5">
+                         <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-gray-500">
+                                <i data-lucide="info" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white">Dikkan Raporlama</h3>
+                                <p class="text-xs text-gray-500">Özel Dikkan raporları yakında eklenecek.</p>
+                            </div>
+                        </div>
+                        <div class="py-12 text-center text-gray-600 italic text-sm">
+                            Bu alan geliştirme aşamasındadır.
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Takvim (Gantt) Module -->
             <div id="module-takvim" class="main-module hidden stagger-in">
@@ -2714,6 +2790,7 @@
 <!-- 6. NEW SRP MODULES -->
 <script defer src="evrak-arsivi.js"></script>
 <script defer src="is-emirleri.js"></script>
+<script defer src="dikkan-import.js"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

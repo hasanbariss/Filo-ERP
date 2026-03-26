@@ -485,9 +485,28 @@
             // Ancak en taze halini tutmak için de yeniAtamaCache devrede
             let musteriAracSetMap = new Set();
             try {
-                const { data } = await supabase.from('musteri_arac_tanimlari').select('musteri_id, arac_id');
-                if(data) musteriAracSetMap = new Set(data.map(r => `${r.musteri_id}|${r.arac_id}`));
-            } catch(e){}
+                let rangeFrom = 0;
+                const rangeStep = 1000;
+                while (true) {
+                    const { data, error } = await supabase
+                        .from('musteri_arac_tanimlari')
+                        .select('musteri_id, arac_id')
+                        .range(rangeFrom, rangeFrom + rangeStep - 1);
+                    
+                    if (error) {
+                        console.error('Tanimlar fetch error during import at range', rangeFrom, error);
+                        break;
+                    }
+                    if (!data || data.length === 0) break;
+                    
+                    data.forEach(r => musteriAracSetMap.add(`${r.musteri_id}|${r.arac_id}`));
+                    if (data.length < rangeStep) break;
+                    rangeFrom += rangeStep;
+                }
+                console.log(`[Import] Mevcut Atamalar Yüklendi: ${musteriAracSetMap.size}`);
+            } catch(e){
+                console.error('Import assignment fetch error:', e);
+            }
 
             for (const row of aktarilacaklar) {
                 // Müşteri ID bul ya da oluştur
@@ -533,9 +552,18 @@
                 // Müşteri - Araç Ataması (Mevcut değilse)
                 const atamaKey = `${musteriId}|${aracId}`;
                 if (!musteriAracSetMap.has(atamaKey) && !yeniAtamaCache.has(atamaKey)) {
+                    // Import sırasında tarife türünü belirle (Vardiya varsa Vardiya, yoksa Tek)
+                    const varsayilanTur = (parseFloat(row.vardiya) > 0) ? 'Vardiya' : 'Tek';
+                    
                     const { error: atamaErr } = await supabase
                         .from('musteri_arac_tanimlari')
-                        .insert({ musteri_id: musteriId, arac_id: aracId });
+                        .insert({ 
+                            musteri_id: musteriId, 
+                            arac_id: aracId,
+                            tarife_turu: varsayilanTur,
+                            tek_fiyat: 0,
+                            vardiya_fiyat: 0
+                        });
                      
                     if (atamaErr && atamaErr.code !== '23505') {
                         console.error('Araç fabrikaya atanamadı:', atamaErr);

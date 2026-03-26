@@ -67,7 +67,7 @@ async function fetchData() {
         if (labelMulkiyet) labelMulkiyet.textContent = mulkiyetValues.length === 0 ? 'Mülkiyet' : (mulkiyetValues.length === 2 ? 'Mülkiyet' : mulkiyetValues[0]);
         if (labelSirket) labelSirket.textContent = sirketValues.length === 0 ? 'Şirket' : (sirketValues.length > 1 ? `Şirket (${sirketValues.length})` : sirketValues[0]);
 
-        let aracQuery = window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket');
+        let aracQuery = window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket, sofor_id, firma_adi');
         
         // Only apply filter if something is selected. If nothing is selected, show all (more resilient).
         if (mulkiyetValues.length > 0) {
@@ -80,10 +80,16 @@ async function fetchData() {
         
         const { data: araclar, error: aracErr } = await aracQuery.order('plaka');
         
-        
         if (aracErr) throw aracErr;
         
-        isolatedAraclar = araclar || [];
+        // Fetch driver names for mapping
+        const { data: drivers } = await window.supabaseClient.from('soforler').select('id, ad_soyad');
+        const driverMap = {};
+        if (drivers) drivers.forEach(d => driverMap[d.id] = d.ad_soyad);
+        isolatedAraclar = (araclar || []).map(a => ({
+            ...a,
+            display_name: a.mulkiyet_durumu === 'TAŞERON' ? (a.firma_adi || 'Bilinmiyor') : (driverMap[a.sofor_id] || 'Atanmamış')
+        }));
 
         if (isolatedAraclar.length > 0) {
             const { data: yakitlar, error: yakitErr } = await window.supabaseClient
@@ -155,7 +161,8 @@ function renderGridView(araclar = isolatedAraclar) {
     thead.innerHTML = thHtml;
     let tblHtml = '';
     araclar.forEach(arac => {
-        tblHtml += `<tr class="hover:bg-slate-50 transition-colors"><td class="px-4 py-2 text-[11px] font-black text-slate-900 sticky left-0 bg-white z-10 border-r border-b border-slate-50 uppercase text-center">${arac.plaka}</td>`;
+        const plateDisplay = `${arac.plaka} <br> <span class="text-[8px] text-slate-400 font-medium">${arac.display_name}</span>`;
+        tblHtml += `<tr class="hover:bg-slate-50 transition-colors"><td class="px-4 py-2 text-[11px] font-black text-slate-900 sticky left-0 bg-white z-10 border-r border-b border-slate-50 uppercase text-center">${plateDisplay}</td>`;
         let rowLitreTotal = 0; let rowTutarTotal = 0;
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
@@ -198,7 +205,8 @@ function renderListView(araclar = isolatedAraclar) {
         html += `<div class="bg-white rounded-3xl border border-slate-100 mb-10 print-avoid-break overflow-hidden"><div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center"><h4 class="text-sm font-black text-slate-900 uppercase tracking-tight">${dateFormatted}</h4><div class="flex gap-6"><div class="text-right"><p class="text-[8px] font-black text-slate-400">GÜN LİTRE</p><p class="text-xs font-black text-slate-900">${data.totalLitre.toLocaleString('tr-TR')} L</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400">GÜN TUTAR</p><p class="text-xs font-black text-orange-600">₺${data.totalTutar.toLocaleString('tr-TR')}</p></div></div></div><div class="px-8 pb-4"><table class="w-full text-left text-xs border-collapse"><thead><tr class="text-slate-400 font-bold uppercase text-[9px]"><th class="py-3 border-b border-slate-50">ARAÇ PLAKA</th><th class="py-3 border-b border-slate-50 text-center">MİKTAR</th><th class="py-3 border-b border-slate-50 text-center">BİRİM</th><th class="py-3 border-b border-slate-50 text-right">TOPLAM</th></tr></thead><tbody class="divide-y divide-slate-50">`;
         data.items.forEach(item => {
             const arac = isolatedAraclar.find(a => a.id === item.arac_id);
-            html += `<tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 font-black text-slate-900 uppercase">${arac ? arac.plaka : '---'}</td><td class="py-3 text-center text-slate-600 font-bold">${(parseFloat(item.litre) || 0).toLocaleString('tr-TR')} L</td><td class="py-3 text-center text-slate-400">₺${(parseFloat(item.birim_fiyat) || 0).toLocaleString('tr-TR')}</td><td class="py-3 text-right font-black text-slate-900">₺${(parseFloat(item.toplam_tutar) || 0).toLocaleString('tr-TR')}</td></tr>`;
+            const plateDisplay = arac ? `${arac.plaka} <span class="text-[10px] text-slate-400 font-bold ml-2">• ${arac.display_name}</span>` : '---';
+            html += `<tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 font-black text-slate-900 uppercase">${plateDisplay}</td><td class="py-3 text-center text-slate-600 font-bold">${(parseFloat(item.litre) || 0).toLocaleString('tr-TR')} L</td><td class="py-3 text-center text-slate-400">₺${(parseFloat(item.birim_fiyat) || 0).toLocaleString('tr-TR')}</td><td class="py-3 text-right font-black text-slate-900">₺${(parseFloat(item.toplam_tutar) || 0).toLocaleString('tr-TR')}</td></tr>`;
         });
         html += `</tbody></table></div></div>`;
     });
@@ -229,8 +237,10 @@ function renderVehicleView(araclar = isolatedAraclar) {
     });
     let html = '';
     sortedAracIds.forEach(aracId => {
-        const data = grouped[aracId]; const arac = isolatedAraclar.find(a => a.id == aracId); const plaka = arac ? arac.plaka : '---';
-        html += `<div class="bg-white rounded-3xl border border-slate-100 mb-10 print-avoid-break overflow-hidden"><div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center"><h4 class="text-sm font-black text-slate-900 uppercase tracking-tight">${plaka}</h4><div class="flex gap-6"><div class="text-right"><p class="text-[8px] font-black text-slate-400">ARAÇ LİTRE</p><p class="text-xs font-black text-slate-900">${data.totalLitre.toLocaleString('tr-TR')} L</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400">ARAÇ TUTAR</p><p class="text-xs font-black text-orange-600">₺${data.totalTutar.toLocaleString('tr-TR')}</p></div></div></div><div class="px-8 pb-4"><table class="w-full text-left text-xs border-collapse"><thead><tr class="text-slate-400 font-bold uppercase text-[9px]"><th class="py-3 border-b border-slate-50">TARİH</th><th class="py-3 border-b border-slate-50 text-center">MİKTAR</th><th class="py-3 border-b border-slate-50 text-center">BİRİM</th><th class="py-3 border-b border-slate-50 text-right">TOPLAM</th></tr></thead><tbody class="divide-y divide-slate-50">`;
+        const data = grouped[aracId]; const arac = isolatedAraclar.find(a => a.id == aracId); 
+        const plaka = arac ? arac.plaka : '---';
+        const displayName = arac ? arac.display_name : '';
+        html += `<div class="bg-white rounded-3xl border border-slate-100 mb-10 print-avoid-break overflow-hidden"><div class="px-8 py-4 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center"><h4 class="text-sm font-black text-slate-900 uppercase tracking-tight">${plaka} <span class="text-xs text-slate-400 font-bold ml-2">• ${displayName}</span></h4><div class="flex gap-6"><div class="text-right"><p class="text-[8px] font-black text-slate-400">ARAÇ LİTRE</p><p class="text-xs font-black text-slate-900">${data.totalLitre.toLocaleString('tr-TR')} L</p></div><div class="text-right"><p class="text-[8px] font-black text-slate-400">ARAÇ TUTAR</p><p class="text-xs font-black text-orange-600">₺${data.totalTutar.toLocaleString('tr-TR')}</p></div></div></div><div class="px-8 pb-4"><table class="w-full text-left text-xs border-collapse"><thead><tr class="text-slate-400 font-bold uppercase text-[9px]"><th class="py-3 border-b border-slate-50">TARİH</th><th class="py-3 border-b border-slate-50 text-center">MİKTAR</th><th class="py-3 border-b border-slate-50 text-center">BİRİM</th><th class="py-3 border-b border-slate-50 text-right">TOPLAM</th></tr></thead><tbody class="divide-y divide-slate-50">`;
         data.items.sort((a,b) => new Date(a.tarih) - new Date(b.tarih)).forEach(item => {
             const dateObj = new Date(item.tarih); const dateFormatted = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', weekday: 'short' }).format(dateObj);
             html += `<tr class="hover:bg-slate-50/50 transition-colors"><td class="py-3 font-bold text-slate-700 uppercase">${dateFormatted}</td><td class="py-3 text-center text-slate-600 font-bold">${(parseFloat(item.litre) || 0).toLocaleString('tr-TR')} L</td><td class="py-3 text-center text-slate-400">₺${(parseFloat(item.birim_fiyat) || 0).toLocaleString('tr-TR')}</td><td class="py-3 text-right font-black text-slate-900">₺${(parseFloat(item.toplam_tutar) || 0).toLocaleString('tr-TR')}</td></tr>`;
@@ -356,7 +366,7 @@ function renderSummaryView(araclar = isolatedAraclar) {
                                 <div class="group flex items-center px-6 py-4 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100">
                                     <div class="flex-1 min-w-0">
                                         <p class="text-xs font-black text-slate-900 uppercase truncate">${arac.plaka || '---'}</p>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${arac.sirket || 'BİLİNMİYOR'}</p>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${arac.display_name || 'BİLİNMİYOR'}</p>
                                     </div>
                                     <div class="w-24 text-center">
                                         <p class="text-xs font-bold text-slate-600">${data.totalLitre.toLocaleString('tr-TR', {maximumFractionDigits:1})} <span class="text-[9px] font-medium opacity-50">L</span></p>
@@ -443,9 +453,10 @@ window.handlePrint = function() {
         sortedAracIds.forEach(aracId => {
             const data = grouped[aracId]; 
             const arac = isolatedAraclar.find(a => a.id == aracId);
+            const label = arac ? `${arac.plaka} <br> <small style="font-size:7px; opacity:0.7">${arac.display_name}</small>` : '---';
             tableRows += `
                 <div class="print-summary-row">
-                    <span class="p-plaka">${arac ? arac.plaka : '---'}</span>
+                    <span class="p-plaka">${label}</span>
                     <span class="p-litre">${data.totalLitre.toLocaleString('tr-TR', {maximumFractionDigits:1})}L</span>
                     <span class="p-tutar">₺${Math.round(data.totalTutar).toLocaleString('tr-TR')}</span>
                 </div>`;

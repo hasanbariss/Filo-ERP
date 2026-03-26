@@ -102,6 +102,10 @@ async function loadGridData() {
         if (kayitErr) throw kayitErr;
         isolatedKayitlar = qKayitlar || [];
 
+        // Get customer info for context
+        const { data: musteriData } = await window.supabaseClient.from('musteriler').select('ad').eq('id', musteriId).single();
+        const isDikkan = musteriData?.ad?.toLowerCase().includes('dikkan');
+
         // Build THEAD
         let thHtml = `<tr>
             <th class="px-3 py-2.5 text-left text-[11px] font-extrabold text-slate-700 uppercase tracking-wider sticky left-0 bg-slate-100 z-20 border-b border-r border-slate-300 shadow-[1px_0_0_0_#cbd5e1]" style="width: 90px; min-width: 90px; max-width: 90px;">ARAÇ</th>
@@ -120,14 +124,16 @@ async function loadGridData() {
             const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
 
             const relatedRecords = isolatedKayitlar.filter(k => k.arac_id === arac.id);
-            const aracVeriVar = relatedRecords.some(r => Boolean(r.vardiya) || Boolean(r.tek));
+            const aracVeriVar = relatedRecords.some(r => Boolean(r.vardiya) || Boolean(r.tek) || (isDikkan && Boolean(r.mesai)));
             const dataStr = aracVeriVar ? 'true' : 'false';
+
+            const rowSpan = isDikkan ? 3 : 2;
 
             // --- VARDİYA ---
             tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
             
-            // First Column - Plate (Spans 2 rows)
-            tblHtml += `<td class="p-2 text-[11px] font-bold text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] uppercase text-center align-middle" style="width: 90px; min-width: 90px; max-width: 90px;" rowspan="2" title="${arac.plaka}">
+            // First Column - Plate (Spans 2 or 3 rows)
+            tblHtml += `<td class="p-2 text-[11px] font-bold text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] uppercase text-center align-middle" style="width: 90px; min-width: 90px; max-width: 90px;" rowspan="${rowSpan}" title="${arac.plaka}">
                             ${arac.plaka}
                         </td>`;
             
@@ -197,6 +203,39 @@ async function loadGridData() {
             }
             tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-tek">${rowTekTotal}</td>`;
             tblHtml += `</tr>`;
+
+            // --- MESAİ (Only for Dikkan) ---
+            if (isDikkan) {
+                tblHtml += `<tr class="hover:bg-emerald-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
+                
+                tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] bg-emerald-50/30 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
+                                Mesai
+                            </td>`;
+                
+                let rowMesaiTotal = 0;
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const record = isolatedKayitlar.find(k => k.arac_id === arac.id && k.tarih === dateCode);
+                    const val = record ? (record.mesai || '') : '';
+                    const safeVal = String(val);
+                    if (record && !isNaN(parseInt(safeVal))) rowMesaiTotal += parseInt(safeVal);
+
+                    const inpid = `cell-${arac.id}-${dateCode}-mesai`;
+                    isolatedGridData.push({ id: record ? record.id : null, arac_id: arac.id, tarih: dateCode, field: 'mesai', val_original: safeVal, val_new: safeVal });
+
+                    let bgClass = 'bg-transparent text-slate-700';
+                    if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-emerald-50/60 text-emerald-700 font-bold';
+
+                    tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
+                                <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="mesai" data-day="${i}" value="${safeVal}"
+                                class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
+                                style="height: 28px; line-height: 28px;"
+                                onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i})">
+                            </td>`;
+                }
+                tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-mesai">${rowMesaiTotal}</td>`;
+                tblHtml += `</tr>`;
+            }
         });
 
         // Totals Rows
@@ -237,6 +276,9 @@ async function loadGridData() {
 }
 
 window.excelInputChanged = function (aracId, type, day) {
+    // Added 'mesai' to allowed types
+    if (type !== 'vardiya' && type !== 'tek' && type !== 'mesai') return;
+
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -246,22 +288,32 @@ window.excelInputChanged = function (aracId, type, day) {
     let val = String(inp.value).trim().toUpperCase();
     inp.value = val;
 
+    // Update local grid data
+    const dataObj = isolatedGridData.find(d => d.arac_id === aracId && d.tarih === dateCode && d.field === type);
+    if (dataObj) {
+        dataObj.val_new = val;
+    } else {
+        isolatedGridData.push({ id: null, arac_id: aracId, tarih: dateCode, field: type, val_original: '', val_new: val });
+    }
+
     // Stylize immediately based on input
-    inp.className = `w-full text-center text-[11px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-orange-500 focus:bg-white p-0 m-0 border-none transition-all`;
-    inp.style.height = '26px';
-    inp.style.lineHeight = '26px';
+    // Removed old className and style assignments, using classList for dynamic styling
+    inp.classList.remove('bg-blue-50/60', 'bg-orange-50/60', 'bg-emerald-50/60', 'text-blue-700', 'text-orange-700', 'text-emerald-700', 'text-red-600', 'text-amber-600', 'text-purple-600', 'font-bold', 'bg-red-50', 'bg-amber-50', 'bg-purple-50', 'bg-transparent', 'text-slate-700');
+    inp.classList.add('w-full', 'h-full', 'text-center', 'text-[12px]', 'focus:outline-none', 'focus:ring-1', 'focus:ring-inset', 'focus:ring-indigo-500', 'focus:bg-white', 'focus:z-20', 'relative', 'p-0', 'm-0', 'border-none', 'transition-all');
+    inp.style.height = '28px'; // Reverted to original height
+    inp.style.lineHeight = '28px'; // Reverted to original line-height
 
     if (val === 'X') inp.classList.add('bg-red-50', 'text-red-600', 'font-bold');
     else if (val === 'R') inp.classList.add('bg-amber-50', 'text-amber-600', 'font-bold');
     else if (val === 'İ' || val === 'I') inp.classList.add('bg-purple-50', 'text-purple-600', 'font-bold');
     else if (!isNaN(parseInt(val)) && parseInt(val) > 0) {
         if (type === 'vardiya') inp.classList.add('bg-blue-50/60', 'text-blue-700', 'font-bold');
-        else inp.classList.add('bg-orange-50/60', 'text-orange-700', 'font-bold');
+        else if (type === 'tek') inp.classList.add('bg-orange-50/60', 'text-orange-700', 'font-bold');
+        else if (type === 'mesai') inp.classList.add('bg-emerald-50/60', 'text-emerald-700', 'font-bold'); // Added mesai styling
     } else {
         inp.classList.add('bg-transparent', 'text-slate-700');
     }
 
-    const dataObj = isolatedGridData.find(d => d.arac_id === aracId && d.tarih === dateCode && d.field === type);
     if (dataObj) {
         dataObj.val_new = val;
     } else {
@@ -395,11 +447,12 @@ window.saveExcelGrid = async function () {
         toSaveOrUpdate.forEach(item => {
             const key = `${item.arac_id}_${item.tarih}`;
             if (!updatesByDateAndVehicle[key]) {
-                const existing = dbMap[key] || { musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, vardiya: '', tek: '' };
+                const existing = dbMap[key] || { musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, vardiya: '', tek: '', mesai: '' };
                 updatesByDateAndVehicle[key] = { ...existing };
             }
             if (item.field === 'vardiya') updatesByDateAndVehicle[key].vardiya = item.val_new;
             if (item.field === 'tek') updatesByDateAndVehicle[key].tek = item.val_new;
+            if (item.field === 'mesai') updatesByDateAndVehicle[key].mesai = item.val_new;
         });
 
         const upsertArray = [];
@@ -408,14 +461,15 @@ window.saveExcelGrid = async function () {
         Object.values(updatesByDateAndVehicle).forEach(item => {
             const v = String(item.vardiya || '').trim();
             const t = String(item.tek || '').trim();
+            const ms = String(item.mesai || '').trim();
             const key = `${item.arac_id}_${item.tarih}`;
             const existingIds = dbIdsMap[key] || [];
             
-            if (!v && !t && existingIds.length > 0) {
+            if (!v && !t && !ms && existingIds.length > 0) {
                 // Her ikisi de boş ve VT'de kayıt(lar) varsa tamamen sil
                 deleteIds.push(...existingIds);
-            } else if (!v && !t && existingIds.length === 0) {
-                // Veritabanında yok ve her ikisi de boş (yeni açılıp silinen) - geç
+            } else if (!v && !t && !ms && existingIds.length === 0) {
+                // Veritabanında yok ve her üçü de boş (yeni açılıp silinen) - geç
             } else {
                 if (!item.id) delete item.id;
                 upsertArray.push(item);
