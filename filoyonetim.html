@@ -246,9 +246,7 @@
             <button data-target="module-raporlar" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="bar-chart-3"></i> Raporlar
             </button>
-            <button data-target="module-dikkan" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="factory"></i> Dikkan
-            </button>
+
             <button data-target="module-teklifler" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="file-text"></i> Teklif Yönetimi
             </button>
@@ -312,78 +310,7 @@
             <!-- Is Emirleri Module -->
             <div id="module-is-emirleri" class="main-module hidden stagger-in"></div>
 
-            <!-- Dikkan Module -->
-            <div id="module-dikkan" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <div>
-                        <h2 class="text-3xl font-black tracking-tight text-emerald-400 mb-1">Dikkan</h2>
-                        <p class="text-sm font-medium text-gray-400">Dikkan fabrikasına özel günlük puantaj ve sefer yönetimi.</p>
-                    </div>
-                </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Import Card -->
-                    <div class="dashboard-card border-emerald-500/20 bg-emerald-500/5">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                                <i data-lucide="file-up" class="w-6 h-6"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-white">Günlük Excel İçe Aktar</h3>
-                                <p class="text-xs text-gray-500">Dikkan formatındaki Excel dosyasını buraya yükleyin.</p>
-                            </div>
-                        </div>
-
-                        <div 
-                            class="border-2 border-dashed border-emerald-500/30 rounded-2xl p-8 text-center hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all cursor-pointer group"
-                            onclick="document.getElementById('dikkan-file-input').click()"
-                        >
-                            <input type="file" id="dikkan-file-input" class="hidden" accept=".xlsx,.xls" onchange="window.handleDikkanImport(this.files[0])">
-                            <div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                <i data-lucide="upload" class="w-8 h-8 text-emerald-500"></i>
-                            </div>
-                            <p class="text-sm font-bold text-white mb-1">Excel Dosyasını Seçin</p>
-                            <p class="text-xs text-gray-500 italic">Sadece Dikkan günlük rapor formatı</p>
-                        </div>
-
-                        <!-- Sample Download Button -->
-                        <div class="mt-4">
-                            <button 
-                                onclick="if(window.downloadDikkanSample) window.downloadDikkanSample()"
-                                class="w-full py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 group"
-                            >
-                                <i data-lucide="download" class="w-4 h-4 group-hover:bounce"></i>
-                                Örnek Excel İndir (Taslak)
-                            </button>
-                        </div>
-                        
-                        <div class="mt-6 p-4 bg-black/30 rounded-xl border border-white/5">
-                            <h4 class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-3">İşleme Kuralları</h4>
-                            <ul class="space-y-2 text-xs text-gray-400">
-                                <li class="flex items-center gap-2"><i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> 07:00 Sabak -> 1 Tek Sefer</li>
-                                <li class="flex items-center gap-2"><i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i> 18:00 Çıkış -> 1 Tek Sefer</li>
-                                <li class="flex items-center gap-2"><i data-lucide="zap" class="w-3.5 h-3.5 text-orange-400"></i> 21:00 Mesai -> 1 Mesai Seferi</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Info Card -->
-                    <div class="dashboard-card opacity-50 border-white/5">
-                         <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-gray-500">
-                                <i data-lucide="info" class="w-6 h-6"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-white">Dikkan Raporlama</h3>
-                                <p class="text-xs text-gray-500">Özel Dikkan raporları yakında eklenecek.</p>
-                            </div>
-                        </div>
-                        <div class="py-12 text-center text-gray-600 italic text-sm">
-                            Bu alan geliştirme aşamasındadır.
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Takvim (Gantt) Module -->
             <div id="module-takvim" class="main-module hidden stagger-in">
@@ -1115,6 +1042,89 @@
 
             <!-- 3. MÜŞTERİ VE SERVİS YÖNETİMİ -->
             <div id="module-musteri" class="main-module hidden stagger-in">
+
+                <!-- === IMPORT SECTION (REORGANIZED) === -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 px-2 animate-fade-in-up">
+                    <!-- 1. Dikkan Özel Import -->
+                    <div class="dashboard-card border-emerald-500/20 bg-emerald-500/5 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="factory" class="w-16 h-16 text-emerald-500"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                <i data-lucide="file-up" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Dikkan Özel İçe Aktar</h3>
+                                <p class="text-xs text-gray-500">Sadece Dikkan fabrikasının günlük formatını işler.</p>
+                            </div>
+                        </div>
+
+                        <div 
+                            class="border-2 border-dashed border-emerald-500/30 rounded-2xl p-6 text-center hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all cursor-pointer group/drop"
+                            onclick="document.getElementById('dikkan-file-input').click()"
+                        >
+                            <input type="file" id="dikkan-file-input" class="hidden" accept=".xlsx,.xls" onchange="window.handleDikkanImport(this.files[0])">
+                            <div class="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover/drop:scale-110 transition-transform">
+                                <i data-lucide="upload" class="w-7 h-7 text-emerald-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-white mb-1">Dikkan Excelini Seçin</p>
+                        </div>
+
+                        <div class="mt-4 flex gap-2">
+                           <button 
+                                onclick="window.downloadDikkanSample()"
+                                class="flex-1 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                            >
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Örnek Excel
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Genel Günlük Excel Import -->
+                    <div class="dashboard-card border-blue-500/20 bg-blue-500/5 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="layout-dashboard" class="w-16 h-16 text-blue-500"></i>
+                        </div>
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500">
+                                    <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white text-lg">Genel Günlük İçe Aktar</h3>
+                                    <p class="text-xs text-gray-500">Standart IDEOL puantaj formatı.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Gizli file input -->
+                        <input
+                            type="file"
+                            id="import-file-input-musteri"
+                            accept=".xlsx,.xls"
+                            style="display:none"
+                            onchange="window.handleImportFile(this.files[0])"
+                        >
+                        <!-- Drop Alanı -->
+                        <div
+                            class="border-2 border-dashed border-blue-500/30 rounded-2xl p-6 text-center hover:border-blue-500/60 hover:bg-blue-500/10 transition-all cursor-pointer group/drop"
+                            onclick="document.getElementById('import-file-input-musteri').click()"
+                        >
+                            <div class="w-14 h-14 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover/drop:scale-110 transition-transform">
+                                <i data-lucide="upload-cloud" class="w-7 h-7 text-blue-500"></i>
+                            </div>
+                            <p class="text-sm font-bold text-white mb-1">Genel Exceli Seçin</p>
+                        </div>
+
+                        <div class="mt-4">
+                            <a href="./ornek_puantaj_sablonu.xlsx" download="IDEOL_Ornek_Puantaj_Sablonu.xlsx" class="w-full py-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> ÖRNEK ŞABLON
+                            </a>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- === HEADER === -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -2770,6 +2780,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->

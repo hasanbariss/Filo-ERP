@@ -965,3 +965,114 @@ body.mobile-preview-mode .top-bar {
     display: block;
 }
 
+/* =====================================================
+   FACTORY PORTFOLIO REDESIGN (Premium Upgrade)
+   ===================================================== */
+
+.factory-card {
+    background: linear-gradient(135deg, hsla(var(--bg-card), 0.8) 0%, hsla(var(--bg-card), 0.4) 100%);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid hsla(var(--text-primary), 0.08);
+    border-radius: 24px;
+    padding: 1.5rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.3);
+}
+
+.factory-card:hover {
+    transform: translateY(-5px);
+    border-color: hsla(var(--accent-orange), 0.3);
+    box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5), 0 0 20px hsla(var(--accent-orange), 0.1);
+}
+
+.factory-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, hsla(var(--accent-orange), 0.5), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.factory-card:hover::before {
+    opacity: 1;
+}
+
+.factory-logo-container {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #fff;
+    box-shadow: 0 8px 16px -4px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 2;
+}
+
+.factory-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.factory-badge {
+    padding: 6px 12px;
+    background: hsla(var(--text-primary), 0.05);
+    border: 1px solid hsla(var(--text-primary), 0.1);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: hsl(var(--text-secondary));
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.factory-card:hover .factory-badge {
+    background: hsla(var(--accent-orange), 0.1);
+    border-color: hsla(var(--accent-orange), 0.2);
+    color: hsl(var(--accent-orange));
+}
+
+.factory-action-link {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: hsl(var(--text-dim));
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.factory-action-link:hover {
+    color: hsl(var(--text-primary));
+    transform: translateX(2px);
+}
+
+.factory-delete-btn {
+    color: hsla(var(--accent-pink), 0.6);
+}
+
+.factory-delete-btn:hover {
+    color: hsl(var(--accent-pink));
+}
+
+.musteri-arac-panel {
+    background: hsla(0, 0%, 0%, 0.25);
+    border-radius: 16px;
+    margin-top: 0.5rem;
+    border: 1px solid hsla(255, 255%, 255%, 0.03);
+}

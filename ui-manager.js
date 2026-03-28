@@ -1220,22 +1220,16 @@ window.openModal = function (title, id = null, extra = null) {
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri / Fabrika Seçin</label>
-                            <select id="tanim-musteri" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
+                            <select id="tanim-musteri" onchange="window.handleTanimMusteriChange(this)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tanımlanacak Araç</label>
                             <select id="tanim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarife Türü</label>
-                            <select id="tanim-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                                <option value="Vardiya">Vardiya</option>
-                                <option value="Tek">Tek (Sabah veya Akşam)</option>
-                            </select>
-                        </div>
+                        
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tam / Vardiya Fiyatı (₺)</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vardiya Fiyatı (₺)</label>
                                 <input type="number" step="0.01" id="tanim-vardiya-fiyat" placeholder="Örn: 1500" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
@@ -1243,11 +1237,34 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="number" step="0.01" id="tanim-tek-fiyat" placeholder="Örn: 800" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                         </div>
+
+                        <!-- Dikkan Özel: Mesai Fiyatı (Gizli başlar) -->
+                        <div id="tanim-mesai-container" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                            <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Mesai Fiyatı (₺) — DİKKAN Özel</label>
+                            <input type="number" step="0.01" id="tanim-mesai-fiyat" placeholder="Örn: 500" class="w-full bg-orange-500/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
+                        </div>
+
+                        <div class="pt-4">
+                            <button onclick="window.saveAracTanim()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-2">
+                                <i data-lucide="check-circle" class="w-5 h-5"></i> Tanımlamayı Tamamla
+                            </button>
+                        </div>
                     </div>
                 `;
         setTimeout(() => {
             loadSelectOptions('tanim-musteri', 'musteriler', 'id', 'ad');
             loadSelectOptions('tanim-arac', 'araclar', 'id', 'plaka');
+            
+            // Handle Dikkan change function
+            window.handleTanimMusteriChange = function(select) {
+                const text = select.options[select.selectedIndex]?.text || '';
+                const container = document.getElementById('tanim-mesai-container');
+                if (text.toUpperCase().includes('DİKKAN') || text.toUpperCase().includes('DIKKAN')) {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            };
         }, 50);
     } else if (title === 'Yeni Yakıt Kaydı') {
         content = `
@@ -1943,7 +1960,7 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
     } else if (title === 'Yeni Kredi Kartı') {
         content = `
-                    <p class="text-sm text-gray-400 mb-6">Şirket kredi kartını hesap takibi için sisteme kaydediniz.</p>
+                    <p class="text-sm text-gray-400 mb-6">Şirket kredi kartını hesap takibi için sisteme kaydediniz. Kart için otomatik Cari hesap oluşturulacaktır.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -1964,6 +1981,28 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Limiti (₺)</label>
                                 <input type="number" step="0.01" id="kredi-kart-limit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
                             </div>
+                        </div>
+                    </div>
+                `;
+    } else if (title === 'Kart Borcu Öde') {
+        const kartName = extra || 'Kredi Kartı';
+        content = `
+                    <p class="text-sm text-gray-400 mb-6"><span class="text-orange-500 font-bold">${kartName}</span> için bankaya yapılan ödemeyi kaydedin.</p>
+                    <div class="space-y-6">
+                        <input type="hidden" id="kart-odeme-id" value="${id}">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Tarihi</label>
+                                <input type="date" id="kart-odeme-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödenen Tutar (₺)</label>
+                                <input type="number" step="0.01" id="kart-odeme-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium text-green-400 font-bold" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
+                            <input type="text" id="kart-odeme-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Ocak Ayı Ekstre Ödemesi">
                         </div>
                     </div>
                 `;

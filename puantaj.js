@@ -5,6 +5,7 @@ const monthStr = urlParams.get('ay'); // 'YYYY-MM'
 let isolatedGridData = [];
 let isolatedAraclar = [];
 let isolatedKayitlar = [];
+let kayitlarMap = {}; // Global O(1) lookup: aracId_tarih_field -> value
 
 async function initPuantaj() {
     try {
@@ -21,9 +22,15 @@ async function initPuantaj() {
         const ay = parseInt(mStr, 10);
         const months = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
 
-        const { data: musteriData } = await window.supabaseClient.from('musteriler').select('ad').eq('id', musteriId).single();
-        const musteriAdi = musteriData ? musteriData.ad : 'Bilinmeyen Müşteri';
+        // 1. Parallelize data fetching for lightning fast initial load
+        const [musteriRes, tanimRes] = await Promise.all([
+            window.supabaseClient.from('musteriler').select('ad').eq('id', musteriId).single(),
+            window.supabaseClient.from('musteri_arac_tanimlari')
+                .select('*, araclar(id, plaka, mulkiyet_durumu)')
+                .eq('musteri_id', musteriId)
+        ]);
 
+        const musteriAdi = musteriRes.data ? musteriRes.data.ad : 'Bilinmeyen Müşteri';
         document.getElementById('header-title').textContent = `${musteriAdi} - Servis Puantajı`;
         document.getElementById('header-subtitle').textContent = `${months[ay - 1]} ${year} Dönemi`;
 
@@ -31,21 +38,17 @@ async function initPuantaj() {
             document.getElementById('filter-donem').value = monthStr;
         }
 
-        await loadGridData();
+        await loadGridData(tanimRes.data, musteriAdi);
         
         if (typeof window.filterPuantaj === 'function') {
             window.filterPuantaj();
         }
     } catch (e) {
         alert("Init Hatası: " + e.message + "\nStack: " + e.stack);
-        const hTitle = document.getElementById('header-title');
-        const hSub = document.getElementById('header-subtitle');
-        if (hTitle) hTitle.textContent = "KRİTİK HATA";
-        if (hSub) hSub.textContent = e.message;
     }
 }
 
-async function loadGridData() {
+async function loadGridData(tanimlar, musteriAdi) {
     const thead = document.getElementById('excel-thead');
     const tbody = document.getElementById('excel-tbody');
 
@@ -56,18 +59,30 @@ async function loadGridData() {
         const startDate = `${year}-${String(ay).padStart(2, '0')}-01`;
         const endDate = `${year}-${String(ay).padStart(2, '0')}-${daysInMonth}`;
 
-        // Get tools matching customer ID
-        const { data: tanimlar, error: tanimErr } = await window.supabaseClient
-            .from('musteri_arac_tanimlari')
-            .select('*, araclar(id, plaka, mulkiyet_durumu)')
-            .eq('musteri_id', musteriId);
-
-        if (tanimErr) throw tanimErr;
-
         if (!tanimlar || tanimlar.length === 0) {
             tbody.innerHTML = '<tr><td colspan="33" class="p-8 text-center text-slate-500 font-medium">Bu müşteriye tanımlı araç bulunamadı.</td></tr>';
             return;
         }
+
+        // Parallelize month records fetch
+        const { data: qKayitlar, error: kayitErr } = await window.supabaseClient
+            .from('musteri_servis_puantaj')
+            .select('*')
+            .eq('musteri_id', musteriId)
+            .gte('tarih', startDate)
+            .lte('tarih', endDate);
+
+        if (kayitErr) throw kayitErr;
+        isolatedKayitlar = qKayitlar || [];
+
+        // 2. O(1) Indexing for records
+        kayitlarMap = {};
+        isolatedKayitlar.forEach(k => {
+            kayitlarMap[`${k.arac_id}_${k.tarih}_vardiya`] = k.vardiya || '';
+            kayitlarMap[`${k.arac_id}_${k.tarih}_tek`] = k.tek || '';
+            kayitlarMap[`${k.arac_id}_${k.tarih}_mesai`] = k.mesai || 0;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_id`] = k.id;
+        });
 
         const seenIds = new Set();
         isolatedAraclar = [];
@@ -82,333 +97,208 @@ async function loadGridData() {
             }
         }
 
-        const filterSelect = document.getElementById('filter-arac');
-        if (filterSelect) {
-            let opts = '<option value="ALL">Tüm Araçlar</option>';
-            isolatedAraclar.forEach(a => {
-                opts += `<option value="${a.id}">${a.plaka}</option>`;
-            });
-            filterSelect.innerHTML = opts;
-        }
-
-        // Get puantaj records
-        const { data: qKayitlar, error: kayitErr } = await window.supabaseClient
-            .from('musteri_servis_puantaj')
-            .select('*')
-            .eq('musteri_id', musteriId)
-            .gte('tarih', startDate)
-            .lte('tarih', endDate);
-
-        if (kayitErr) throw kayitErr;
-        isolatedKayitlar = qKayitlar || [];
-
-        // Get customer info for context
-        const { data: musteriData } = await window.supabaseClient.from('musteriler').select('ad').eq('id', musteriId).single();
-        const isDikkan = musteriData?.ad?.toLowerCase().includes('dikkan');
+        const isDikkan = musteriAdi.toLowerCase().includes('dikkan');
 
         // Build THEAD
         let thHtml = `<tr>
-            <th class="px-3 py-2.5 text-left text-[11px] font-extrabold text-slate-700 uppercase tracking-wider sticky left-0 bg-slate-100 z-20 border-b border-r border-slate-300 shadow-[1px_0_0_0_#cbd5e1]" style="width: 90px; min-width: 90px; max-width: 90px;">ARAÇ</th>
-            <th class="px-2 py-2.5 text-left text-[10px] font-bold text-slate-600 uppercase tracking-wider sticky left-[90px] bg-slate-50 z-20 border-b border-r border-slate-200 shadow-[1px_0_0_0_#e2e8f0]" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px;">TÜR</th>`;
+            <th class="sticky left-0 bg-slate-100 z-30 border-r-2 border-slate-200 shadow-sm" style="width: 100px; min-width: 100px;">PLAKA</th>
+            <th class="sticky left-[100px] bg-slate-50 z-30 border-r-2 border-slate-200 shadow-sm" style="width: 65px; min-width: 65px;">TÜR</th>`;
         for (let i = 1; i <= daysInMonth; i++) {
-            thHtml += `<th class="p-0 py-2.5 text-center text-[11px] font-semibold text-slate-600 border-r border-b border-slate-200" style="width: 38px; min-width: 38px; max-width: 38px;">${i}</th>`;
+            thHtml += `<th style="width: 38px; min-width: 38px;">${i}</th>`;
         }
-        thHtml += `<th class="px-0 py-2.5 text-center text-[10px] font-bold text-slate-600 border-r border-b border-slate-200 uppercase tracking-wider sticky right-0 bg-slate-50 z-20 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;">TOP</th></tr>`;
+        thHtml += `<th class="sticky right-0 bg-slate-100 z-30 border-l-2 border-slate-200 shadow-sm" style="width: 50px; min-width: 50px;">TOP</th></tr>`;
         thead.innerHTML = thHtml;
 
         let tblHtml = '';
         isolatedGridData = [];
+        
+        // 3. Performance Optimization: Inline Calculations
+        // Using arrays for column totals (Day 1 to 31)
+        const colV = new Array(daysInMonth + 1).fill(0);
+        const colT = new Array(daysInMonth + 1).fill(0);
+        const colM = new Array(daysInMonth + 1).fill(0);
 
-        // Build TBODY
         isolatedAraclar.forEach((arac, index) => {
-            const bgPlaka = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/50';
-
-            const relatedRecords = isolatedKayitlar.filter(k => k.arac_id === arac.id);
-            const aracVeriVar = relatedRecords.some(r => Boolean(r.vardiya) || Boolean(r.tek) || (isDikkan && Boolean(r.mesai)));
-            const dataStr = aracVeriVar ? 'true' : 'false';
-
+            const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30';
             const rowSpan = isDikkan ? 3 : 2;
+            let rowVardiyaTotal = 0, rowTekTotal = 0, rowMesaiTotal = 0;
 
-            // --- VARDİYA ---
-            tblHtml += `<tr class="hover:bg-blue-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
-            
-            // First Column - Plate (Spans 2 or 3 rows)
-            tblHtml += `<td class="p-2 text-[11px] font-bold text-slate-800 sticky left-0 ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] uppercase text-center align-middle" style="width: 90px; min-width: 90px; max-width: 90px;" rowspan="${rowSpan}" title="${arac.plaka}">
-                            ${arac.plaka}
-                        </td>`;
-            
-            // Second Column - Vardiya Label
-            tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] ${bgPlaka} z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
-                            Vardiya
-                        </td>`;
+            // Pre-calculate visibility and filter
+            const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && (Boolean(k.vardiya) || Boolean(k.tek)));
+            const dataStr = hasDataInMonth ? 'true' : 'false';
 
-            let rowVardiyaTotal = 0;
+            // --- VARDİYA ROW ---
+            let vRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                <td class="sticky-col font-black text-slate-800 text-[11px] text-center brand-font" rowspan="${rowSpan}">${arac.plaka}</td>
+                <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Vardiya</td>`;
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const record = isolatedKayitlar.find(k => k.arac_id === arac.id && k.tarih === dateCode);
-                const val = record ? (record.vardiya || '') : '';
+                const val = kayitlarMap[`${arac.id}_${dateCode}_vardiya`] || '';
                 const safeVal = String(val);
-                if (record && !isNaN(parseInt(safeVal))) rowVardiyaTotal += parseInt(safeVal);
+                if (!isNaN(parseInt(safeVal))) {
+                    const vNum = parseInt(safeVal);
+                    rowVardiyaTotal += vNum;
+                    colV[i] += vNum;
+                }
 
-                const inpid = `cell-${arac.id}-${dateCode}-vardiya`;
-                isolatedGridData.push({ id: record ? record.id : null, arac_id: arac.id, tarih: dateCode, field: 'vardiya', val_original: safeVal, val_new: safeVal });
+                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'vardiya', val_original: safeVal, val_new: safeVal });
 
-                let bgClass = 'bg-transparent text-slate-700';
-                if (safeVal.toUpperCase() === 'X') bgClass = 'bg-red-50 text-red-600 font-bold';
-                else if (safeVal.toUpperCase() === 'R') bgClass = 'bg-amber-50 text-amber-600 font-bold';
-                else if (safeVal.toUpperCase() === 'İ' || safeVal.toUpperCase() === 'I') bgClass = 'bg-purple-50 text-purple-600 font-bold';
-                else if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-blue-50/60 text-blue-700 font-bold';
-
-                tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
-                            <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="vardiya" data-day="${i}" value="${safeVal}"
-                            class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
-                            style="height: 28px; line-height: 28px;"
-                            onchange="window.excelInputChanged('${arac.id}', 'vardiya', ${i})">
-                        </td>`;
+                const uv = safeVal.toUpperCase();
+                let cellClass = (uv === 'X') ? 'cell-x' : (uv === 'R' ? 'cell-r' : ((uv === 'İ' || uv === 'I') ? 'cell-i' : ''));
+                vRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${dateCode}-vardiya" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'vardiya', ${i})"></td>`;
             }
-            tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-vardiya">${rowVardiyaTotal}</td>`;
-            tblHtml += `</tr>`;
+            vRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-indigo-600 font-mono" id="total-${arac.id}-vardiya">${rowVardiyaTotal}</td></tr>`;
+            tblHtml += vRow;
 
-            // --- TEK SEFER ---
-            tblHtml += `<tr class="hover:bg-orange-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
-            
-            // Second Column - Tek Sefer Label
-            tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] bg-orange-50/30 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
-                            Tek
-                        </td>`;
-            
-            let rowTekTotal = 0;
+            // --- TEK ROW ---
+            let tRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Tek Sefer</td>`;
+
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const record = isolatedKayitlar.find(k => k.arac_id === arac.id && k.tarih === dateCode);
-                const val = record ? (record.tek || '') : '';
+                const val = kayitlarMap[`${arac.id}_${dateCode}_tek`] || '';
                 const safeVal = String(val);
-                if (record && !isNaN(parseInt(safeVal))) rowTekTotal += parseInt(safeVal);
+                if (!isNaN(parseInt(safeVal))) {
+                    const tNum = parseInt(safeVal);
+                    rowTekTotal += tNum;
+                    colT[i] += tNum;
+                }
 
-                const inpid = `cell-${arac.id}-${dateCode}-tek`;
-                isolatedGridData.push({ id: record ? record.id : null, arac_id: arac.id, tarih: dateCode, field: 'tek', val_original: safeVal, val_new: safeVal });
+                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'tek', val_original: safeVal, val_new: safeVal });
 
-                let bgClass = 'bg-transparent text-slate-700';
-                if (safeVal.toUpperCase() === 'X') bgClass = 'bg-red-50 text-red-600 font-bold';
-                else if (safeVal.toUpperCase() === 'R') bgClass = 'bg-amber-50 text-amber-600 font-bold';
-                else if (safeVal.toUpperCase() === 'İ' || safeVal.toUpperCase() === 'I') bgClass = 'bg-purple-50 text-purple-600 font-bold';
-                else if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-orange-50/60 text-orange-700 font-bold';
-
-                tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
-                            <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="tek" data-day="${i}" value="${safeVal}"
-                            class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
-                            style="height: 28px; line-height: 28px;"
-                            onchange="window.excelInputChanged('${arac.id}', 'tek', ${i})">
-                        </td>`;
+                const uv = safeVal.toUpperCase();
+                let cellClass = (uv === 'X') ? 'cell-x' : (uv === 'R' ? 'cell-r' : ((uv === 'İ' || uv === 'I') ? 'cell-i' : ''));
+                tRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${dateCode}-tek" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'tek', ${i})"></td>`;
             }
-            tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-tek">${rowTekTotal}</td>`;
-            tblHtml += `</tr>`;
+            tRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-orange-600 font-mono" id="total-${arac.id}-tek">${rowTekTotal}</td></tr>`;
+            tblHtml += tRow;
 
-            // --- MESAİ (Only for Dikkan) ---
             if (isDikkan) {
-                tblHtml += `<tr class="hover:bg-emerald-50/40 transition-colors" data-arac-id="${arac.id}" data-has-data="${dataStr}">`;
-                
-                tblHtml += `<td class="px-2 py-0 text-[10px] font-semibold text-slate-500 sticky left-[90px] bg-emerald-50/30 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] align-middle" style="left: 90px; width: 55px; min-width: 55px; max-width: 55px; height: 28px;">
-                                Mesai
-                            </td>`;
-                
-                let rowMesaiTotal = 0;
+                let mRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                    <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Mesai</td>`;
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                    const record = isolatedKayitlar.find(k => k.arac_id === arac.id && k.tarih === dateCode);
-                    const val = record ? (record.mesai || '') : '';
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_mesai`] || 0;
                     const safeVal = String(val);
-                    if (record && !isNaN(parseInt(safeVal))) rowMesaiTotal += parseInt(safeVal);
-
-                    const inpid = `cell-${arac.id}-${dateCode}-mesai`;
-                    isolatedGridData.push({ id: record ? record.id : null, arac_id: arac.id, tarih: dateCode, field: 'mesai', val_original: safeVal, val_new: safeVal });
-
-                    let bgClass = 'bg-transparent text-slate-700';
-                    if (!isNaN(parseInt(safeVal)) && parseInt(safeVal) > 0) bgClass = 'bg-emerald-50/60 text-emerald-700 font-bold';
-
-                    tblHtml += `<td class="p-0 border-r border-b border-slate-200 align-middle" style="width: 38px; min-width: 38px; max-width: 38px;">
-                                <input type="text" id="${inpid}" data-arac="${arac.id}" data-type="mesai" data-day="${i}" value="${safeVal}"
-                                class="w-full h-full text-center text-[12px] focus:outline-none focus:ring-1 focus:ring-inset focus:ring-indigo-500 focus:bg-white focus:z-20 relative p-0 m-0 border-none ${bgClass} transition-all"
-                                style="height: 28px; line-height: 28px;"
-                                onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i})">
-                            </td>`;
+                    if (!isNaN(parseInt(safeVal))) {
+                        const mNum = parseInt(safeVal);
+                        rowMesaiTotal += mNum;
+                        colM[i] += mNum;
+                    }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'mesai', val_original: safeVal, val_new: safeVal });
+                    mRow += `<td><input type="text" id="cell-${arac.id}-${dateCode}-mesai" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i})"></td>`;
                 }
-                tblHtml += `<td class="px-0 py-0 text-center text-[12px] font-bold text-slate-700 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" style="width: 50px; min-width: 50px;" id="total-${arac.id}-mesai">${rowMesaiTotal}</td>`;
-                tblHtml += `</tr>`;
+                mRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-emerald-600 font-mono" id="total-${arac.id}-mesai">${rowMesaiTotal}</td></tr>`;
+                tblHtml += mRow;
             }
         });
 
-        // Totals Rows
-        tblHtml += `<tr class="bg-slate-50 border-t-2 border-slate-300">`;
-        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right" colspan="2">VARDİYA TOPLAM:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-bold text-slate-600 border-r border-b border-slate-200 bg-slate-50" id="coltotal-vardiya-${i}">0</td>`;
-        }
-        tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-black text-slate-800 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-vardiya">0</td>`;
-        tblHtml += `</tr>`;
+        // 4. Final Totals Generation (O(1) from arrays)
+        let sumV = 0, sumT = 0, sumM = 0;
+        let vSumRow = `<tr class="bg-slate-100 font-bold total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-3 text-right text-[10px] text-slate-500 uppercase tracking-widest">Vardiya Top.:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) { vSumRow += `<td class="text-center text-xs text-slate-600" id="coltotal-vardiya-${i}">${colV[i]}</td>`; sumV += colV[i]; }
+        vSumRow += `<td class="sticky right-0 bg-indigo-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-indigo-700 font-mono" id="grandtotal-vardiya">${sumV}</td></tr>`;
+        
+        let tSumRow = `<tr class="bg-slate-100 font-bold total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-3 text-right text-[10px] text-slate-500 uppercase tracking-widest">Tek Sefer Top.:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) { tSumRow += `<td class="text-center text-xs text-slate-600" id="coltotal-tek-${i}">${colT[i]}</td>`; sumT += colT[i]; }
+        tSumRow += `<td class="sticky right-0 bg-orange-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-orange-700 font-mono" id="grandtotal-tek">${sumT}</td></tr>`;
 
-        tblHtml += `<tr class="bg-slate-50">`;
-        tblHtml += `<td class="px-3 py-2 text-[10px] font-bold text-slate-600 whitespace-nowrap sticky left-0 bg-slate-50 z-10 border-r border-b border-slate-200 shadow-[1px_0_0_0_#e2e8f0] text-right" colspan="2">TEK SEFER TOPLAM:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-bold text-slate-600 border-r border-b border-slate-200 bg-slate-50" id="coltotal-tek-${i}">0</td>`;
-        }
-        tblHtml += `<td class="px-0 py-2 text-center text-[12px] font-black text-slate-800 border-r border-b border-slate-200 bg-slate-50 sticky right-0 shadow-[-1px_0_0_0_#e2e8f0]" id="grandtotal-tek">0</td>`;
-        tblHtml += `</tr>`;
+        let gSumRow = `<tr class="bg-slate-800 text-white font-black total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-4 text-right text-[10px] uppercase tracking-widest">Genel Toplam:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) { gSumRow += `<td class="text-center text-xs" id="geneltotal-col-${i}">${colV[i] + colT[i] + colM[i]}</td>`; sumM += colM[i]; }
+        gSumRow += `<td class="sticky right-0 bg-slate-900 z-20 border-l-2 border-slate-700 text-center text-sm font-mono" id="geneltotal-grand">${sumV + sumT + sumM}</td></tr>`;
 
-        tblHtml += `<tr class="bg-indigo-50 border-t-2 border-slate-300">`;
-        tblHtml += `<td class="px-3 py-3 text-[11px] font-black text-indigo-900 whitespace-nowrap sticky left-0 bg-indigo-50 z-10 border-r border-b border-indigo-200 shadow-[1px_0_0_0_#c7d2fe] text-right uppercase tracking-wider" colspan="2">Genel Toplam (V+T):</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            tblHtml += `<td class="px-0 py-3 text-center text-[13px] font-black text-indigo-800 border-r border-b border-indigo-200 bg-indigo-50" id="geneltotal-col-${i}">0</td>`;
-        }
-        tblHtml += `<td class="px-0 py-3 text-center text-[13px] font-black text-indigo-950 border-r border-b border-indigo-200 bg-indigo-100 sticky right-0 shadow-[-1px_0_0_0_#c7d2fe]" id="geneltotal-grand">0</td>`;
-        tblHtml += `</tr>`;
+        tbody.innerHTML = tblHtml + vSumRow + tSumRow + gSumRow;
+        
+        // Final Top Summary
+        if (document.getElementById('summary-vardiya')) document.getElementById('summary-vardiya').textContent = sumV;
+        if (document.getElementById('summary-tek')) document.getElementById('summary-tek').textContent = sumT;
+        if (document.getElementById('summary-genel')) document.getElementById('summary-genel').textContent = sumV + sumT + sumM;
 
-        tbody.innerHTML = tblHtml;
-        recalcAllTotals(daysInMonth);
-
+        if(window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error("GRID LOAD ERROR:", e);
-        alert("Grid Çekme Hatası: " + e.message + "\n\n" + e.stack);
-        tbody.innerHTML = `<tr><td colspan="33" class="p-8 text-center text-red-500 font-bold text-lg">Veri Çekme Hatası: ${e.message}</td></tr>`;
-        document.getElementById('header-title').textContent = "BAĞLANTI HATASI";
-        document.getElementById('header-subtitle').textContent = "Veriler alınamadı.";
+        tbody.innerHTML = `<tr><td colspan="33" class="p-8 text-center text-red-500 font-bold">Veri Çekme Hatası: ${e.message}</td></tr>`;
     }
 }
 
 window.excelInputChanged = function (aracId, type, day) {
-    // Added 'mesai' to allowed types
-    if (type !== 'vardiya' && type !== 'tek' && type !== 'mesai') return;
-
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const inp = document.getElementById(`cell-${aracId}-${dateCode}-${type}`);
     if (!inp) return;
-
     let val = String(inp.value).trim().toUpperCase();
     inp.value = val;
-
-    // Update local grid data
     const dataObj = isolatedGridData.find(d => d.arac_id === aracId && d.tarih === dateCode && d.field === type);
-    if (dataObj) {
-        dataObj.val_new = val;
-    } else {
-        isolatedGridData.push({ id: null, arac_id: aracId, tarih: dateCode, field: type, val_original: '', val_new: val });
-    }
-
-    // Stylize immediately based on input
-    // Removed old className and style assignments, using classList for dynamic styling
-    inp.classList.remove('bg-blue-50/60', 'bg-orange-50/60', 'bg-emerald-50/60', 'text-blue-700', 'text-orange-700', 'text-emerald-700', 'text-red-600', 'text-amber-600', 'text-purple-600', 'font-bold', 'bg-red-50', 'bg-amber-50', 'bg-purple-50', 'bg-transparent', 'text-slate-700');
-    inp.classList.add('w-full', 'h-full', 'text-center', 'text-[12px]', 'focus:outline-none', 'focus:ring-1', 'focus:ring-inset', 'focus:ring-indigo-500', 'focus:bg-white', 'focus:z-20', 'relative', 'p-0', 'm-0', 'border-none', 'transition-all');
-    inp.style.height = '28px'; // Reverted to original height
-    inp.style.lineHeight = '28px'; // Reverted to original line-height
-
-    if (val === 'X') inp.classList.add('bg-red-50', 'text-red-600', 'font-bold');
-    else if (val === 'R') inp.classList.add('bg-amber-50', 'text-amber-600', 'font-bold');
-    else if (val === 'İ' || val === 'I') inp.classList.add('bg-purple-50', 'text-purple-600', 'font-bold');
-    else if (!isNaN(parseInt(val)) && parseInt(val) > 0) {
-        if (type === 'vardiya') inp.classList.add('bg-blue-50/60', 'text-blue-700', 'font-bold');
-        else if (type === 'tek') inp.classList.add('bg-orange-50/60', 'text-orange-700', 'font-bold');
-        else if (type === 'mesai') inp.classList.add('bg-emerald-50/60', 'text-emerald-700', 'font-bold'); // Added mesai styling
-    } else {
-        inp.classList.add('bg-transparent', 'text-slate-700');
-    }
-
-    if (dataObj) {
-        dataObj.val_new = val;
-    } else {
-        isolatedGridData.push({ id: null, arac_id: aracId, tarih: dateCode, field: type, val_original: '', val_new: val });
-    }
-
-    // Satırın görünürlüğünün kaybolmamasını sağla
-    if (val !== '') {
-        document.querySelectorAll(`tr[data-arac-id="${aracId}"]`).forEach(tr => {
-            tr.setAttribute('data-has-data', 'true');
-        });
-    }
-
+    if (dataObj) dataObj.val_new = val;
+    const td = inp.parentElement;
+    td.className = ""; 
+    const uv = val.toUpperCase();
+    if (uv === 'X') td.classList.add('cell-x'); else if (uv === 'R') td.classList.add('cell-r'); else if (uv === 'İ' || uv === 'I') td.classList.add('cell-i');
     const daysInMonth = new Date(year, ay, 0).getDate();
     recalcAllTotals(daysInMonth);
 }
 
 function recalcAllTotals(daysInMonth) {
-    let grandVardiya = 0;
-    let grandTek = 0;
-
+    // Only used for live cell updates (incremental)
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
-
+    let gV = 0, gT = 0, gM = 0;
+    
+    // Day Totals (Columns)
     for (let i = 1; i <= daysInMonth; i++) {
-        let colV = 0;
-        let colT = 0;
+        let colV = 0, colT = 0, colM = 0;
         const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-
         isolatedAraclar.forEach(arac => {
-            // Görünür değilse atla
-            const tr = document.querySelector(`tr[data-arac-id="${arac.id}"]`);
-            if (tr && tr.style.display === 'none') return;
-
             const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
             const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
-
+            const mInp = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`);
             if (vInp && !isNaN(parseInt(vInp.value))) colV += parseInt(vInp.value);
             if (tInp && !isNaN(parseInt(tInp.value))) colT += parseInt(tInp.value);
+            if (mInp && !isNaN(parseInt(mInp.value))) colM += parseInt(mInp.value);
         });
-
-        const cVEl = document.getElementById(`coltotal-vardiya-${i}`);
-        const cTEl = document.getElementById(`coltotal-tek-${i}`);
-        const cGEl = document.getElementById(`geneltotal-col-${i}`);
-
-        if (cVEl) cVEl.textContent = colV;
-        if (cTEl) cTEl.textContent = colT;
-        if (cGEl) cGEl.textContent = colV + colT;
-
-        grandVardiya += colV;
-        grandTek += colT;
+        const vEl = document.getElementById(`coltotal-vardiya-${i}`), tEl = document.getElementById(`coltotal-tek-${i}`), gEl = document.getElementById(`geneltotal-col-${i}`);
+        if(vEl) vEl.textContent = colV; if(tEl) tEl.textContent = colT; if(gEl) gEl.textContent = colV + colT + colM;
+        gV += colV; gT += colT; gM += colM;
     }
-
-    // Row Logic 
+    
+    // Vehicle Totals (Rows)
     isolatedAraclar.forEach(arac => {
-        let rV = 0, rT = 0;
+        let rV = 0, rT = 0, rM = 0;
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-            const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
-            if (vInp && !isNaN(parseInt(vInp.value))) rV += parseInt(vInp.value);
-            if (tInp && !isNaN(parseInt(tInp.value))) rT += parseInt(tInp.value);
+            const vVal = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`)?.value;
+            const tVal = document.getElementById(`cell-${arac.id}-${dateCode}-tek`)?.value;
+            const mVal = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`)?.value;
+            if(!isNaN(parseInt(vVal))) rV += parseInt(vVal);
+            if(!isNaN(parseInt(tVal))) rT += parseInt(tVal);
+            if(!isNaN(parseInt(mVal))) rM += parseInt(mVal);
         }
-        const rvEl = document.getElementById(`total-${arac.id}-vardiya`);
-        const rtEl = document.getElementById(`total-${arac.id}-tek`);
-        if (rvEl) rvEl.textContent = rV;
-        if (rtEl) rtEl.textContent = rT;
+        const vT = document.getElementById(`total-${arac.id}-vardiya`), tT = document.getElementById(`total-${arac.id}-tek`), mT = document.getElementById(`total-${arac.id}-mesai`);
+        if(vT) vT.textContent = rV; if(tT) tT.textContent = rT; if(mT) mT.textContent = rM;
     });
 
-    document.getElementById('grandtotal-vardiya').textContent = grandVardiya;
-    document.getElementById('grandtotal-tek').textContent = grandTek;
-    document.getElementById('geneltotal-grand').textContent = grandVardiya + grandTek;
-
-    document.getElementById('summary-vardiya').textContent = grandVardiya;
-    document.getElementById('summary-tek').textContent = grandTek;
-    document.getElementById('summary-genel').textContent = grandVardiya + grandTek;
+    if (document.getElementById('summary-vardiya')) document.getElementById('summary-vardiya').textContent = gV;
+    if (document.getElementById('summary-tek')) document.getElementById('summary-tek').textContent = gT;
+    if (document.getElementById('summary-genel')) document.getElementById('summary-genel').textContent = gV + gT + gM;
+    if (document.getElementById('grandtotal-vardiya')) document.getElementById('grandtotal-vardiya').textContent = gV;
+    if (document.getElementById('grandtotal-tek')) document.getElementById('grandtotal-tek').textContent = gT;
+    if (document.getElementById('geneltotal-grand')) document.getElementById('geneltotal-grand').textContent = gV + gT + gM;
 }
 
 window.autoFillWeekdays = function () {
-    if (!confirm('Tüm araçlar için hafta içi günlere 1 vardiya otomatik eklenecek. Onaylıyor musunuz?')) return;
-
+    if (!confirm('Hafta içi günlere 1 vardiya eklenecek. Onaylıyor musunuz?')) return;
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
     const daysInMonth = new Date(year, ay, 0).getDate();
-
     for (let i = 1; i <= daysInMonth; i++) {
         const d = new Date(year, ay - 1, i);
-        if (d.getDay() !== 0 && d.getDay() !== 6) { // Weekdays only
+        if (d.getDay() !== 0 && d.getDay() !== 6) { 
             isolatedAraclar.forEach(arac => {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
                 const inp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-                if (inp && !inp.value) {
-                    inp.value = '1';
-                    window.excelInputChanged(arac.id, 'vardiya', i);
-                }
+                if (inp && !inp.value) { inp.value = '1'; window.excelInputChanged(arac.id, 'vardiya', i); }
             });
         }
     }
@@ -417,277 +307,147 @@ window.autoFillWeekdays = function () {
 window.saveExcelGrid = async function () {
     const btn = document.querySelector('button[onclick="saveExcelGrid()"]');
     const ogHtml = btn.innerHTML;
-    btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Kaydediliyor...`;
-    lucide.createIcons();
-
+    btn.innerHTML = `Kaydediliyor...`;
     try {
         const toSaveOrUpdate = isolatedGridData.filter(d => d.val_new !== d.val_original);
-        if (toSaveOrUpdate.length === 0) {
-            alert('Değişiklik bulunamadı.');
-            btn.innerHTML = ogHtml;
-            lucide.createIcons();
-            return;
-        }
-
-        // Gruplayarak UPSERT operasyonu
+        if (toSaveOrUpdate.length === 0) { alert('Değişiklik bulunamadı.'); btn.innerHTML = ogHtml; return; }
         const updatesByDateAndVehicle = {};
-
-        // Önce mevcut db kayıtlarından bir harita çıkaralım
         const dbMap = {};
-        const dbIdsMap = {};
-        
-        isolatedKayitlar.forEach(k => {
-            const key = `${k.arac_id}_${k.tarih}`;
-            if (!dbIdsMap[key]) dbIdsMap[key] = [];
-            dbIdsMap[key].push(k.id);
-            // keep the first one as representative for upsert
-            if (!dbMap[key]) dbMap[key] = k; 
-        });
-
+        isolatedKayitlar.forEach(k => { dbMap[`${k.arac_id}_${k.tarih}`] = k; });
         toSaveOrUpdate.forEach(item => {
             const key = `${item.arac_id}_${item.tarih}`;
-            if (!updatesByDateAndVehicle[key]) {
-                const existing = dbMap[key] || { musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, vardiya: '', tek: '', mesai: '' };
-                updatesByDateAndVehicle[key] = { ...existing };
-            }
+            if (!updatesByDateAndVehicle[key]) { updatesByDateAndVehicle[key] = { ...(dbMap[key] || { musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, vardiya: '', tek: '', mesai: 0 }) }; }
             if (item.field === 'vardiya') updatesByDateAndVehicle[key].vardiya = item.val_new;
             if (item.field === 'tek') updatesByDateAndVehicle[key].tek = item.val_new;
-            if (item.field === 'mesai') updatesByDateAndVehicle[key].mesai = item.val_new;
+            if (item.field === 'mesai') updatesByDateAndVehicle[key].mesai = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
         });
-
-        const upsertArray = [];
-        const deleteIds = [];
-
+        const upsertArray = [], deleteIds = [];
         Object.values(updatesByDateAndVehicle).forEach(item => {
-            const v = String(item.vardiya || '').trim();
-            const t = String(item.tek || '').trim();
-            const ms = String(item.mesai || '').trim();
-            const key = `${item.arac_id}_${item.tarih}`;
-            const existingIds = dbIdsMap[key] || [];
-            
-            if (!v && !t && !ms && existingIds.length > 0) {
-                // Her ikisi de boş ve VT'de kayıt(lar) varsa tamamen sil
-                deleteIds.push(...existingIds);
-            } else if (!v && !t && !ms && existingIds.length === 0) {
-                // Veritabanında yok ve her üçü de boş (yeni açılıp silinen) - geç
-            } else {
-                if (!item.id) delete item.id;
-                upsertArray.push(item);
-                
-                // Eğer veritabanında aynı güne ait birden fazla kopya varsa (duplicate) diğerlerini temizle
-                if (existingIds.length > 1) {
-                    for (let x = 1; x < existingIds.length; x++) {
-                        deleteIds.push(existingIds[x]);
-                    }
-                }
-            }
+            if (!item.vardiya && !item.tek && !item.mesai && item.id) deleteIds.push(item.id);
+            else { if (!item.id) delete item.id; upsertArray.push(item); }
         });
-
-        if (upsertArray.length > 0) {
-            const { error: upsertErr } = await window.supabaseClient
-                .from('musteri_servis_puantaj')
-                .upsert(upsertArray); 
-            if (upsertErr) throw upsertErr;
-        }
-
-        if (deleteIds.length > 0) {
-            const { error: delErr } = await window.supabaseClient
-                .from('musteri_servis_puantaj')
-                .delete()
-                .in('id', deleteIds);
-            if (delErr) throw delErr;
-        }
-
-        alert(`Mükemmel! ${toSaveOrUpdate.length} adet hücre başarıyla kaydedildi.`);
-        window.location.reload(); // Re-fetch all clean state
-    } catch (e) {
-        console.error(e);
-        alert('Kaydetme başarısız: ' + e.message);
-        btn.innerHTML = ogHtml;
-        lucide.createIcons();
-    }
+        if (upsertArray.length > 0) { const { error: ue } = await window.supabaseClient.from('musteri_servis_puantaj').upsert(upsertArray); if (ue) throw ue; }
+        if (deleteIds.length > 0) { const { error: de } = await window.supabaseClient.from('musteri_servis_puantaj').delete().in('id', deleteIds); if (de) throw de; }
+        alert(`Mükemmel! Kaydedildi.`); window.location.reload();
+    } catch (e) { alert('Hata: ' + e.message); btn.innerHTML = ogHtml; }
 }
 
 window.filterPuantaj = function() {
-    const selectedId = document.getElementById('filter-arac')?.value || 'ALL';
-    const selectedOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
-    const rows = document.querySelectorAll('#excel-tbody tr[data-arac-id]');
-    
-    rows.forEach(tr => {
-        const aracId = tr.getAttribute('data-arac-id');
-        const hasData = tr.getAttribute('data-has-data') === 'true';
-
-        // Find the vehicle in our isolated list to get its ownership status
-        const arac = isolatedAraclar.find(a => a.id.toString() === aracId);
-        const aracMulkiyet = (arac?.mulkiyet || 'Diğer').toUpperCase();
-
-        const matchesVehicle = (selectedId === 'ALL' || aracId === selectedId);
-        const matchesOwner = (selectedOwner === 'TÜMÜ' || aracMulkiyet === selectedOwner);
-
-        if (matchesVehicle && matchesOwner) {
-            // "ALL" and "TÜMÜ" case: only show those with data
-            if (selectedId === 'ALL' && selectedOwner === 'TÜMÜ') {
-                tr.style.display = hasData ? '' : 'none';
-            } else {
-                tr.style.display = '';
-            }
-        } else {
-            tr.style.display = 'none';
-        }
+    const sId = document.getElementById('filter-arac')?.value || 'ALL';
+    const sOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
+    document.querySelectorAll('#excel-tbody tr[data-arac-id]').forEach(tr => {
+        const aId = tr.getAttribute('data-arac-id'), hasData = tr.getAttribute('data-has-data') === 'true';
+        const arac = isolatedAraclar.find(a => a.id.toString() === aId);
+        const aMulkiyet = (arac?.mulkiyet || 'Diğer').toUpperCase();
+        const mV = (sId === 'ALL' || aId === sId), mO = (sOwner === 'TÜMÜ' || aMulkiyet === sOwner);
+        tr.style.display = (mV && mO && (sId !== 'ALL' || sOwner !== 'TÜMÜ' || hasData)) ? '' : 'none';
     });
-
-    const [year, mStr] = monthStr.split('-');
-    const ay = parseInt(mStr, 10);
-    const daysInMonth = new Date(year, ay, 0).getDate();
-    recalcAllTotals(daysInMonth);
+    const [y, m] = monthStr.split('-');
+    recalcAllTotals(new Date(y, parseInt(m), 0).getDate());
 }
 
 window.handlePrint = function() {
-    const selectedId = document.getElementById('filter-arac')?.value || 'ALL';
-    const [year, mStr] = monthStr.split('-');
-    const ay = parseInt(mStr, 10);
-    const daysInMonth = new Date(year, ay, 0).getDate();
+    const sId = document.getElementById('filter-arac')?.value || 'ALL';
+    const [y, mStr] = monthStr.split('-');
+    const m = parseInt(mStr, 10), dim = new Date(y, m, 0).getDate();
     const headersTitle = document.getElementById('header-title').textContent;
     const headersSubtitle = document.getElementById('header-subtitle').textContent;
 
-    let html = `
-        <div style="font-family: sans-serif; color: #000; width: 100%; box-sizing: border-box; padding: 5mm; position: relative;">
-            <div style="position: absolute; top: 3mm; right: 5mm; text-align: right; z-index: 10;">
-                <div style="font-size: 1.15rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; padding-bottom: 2px; margin-bottom: 2px;">IDEOL TURİZM</div>
+    let h = `<div style="padding: 8mm; font-family: 'Inter', sans-serif; color: #1e293b; background: white;">
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6mm; border-bottom: 2px solid #334155; padding-bottom: 3mm;">
+            <div>
+                <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; text-transform: uppercase;">${headersTitle}</h1>
+                <p style="margin: 2px 0 0; font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px;">${headersSubtitle} / SERVİS PUANTAJ RAPORU</p>
             </div>
-            
-            <div style="text-align:center; padding-bottom: 5px; margin-bottom: 5px; margin-top: 15px;">
-                <h2 style="font-size: 1.15rem; font-weight: bold; margin: 0; color: #111;">${headersTitle}</h2>
-                <p style="color: #444; font-size: 0.85rem; margin-top: 3px;">${headersSubtitle}</p>
+            <div style="text-align: right;">
+                <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #ea580c; font-style: italic;">IDEOL TURİZM</h2>
+                <p style="margin: 2px 0 0; font-size: 9px; font-weight: 700; color: #94a3b8;">FILO YÖNETIM SISTEMI</p>
             </div>
-            
-            <table class="print-table" style="width:100%; border-collapse: collapse; text-align:center; font-size: 8.5px; page-break-inside: auto; table-layout: fixed;">
-                <thead>
-                    <tr style="background-color: #f8fafc; font-weight: bold;">
-                        <th style="border: 1px solid #cbd5e1; padding: 2px; width: 55px; overflow: hidden;">ARAÇ</th>
-                        <th style="border: 1px solid #cbd5e1; padding: 2px; width: 35px; overflow: hidden;">TÜR</th>`;
-                        
-    for (let i = 1; i <= daysInMonth; i++) {
-        html += `<th style="border: 1px solid #cbd5e1; padding: 2px;">${i}</th>`;
-    }
-    html += `<th style="border: 1px solid #cbd5e1; padding: 2px; width: 25px; background-color: #f1f5f9;">TOP</th></tr></thead><tbody>`;
+        </div>
 
-    let hasData = false;
-    const selectedOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
-    let rowsToPrint = isolatedAraclar.filter(arac => {
-        const matchesVehicle = (selectedId === 'ALL' || arac.id.toString() === selectedId);
-        const aracMulkiyet = (arac.mulkiyet || 'Diğer').toUpperCase();
-        const matchesOwner = (selectedOwner === 'TÜMÜ' || aracMulkiyet === selectedOwner);
-        return matchesVehicle && matchesOwner;
-    });
+        <table style="width: 100%; border-collapse: collapse; font-size: 8px; table-layout: fixed; border: 1px solid #e2e8f0;">
+            <thead>
+                <tr style="background-color: #f8fafc;">
+                    <th style="padding: 6px 2px; border: 1px solid #e2e8f0; width: 65px; color: #475569; font-weight: 800; background: #f1f5f9;">ARAÇ</th>
+                    <th style="padding: 6px 2px; border: 1px solid #e2e8f0; width: 45px; color: #475569; font-weight: 800; background: #f1f5f9;">TÜR</th>`;
+    
+    for(let i=1; i<=dim; i++) h += `<th style="border: 1px solid #e2e8f0; color: #64748b; font-weight: 700; text-align: center;">${i}</th>`;
+    h += `<th style="border: 1px solid #e2e8f0; width: 30px; background-color: #f1f5f9; font-weight: 900; color: #1e293b; text-align: center;">TOP</th></tr></thead><tbody>`;
 
-    let grandVardiya = 0;
-    let grandTek = 0;
-    let colVardiya = new Array(daysInMonth + 1).fill(0);
-    let colTek = new Array(daysInMonth + 1).fill(0);
+    const sOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
+    const rowsToPrint = isolatedAraclar.filter(a => (sId === 'ALL' || a.id.toString() === sId) && (sOwner === 'TÜMÜ' || (a.mulkiyet || 'Diğer').toUpperCase() === sOwner));
+    const isD = headersTitle.toLowerCase().includes('dikkan');
+    let cV = new Array(dim+1).fill(0), cT = new Array(dim+1).fill(0), cM = new Array(dim+1).fill(0);
 
-    rowsToPrint.forEach((arac, index) => {
-        let rowV = 0;
-        let rowT = 0;
-        let aracVeriVar = false;
-        const bgPlaka = index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f8fafc;';
-
-        let vardiyaRowHTML = `<tr style="page-break-inside: avoid;">
-            <td rowspan="2" style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; overflow: hidden; ${bgPlaka}">${arac.plaka}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 2px; color: #475569;">Vardiya</td>`;
-        let tekRowHTML = `<tr style="page-break-inside: avoid;">
-            <td style="border: 1px solid #cbd5e1; padding: 2px; color: #475569; background-color: #fffaf0;">Tek</td>`;
-
-        for (let i = 1; i <= daysInMonth; i++) {
-            const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-            const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
-            
-            let vVal = vInp ? String(vInp.value).trim() : '';
-            let tVal = tInp ? String(tInp.value).trim() : '';
-            
-            if (vVal !== '' || tVal !== '') {
-                aracVeriVar = true;
-            }
-
-            // calculations for totals
-            if (vVal && !isNaN(parseInt(vVal))) { rowV += parseInt(vVal); colVardiya[i] += parseInt(vVal); grandVardiya += parseInt(vVal); }
-            if (tVal && !isNaN(parseInt(tVal))) { rowT += parseInt(tVal); colTek[i] += parseInt(tVal); grandTek += parseInt(tVal); }
-
-            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; ${getPrintBg(vVal, 'v')}">${vVal}</td>`;
-            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; ${getPrintBg(tVal, 't')}">${tVal}</td>`;
-        }
+    rowsToPrint.forEach(arac => {
+        let rV = 0, rT = 0, rM = 0, hasData = false;
+        let vH = `<tr style="page-break-inside: avoid;"><td rowspan="${isD?3:2}" style="border: 1px solid #e2e8f0; font-weight: 800; text-align: center; color: #0f172a; background: #fff; font-size: 9px;">${arac.plaka}</td><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Vardiya</td>`;
+        let tH = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Tek</td>`;
+        let mH = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Mesai</td>`;
         
-        if (aracVeriVar) {
-            vardiyaRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; background-color: #f8fafc;">${rowV}</td></tr>`;
-            tekRowHTML += `<td style="border: 1px solid #cbd5e1; padding: 2px; font-weight: bold; background-color: #f8fafc;">${rowT}</td></tr>`;
-
-            html += vardiyaRowHTML + tekRowHTML;
-            hasData = true;
+        for(let i=1; i<=dim; i++) {
+            const dc = `${y}-${mStr}-${String(i).padStart(2,'0')}`;
+            const v = document.getElementById(`cell-${arac.id}-${dc}-vardiya`)?.value || '';
+            const t = document.getElementById(`cell-${arac.id}-${dc}-tek`)?.value || '';
+            const n = document.getElementById(`cell-${arac.id}-${dc}-mesai`)?.value || '';
+            if(v||t||n) hasData = true;
+            if(!isNaN(parseInt(v))) { rV+=parseInt(v); cV[i]+=parseInt(v); }
+            if(!isNaN(parseInt(t))) { rT+=parseInt(t); cT[i]+=parseInt(t); }
+            if(!isNaN(parseInt(n))) { rM+=parseInt(n); cM[i]+=parseInt(n); }
+            const st = (val) => {
+                if(val === 'X') return 'background: #fee2e2; color: #991b1b; font-weight: 800;';
+                if(val === 'R') return 'background: #fef3c7; color: #92400e; font-weight: 800;';
+                if(val === 'İ' || val === 'I') return 'background: #f3e8ff; color: #6b21a8; font-weight: 800;';
+                return '';
+            };
+            vH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(v)}">${v}</td>`;
+            tH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(t)}">${t}</td>`;
+            mH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155;">${n}</td>`;
+        }
+        if(hasData) {
+            vH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #4f46e5;">${rV}</td></tr>`;
+            tH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #ea580c;">${rT}</td></tr>`;
+            mH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #059669;">${rM}</td></tr>`;
+            h += vH + tH + (isD?mH:'');
         }
     });
 
-    if (!hasData) {
-        html += `<tr><td colspan="${daysInMonth + 3}" style="padding:10px; text-align:center; color:#94a3b8;">Yazdırılacak puantaj verisi bulunamadı.</td></tr>`;
-    } else {
-        // Totals Rows
-        html += `<tr style="background-color: #f8fafc; font-weight: bold; border-top: 2px solid #94a3b8;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 3px; text-align: right; color: #475569; font-size: 7.5px; overflow: hidden; white-space: nowrap;">VARDİYA TOP:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #475569;">${colVardiya[i]}</td>`;
-        }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #0f172a;">${grandVardiya}</td></tr>`;
+    // Alt Toplam Satırları
+    let sV = 0, sT = 0, sG = 0;
+    
+    // Vardiya Toplamı Satırı
+    let vSumRow = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #f8fafc; font-size: 7px; color: #64748b; text-transform: uppercase;">Vardiya Top.:</td>`;
+    for(let i=1; i<=dim; i++) { vSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; font-weight: 700;">${cV[i]}</td>`; sV += cV[i]; }
+    vSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 900; background: #e0e7ff; color: #4338ca;">${sV}</td></tr>`;
+    
+    // Tek Sefer Toplamı Satırı
+    let tSumRow = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #f8fafc; font-size: 7px; color: #64748b; text-transform: uppercase;">Tek Top.:</td>`;
+    for(let i=1; i<=dim; i++) { tSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; font-weight: 700;">${cT[i]}</td>`; sT += cT[i]; }
+    tSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 900; background: #ffedd5; color: #c2410c;">${sT}</td></tr>`;
+    
+    // Genel Toplam Satırı
+    let gSumRow = `<tr style="background: #1e293b; color: white;"><td colspan="2" style="border: 1px solid #334155; padding: 5px; text-align: right; font-weight: 900; font-size: 8px; text-transform: uppercase; letter-spacing: 1px;">Genel Toplam:</td>`;
+    for(let i=1; i<=dim; i++) { gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 800; font-size: 9px;">${cV[i] + cT[i] + cM[i]}</td>`; sG += (cV[i] + cT[i] + cM[i]); }
+    gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #34d399; font-size: 10px;">${sG}</td></tr>`;
 
-        html += `<tr style="background-color: #f8fafc; font-weight: bold;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 3px; text-align: right; color: #475569; font-size: 7.5px; overflow: hidden; white-space: nowrap;">TEK SEFER TOP:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #475569;">${colTek[i]}</td>`;
-        }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 3px; color: #0f172a;">${grandTek}</td></tr>`;
+    h += vSumRow + tSumRow + gSumRow + `</tbody></table></div>`;
 
-        html += `<tr style="background-color: #eef2ff; font-weight: 900; border-top: 2px solid #94a3b8;">
-            <td colspan="2" style="border: 1px solid #cbd5e1; padding: 4px; text-align: right; color: #3730a3; font-size: 8.5px; overflow: hidden; white-space: nowrap;">G. TOPLAM:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) {
-            html += `<td style="border: 1px solid #cbd5e1; padding: 4px; color: #3730a3;">${colVardiya[i] + colTek[i]}</td>`;
-        }
-        html += `<td style="border: 1px solid #cbd5e1; padding: 4px; color: #1e1b4b; background-color: #e0e7ff;">${grandVardiya + grandTek}</td></tr>`;
+    const ps = document.getElementById('print-section');
+    if(ps) {
+        ps.innerHTML = '';
+        const container = document.createElement('div');
+        container.style.visibility = 'visible';
+        container.innerHTML = h;
+        ps.appendChild(container);
+        setTimeout(() => { window.print(); }, 500);
     }
-
-    html += `</tbody></table></div>`;
-
-    const printSection = document.getElementById('print-section');
-    if(printSection) {
-        printSection.innerHTML = html;
-    }
-
-    setTimeout(() => {
-        window.print();
-    }, 150);
-}
-
-function getPrintBg(val, type) {
-    if(!val) return '';
-    val = val.toUpperCase();
-    if (val === 'X') return 'background-color: #fee2e2; color: #dc2626; font-weight: bold;';
-    if (val === 'R') return 'background-color: #fef3c7; color: #d97706; font-weight: bold;';
-    if (val === 'İ' || val === 'I') return 'background-color: #f3e8ff; color: #9333ea; font-weight: bold;';
-    if (!isNaN(parseInt(val)) && parseInt(val) > 0) {
-        if (type === 'v') return 'background-color: #eff6ff; color: #1d4ed8; font-weight: bold;';
-        else return 'background-color: #fff7ed; color: #c2410c; font-weight: bold;';
-    }
-    return '';
 }
 
 window.changeDonem = function() {
-    const newDonem = document.getElementById('filter-donem').value;
-    if (newDonem) {
-        urlParams.set('ay', newDonem);
-        window.location.search = urlParams.toString();
-    }
+    const nd = document.getElementById('filter-donem').value;
+    if (nd) { urlParams.set('ay', nd); window.location.search = urlParams.toString(); }
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPuantaj);
-} else {
-    initPuantaj();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPuantaj);
+else initPuantaj();

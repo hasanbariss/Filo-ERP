@@ -320,11 +320,25 @@
     async function validateKayitlar(kayitlar) {
         const supabase = window.supabaseClient;
 
-        const [aracRes, musteriRes, mevcutRes, araclariRes] = await Promise.all([
+        // Paginated assignment fetch
+        const musteriAracTanımlarList = [];
+        let rangeFrom = 0;
+        const rangeStep = 1000;
+        while (true) {
+            const { data, error } = await supabase
+                .from('musteri_arac_tanimlari')
+                .select('musteri_id, arac_id')
+                .range(rangeFrom, rangeFrom + rangeStep - 1);
+            if (error || !data || data.length === 0) break;
+            musteriAracTanımlarList.push(...data);
+            if (data.length < rangeStep) break;
+            rangeFrom += rangeStep;
+        }
+
+        const [aracRes, musteriRes, mevcutRes] = await Promise.all([
             supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
             supabase.from('musteriler').select('id, ad'),
-            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id'),
-            supabase.from('musteri_arac_tanimlari').select('musteri_id, arac_id')
+            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id')
         ]);
 
         if (aracRes.error)   throw new Error('Araç listesi alınamadı: ' + aracRes.error.message);
@@ -333,7 +347,7 @@
         const plakaMap   = Object.fromEntries((aracRes.data || []).map(a => [a.plaka.toUpperCase().trim(), a]));
         const musteriMap = Object.fromEntries((musteriRes.data || []).map(m => [m.ad.toUpperCase().trim(), m]));
         const mevcutMap  = Object.fromEntries((mevcutRes.data || []).map(r => [`${r.tarih}|${r.arac_id}|${r.musteri_id}`, r.id]));
-        const musteriAracSet = new Set((araclariRes.data || []).map(r => `${r.musteri_id}|${r.arac_id}`));
+        const musteriAracSet = new Set(musteriAracTanımlarList.map(r => `${r.musteri_id}|${r.arac_id}`));
 
         return kayitlar.map((k, i) => {
             const errors   = [];
@@ -651,6 +665,7 @@
     //  9. Dosya Tetikleyicileri
     // ══════════════════════════════════════════════════════════════════════
     window.handleImportFile = async function (file) {
+        console.log("General import started:", file?.name);
         if (!file) return;
         if (!file.name.match(/\.(xlsx|xls)$/i)) {
             showImportToast('Sadece .xlsx veya .xls dosyaları kabul edilir.', 'error');
@@ -684,8 +699,11 @@
             showImportToast(err.message, 'error');
         } finally {
             if (dropArea) dropArea.classList.remove('import-drop-active');
-            const fi = document.getElementById('import-file-input');
-            if (fi) fi.value = '';
+            // Reset both possible inputs
+            ['import-file-input', 'import-file-input-musteri'].forEach(id => {
+                const fi = document.getElementById(id);
+                if (fi) fi.value = '';
+            });
         }
     };
 

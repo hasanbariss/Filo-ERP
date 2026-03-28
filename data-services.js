@@ -530,8 +530,11 @@ window.saveDataAndClose = async function (event) {
 
                 if (odeme_turu === 'KREDİ KARTI' && kredi_karti_id) {
                     const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
-                        kart_id: kredi_karti_id, islem_tarihi, taksit_sayisi: 1,
-                        aciklama: `[BAKIM/PARÇA] ${aciklama.substring(0, 50)}`, toplam_tutar
+                        kart_id: kredi_karti_id, 
+                        islem_tarihi, 
+                        taksit_sayisi: 1,
+                        aciklama: `[BAKIM/PARÇA] ${aciklama.substring(0, 50)}`, 
+                        toplam_tutar: toplam_tutar
                     }]);
                     if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
                 }
@@ -608,7 +611,7 @@ window.saveDataAndClose = async function (event) {
                     const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi: tarihIcin,
                         taksit_sayisi: taksit_sayisi,
-                        aciklama: `[${police_turu}] Poliçe Ödemesi [POLİÇE ID: ${policeData?.[0]?.id}]`, tutar: toplam_tutar
+                        aciklama: `[${police_turu}] Poliçe Ödemesi [POLİÇE ID: ${policeData?.[0]?.id}]`, toplam_tutar: toplam_tutar
                     }]);
                     if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
                 }
@@ -3560,7 +3563,7 @@ async function fetchMusteriServis() {
 }
 
 /* === CARİ & BAKIM FETCH JS === */
-async function fetchCariler() {
+window.fetchCariler = async function() {
     const tbody = document.getElementById('cariler-tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400 font-medium">Güncelleniyor...</td></tr>';
@@ -3569,20 +3572,34 @@ async function fetchCariler() {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
         const [
-            { data: cariler, error },
-            { data: faturalar },
-            { data: odemeler },
-            { data: policeler },
-            { data: bakimlar }
+            carilerRes,
+            faturalarRes,
+            odemelerRes,
+            policelerRes,
+            bakimlarRes,
+            kartIslemleriRes
         ] = await Promise.all([
             window.supabaseClient.from('cariler').select('*').order('unvan', { ascending: true }),
             window.supabaseClient.from('cari_faturalar').select('cari_id, toplam_tutar'),
             window.supabaseClient.from('cari_odemeler').select('cari_id, tutar'),
             window.supabaseClient.from('arac_policeler').select('cari_id, toplam_tutar, taksit_sayisi'),
-            window.supabaseClient.from('arac_bakimlari').select('cari_id, toplam_tutar')
+            window.supabaseClient.from('arac_bakimlari').select('cari_id, toplam_tutar'),
+            window.supabaseClient.from('kredi_karti_islemleri').select('kart_id, toplam_tutar')
         ]);
 
-        if (error) throw error;
+        if (carilerRes.error) throw carilerRes.error;
+        
+        // Fetch cards to map kart_id to cari_id for balance calc
+        const { data: kartlar } = await window.supabaseClient.from('kredi_kartlari').select('id, cari_id');
+        const kartToCari = {};
+        (kartlar || []).forEach(k => { if(k.cari_id) kartToCari[k.id] = k.cari_id; });
+
+        const cariler = carilerRes.data || [];
+        const faturalar = faturalarRes.data || [];
+        const odemeler = odemelerRes.data || [];
+        const policeler = policelerRes.data || [];
+        const bakimlar = bakimlarRes.data || [];
+        const kartIslemleri = (kartIslemleriRes && kartIslemleriRes.data) || [];
 
         const carilerClean = window.sanitizeDataArray(cariler);
 
@@ -3597,14 +3614,18 @@ async function fetchCariler() {
         }
 
         carilerClean.forEach(c => {
-            // Borç Hesabı: Faturalar + Poliçeler + Bakımlar
+            // Borç Hesabı: Faturalar + Poliçeler + Bakımlar + Kredi Kartı Harcamaları
             const cariFaturalar = (faturalar || []).filter(f => f.cari_id === c.id);
             const cariPoliceler = (policeler || []).filter(p => p.cari_id === c.id);
             const cariBakimlar = (bakimlar || []).filter(b => b.cari_id === c.id);
+            
+            // Eğer bu bir kredi kartı carisiyse, ona bağlı kartın işlemlerini de borca ekle
+            const cariKartIslemleri = (kartIslemleri || []).filter(ki => kartToCari[ki.kart_id] === c.id);
 
             const totalBorc = cariFaturalar.reduce((sum, f) => sum + (Number(f.toplam_tutar) || 0), 0) +
                 cariPoliceler.reduce((sum, p) => sum + (Number(p.toplam_tutar) || 0), 0) +
-                cariBakimlar.reduce((sum, b) => sum + (Number(b.toplam_tutar) || 0), 0);
+                cariBakimlar.reduce((sum, b) => sum + (Number(b.toplam_tutar) || 0), 0) +
+                cariKartIslemleri.reduce((sum, ki) => sum + (Number(ki.toplam_tutar) || 0), 0);
 
             // Ödeme Hesabı
             const cariOdemeler = (odemeler || []).filter(o => o.cari_id === c.id);
@@ -3632,7 +3653,7 @@ async function fetchCariler() {
                         ${c.unvan || '-'}
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-600 rounded uppercase">${c.tur || 'Cari'}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-600 rounded uppercase">${c.tur || c.isletme_turu || 'Cari'}</span></td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${c.telefon || '-'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                     <div class="font-bold ${bakiye > 0 ? 'text-danger' : 'text-green-600'}">
@@ -3648,21 +3669,25 @@ async function fetchCariler() {
             `;
             tbody.appendChild(tr);
         });
+        if (window.lucide) window.lucide.createIcons();
     } catch (e) {
-        console.error(e);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-danger font-bold uppercase">Hata: ${e.message}</td></tr>`;
+        console.error('[CARİFETCH] Error:', e);
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-danger font-bold uppercase">Hata: ${e.message}</td></tr>`;
     }
 }
 
-async function fetchTaksitler() {
+window.fetchTaksitler = async function() {
     const tbody = document.getElementById('taksitler-tbody');
     if (!tbody) return;
 
     try {
+        if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+
         const { data: cariler } = await window.supabaseClient.from('cariler').select('id, unvan');
         let { data: policeler, error } = await window.supabaseClient.from('arac_policeler').select('*');
-        policeler = window.sanitizeDataArray(policeler);
         if (error) throw error;
+        
+        policeler = window.sanitizeDataArray(policeler || []);
 
         tbody.innerHTML = '';
         if (!policeler || policeler.length === 0) {
@@ -3679,15 +3704,18 @@ async function fetchTaksitler() {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50 transition-colors";
             tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${cari ? cari.unvan : 'Bilinmeyen'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap"><span class="text-xs text-gray-500 uppercase">${p.tur || 'BELİRSİZ'} POLİÇESİ</span></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₺${tutar.toLocaleString('tr-TR')}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${taksit} Taksit</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-danger">₺${aylik.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    `;
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">${cari ? cari.unvan : 'Bilinmeyen'}</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="text-xs text-gray-500 uppercase">${p.tur || 'BELİRSİZ'} POLİÇESİ</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">₺${tutar.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${taksit} Taksit</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-danger">₺${aylik.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+            `;
             tbody.appendChild(tr);
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error('[TAKSİTFETCH] Error:', e);
+        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-danger font-bold uppercase">Hata: ${e.message}</td></tr>`;
+    }
 }
 
 async function fetchYakitlar() {
@@ -6144,16 +6172,29 @@ window.fetchCariDetails = async function (cariId) {
             { data: faturalar },
             { data: odemeler },
             { data: policeler },
-            { data: bakimlar }
+            { data: bakimlar },
+            { data: kartRes }
         ] = await Promise.all([
             window.supabaseClient.from('cariler').select('*').eq('id', cariId).single(),
             window.supabaseClient.from('cari_faturalar').select('*').eq('cari_id', cariId).order('tarih', { ascending: false }),
             window.supabaseClient.from('cari_odemeler').select('*').eq('cari_id', cariId).order('tarih', { ascending: false }),
             window.supabaseClient.from('arac_policeler').select('*, araclar(plaka)').eq('cari_id', cariId).order('baslangic_tarihi', { ascending: false }),
-            window.supabaseClient.from('arac_bakimlari').select('*, araclar(plaka)').eq('cari_id', cariId).order('islem_tarihi', { ascending: false })
+            window.supabaseClient.from('arac_bakimlari').select('*, araclar(plaka)').eq('cari_id', cariId).order('islem_tarihi', { ascending: false }),
+            window.supabaseClient.from('kredi_kartlari').select('id').eq('cari_id', cariId).single()
         ]);
 
         if (!cari) return;
+
+        // If it's a credit card cari, fetch its specific transactions
+        let kartIslemleri = [];
+        if (kartRes?.id) {
+            const { data: ki } = await window.supabaseClient
+                .from('kredi_karti_islemleri')
+                .select('*')
+                .eq('kart_id', kartRes.id)
+                .order('islem_tarihi', { ascending: false });
+            kartIslemleri = ki || [];
+        }
 
         // UI Header
         const unvanEl = document.getElementById('cari-detail-unvan');
@@ -6174,6 +6215,17 @@ window.fetchCariDetails = async function (cariId) {
         (odemeler || []).forEach(o => entries.push({ id: o.id, table: 'cari_odemeler', tarih: o.tarih, type: 'ÖDEME', desc: o.aciklama || 'Kasa/Banka Ödemesi', borc: 0, alacak: o.tutar }));
         (policeler || []).forEach(p => entries.push({ id: p.id, table: 'arac_policeler', tarih: p.baslangic_tarihi, type: 'POLİÇE', desc: `${p.police_turu || p.tur || 'Sigorta'} Poliçesi (${p.araclar ? p.araclar.plaka : '-'})`, borc: p.toplam_tutar, alacak: 0 }));
         (bakimlar || []).forEach(b => entries.push({ id: b.id, table: 'arac_bakimlari', tarih: b.islem_tarihi, type: 'BAKIM/TAMİR', desc: `${b.islem_turu || 'Bakım'} - ${b.aciklama || '-'} (${b.araclar ? b.araclar.plaka : '-'})`, borc: b.toplam_tutar, alacak: 0 }));
+        
+        // Push Credit Card Transactions as Debt
+        (kartIslemleri || []).forEach(ki => entries.push({ 
+            id: ki.id, 
+            table: 'kredi_karti_islemleri', 
+            tarih: ki.islem_tarihi, 
+            type: 'KART HARCAMA', 
+            desc: ki.aciklama || 'Kredi Kartı Harcaması', 
+            borc: ki.toplam_tutar || ki.tutar || 0, 
+            alacak: 0 
+        }));
 
         entries.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
@@ -6334,6 +6386,26 @@ window.fetchKrediKartlari = async function () {
             .order('id', { ascending: false });
 
         if (kartErr) throw kartErr;
+        
+        // Auto-fix: Link cards to Cari if missing (New & Legacy support)
+        for (let k of (kartlar || [])) {
+            if (!k.cari_id) {
+                try {
+                    console.log(`[KART AUTO-FIX] Cari oluşturuluyor: ${k.kart_adi}`);
+                    const cariUnvan = k.kart_adi + (k.kart_sahibi ? ` (${k.kart_sahibi})` : '');
+                    const { data: newCari, error: cariErr } = await window.supabaseClient.from('cariler').insert([{
+                        unvan: cariUnvan,
+                        isletme_turu: 'BANKA / KREDİ KARTI',
+                        aciklama: 'Kredi kartı hesabı (Otomatik-Sistem)'
+                    }]).select();
+                    if (!cariErr && newCari?.[0]) {
+                        await window.supabaseClient.from('kredi_kartlari').update({ cari_id: newCari[0].id }).eq('id', k.id);
+                        k.cari_id = newCari[0].id; // Update local object
+                    }
+                } catch(e) { console.error("Card link failed:", e); }
+            }
+        }
+
         const kartlarClean = window.sanitizeDataArray(kartlar || []);
 
         // 2. İşlemleri Çek
@@ -6344,8 +6416,7 @@ window.fetchKrediKartlari = async function () {
         if (islemErr) throw islemErr;
 
         tbody.innerHTML = '';
-
-        if (!kartlar || kartlar.length === 0) {
+        if (kartlarClean.length === 0) {
             tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Kayıtlı kredi kartı bulunmamaktadır.</td></tr>`;
             return;
         }
@@ -6361,7 +6432,7 @@ window.fetchKrediKartlari = async function () {
             islemMap[islem.kart_id].transactions.push(islem);
         });
 
-        kartlar.forEach(k => {
+        kartlarClean.forEach(k => {
             const tr = document.createElement('tr');
             tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
 
@@ -6370,38 +6441,33 @@ window.fetchKrediKartlari = async function () {
             const harcanan = kIslem.tutar;
             const kullanilabilir = (limit - harcanan > 0) ? limit - harcanan : 0;
 
-            // Kart İşlemleri JSON'ını UI tarafına taşımak için buton içine gömüyoruz
             const txDataStr = encodeURIComponent(JSON.stringify(kIslem.transactions));
 
             tr.innerHTML = `
-                <td class="px-6 py-4">
+                <td class="px-6 py-4 cursor-pointer" onclick="window.openCariDetail('${k.cari_id}')">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <i data-lucide="credit-card" class="w-5 h-5 text-orange-500"></i>
                         </div>
                         <div>
-                            <p class="font-bold text-white text-sm uppercase tracking-wide">${k.kart_adi}</p>
-                            <p class="text-[10px] text-gray-500 uppercase">Toplam ${kIslem.count} İşlem</p>
+                            <p class="font-bold text-white text-sm uppercase tracking-wide hover:text-orange-400 transition-colors">${k.kart_adi}</p>
+                            <p class="text-[10px] text-gray-500">Cari Kartı Görüntüle</p>
                         </div>
                     </div>
                 </td>
                 <td class="px-6 py-4">
                     <p class="text-sm font-bold text-green-400">${window.formatCurrency(limit)}</p>
-                    <p class="text-[10px] text-gray-400">Özet Kull. Limit: <span class="text-white">${window.formatCurrency(kullanilabilir)}</span></p>
+                    <p class="text-[10px] text-gray-400">Özet Kullanılabilir: <span class="text-white">${window.formatCurrency(kullanilabilir)}</span></p>
                 </td>
                 <td class="px-6 py-4 text-orange-500 font-bold text-base">
                     ${window.formatCurrency(harcanan)}
                 </td>
-                <td class="px-6 py-4">
-                    <span class="px-2 py-1 bg-white/5 rounded-md text-gray-400 text-xs font-semibold">
-                       Harcama: ${kIslem.count} Adet
-                    </span>
+                <td class="px-6 py-4 text-xs text-gray-400 italic">
+                    ${kIslem.count} İşlem
                 </td>
                 <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                   ${kIslem.count > 0
-                    ? `<button onclick="window.showKartIslemleri(decodeURIComponent('${txDataStr}'), '${k.kart_adi}')" class="px-4 py-1.5 text-xs font-bold bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500 hover:text-white transition-all">Detay (İşlemler)</button>`
-                    : '<span class="text-gray-600 text-[10px] italic">İşlem Yok</span>'}
-                   <button onclick="deleteRecord('kredi_kartlari','${k.id}','fetchKrediKartlari')" class="text-danger text-[10px] font-bold hover:underline px-2">Sil</button>
+                    <button onclick="window.openCariDetail('${k.cari_id}')" class="px-4 py-1.5 text-xs font-bold bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500 hover:text-white transition-all">Detay (Ekstre)</button>
+                    <button onclick="deleteRecord('kredi_kartlari','${k.id}','fetchKrediKartlari')" class="text-danger text-[10px] font-bold hover:underline px-2">Sil</button>
                 </td>
             `;
             tbody.appendChild(tr);
