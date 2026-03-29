@@ -1124,7 +1124,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         // Verileri Döngüye Alıp Ekrana Bas
         function getStatusHtml(dateString, label, aracId) {
-            const tur = label.includes('Sigorta') ? 'Trafik Sigortası' : (label.includes('Kasko') ? 'Kasko' : (label.includes('Koltuk') ? 'Koltuk Sigortası' : 'Vize'));
+            const tur = label.includes('Sigorta') ? 'Trafik Sigortası' : (label.includes('Kasko') ? 'Kasko' : (label.includes('Koltuk') ? 'Koltuk' : 'Vize'));
             const shortLabel = label === 'Sigorta' ? 'SİG' : (label === 'Kasko' ? 'KSK' : (label === 'Koltuk' ? 'KLT' : 'VİZE'));
 
             if (!dateString) {
