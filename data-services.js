@@ -597,6 +597,17 @@ window.saveDataAndClose = async function (event) {
             }]).select();
             if (error) throw error;
 
+            // --- 3. ARAÇ BİTİŞ TARİHLERİNİ GÜNCELLE ---
+            const updatePayload = {};
+            const pType = String(police_turu).toLowerCase();
+            if (pType.includes('kasko')) updatePayload.kasko_bitis = bitis_tarihi;
+            else if (pType.includes('trafik') || pType.includes('sigort') || pType.includes('zorunlu')) updatePayload.sigorta_bitis = bitis_tarihi;
+            else if (pType.includes('koltuk')) updatePayload.koltuk_bitis = bitis_tarihi;
+
+            if (Object.keys(updatePayload).length > 0) {
+                await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
+            }
+
             if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
                 const tarihIcin = baslangic_tarihi || new Date().toISOString().split('T')[0];
                 let odemeAciklama = `[${police_turu}] Otomatik Ödeme Kaydı - Poliçe ID: ${policeData?.[0]?.id || ''}`;
@@ -5123,7 +5134,7 @@ window.renderTeklifCompare = function () {
         let normTur = 'Bilinmeyen';
         const rawTur = (t.police_turu || '').toLowerCase().trim();
         if (rawTur.includes('kasko')) normTur = 'Kasko';
-        else if (rawTur.includes('koltuk')) normTur = 'Koltuk Sigortası';
+        else if (rawTur.includes('koltuk')) normTur = 'Koltuk';
         else if (rawTur.includes('trafik') || rawTur.includes('zorunlu') || rawTur.includes('sigort')) normTur = 'Trafik';
         else normTur = t.police_turu || 'Bilinmeyen';
 
@@ -5219,6 +5230,8 @@ window.teklifSec = async function (id) {
             updateData.kasko_bitis = bitis_tarihi;
         } else if (turLower.includes('trafik') || turLower.includes('sigort') || turLower.includes('zorunlu')) {
             updateData.sigorta_bitis = bitis_tarihi;
+        } else if (turLower.includes('koltuk')) {
+            updateData.koltuk_bitis = bitis_tarihi;
         }
 
         if (Object.keys(updateData).length > 0) {
@@ -5316,7 +5329,7 @@ window.fetchDashboardData = async function () {
             resHakedisTaseron,
             resHakedisServis,
         ] = await Promise.all([
-            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sigorta_bitis, kasko_bitis, vize_bitis').then(r => r).catch(e => ({ data: [], error: e })),
+            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sigorta_bitis, kasko_bitis, vize_bitis, koltuk_bitis').then(r => r).catch(e => ({ data: [], error: e })),
             window.supabaseClient.from('soforler').select('id').then(r => r).catch(e => ({ data: [], error: e })),
             window.supabaseClient.from('cariler').select('id').then(r => r).catch(e => ({ data: [], error: e })),
             window.supabaseClient.from('arac_policeler').select('bitis_tarihi, police_turu, araclar(plaka)').gte('bitis_tarihi', todayStr).lte('bitis_tarihi', future30Str).order('bitis_tarihi', { ascending: true }).then(r => r).catch(e => ({ data: [], error: e })),
@@ -6188,7 +6201,12 @@ window.fetchCariDetails = async function (cariId) {
             window.supabaseClient.from('kredi_kartlari').select('id').eq('cari_id', cariId).maybeSingle()
         ]);
 
-        if (!cari) return;
+        if (!cari) {
+            tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-orange-500 font-bold">Cari kayıt bulunamadı (ID: ${cariId})</td></tr>`;
+            const unvanElCatch = document.getElementById('cari-detail-unvan');
+            if (unvanElCatch) unvanElCatch.textContent = 'Kayıt Bulunamadı';
+            return;
+        }
 
         // If it's a credit card cari, fetch its specific transactions
         let kartIslemleri = [];

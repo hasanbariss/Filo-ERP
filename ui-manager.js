@@ -1440,7 +1440,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <select id="police-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                                     <option value="Trafik">Trafik Sigortası</option>
                                     <option value="Kasko">Kasko</option>
-                                    <option value="Koltuk Sigortası">Koltuk Ferdi Kaza</option>
+                                    <option value="Koltuk">Koltuk Ferdi Kaza</option>
                                 </select>
                             </div>
                             <div>
