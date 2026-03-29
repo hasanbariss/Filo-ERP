@@ -1216,7 +1216,7 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
     } else if (title === 'Müşteriye Araç Tanımla') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Müşteriye özel araç ve tarife tanımlarını yaparak otomatik faturalandırma altyapısını kurun.</p>
+                    <p class="text-sm text-gray-400 mb-8">Fabrikaya araç tanımlayın. Tarife türü fabrika tipine göre otomatik belirlenir; fiyatları cari kart üzerinden ayarlayabilirsiniz.</p>
                     <div class="space-y-6">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Müşteri / Fabrika Seçin</label>
@@ -1226,23 +1226,9 @@ window.openModal = function (title, id = null, extra = null) {
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tanımlanacak Araç</label>
                             <select id="tanim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                         </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Vardiya Fiyatı (₺)</label>
-                                <input type="number" step="0.01" id="tanim-vardiya-fiyat" placeholder="Örn: 1500" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tek Sefer Fiyatı (₺)</label>
-                                <input type="number" step="0.01" id="tanim-tek-fiyat" placeholder="Örn: 800" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
-                            </div>
-                        </div>
 
-                        <!-- Dikkan Özel: Mesai Fiyatı (Gizli başlar) -->
-                        <div id="tanim-mesai-container" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
-                            <label class="block text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">Mesai Fiyatı (₺) — DİKKAN Özel</label>
-                            <input type="number" step="0.01" id="tanim-mesai-fiyat" placeholder="Örn: 500" class="w-full bg-orange-500/5 border border-orange-500/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
-                        </div>
+                        <!-- Otomatik tarife bilgi kutusu -->
+                        <div id="tanim-info-box" class="hidden p-4 rounded-xl border text-xs font-semibold leading-relaxed"></div>
 
                         <div class="pt-4">
                             <button onclick="window.saveAracTanim()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-blue-500/10 flex items-center justify-center gap-2">
@@ -1255,17 +1241,25 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('tanim-musteri', 'musteriler', 'id', 'ad');
             loadSelectOptions('tanim-arac', 'araclar', 'id', 'plaka');
             
-            // Handle Dikkan change function
             window.handleTanimMusteriChange = function(select) {
                 const text = select.options[select.selectedIndex]?.text || '';
-                const container = document.getElementById('tanim-mesai-container');
-                if (text.toUpperCase().includes('DİKKAN') || text.toUpperCase().includes('DIKKAN')) {
-                    container.classList.remove('hidden');
-                } else {
-                    container.classList.add('hidden');
+                const infoBox = document.getElementById('tanim-info-box');
+                const isDikkan = text.toUpperCase().includes('DİKKAN') || text.toUpperCase().includes('DIKKAN');
+                if (text && infoBox) {
+                    infoBox.classList.remove('hidden');
+                    if (isDikkan) {
+                        infoBox.className = 'p-4 rounded-xl border text-xs font-semibold leading-relaxed bg-amber-500/10 border-amber-500/30 text-amber-300';
+                        infoBox.innerHTML = '✨ <strong>Dikkan Fabrikası</strong> — Puantaj açılınca otomatik olarak <strong>Tek · Vardiya · Mesai · 8 Çıkışı · 20:30 Girişi</strong> satırları oluşturulacak. Tarife türü: <code class="bg-black/30 px-1 rounded">Tek</code>';
+                    } else {
+                        infoBox.className = 'p-4 rounded-xl border text-xs font-semibold leading-relaxed bg-indigo-500/10 border-indigo-500/30 text-indigo-300';
+                        infoBox.innerHTML = '✓ <strong>Standart Fabrika</strong> — Puantaj açılınca otomatik olarak <strong>Vardiya + Tek</strong> satırları oluşturulacak. Tarife türü: <code class="bg-black/30 px-1 rounded">Vardiya</code>';
+                    }
+                } else if (infoBox) {
+                    infoBox.classList.add('hidden');
                 }
             };
         }, 50);
+
     } else if (title === 'Yeni Yakıt Kaydı') {
         content = `
                     <p class="text-sm text-gray-400 mb-8">Araç yakıt alımlarını takip ederek işletme maliyetlerini optimize edin.</p>

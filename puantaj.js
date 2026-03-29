@@ -78,10 +78,12 @@ async function loadGridData(tanimlar, musteriAdi) {
         // 2. O(1) Indexing for records
         kayitlarMap = {};
         isolatedKayitlar.forEach(k => {
-            kayitlarMap[`${k.arac_id}_${k.tarih}_vardiya`] = k.vardiya || '';
-            kayitlarMap[`${k.arac_id}_${k.tarih}_tek`] = k.tek || '';
-            kayitlarMap[`${k.arac_id}_${k.tarih}_mesai`] = k.mesai || 0;
-            kayitlarMap[`${k.arac_id}_${k.tarih}_id`] = k.id;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_vardiya`]    = k.vardiya    || '';
+            kayitlarMap[`${k.arac_id}_${k.tarih}_tek`]        = k.tek        || '';
+            kayitlarMap[`${k.arac_id}_${k.tarih}_cikis_8`]   = k.cikis_8   || 0;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_giris_2030`] = k.giris_2030 || 0;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_mesai`]      = k.mesai      || 0;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_id`]         = k.id;
         });
 
         const seenIds = new Set();
@@ -114,14 +116,16 @@ async function loadGridData(tanimlar, musteriAdi) {
         
         // 3. Performance Optimization: Inline Calculations
         // Using arrays for column totals (Day 1 to 31)
-        const colV = new Array(daysInMonth + 1).fill(0);
-        const colT = new Array(daysInMonth + 1).fill(0);
-        const colM = new Array(daysInMonth + 1).fill(0);
+        const colV  = new Array(daysInMonth + 1).fill(0);
+        const colT  = new Array(daysInMonth + 1).fill(0);
+        const colC8 = new Array(daysInMonth + 1).fill(0); // 8 Çıkışı
+        const colG2 = new Array(daysInMonth + 1).fill(0); // 20:30 Girişi
+        const colM  = new Array(daysInMonth + 1).fill(0);
 
         isolatedAraclar.forEach((arac, index) => {
             const rowClass = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/30';
-            const rowSpan = isDikkan ? 3 : 2;
-            let rowVardiyaTotal = 0, rowTekTotal = 0, rowMesaiTotal = 0;
+            const rowSpan = isDikkan ? 5 : 2;
+            let rowVardiyaTotal = 0, rowTekTotal = 0, rowCikis8Total = 0, rowGiris2030Total = 0, rowMesaiTotal = 0;
 
             // Pre-calculate visibility and filter
             const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && (Boolean(k.vardiya) || Boolean(k.tek)));
@@ -175,6 +179,43 @@ async function loadGridData(tanimlar, musteriAdi) {
             tblHtml += tRow;
 
             if (isDikkan) {
+                // --- 8 ÇIKIŞI ROW ---
+                let c8Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                    <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-amber-500 text-center uppercase">8 Çıkışı</td>`;
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_cikis_8`] || 0;
+                    const safeVal = String(val);
+                    if (!isNaN(parseInt(safeVal))) {
+                        const n = parseInt(safeVal);
+                        rowCikis8Total += n;
+                        colC8[i] += n;
+                    }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'cikis_8', val_original: safeVal, val_new: safeVal });
+                    c8Row += `<td style="background:#fffbeb"><input type="text" id="cell-${arac.id}-${dateCode}-cikis_8" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'cikis_8', ${i})"></td>`;
+                }
+                c8Row += `<td class="sticky right-0 bg-amber-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-amber-600 font-mono" id="total-${arac.id}-cikis_8">${rowCikis8Total}</td></tr>`;
+                tblHtml += c8Row;
+
+                // --- 20:30 GİRİŞİ ROW ---
+                let g2Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                    <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-purple-500 text-center uppercase">20:30 Giriş</td>`;
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_giris_2030`] || 0;
+                    const safeVal = String(val);
+                    if (!isNaN(parseInt(safeVal))) {
+                        const n = parseInt(safeVal);
+                        rowGiris2030Total += n;
+                        colG2[i] += n;
+                    }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'giris_2030', val_original: safeVal, val_new: safeVal });
+                    g2Row += `<td style="background:#faf5ff"><input type="text" id="cell-${arac.id}-${dateCode}-giris_2030" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'giris_2030', ${i})"></td>`;
+                }
+                g2Row += `<td class="sticky right-0 bg-purple-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-purple-600 font-mono" id="total-${arac.id}-giris_2030">${rowGiris2030Total}</td></tr>`;
+                tblHtml += g2Row;
+
+                // --- MESAİ ROW ---
                 let mRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
                     <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Mesai</td>`;
                 for (let i = 1; i <= daysInMonth; i++) {
@@ -195,7 +236,7 @@ async function loadGridData(tanimlar, musteriAdi) {
         });
 
         // 4. Final Totals Generation (O(1) from arrays)
-        let sumV = 0, sumT = 0, sumM = 0;
+        let sumV = 0, sumT = 0, sumC8 = 0, sumG2 = 0, sumM = 0;
         let vSumRow = `<tr class="bg-slate-100 font-bold total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-3 text-right text-[10px] text-slate-500 uppercase tracking-widest">Vardiya Top.:</td>`;
         for (let i = 1; i <= daysInMonth; i++) { vSumRow += `<td class="text-center text-xs text-slate-600" id="coltotal-vardiya-${i}">${colV[i]}</td>`; sumV += colV[i]; }
         vSumRow += `<td class="sticky right-0 bg-indigo-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-indigo-700 font-mono" id="grandtotal-vardiya">${sumV}</td></tr>`;
@@ -204,16 +245,29 @@ async function loadGridData(tanimlar, musteriAdi) {
         for (let i = 1; i <= daysInMonth; i++) { tSumRow += `<td class="text-center text-xs text-slate-600" id="coltotal-tek-${i}">${colT[i]}</td>`; sumT += colT[i]; }
         tSumRow += `<td class="sticky right-0 bg-orange-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-orange-700 font-mono" id="grandtotal-tek">${sumT}</td></tr>`;
 
-        let gSumRow = `<tr class="bg-slate-800 text-white font-black total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-4 text-right text-[10px] uppercase tracking-widest">Genel Toplam:</td>`;
-        for (let i = 1; i <= daysInMonth; i++) { gSumRow += `<td class="text-center text-xs" id="geneltotal-col-${i}">${colV[i] + colT[i] + colM[i]}</td>`; sumM += colM[i]; }
-        gSumRow += `<td class="sticky right-0 bg-slate-900 z-20 border-l-2 border-slate-700 text-center text-sm font-mono" id="geneltotal-grand">${sumV + sumT + sumM}</td></tr>`;
+        // Dikkan'a özel Toplam satırları
+        let c8SumRow = '';
+        let g2SumRow = '';
+        if (isDikkan) {
+            c8SumRow = `<tr class="bg-amber-50 font-bold total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-3 text-right text-[10px] text-amber-600 uppercase tracking-widest">8 Çıkışı Top.:</td>`;
+            for (let i = 1; i <= daysInMonth; i++) { c8SumRow += `<td class="text-center text-xs text-amber-600" id="coltotal-cikis8-${i}">${colC8[i]}</td>`; sumC8 += colC8[i]; }
+            c8SumRow += `<td class="sticky right-0 bg-amber-100 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-amber-700 font-mono" id="grandtotal-cikis8">${sumC8}</td></tr>`;
 
-        tbody.innerHTML = tblHtml + vSumRow + tSumRow + gSumRow;
+            g2SumRow = `<tr class="bg-purple-50 font-bold total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-3 text-right text-[10px] text-purple-600 uppercase tracking-widest">20:30 Giriş Top.:</td>`;
+            for (let i = 1; i <= daysInMonth; i++) { g2SumRow += `<td class="text-center text-xs text-purple-600" id="coltotal-giris2030-${i}">${colG2[i]}</td>`; sumG2 += colG2[i]; }
+            g2SumRow += `<td class="sticky right-0 bg-purple-100 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-purple-700 font-mono" id="grandtotal-giris2030">${sumG2}</td></tr>`;
+        }
+
+        let gSumRow = `<tr class="bg-slate-800 text-white font-black total-row"><td colspan="2" class="sticky left-0 bg-inherit z-20 border-r-2 border-slate-200 px-4 py-4 text-right text-[10px] uppercase tracking-widest">Genel Toplam:</td>`;
+        for (let i = 1; i <= daysInMonth; i++) { gSumRow += `<td class="text-center text-xs" id="geneltotal-col-${i}">${colV[i] + colT[i] + colC8[i] + colG2[i] + colM[i]}</td>`; sumM += colM[i]; }
+        gSumRow += `<td class="sticky right-0 bg-slate-900 z-20 border-l-2 border-slate-700 text-center text-sm font-mono" id="geneltotal-grand">${sumV + sumT + sumC8 + sumG2 + sumM}</td></tr>`;
+
+        tbody.innerHTML = tblHtml + vSumRow + tSumRow + c8SumRow + g2SumRow + gSumRow;
         
         // Final Top Summary
         if (document.getElementById('summary-vardiya')) document.getElementById('summary-vardiya').textContent = sumV;
-        if (document.getElementById('summary-tek')) document.getElementById('summary-tek').textContent = sumT;
-        if (document.getElementById('summary-genel')) document.getElementById('summary-genel').textContent = sumV + sumT + sumM;
+        if (document.getElementById('summary-tek'))     document.getElementById('summary-tek').textContent = sumT;
+        if (document.getElementById('summary-genel'))   document.getElementById('summary-genel').textContent = sumV + sumT + sumC8 + sumG2 + sumM;
 
         if(window.lucide) window.lucide.createIcons();
     } catch (e) {
@@ -244,47 +298,73 @@ function recalcAllTotals(daysInMonth) {
     // Only used for live cell updates (incremental)
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
-    let gV = 0, gT = 0, gM = 0;
+    let gV = 0, gT = 0, gC8 = 0, gG2 = 0, gM = 0;
     
     // Day Totals (Columns)
     for (let i = 1; i <= daysInMonth; i++) {
-        let colV = 0, colT = 0, colM = 0;
+        let colV = 0, colT = 0, colC8 = 0, colG2 = 0, colM = 0;
         const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         isolatedAraclar.forEach(arac => {
-            const vInp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-            const tInp = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
-            const mInp = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`);
-            if (vInp && !isNaN(parseInt(vInp.value))) colV += parseInt(vInp.value);
-            if (tInp && !isNaN(parseInt(tInp.value))) colT += parseInt(tInp.value);
-            if (mInp && !isNaN(parseInt(mInp.value))) colM += parseInt(mInp.value);
+            const vInp  = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
+            const tInp  = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
+            const c8Inp = document.getElementById(`cell-${arac.id}-${dateCode}-cikis_8`);
+            const g2Inp = document.getElementById(`cell-${arac.id}-${dateCode}-giris_2030`);
+            const mInp  = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`);
+            if (vInp  && !isNaN(parseInt(vInp.value)))  colV  += parseInt(vInp.value);
+            if (tInp  && !isNaN(parseInt(tInp.value)))  colT  += parseInt(tInp.value);
+            if (c8Inp && !isNaN(parseInt(c8Inp.value))) colC8 += parseInt(c8Inp.value);
+            if (g2Inp && !isNaN(parseInt(g2Inp.value))) colG2 += parseInt(g2Inp.value);
+            if (mInp  && !isNaN(parseInt(mInp.value)))  colM  += parseInt(mInp.value);
         });
-        const vEl = document.getElementById(`coltotal-vardiya-${i}`), tEl = document.getElementById(`coltotal-tek-${i}`), gEl = document.getElementById(`geneltotal-col-${i}`);
-        if(vEl) vEl.textContent = colV; if(tEl) tEl.textContent = colT; if(gEl) gEl.textContent = colV + colT + colM;
-        gV += colV; gT += colT; gM += colM;
+        const vEl   = document.getElementById(`coltotal-vardiya-${i}`);
+        const tEl   = document.getElementById(`coltotal-tek-${i}`);
+        const c8El  = document.getElementById(`coltotal-cikis8-${i}`);
+        const g2El  = document.getElementById(`coltotal-giris2030-${i}`);
+        const gEl   = document.getElementById(`geneltotal-col-${i}`);
+        if(vEl)  vEl.textContent  = colV;
+        if(tEl)  tEl.textContent  = colT;
+        if(c8El) c8El.textContent = colC8;
+        if(g2El) g2El.textContent = colG2;
+        if(gEl)  gEl.textContent  = colV + colT + colC8 + colG2 + colM;
+        gV += colV; gT += colT; gC8 += colC8; gG2 += colG2; gM += colM;
     }
     
     // Vehicle Totals (Rows)
     isolatedAraclar.forEach(arac => {
-        let rV = 0, rT = 0, rM = 0;
+        let rV = 0, rT = 0, rC8 = 0, rG2 = 0, rM = 0;
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const vVal = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`)?.value;
-            const tVal = document.getElementById(`cell-${arac.id}-${dateCode}-tek`)?.value;
-            const mVal = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`)?.value;
-            if(!isNaN(parseInt(vVal))) rV += parseInt(vVal);
-            if(!isNaN(parseInt(tVal))) rT += parseInt(tVal);
-            if(!isNaN(parseInt(mVal))) rM += parseInt(mVal);
+            const vVal  = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`)?.value;
+            const tVal  = document.getElementById(`cell-${arac.id}-${dateCode}-tek`)?.value;
+            const c8Val = document.getElementById(`cell-${arac.id}-${dateCode}-cikis_8`)?.value;
+            const g2Val = document.getElementById(`cell-${arac.id}-${dateCode}-giris_2030`)?.value;
+            const mVal  = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`)?.value;
+            if(!isNaN(parseInt(vVal)))  rV  += parseInt(vVal);
+            if(!isNaN(parseInt(tVal)))  rT  += parseInt(tVal);
+            if(!isNaN(parseInt(c8Val))) rC8 += parseInt(c8Val);
+            if(!isNaN(parseInt(g2Val))) rG2 += parseInt(g2Val);
+            if(!isNaN(parseInt(mVal)))  rM  += parseInt(mVal);
         }
-        const vT = document.getElementById(`total-${arac.id}-vardiya`), tT = document.getElementById(`total-${arac.id}-tek`), mT = document.getElementById(`total-${arac.id}-mesai`);
-        if(vT) vT.textContent = rV; if(tT) tT.textContent = rT; if(mT) mT.textContent = rM;
+        const vT  = document.getElementById(`total-${arac.id}-vardiya`);
+        const tT  = document.getElementById(`total-${arac.id}-tek`);
+        const c8T = document.getElementById(`total-${arac.id}-cikis_8`);
+        const g2T = document.getElementById(`total-${arac.id}-giris_2030`);
+        const mT  = document.getElementById(`total-${arac.id}-mesai`);
+        if(vT)  vT.textContent  = rV;
+        if(tT)  tT.textContent  = rT;
+        if(c8T) c8T.textContent = rC8;
+        if(g2T) g2T.textContent = rG2;
+        if(mT)  mT.textContent  = rM;
     });
 
     if (document.getElementById('summary-vardiya')) document.getElementById('summary-vardiya').textContent = gV;
-    if (document.getElementById('summary-tek')) document.getElementById('summary-tek').textContent = gT;
-    if (document.getElementById('summary-genel')) document.getElementById('summary-genel').textContent = gV + gT + gM;
+    if (document.getElementById('summary-tek'))     document.getElementById('summary-tek').textContent     = gT;
+    if (document.getElementById('summary-genel'))   document.getElementById('summary-genel').textContent   = gV + gT + gC8 + gG2 + gM;
     if (document.getElementById('grandtotal-vardiya')) document.getElementById('grandtotal-vardiya').textContent = gV;
-    if (document.getElementById('grandtotal-tek')) document.getElementById('grandtotal-tek').textContent = gT;
-    if (document.getElementById('geneltotal-grand')) document.getElementById('geneltotal-grand').textContent = gV + gT + gM;
+    if (document.getElementById('grandtotal-tek'))     document.getElementById('grandtotal-tek').textContent     = gT;
+    if (document.getElementById('grandtotal-cikis8'))  document.getElementById('grandtotal-cikis8').textContent  = gC8;
+    if (document.getElementById('grandtotal-giris2030')) document.getElementById('grandtotal-giris2030').textContent = gG2;
+    if (document.getElementById('geneltotal-grand'))   document.getElementById('geneltotal-grand').textContent   = gV + gT + gC8 + gG2 + gM;
 }
 
 window.autoFillWeekdays = function () {
@@ -316,14 +396,21 @@ window.saveExcelGrid = async function () {
         isolatedKayitlar.forEach(k => { dbMap[`${k.arac_id}_${k.tarih}`] = k; });
         toSaveOrUpdate.forEach(item => {
             const key = `${item.arac_id}_${item.tarih}`;
-            if (!updatesByDateAndVehicle[key]) { updatesByDateAndVehicle[key] = { ...(dbMap[key] || { musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, vardiya: '', tek: '', mesai: 0 }) }; }
-            if (item.field === 'vardiya') updatesByDateAndVehicle[key].vardiya = item.val_new;
-            if (item.field === 'tek') updatesByDateAndVehicle[key].tek = item.val_new;
-            if (item.field === 'mesai') updatesByDateAndVehicle[key].mesai = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (!updatesByDateAndVehicle[key]) {
+                updatesByDateAndVehicle[key] = { ...(dbMap[key] || {
+                    musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih,
+                    vardiya: '', tek: '', cikis_8: 0, giris_2030: 0, mesai: 0
+                }) };
+            }
+            if (item.field === 'vardiya')    updatesByDateAndVehicle[key].vardiya    = item.val_new;
+            if (item.field === 'tek')        updatesByDateAndVehicle[key].tek        = item.val_new;
+            if (item.field === 'cikis_8')    updatesByDateAndVehicle[key].cikis_8   = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (item.field === 'giris_2030') updatesByDateAndVehicle[key].giris_2030 = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (item.field === 'mesai')      updatesByDateAndVehicle[key].mesai      = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
         });
         const upsertArray = [], deleteIds = [];
         Object.values(updatesByDateAndVehicle).forEach(item => {
-            if (!item.vardiya && !item.tek && !item.mesai && item.id) deleteIds.push(item.id);
+            if (!item.vardiya && !item.tek && !item.cikis_8 && !item.giris_2030 && !item.mesai && item.id) deleteIds.push(item.id);
             else { if (!item.id) delete item.id; upsertArray.push(item); }
         });
         if (upsertArray.length > 0) { const { error: ue } = await window.supabaseClient.from('musteri_servis_puantaj').upsert(upsertArray); if (ue) throw ue; }
@@ -378,43 +465,55 @@ window.handlePrint = function() {
     const sOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
     const rowsToPrint = isolatedAraclar.filter(a => (sId === 'ALL' || a.id.toString() === sId) && (sOwner === 'TÜMÜ' || (a.mulkiyet || 'Diğer').toUpperCase() === sOwner));
     const isD = headersTitle.toLowerCase().includes('dikkan');
-    let cV = new Array(dim+1).fill(0), cT = new Array(dim+1).fill(0), cM = new Array(dim+1).fill(0);
+    let cV = new Array(dim+1).fill(0), cT = new Array(dim+1).fill(0);
+    let cC8 = new Array(dim+1).fill(0), cG2 = new Array(dim+1).fill(0);
+    let cM = new Array(dim+1).fill(0);
 
     rowsToPrint.forEach(arac => {
-        let rV = 0, rT = 0, rM = 0, hasData = false;
-        let vH = `<tr style="page-break-inside: avoid;"><td rowspan="${isD?3:2}" style="border: 1px solid #e2e8f0; font-weight: 800; text-align: center; color: #0f172a; background: #fff; font-size: 9px;">${arac.plaka}</td><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Vardiya</td>`;
-        let tH = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Tek</td>`;
-        let mH = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Mesai</td>`;
+        let rV = 0, rT = 0, rC8 = 0, rG2 = 0, rM = 0, hasData = false;
+        let vH  = `<tr style="page-break-inside: avoid;"><td rowspan="${isD?5:2}" style="border: 1px solid #e2e8f0; font-weight: 800; text-align: center; color: #0f172a; background: #fff; font-size: 9px;">${arac.plaka}</td><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Vardiya</td>`;
+        let tH  = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Tek</td>`;
+        let c8H = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #d97706; background-color: #fffbeb; font-weight: 700; font-size: 7px; text-transform: uppercase;">8 Çıkışı</td>`;
+        let g2H = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #7c3aed; background-color: #faf5ff; font-weight: 700; font-size: 7px; text-transform: uppercase;">20:30 Giriş</td>`;
+        let mH  = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Mesai</td>`;
         
         for(let i=1; i<=dim; i++) {
             const dc = `${y}-${mStr}-${String(i).padStart(2,'0')}`;
-            const v = document.getElementById(`cell-${arac.id}-${dc}-vardiya`)?.value || '';
-            const t = document.getElementById(`cell-${arac.id}-${dc}-tek`)?.value || '';
-            const n = document.getElementById(`cell-${arac.id}-${dc}-mesai`)?.value || '';
-            if(v||t||n) hasData = true;
-            if(!isNaN(parseInt(v))) { rV+=parseInt(v); cV[i]+=parseInt(v); }
-            if(!isNaN(parseInt(t))) { rT+=parseInt(t); cT[i]+=parseInt(t); }
-            if(!isNaN(parseInt(n))) { rM+=parseInt(n); cM[i]+=parseInt(n); }
+            const v  = document.getElementById(`cell-${arac.id}-${dc}-vardiya`)?.value    || '';
+            const t  = document.getElementById(`cell-${arac.id}-${dc}-tek`)?.value        || '';
+            const c8 = document.getElementById(`cell-${arac.id}-${dc}-cikis_8`)?.value    || '';
+            const g2 = document.getElementById(`cell-${arac.id}-${dc}-giris_2030`)?.value || '';
+            const n  = document.getElementById(`cell-${arac.id}-${dc}-mesai`)?.value      || '';
+            if(v||t||c8||g2||n) hasData = true;
+            if(!isNaN(parseInt(v)))  { rV  += parseInt(v);  cV[i]  += parseInt(v); }
+            if(!isNaN(parseInt(t)))  { rT  += parseInt(t);  cT[i]  += parseInt(t); }
+            if(!isNaN(parseInt(c8))) { rC8 += parseInt(c8); cC8[i] += parseInt(c8); }
+            if(!isNaN(parseInt(g2))) { rG2 += parseInt(g2); cG2[i] += parseInt(g2); }
+            if(!isNaN(parseInt(n)))  { rM  += parseInt(n);  cM[i]  += parseInt(n); }
             const st = (val) => {
                 if(val === 'X') return 'background: #fee2e2; color: #991b1b; font-weight: 800;';
                 if(val === 'R') return 'background: #fef3c7; color: #92400e; font-weight: 800;';
                 if(val === 'İ' || val === 'I') return 'background: #f3e8ff; color: #6b21a8; font-weight: 800;';
                 return '';
             };
-            vH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(v)}">${v}</td>`;
-            tH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(t)}">${t}</td>`;
-            mH += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155;">${n}</td>`;
+            vH  += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(v)}">${v}</td>`;
+            tH  += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; ${st(t)}">${t}</td>`;
+            c8H += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #d97706; background:#fffbeb;">${c8}</td>`;
+            g2H += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #7c3aed; background:#faf5ff;">${g2}</td>`;
+            mH  += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155;">${n}</td>`;
         }
         if(hasData) {
-            vH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #4f46e5;">${rV}</td></tr>`;
-            tH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #ea580c;">${rT}</td></tr>`;
-            mH += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #059669;">${rM}</td></tr>`;
-            h += vH + tH + (isD?mH:'');
+            vH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #4f46e5;">${rV}</td></tr>`;
+            tH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #ea580c;">${rT}</td></tr>`;
+            c8H += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #fffbeb; color: #d97706;">${rC8}</td></tr>`;
+            g2H += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #faf5ff; color: #7c3aed;">${rG2}</td></tr>`;
+            mH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #059669;">${rM}</td></tr>`;
+            h += vH + tH + (isD ? c8H + g2H + mH : '');
         }
     });
 
     // Alt Toplam Satırları
-    let sV = 0, sT = 0, sG = 0;
+    let sV = 0, sT = 0, sC8 = 0, sG2 = 0, sGrand = 0;
     
     // Vardiya Toplamı Satırı
     let vSumRow = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #f8fafc; font-size: 7px; color: #64748b; text-transform: uppercase;">Vardiya Top.:</td>`;
@@ -425,13 +524,29 @@ window.handlePrint = function() {
     let tSumRow = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #f8fafc; font-size: 7px; color: #64748b; text-transform: uppercase;">Tek Top.:</td>`;
     for(let i=1; i<=dim; i++) { tSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155; font-weight: 700;">${cT[i]}</td>`; sT += cT[i]; }
     tSumRow += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 900; background: #ffedd5; color: #c2410c;">${sT}</td></tr>`;
-    
+
+    // Dikkan's 8 Çıkışı ve 20:30 Girişi satırları (sadece print'te de)
+    let c8SumPrint = '';
+    let g2SumPrint = '';
+    if (isD) {
+        c8SumPrint = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #fffbeb; font-size: 7px; color: #d97706; text-transform: uppercase;">8 Çıkışı Top.:</td>`;
+        for(let i=1; i<=dim; i++) { c8SumPrint += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #d97706; font-weight: 700;">${cC8[i]}</td>`; sC8 += cC8[i]; }
+        c8SumPrint += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 900; background: #fef3c7; color: #b45309;">${sC8}</td></tr>`;
+
+        g2SumPrint = `<tr><td colspan="2" style="border: 1px solid #e2e8f0; padding: 4px; text-align: right; font-weight: 800; background: #faf5ff; font-size: 7px; color: #7c3aed; text-transform: uppercase;">20:30 Giriş Top.:</td>`;
+        for(let i=1; i<=dim; i++) { g2SumPrint += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #7c3aed; font-weight: 700;">${cG2[i]}</td>`; sG2 += cG2[i]; }
+        g2SumPrint += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 900; background: #ede9fe; color: #6d28d9;">${sG2}</td></tr>`;
+    } else {
+        // Non-Dikkan: sum up colM
+        for(let i=1; i<=dim; i++) { /* already accumulated colM above */ }
+    }
+
     // Genel Toplam Satırı
     let gSumRow = `<tr style="background: #1e293b; color: white;"><td colspan="2" style="border: 1px solid #334155; padding: 5px; text-align: right; font-weight: 900; font-size: 8px; text-transform: uppercase; letter-spacing: 1px;">Genel Toplam:</td>`;
-    for(let i=1; i<=dim; i++) { gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 800; font-size: 9px;">${cV[i] + cT[i] + cM[i]}</td>`; sG += (cV[i] + cT[i] + cM[i]); }
-    gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #34d399; font-size: 10px;">${sG}</td></tr>`;
+    for(let i=1; i<=dim; i++) { const tot = cV[i] + cT[i] + cC8[i] + cG2[i] + cM[i]; gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 800; font-size: 9px;">${tot}</td>`; sGrand += tot; }
+    gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #34d399; font-size: 10px;">${sGrand}</td></tr>`;
 
-    h += vSumRow + tSumRow + gSumRow + `</tbody></table></div>`;
+    h += vSumRow + tSumRow + c8SumPrint + g2SumPrint + gSumRow + `</tbody></table></div>`;
 
     const ps = document.getElementById('print-section');
     if(ps) {

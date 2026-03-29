@@ -360,15 +360,20 @@ window.saveDataAndClose = async function (event) {
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
         } else if (formTitle === 'Müşteriye Araç Tanımla') {
-            const musteri_id = document.getElementById('tanim-musteri').value;
-            const arac_id = document.getElementById('tanim-arac').value;
-            const tarife_turu = document.getElementById('tanim-tur').value;
-            const tek_fiyat = parseFloat(document.getElementById('tanim-tek-fiyat').value) || 0;
-            const vardiya_fiyat = parseFloat(document.getElementById('tanim-vardiya-fiyat').value) || 0;
+            const musteriSelect = document.getElementById('tanim-musteri');
+            const musteri_id = musteriSelect.value;
+            const musteriAd  = musteriSelect.options[musteriSelect.selectedIndex]?.text || '';
+            const arac_id    = document.getElementById('tanim-arac').value;
+
+            // Tarife türünü fabrika adına göre otomatik belirle
+            // Dikkan → 'Tek' (kendi puantaj satırları olan fabrika)
+            // Diğerleri → 'Vardiya'
+            const isDikkanFabrika = musteriAd.toUpperCase().includes('DİKKAN') || musteriAd.toUpperCase().includes('DIKKAN');
+            const tarife_turu = isDikkanFabrika ? 'Tek' : 'Vardiya';
 
             if (!musteri_id || !arac_id) throw new Error("Müşteri ve Araç seçimi zorunludur.");
             const { error } = await window.supabaseClient.from('musteri_arac_tanimlari').insert([{
-                musteri_id, arac_id, tarife_turu, tek_fiyat, vardiya_fiyat
+                musteri_id, arac_id, tarife_turu, tek_fiyat: 0, vardiya_fiyat: 0
             }]);
             if (error) {
                 if (error.code === '23505') throw new Error("Bu araç zaten bu müşteriye tanımlı.");
@@ -2186,38 +2191,46 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 const vStr = String(p.vardiya || '').trim();
                 const tStr = String(p.tek || '').trim();
-                const v = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
-                const t = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
+                const v  = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
+                const t  = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
+                const c8 = parseInt(p.cikis_8 || 0);
+                const g2 = parseInt(p.giris_2030 || 0);
                 const mId = p.musteri_id;
                 const mStr = String(p.mesai || '').trim();
-                const m = isNaN(mStr) || mStr === '' ? 0 : parseInt(mStr);
+                const m  = isNaN(mStr) || mStr === '' ? 0 : parseInt(mStr);
                 
-                if(v > 0 || t > 0 || m > 0) {
-                    summary[aId].vardiya += v;
-                    summary[aId].tek += t;
-                    summary[aId].mesai = (summary[aId].mesai || 0) + m;
+                if(v > 0 || t > 0 || c8 > 0 || g2 > 0 || m > 0) {
+                    summary[aId].vardiya  += v;
+                    summary[aId].tek      += t;
+                    summary[aId].cikis_8  = (summary[aId].cikis_8  || 0) + c8;
+                    summary[aId].giris_2030 = (summary[aId].giris_2030 || 0) + g2;
+                    summary[aId].mesai    = (summary[aId].mesai    || 0) + m;
 
                     if(!summary[aId].musteriDetay[mId]) {
-                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, mesai: 0, vardiya_fiyat: 0, tek_fiyat: 0, mesai_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
+                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, vardiya_fiyat: 0, tek_fiyat: 0, cikis_8_fiyat: 0, giris_2030_fiyat: 0, mesai_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
                         // Find match: Try specific month first, then global (null)
                         const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && x.donem === filterAy) 
                                    || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (!x.donem || x.donem === ''));
 
                         if(tanim) {
-                            summary[aId].musteriDetay[mId].vardiya_fiyat = parseFloat(tanim.vardiya_fiyat) || 0;
-                            summary[aId].musteriDetay[mId].tek_fiyat = parseFloat(tanim.tek_fiyat) || 0;
-                            summary[aId].musteriDetay[mId].mesai_fiyat = parseFloat(tanim.mesai_fiyat) || 0;
-                            summary[aId].musteriDetay[mId].kdv_oran = parseFloat(tanim.kdv_oran) || 0;
-                            summary[aId].musteriDetay[mId].tev_oran = parseFloat(tanim.tev_oran) || 0;
+                            summary[aId].musteriDetay[mId].vardiya_fiyat     = parseFloat(tanim.vardiya_fiyat)     || 0;
+                            summary[aId].musteriDetay[mId].tek_fiyat         = parseFloat(tanim.tek_fiyat)         || 0;
+                            summary[aId].musteriDetay[mId].cikis_8_fiyat     = parseFloat(tanim.cikis_8_fiyat)     || 0;
+                            summary[aId].musteriDetay[mId].giris_2030_fiyat  = parseFloat(tanim.giris_2030_fiyat)  || 0;
+                            summary[aId].musteriDetay[mId].mesai_fiyat       = parseFloat(tanim.mesai_fiyat)       || 0;
+                            summary[aId].musteriDetay[mId].kdv_oran          = parseFloat(tanim.kdv_oran)          || 0;
+                            summary[aId].musteriDetay[mId].tev_oran          = parseFloat(tanim.tev_oran)          || 0;
                         }
                     }
-                    summary[aId].musteriDetay[mId].vardiya += v;
-                    summary[aId].musteriDetay[mId].tek += t;
-                    summary[aId].musteriDetay[mId].mesai = (summary[aId].musteriDetay[mId].mesai || 0) + m;
+                    summary[aId].musteriDetay[mId].vardiya   += v;
+                    summary[aId].musteriDetay[mId].tek       += t;
+                    summary[aId].musteriDetay[mId].cikis_8   = (summary[aId].musteriDetay[mId].cikis_8  || 0) + c8;
+                    summary[aId].musteriDetay[mId].giris_2030 = (summary[aId].musteriDetay[mId].giris_2030 || 0) + g2;
+                    summary[aId].musteriDetay[mId].mesai     = (summary[aId].musteriDetay[mId].mesai    || 0) + m;
                 }
             });
         }
@@ -2231,7 +2244,7 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 summary[aId].yakit += parseFloat(y.toplam_tutar) || 0;
             });
@@ -2240,7 +2253,11 @@ async function fetchTaseronFinans() {
         Object.values(summary).forEach(row => {
             let totalBrutOfRow = 0;
             Object.values(row.musteriDetay).forEach(md => {
-                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat) + ((md.mesai || 0) * (md.mesai_fiyat || 0));
+                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat)
+                               + (md.tek     * md.tek_fiyat)
+                               + ((md.cikis_8   || 0) * (md.cikis_8_fiyat   || 0))
+                               + ((md.giris_2030 || 0) * (md.giris_2030_fiyat || 0))
+                               + ((md.mesai     || 0) * (md.mesai_fiyat     || 0));
             });
             row.brut = totalBrutOfRow;
         });
@@ -2542,6 +2559,26 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-tek-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.tek_fiyat}">
                                 </div>
                             </div>
+                            <!-- 8 Çıkışı Satırı (Dikkan Özel) -->
+                            <div class="bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
+                                <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+                                    <span>8 Çıkışı</span> <span class="text-amber-300">${md.cikis_8 || 0} Sefer</span>
+                                </div>
+                                <div class="flex items-center gap-2 relative">
+                                    <span class="text-amber-500/60 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
+                                    <input type="number" step="0.01" class="calc-cikis8-fiyat w-full bg-transparent text-amber-200 text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.cikis_8_fiyat || 0}">
+                                </div>
+                            </div>
+                            <!-- 20:30 Girişi Satırı (Dikkan Özel) -->
+                            <div class="bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
+                                <div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
+                                    <span>20:30 Giriş</span> <span class="text-purple-300">${md.giris_2030 || 0} Sefer</span>
+                                </div>
+                                <div class="flex items-center gap-2 relative">
+                                    <span class="text-purple-500/60 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
+                                    <input type="number" step="0.01" class="calc-giris2030-fiyat w-full bg-transparent text-purple-200 text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.giris_2030_fiyat || 0}">
+                                </div>
+                            </div>
                             <!-- Mesai Row -->
                             <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
@@ -2683,19 +2720,23 @@ window.openCariHakedisDetay = async function(arac_id) {
             
             overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
                 const mId = row.getAttribute('data-mid');
-                const vFiyat = parseFloat(row.querySelector('.calc-vardiya-fiyat').value) || 0;
-                const tFiyat = parseFloat(row.querySelector('.calc-tek-fiyat').value) || 0;
+                const vFiyat  = parseFloat(row.querySelector('.calc-vardiya-fiyat').value)   || 0;
+                const tFiyat  = parseFloat(row.querySelector('.calc-tek-fiyat').value)        || 0;
+                const c8Fiyat = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
+                const g2Fiyat = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
+                const mFiyat  = parseFloat(row.querySelector('.calc-mesai-fiyat').value)      || 0;
                 
-                const vCount = counts[mId]?.vardiya || 0;
-                const tCount = counts[mId]?.tek || 0;
-                const mCount = counts[mId]?.mesai || 0;
-                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat').value) || 0;
+                const vCount  = counts[mId]?.vardiya    || 0;
+                const tCount  = counts[mId]?.tek        || 0;
+                const c8Count = counts[mId]?.cikis_8   || 0;
+                const g2Count = counts[mId]?.giris_2030 || 0;
+                const mCount  = counts[mId]?.mesai      || 0;
                 
                 const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
                 const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
-                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat) + (mCount * mFiyat);
-                const rowKdv = rowBrut * (kdvOran / 100);
-                const rowTev = rowBrut * (tevOran / 100);
+                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat) + (c8Count * c8Fiyat) + (g2Count * g2Fiyat) + (mCount * mFiyat);
+                const rowKdv  = rowBrut * (kdvOran / 100);
+                const rowTev  = rowBrut * (tevOran / 100);
                 const rowTotal = rowBrut;
                 row.querySelector('.row-toplam').innerText = '₺' + rowBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 const kdvEl2 = row.querySelector('.row-kdv-tutar'); if(kdvEl2) kdvEl2.innerText = '+₺' + rowKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
@@ -2724,7 +2765,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         calculateTotals();
 
-        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
+        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
 
@@ -2750,84 +2791,72 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
 
         for (const row of rows) {
             const musteri_id = row.getAttribute('data-mid');
-            const tk = parseFloat(row.querySelector('.calc-tek-fiyat')?.value) || 0;
-            const vd = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value) || 0;
-            const mf = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value) || 0;
-            const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
-            const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
+            const tk   = parseFloat(row.querySelector('.calc-tek-fiyat')?.value)        || 0;
+            const vd   = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value)    || 0;
+            const c8f  = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)     || 0;
+            const g2f  = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value)  || 0;
+            const mf   = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value)      || 0;
+            const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value)     || 0;
+            const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value)     || 0;
 
-            // Try update with all fields including donem check
-            const { data: updRes, error: updErr } = await window.supabaseClient
+            // Sutun hatasi kontrolcu (schema cache veya eksik kolon)
+            const isColErr = (e) => e && e.message && (
+                e.message.toLowerCase().includes('column') ||
+                e.message.toLowerCase().includes('does not exist') ||
+                e.message.toLowerCase().includes('schema cache')
+            );
+
+            // Kademeli payload (bazi tablolarda kdv/tev veya dikkan alanlari olmayabilir)
+            // 1. tam, 2. kdv/tev'siz, 3. sadece temel
+            const payloads = [
+                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya' },
+                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, tarife_turu: 'Vardiya' },
+                { tek_fiyat: tk, vardiya_fiyat: vd, mesai_fiyat: mf, tarife_turu: 'Vardiya' }
+            ];
+
+            // Mevcut kaydi bul: donem=null VEYA donem=taseronAy
+            // Dikkan import null donem ile ekler; manuel kayitlar ay bazli olabilir
+            const orFilter = taseronAy
+                ? `donem.eq.${taseronAy},donem.is.null`
+                : 'donem.is.null';
+
+            const { data: existingList } = await window.supabaseClient
                 .from('musteri_arac_tanimlari')
-                .update({ 
-                    tek_fiyat: tk, 
-                    vardiya_fiyat: vd, 
-                    mesai_fiyat: mf, 
-                    kdv_oran, 
-                    tev_oran, 
-                    tarife_turu: 'Vardiya' 
-                })
+                .select('id, donem')
                 .eq('arac_id', arac_id)
                 .eq('musteri_id', musteri_id)
-                .eq('donem', taseronAy)
-                .select('id');
+                .or(orFilter)
+                .order('donem', { ascending: false, nullsFirst: false });
 
-            let isSaved = !updErr && updRes && updRes.length > 0;
+            // Spesifik ay esleseni, yoksa null donem kaydi kullan
+            const existing = existingList?.find(e => e.donem === taseronAy)
+                          || existingList?.[0];
 
-            if (updErr && updErr.message && (updErr.message.toLowerCase().includes('column') || updErr.message.toLowerCase().includes('does not exist'))) {
-                // Fallback update
-                const { data: fallbackUpd, error: fbErr } = await window.supabaseClient
-                    .from('musteri_arac_tanimlari')
-                    .update({ 
-                        tek_fiyat: tk, 
-                        vardiya_fiyat: vd, 
-                        mesai_fiyat: mf, 
-                        tarife_turu: 'Vardiya' 
-                    })
-                    .eq('arac_id', arac_id)
-                    .eq('musteri_id', musteri_id)
-                    .eq('donem', taseronAy)
-                    .select('id');
-                
-                if (!fbErr && fallbackUpd && fallbackUpd.length > 0) isSaved = true;
-            } else if (updErr) {
-                console.error("Save Update Error:", updErr);
-                throw updErr;
-            }
-
-            // If no record was updated, attempt insert
-            if (!isSaved) {
-                const { data: insRes, error: insErr } = await window.supabaseClient
-                    .from('musteri_arac_tanimlari')
-                    .insert([{ 
-                        arac_id, 
-                        musteri_id, 
-                        donem: taseronAy,
-                        tarife_turu: 'Vardiya', 
-                        tek_fiyat: tk, 
-                        vardiya_fiyat: vd, 
-                        mesai_fiyat: mf, 
-                        kdv_oran, 
-                        tev_oran 
-                    }])
-                    .select('id');
-                
-                if (insErr && insErr.message && (insErr.message.toLowerCase().includes('column') || insErr.message.toLowerCase().includes('does not exist'))) {
-                    // Fallback insert
-                    await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ 
-                        arac_id, 
-                        musteri_id, 
-                        donem: taseronAy,
-                        tarife_turu: 'Vardiya', 
-                        tek_fiyat: tk, 
-                        vardiya_fiyat: vd,
-                        mesai_fiyat: mf
-                    }]);
-                    if (window.Toast) window.Toast.info(`KDV/TEV DB'de yok, sadece fiyatlar kaydedildi.`);
-                } else if (insErr && !insErr.message?.includes('duplicate key')) {
-                    console.error("Save Insert Error:", insErr);
-                    throw insErr;
+            if (existing) {
+                // ID uzerinden direkt guncelle - en dolu payload'dan basla
+                let saved = false;
+                for (const payload of payloads) {
+                    const { error: updErr } = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .update(payload)
+                        .eq('id', existing.id);
+                    if (!updErr) { saved = true; break; }        // basarili
+                    if (!isColErr(updErr)) throw updErr;         // beklenmedik hata
+                    // kolon hatasi → bir alt payload dene
                 }
+                if (!saved) throw new Error('Fiyatlar kaydedilemedi.');
+            } else {
+                // Hic kayit yok, yeni olustur - en dolu payload'dan basla
+                let saved = false;
+                for (const payload of payloads) {
+                    const { error: insErr } = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .insert([{ arac_id, musteri_id, donem: taseronAy || null, ...payload }]);
+                    if (!insErr) { saved = true; break; }
+                    if (insErr.message?.includes('duplicate')) { saved = true; break; }
+                    if (!isColErr(insErr)) throw insErr;
+                }
+                if (!saved) throw new Error('Fiyat kaydi eklenemedi.');
             }
         }
         
@@ -3041,113 +3070,93 @@ async function fetchMusteriler() {
             const tekAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('tek'));
             const mesaiAraclar = isDikkan ? araclar.filter(t => t.mesai_fiyat > 0 || t.tarife_turu?.toLowerCase().includes('mesai')) : [];
 
+            // Sadece plakaları göster, etiket yok
             const buildAracChip = (t) => {
-                const isVardiya = t.tarife_turu?.toLowerCase().includes('vardiya');
                 const plaka = t.araclar?.plaka || 'Bilinmiyor';
-                let label = isVardiya ? 'VRD' : 'TEK';
-                let labelColor = isVardiya ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400';
-
-                if (isDikkan) {
-                    const isMesai = t.tarife_turu?.toLowerCase().includes('mesai') || t.mesai_fiyat > 0;
-                    label = isMesai ? 'MES' : 'TEK';
-                    labelColor = isMesai ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400';
-                }
-                
-                return `<div class="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-lg group hover:border-white/20 transition-all">
-                    <span class="px-1 py-0.5 rounded-[4px] text-[8px] font-black ${labelColor} uppercase">${label}</span>
-                    <span class="text-[10px] font-bold text-white font-mono">${plaka}</span>
-                    <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="ml-1 text-gray-600 hover:text-red-400 text-[10px] transition-all">✕</button>
+                return `<div class="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/8 rounded-md hover:bg-white/10 hover:border-white/20 transition-all group">
+                    <span class="text-[10px] font-black text-white font-mono tracking-wider">${plaka}</span>
+                    <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="ml-0.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 text-[9px] transition-all leading-none" title="Kaldır">✕</button>
                 </div>`;
             };
 
             const card = document.createElement('div');
-            card.className = 'bg-white/3 border border-white/8 rounded-2xl overflow-hidden hover:border-white/15 transition-all';
+            card.className = 'relative bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/8 rounded-2xl overflow-hidden hover:border-white/15 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 flex flex-col';
             card.setAttribute('data-musteri-id', m.id);
+
+            // Fabrikaya özel renk şeridi
+            const accentColors = ['from-orange-500 to-amber-500', 'from-blue-500 to-indigo-500', 'from-emerald-500 to-teal-500', 'from-purple-500 to-violet-500', 'from-pink-500 to-rose-500', 'from-cyan-500 to-sky-500'];
+            const accentColor = accentColors[colorIdx];
+
             card.innerHTML = `
+                <!-- Renk şeridi (üst) -->
+                <div class="h-1 w-full bg-gradient-to-r ${accentColor} opacity-70"></div>
+
                 <!-- Card Header -->
-                <div class="p-4 flex items-start gap-3">
-                    <div class="w-12 h-12 rounded-xl ${colors[colorIdx]} flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg">
+                <div class="p-4 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${accentColor} flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg shadow-black/30">
                         ${m.logo_url ? `<img src="${m.logo_url}" class="w-full h-full rounded-xl object-cover" onerror="this.parentElement.textContent='${initials}'">` : initials}
                     </div>
                     <div class="flex-1 min-w-0">
-                        <div class="flex items-start justify-between gap-2">
-                            <div>
-                                <h4 class="font-black text-white text-sm leading-tight">${m.ad}</h4>
-                                ${m.yetkili_kisi_ad_soyad ? `<p class="text-[10px] text-gray-400 mt-0.5">${m.yetkili_kisi_ad_soyad}${m.telefon ? ` • ${m.telefon}` : ''}</p>` : ''}
-                                ${m.adres ? `<p class="text-[10px] text-gray-600 mt-0.5 truncate">${m.adres}</p>` : ''}
-                            </div>
-                            <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                                <span class="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded-full text-[9px] font-black">${m.vade_gun || 0} Gün Vade</span>
-                                ${m.vergi_no_daire ? `<span class="text-[9px] text-gray-600 font-mono">${m.vergi_no_daire}</span>` : ''}
-                            </div>
-                        </div>
+                        <h4 class="font-black text-white text-sm leading-tight truncate">${m.ad}</h4>
+                        <p class="text-[10px] text-gray-500 mt-0.5 truncate">
+                            ${m.yetkili_kisi_ad_soyad ? `${m.yetkili_kisi_ad_soyad}` : ''}${m.telefon ? ` • ${m.telefon}` : ''}${!m.yetkili_kisi_ad_soyad && !m.telefon ? 'Yetkili girilmemiş' : ''}
+                        </p>
                     </div>
-                </div>
-
-                <!-- Vehicle Stats Chips -->
-                <div class="px-4 pb-3 flex items-center gap-2 flex-wrap">
-                    ${isDikkan ? `
-                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                            <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                            <span class="text-[10px] font-bold text-emerald-400">${mesaiAraclar.length} Mesai Araç</span>
-                        </div>
-                    ` : `
-                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                            <span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
-                            <span class="text-[10px] font-bold text-orange-400">${vardiyaAraclar.length} Vardiya Araç</span>
-                        </div>
-                        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                            <span class="text-[10px] font-bold text-blue-400">${tekAraclar.length} Tek Sefer Araç</span>
-                        </div>
-                    `}
-                    <div class="flex items-center gap-1.5 px-2.5 py-1 bg-white/5 border border-white/10 rounded-lg ml-auto">
-                        <span class="text-[10px] font-bold text-gray-400">Toplam: ${araclar.length} araç</span>
+                    <div class="flex-shrink-0 text-right">
+                        <div class="text-[11px] font-black text-white">${araclar.length}</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-wide">Araç</div>
                     </div>
                 </div>
 
                 <!-- Assigned Vehicles Expandable -->
-                <div class="border-t border-white/5">
+                <div class="border-t border-white/5 flex-1">
                     <button onclick="toggleMusteriAraclar(this)" class="w-full px-4 py-2 text-[10px] font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between uppercase tracking-widest">
-                        <span class="flex items-center gap-2"><i data-lucide="truck" class="w-3 h-3"></i>Atanmış Araçlar</span>
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="truck" class="w-3 h-3"></i>
+                            Araçlar
+                            <span class="px-1.5 py-0.5 bg-white/10 rounded-full text-[9px] font-black text-gray-400">${araclar.length}</span>
+                        </span>
                         <i data-lucide="chevron-down" class="w-3 h-3 transition-transform musteri-arac-chevron"></i>
                     </button>
-                    <div class="musteri-arac-panel hidden px-4 pb-3 pt-2 bg-black/20">
-                        <div class="flex flex-wrap gap-2 mb-3">
-                            ${araclar.length > 0 ? araclar.map(buildAracChip).join('') : `<p class="text-[10px] text-gray-600 italic py-2">Henüz araç atanmamış.</p>`}
+                    <div class="musteri-arac-panel hidden bg-black/20">
+                        <!-- Compact plaka grid -->
+                        <div class="px-3 pt-2 pb-1">
+                            ${araclar.length > 0
+                                ? `<div class="flex flex-wrap gap-1.5">${araclar.map(buildAracChip).join('')}</div>`
+                                : `<p class="text-[10px] text-gray-600 italic py-2 px-1">Henüz araç atanmamış.</p>`
+                            }
                         </div>
-                        <div class="flex gap-2 flex-wrap border-t border-white/5 pt-3">
-                            <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-blue-400 hover:text-blue-300 border border-blue-500/20 hover:border-blue-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
+                        <!-- Araç yönetim butonları -->
+                        <div class="flex gap-1.5 px-3 pb-3 pt-2 border-t border-white/5">
+                            <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-blue-400 hover:text-white hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
                                 <i data-lucide="plus" class="w-3 h-3"></i> Ekle
                             </button>
-                            <button onclick="window.openTopluAracEkle('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-orange-400 hover:text-orange-300 border border-orange-500/20 hover:border-orange-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="list-plus" class="w-3 h-3"></i> Toplu Ekle
+                            <button onclick="window.openTopluAracEkle('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-orange-400 hover:text-white hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
+                                <i data-lucide="list-plus" class="w-3 h-3"></i> Toplu
                             </button>
-                            <button onclick="window.openTopluAracSil('${m.id}','${m.ad}')" class="flex-1 min-w-[70px] py-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 border border-red-500/20 hover:border-red-500/40 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i> Toplu Sil
+                            <button onclick="window.openTopluAracSil('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-red-400 hover:text-white hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
+                                <i data-lucide="trash-2" class="w-3 h-3"></i> Sil
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Actions -->
-                <div class="border-t border-white/5 px-4 py-2 flex items-center justify-between">
+                <!-- Actions Footer -->
+                <div class="border-t border-white/5 px-4 py-2.5 flex items-center justify-between bg-black/10">
                     <button onclick="openPuantajForMusteri('${m.id}')"
-                        class="flex items-center gap-1.5 text-[10px] font-bold text-orange-400 hover:text-orange-300 transition-all">
+                        class="flex items-center gap-1.5 text-[10px] font-black text-orange-400 hover:text-orange-300 transition-all bg-orange-500/10 hover:bg-orange-500/20 px-3 py-1.5 rounded-lg border border-orange-500/20 hover:border-orange-500/40">
                         <i data-lucide="table-2" class="w-3 h-3"></i> Puantaj Aç
                     </button>
-                    <div class="flex items-center gap-3">
-                        <button onclick="openModal('Müşteri Güncelle', '${m.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-all">Düzenle</button>
-                        <button onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-all">Sil</button>
+                    <div class="flex items-center gap-2">
+                        ${m.vade_gun ? `<span class="text-[9px] text-gray-600 font-mono">${m.vade_gun}g vade</span>` : ''}
+                        <button onclick="openModal('Müşteri Güncelle', '${m.id}')" class="text-[10px] font-bold text-gray-500 hover:text-white transition-all px-2 py-1 rounded-md hover:bg-white/5">Düzenle</button>
+                        <button onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" class="text-[10px] font-bold text-red-600 hover:text-red-400 transition-all px-2 py-1 rounded-md hover:bg-red-500/10">Sil</button>
                     </div>
                 </div>
             `;
             grid.appendChild(card);
         });
+
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -3241,22 +3250,19 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
                 <!-- Üst Kontroller -->
                 <div class="flex gap-4 mb-6">
                     <div class="flex-1">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Varsayılan Tarife Türü</label>
-                        <select id="toplu-tarife-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
-                            ${musteriAdi.toUpperCase().includes('DİKKAN') ? `
-                                <option value="Tek">Tek Sefer (Tur Başı)</option>
-                                <option value="Mesai">Mesai (Dikkan Özel)</option>
-                            ` : `
-                                <option value="Vardiya">Vardiya (Aylık/Günlük Sabit)</option>
-                                <option value="Tek">Tek Sefer (Tur Başı)</option>
-                            `}
-                        </select>
-                    </div>
-                    <div class="flex-1">
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Plaka Ara</label>
                         <input type="text" id="toplu-arac-search" onkeyup="window.filterTopluAraclar()" placeholder="Plaka girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
                     </div>
+                    <div class="flex items-end pb-0.5">
+                        <div class="px-4 py-3 rounded-xl border text-[11px] font-bold leading-tight text-center ${musteriAdi.toUpperCase().includes('DİKKAN') || musteriAdi.toUpperCase().includes('DIKKAN') ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'}">
+                            ${musteriAdi.toUpperCase().includes('DİKKAN') || musteriAdi.toUpperCase().includes('DIKKAN')
+                                ? '✨ Dikkan — Tek · Vardiya · Mesai<br>8 Çıkışı · 20:30 Girişi<br><span class="opacity-70">Puantaj açınca otomatik</span>'
+                                : '✓ Standart Fabrika<br>Vardiya + Tek<br><span class="opacity-70">Puantaj açınca otomatik</span>'
+                            }
+                        </div>
+                    </div>
                 </div>
+
 
                 <!-- Araç Seçim Listesi -->
                 <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
@@ -3327,14 +3333,13 @@ window.kaydetTopluAraclar = async function(musteriId) {
         return;
     }
 
-    const tur = document.getElementById('toplu-tarife-tur').value;
-    const btn = document.querySelector('button[onclick*="kaydetTopluAraclar"]');
-    let origHtml = '';
-    if (btn) {
-        origHtml = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Kaydediliyor...';
-        btn.disabled = true;
-    }
+    // Musteri adi verilmedi ise DB'den musteri adini al (fabrika tespiti icin)
+    // musteriId zaten elimizde, musteriAdi'ni overlay'den aliyoruz
+    const musteriAdiText = document.querySelector('#toplu-arac-modal-overlay p.text-xs')?.textContent || '';
+    const isDikkan = musteriAdiText.toUpperCase().includes('DİKKAN') || musteriAdiText.toUpperCase().includes('DIKKAN');
+    // Dikkan: 'Tek' (puantaj acildiginda 5 satir otomatik goster)
+    // Diger fabrikalar: 'Vardiya' (puantaj acildiginda 2 satir: vardiya + tek)
+    const tur = isDikkan ? 'Tek' : 'Vardiya';
 
     try {
         const payload = checked.map(aracId => ({
