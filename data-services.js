@@ -597,51 +597,39 @@ window.saveDataAndClose = async function (event) {
             }]).select();
             if (error) throw error;
 
-            // --- 3. ARAÇ BİTİŞ TARİHLERİNİ GÜNCELLE ---
+            // --- 3. ARAÇ BİTİŞ TARİHLERİNİ GÜNCELLE (OTOMATİK) ---
             const updatePayload = {};
-            const pType = String(police_turu).toLowerCase();
+            const pType = String(police_turu).trim().toLowerCase();
             if (pType.includes('kasko')) updatePayload.kasko_bitis = bitis_tarihi;
             else if (pType.includes('trafik') || pType.includes('sigort') || pType.includes('zorunlu')) updatePayload.sigorta_bitis = bitis_tarihi;
             else if (pType.includes('koltuk')) updatePayload.koltuk_bitis = bitis_tarihi;
 
             if (Object.keys(updatePayload).length > 0) {
-                await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
+                const { error: updError } = await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
+                if (updError) console.error("Araç tarih güncelleme hatası:", updError);
             }
 
+            // --- 4. ÖDEME KAYITLARI (OPSİYONEL) ---
             if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
                 const tarihIcin = baslangic_tarihi || new Date().toISOString().split('T')[0];
                 let odemeAciklama = `[${police_turu}] Otomatik Ödeme Kaydı - Poliçe ID: ${policeData?.[0]?.id || ''}`;
                 let gercekOdemeTuru = odeme_turu === 'KREDİ KARTI' ? 'Kredi Kartı' : (odeme_turu === 'CARİ HESABI' ? 'Cari Hesap' : 'Nakit');
-                // Ödeme yapan hesap: Cari Hesap seçildiyse orası, seçilmediyse sigorta acentesi (cari_id)
                 const payer_cari = odeme_cari_id_police || cari_id;
 
                 if (payer_cari) {
-                    const { error: odemeHata } = await window.supabaseClient.from('cari_odemeler').insert([{
+                    await window.supabaseClient.from('cari_odemeler').insert([{
                         cari_id: payer_cari, tarih: tarihIcin,
                         odeme_turu: gercekOdemeTuru, tutar: toplam_tutar, aciklama: odemeAciklama
                     }]);
-                    if (odemeHata) console.error('Otomatik cari ödeme eklenemedi:', odemeHata);
                 }
 
                 if (odeme_turu === 'KREDİ KARTI' && kredi_karti_id) {
-                    const { error: kkHata } = await window.supabaseClient.from('kredi_karti_islemleri').insert([{
+                    await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi: tarihIcin,
                         taksit_sayisi: taksit_sayisi,
                         aciklama: `[${police_turu}] Poliçe Ödemesi [POLİÇE ID: ${policeData?.[0]?.id}]`, toplam_tutar: toplam_tutar
                     }]);
-                    if (kkHata) console.error('Otomatik kredi kartı harcaması eklenemedi:', kkHata);
                 }
-            }
-
-            // OTOMATİK ARAÇ GÜNCELLEME: Poliçe türüne göre aracın bitiş tarihini güncelle
-            const updateData = {};
-            // String eşleşmesini garantilemek için .trim() kullanıyoruz
-            if (police_turu.trim() === 'Trafik' || police_turu.trim() === 'Trafik Sigortası') updateData.sigorta_bitis = bitis_tarihi;
-            else if (police_turu.trim() === 'Kasko') updateData.kasko_bitis = bitis_tarihi;
-
-            if (Object.keys(updateData).length > 0) {
-                const { error: updError } = await window.supabaseClient.from('araclar').update(updateData).eq('id', arac_id);
-                if (updError) console.error("Araç tarih güncelleme hatası:", updError);
             }
 
             if (typeof fetchPoliceler === 'function') fetchPoliceler();
@@ -6418,16 +6406,27 @@ window.fetchKrediKartlari = async function () {
         for (let k of (kartlar || [])) {
             if (!k.cari_id) {
                 try {
-                    console.log(`[KART AUTO-FIX] Cari oluşturuluyor: ${k.kart_adi}`);
+                    console.log(`[KART AUTO-FIX] Cari kontrol/oluşturma: ${k.kart_adi}`);
                     const cariUnvan = k.kart_adi + (k.kart_sahibi ? ` (${k.kart_sahibi})` : '');
-                    const { data: newCari, error: cariErr } = await window.supabaseClient.from('cariler').insert([{
-                        unvan: cariUnvan,
-                        isletme_turu: 'BANKA / KREDİ KARTI',
-                        aciklama: 'Kredi kartı hesabı (Otomatik-Sistem)'
-                    }]).select();
-                    if (!cariErr && newCari?.[0]) {
-                        await window.supabaseClient.from('kredi_kartlari').update({ cari_id: newCari[0].id }).eq('id', k.id);
-                        k.cari_id = newCari[0].id; // Update local object
+                    
+                    // Önce aynı unvanda bir cari var mı bak
+                    const { data: existingCari } = await window.supabaseClient.from('cariler')
+                        .select('id').eq('unvan', cariUnvan).maybeSingle();
+                    
+                    let targetCariId = existingCari?.id;
+
+                    if (!targetCariId) {
+                        const { data: newCari, error: cariErr } = await window.supabaseClient.from('cariler').insert([{
+                            unvan: cariUnvan,
+                            isletme_turu: 'BANKA / KREDİ KARTI',
+                            aciklama: 'Kredi kartı hesabı (Otomatik-Sistem)'
+                        }]).select();
+                        if (!cariErr && newCari?.[0]) targetCariId = newCari[0].id;
+                    }
+
+                    if (targetCariId) {
+                        await window.supabaseClient.from('kredi_kartlari').update({ cari_id: targetCariId }).eq('id', k.id);
+                        k.cari_id = targetCariId; // Yerel nesneyi güncelle
                     }
                 } catch(e) { console.error("Card link failed:", e); }
             }
@@ -6469,9 +6468,10 @@ window.fetchKrediKartlari = async function () {
             const kullanilabilir = (limit - harcanan > 0) ? limit - harcanan : 0;
 
             const txDataStr = encodeURIComponent(JSON.stringify(kIslem.transactions));
+            const cariIdStr = k.cari_id ? `'${k.cari_id}'` : 'null';
 
             tr.innerHTML = `
-                <td class="px-6 py-4 cursor-pointer" onclick="window.openCariDetail('${k.cari_id}')">
+                <td class="px-6 py-4 cursor-pointer" onclick="if(${cariIdStr}) window.openCariDetail(${cariIdStr})">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <i data-lucide="credit-card" class="w-5 h-5 text-orange-500"></i>
