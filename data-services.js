@@ -5470,6 +5470,7 @@ window.fetchDashboardData = async function () {
             (araclar || []).forEach(a => {
                 if (a.sigorta_bitis && a.sigorta_bitis <= future90Str) evrakItems.push({ plaka: a.plaka, tur: 'Sigorta', bitis: a.sigorta_bitis });
                 if (a.kasko_bitis && a.kasko_bitis <= future90Str) evrakItems.push({ plaka: a.plaka, tur: 'Kasko', bitis: a.kasko_bitis });
+                if (a.koltuk_bitis && a.koltuk_bitis <= future90Str) evrakItems.push({ plaka: a.plaka, tur: 'Koltuk', bitis: a.koltuk_bitis });
                 if (a.vize_bitis && a.vize_bitis <= future90Str) evrakItems.push({ plaka: a.plaka, tur: 'Vize', bitis: a.vize_bitis });
             });
             evrakItems.sort((a, b) => a.bitis.localeCompare(b.bitis));
@@ -6493,7 +6494,7 @@ window.fetchKrediKartlari = async function () {
                     ${kIslem.count} İşlem
                 </td>
                 <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                    <button onclick="window.openCariDetail('${k.cari_id}')" class="px-4 py-1.5 text-xs font-bold bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500 hover:text-white transition-all">Detay (Ekstre)</button>
+                    <button onclick="if(${cariIdStr}) window.openCariDetail(${cariIdStr})" class="px-4 py-1.5 text-xs font-bold bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500 hover:text-white transition-all">Detay (Ekstre)</button>
                     <button onclick="deleteRecord('kredi_kartlari','${k.id}','fetchKrediKartlari')" class="text-danger text-[10px] font-bold hover:underline px-2">Sil</button>
                 </td>
             `;
@@ -6756,7 +6757,7 @@ window.fetchAylikOdemeOzeti = async function () {
                 <td class="px-6 py-5 text-center font-bold text-gray-400">${r.count} Kalem</td>
                 <td class="px-6 py-5 text-right font-black text-orange-500 text-lg">₺${r.tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                 <td class="px-6 py-5 text-right">
-                    <button onclick="window.openCariDetail('${r.id}')" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-all" title="Detay Gör">
+                    <button onclick="if('${r.id}') window.openCariDetail('${r.id}')" class="p-2 hover:bg-white/10 rounded-lg text-gray-400 transition-all" title="Detay Gör">
                         <i data-lucide="eye" class="w-4 h-4"></i>
                     </button>
                 </td>

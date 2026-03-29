@@ -445,6 +445,11 @@ window.filterTaksitler = function (category) {
 
 /* === 2.C. CARİ DETAY & EKSTRE (PHASE 8) === */
 window.openCariDetail = function (cariId) {
+    if (!cariId || cariId === 'undefined' || cariId === 'null') {
+        console.warn("[CariDetail] Geçersiz ID ile modal açılmaya çalışıldı:", cariId);
+        if (window.Toast) window.Toast.error("Bu işlem için geçerli bir Cari Kart kaydı bulunamadı.");
+        return;
+    }
     const modal = document.getElementById('cari-detail-modal');
     if (!modal) return;
 
