@@ -6180,12 +6180,12 @@ window.fetchCariDetails = async function (cariId) {
             { data: bakimlar },
             { data: kartRes }
         ] = await Promise.all([
-            window.supabaseClient.from('cariler').select('*').eq('id', cariId).single(),
+            window.supabaseClient.from('cariler').select('*').eq('id', cariId).maybeSingle(),
             window.supabaseClient.from('cari_faturalar').select('*').eq('cari_id', cariId).order('tarih', { ascending: false }),
             window.supabaseClient.from('cari_odemeler').select('*').eq('cari_id', cariId).order('tarih', { ascending: false }),
             window.supabaseClient.from('arac_policeler').select('*, araclar(plaka)').eq('cari_id', cariId).order('baslangic_tarihi', { ascending: false }),
             window.supabaseClient.from('arac_bakimlari').select('*, araclar(plaka)').eq('cari_id', cariId).order('islem_tarihi', { ascending: false }),
-            window.supabaseClient.from('kredi_kartlari').select('id').eq('cari_id', cariId).single()
+            window.supabaseClient.from('kredi_kartlari').select('id').eq('cari_id', cariId).maybeSingle()
         ]);
 
         if (!cari) return;
@@ -6293,8 +6293,12 @@ window.fetchCariDetails = async function (cariId) {
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
-        console.error(e);
-        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-red-500">Veri yüklenirken bir hata oluştu.</td></tr>';
+        console.error('[fetchCariDetails] Hata:', e);
+        const tbody2 = document.getElementById('cari-detail-tbody');
+        if (tbody2) tbody2.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-red-500 font-bold text-sm">Veri yüklenirken bir hata oluştu.<br><span class="text-xs text-gray-600 font-normal mt-1 block">${e.message}</span></td></tr>`;
+        // Başlık takılı kalmasın
+        const unvanEl2 = document.getElementById('cari-detail-unvan');
+        if (unvanEl2 && unvanEl2.textContent === 'Yükleniyor...') unvanEl2.textContent = 'Hata';
     }
 }
 
