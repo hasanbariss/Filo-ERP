@@ -5815,7 +5815,7 @@ window.fetchSonAktiviteler = async function () {
     try {
         const [resYakit, resBakim, resMaas, resPolice] = await Promise.all([
             window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', { ascending: false }).limit(30),
-            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, islem_detayi, aciklama, araclar(plaka), cariler(unvan)').order('islem_tarihi', { ascending: false }).limit(30),
+            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka), cariler(unvan)').order('islem_tarihi', { ascending: false }).limit(30),
             window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('id', { ascending: false }).limit(30),
             window.supabaseClient.from('arac_policeler').select('bitis_tarihi, toplam_tutar, police_turu, araclar(plaka), cariler(unvan)').order('bitis_tarihi', { ascending: false }).limit(30)
         ]);
@@ -5828,20 +5828,18 @@ window.fetchSonAktiviteler = async function () {
                 date: y.tarih,
                 type: 'YAKIT',
                 detail: `${y.araclar?.plaka || '-'} / Yakıt Alımı`,
-                related: y.araclar?.plaka || '-',
                 tutar: -(y.toplam_tutar || 0)
             });
         });
 
         // 2. Bakım (Expenses)
         (resBakim.data || []).forEach(b => {
-            const desc = b.islem_detayi || b.aciklama || 'Servis Bakımı';
+            const desc = b.aciklama || 'Servis Bakımı';
             const vendor = b.cariler?.unvan ? ` [Servis: ${b.cariler.unvan}]` : '';
             activities.push({
                 date: b.islem_tarihi,
                 type: 'BAKIM',
                 detail: `${b.araclar?.plaka || '-'} / ${desc}${vendor}`,
-                related: b.araclar?.plaka || '-',
                 tutar: -(b.toplam_tutar || 0)
             });
         });
@@ -5852,7 +5850,6 @@ window.fetchSonAktiviteler = async function () {
                 date: m.donem ? `${m.donem}-01` : new Date().toISOString().split('T')[0],
                 type: 'MAAŞ',
                 detail: `${m.soforler?.ad_soyad || '-'} / Personel Maaş`,
-                related: m.soforler?.ad_soyad || '-',
                 tutar: -(m.net_maas || 0)
             });
         });
@@ -5864,7 +5861,6 @@ window.fetchSonAktiviteler = async function () {
                 date: p.bitis_tarihi,
                 type: 'POLİÇE',
                 detail: `${p.araclar?.plaka || '-'} / ${p.police_turu || 'Sigorta'}${vendor}`,
-                related: p.araclar?.plaka || '-',
                 tutar: -(p.toplam_tutar || 0)
             });
         });
@@ -5892,8 +5888,8 @@ window.fetchSonAktiviteler = async function () {
                 <td class="py-3 px-2">
                     <span class="px-2 py-0.5 rounded text-[10px] font-black border ${typeColor}">${item.type}</span>
                 </td>
-                <td class="py-3 px-2 text-xs font-bold text-gray-200 leading-relaxed break-words" title="${item.detail}">${item.detail}</td>
-                <td class="py-3 px-2 text-right font-black text-red-400 whitespace-nowrap">${displayTutar}</td>
+                <td class="py-3 px-2 text-xs font-bold text-gray-200 leading-normal whitespace-normal break-words" style="min-width: 300px;" title="${item.detail}">${item.detail}</td>
+                <td class="py-3 px-2 text-right font-black text-red-500 whitespace-nowrap">${displayTutar}</td>
             </tr>`;
         }).join('');
 
@@ -5904,6 +5900,10 @@ window.fetchSonAktiviteler = async function () {
         tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-red-500 font-bold uppercase tracking-widest">Veri yükleme hatası!</td></tr>';
     }
 };
+
+// Alias to match filoyonetim.html initialization
+window.fetchDashboard = window.fetchDashboardData;
+
 
 /* ==========================================
    DOSYA YÖNETİMİ - SUPABASE STORAGE
