@@ -653,10 +653,10 @@
                         <h3 class="font-bold flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
                         <button onclick="fetchDashboardData()" class="text-xs bg-white/5 hover:bg-white/10 text-gray-400 px-2 py-1 rounded-lg transition-all flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Yenile</button>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto overflow-y-auto max-h-[450px]">
                         <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-white/5">
+                            <thead class="sticky top-0 bg-[#0f172a] z-10">
+                                <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-white/5 bg-[#0f172a]">
                                     <th class="pb-3 px-2">Tarih</th>
                                     <th class="pb-3 px-2">Tür</th>
                                     <th class="pb-3 px-2">İşlem Detayı</th>
@@ -664,7 +664,7 @@
                                 </tr>
                             </thead>
                             <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
-                                <tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Aktiviteler yükleniyor...</td></tr>
+                                <tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic">Aktiviteler yükleniyor...</td></tr>
                             </tbody>
                         </table>
                     </div>
