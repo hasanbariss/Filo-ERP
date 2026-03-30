@@ -193,6 +193,13 @@
                         <option value="ÖZMAL">Özmal</option>
                         <option value="TAŞERON">Taşeron</option>
                     </select>
+                    <div class="w-px h-4 bg-slate-300"></div>
+                    <select id="filter-bolge" onchange="window.filterPuantaj()"
+                        class="bg-transparent text-xs font-bold text-slate-600 px-3 py-1.5 focus:outline-none cursor-pointer">
+                        <option value="">Tüm Bölgeler</option>
+                        <option value="İzmir">🔵 İzmir</option>
+                        <option value="Manisa">🟠 Manisa</option>
+                    </select>
                 </div>
 
                 <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
@@ -240,11 +247,22 @@
             <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">İ = İzin</span>
         </div>
         
-        <div class="ml-auto flex items-center gap-3">
-             <i data-lucide="list-filter" class="w-3.5 h-3.5 text-slate-400"></i>
-             <select id="filter-arac" onchange="window.filterPuantaj()" class="bg-transparent text-[10px] font-black text-slate-500 uppercase tracking-widest focus:outline-none cursor-pointer border-b-2 border-slate-100 hover:border-indigo-400 pb-0.5">
-                <option value="ALL">Tüm Araçlar</option>
-             </select>
+        <div class="ml-auto flex items-center gap-2 relative">
+             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+             <div class="relative group">
+                 <input type="text" id="filter-arac-input" placeholder="PLAKA ARA..." 
+                        class="bg-transparent text-[10px] w-28 md:w-40 font-black text-slate-500 uppercase tracking-widest focus:outline-none border-b-2 border-slate-100 hover:border-indigo-400 focus:border-indigo-600 pb-0.5 transition-colors" 
+                        autocomplete="off" 
+                        onfocus="window.openAracDropdown()" 
+                        oninput="window.filterAracOptions()" 
+                        onblur="setTimeout(() => window.closeAracDropdown(), 200)">
+                 <input type="hidden" id="filter-arac" value="ALL" onchange="window.filterPuantaj()">
+                 
+                 <!-- Dynamic Dropdown Menu -->
+                 <div id="filter-arac-dropdown" class="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] w-48 max-h-60 overflow-y-auto hidden flex-col text-left transition-all origin-top-right transform scale-95 opacity-0 custom-scrollbar">
+                     <!-- Options populated via JS -->
+                 </div>
+             </div>
         </div>
     </div>
 

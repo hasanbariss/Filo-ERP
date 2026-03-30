@@ -519,6 +519,16 @@ window.saveDataAndClose = async function (event) {
                 islem_tarihi, arac_id, islem_turu, cari_id, aciklama, toplam_tutar, dosya_url
             }]).select();
             if (error) throw error;
+            
+            // Eğer bakım sırasında KM girildiyse aracın güncel KM'sini de güncelle
+            if (bakim_km && arac_id) {
+                try {
+                    const { data: aData } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', arac_id).single();
+                    if (!aData || bakim_km > (aData.guncel_km || 0)) {
+                        await window.supabaseClient.from('araclar').update({ guncel_km: bakim_km }).eq('id', arac_id);
+                    }
+                } catch(err) { console.error('KM update error:', err); }
+            }
 
             // Ödeme işlemi varsa otomatik düşüm yap
             if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
@@ -609,10 +619,13 @@ window.saveDataAndClose = async function (event) {
                 if (updError) console.error("Araç tarih güncelleme hatası:", updError);
             }
 
-            // --- 4. ÖDEME KAYITLARI (OPSİYONEL) ---
+            // --- 4. ÖDEME KAYITLARI (Entegre Detaylar) ---
             if (odeme_turu !== 'VADELİ (Cariye Yaz)' && toplam_tutar > 0) {
                 const tarihIcin = baslangic_tarihi || new Date().toISOString().split('T')[0];
-                let odemeAciklama = `[${police_turu}] Otomatik Ödeme Kaydı - Poliçe ID: ${policeData?.[0]?.id || ''}`;
+                const plakaDetay = document.getElementById('police-arac')?.options[document.getElementById('police-arac')?.selectedIndex]?.text || '-';
+                const acenteDetay = document.getElementById('police-cari')?.options[document.getElementById('police-cari')?.selectedIndex]?.text || 'Genel';
+                
+                let odemeAciklama = `[${police_turu}] ${plakaDetay} - ${acenteDetay} - ${taksit_sayisi} Taksit [POLİÇE ID: ${policeData?.[0]?.id || ''}]`;
                 let gercekOdemeTuru = odeme_turu === 'KREDİ KARTI' ? 'Kredi Kartı' : (odeme_turu === 'CARİ HESABI' ? 'Cari Hesap' : 'Nakit');
                 const payer_cari = odeme_cari_id_police || cari_id;
 
@@ -627,7 +640,7 @@ window.saveDataAndClose = async function (event) {
                     await window.supabaseClient.from('kredi_karti_islemleri').insert([{
                         kart_id: kredi_karti_id, islem_tarihi: tarihIcin,
                         taksit_sayisi: taksit_sayisi,
-                        aciklama: `[${police_turu}] Poliçe Ödemesi [POLİÇE ID: ${policeData?.[0]?.id}]`, toplam_tutar: toplam_tutar
+                        aciklama: odemeAciklama, tutar: toplam_tutar
                     }]);
                 }
             }
@@ -659,11 +672,12 @@ window.saveDataAndClose = async function (event) {
             
             // Kredi Kartı Senkronizasyonu
             const odemeAciklamaTag = `[POLİÇE ID: ${id}]`;
-            const guncelAciklama = `[Poliçe Düzenleme] ${aciklama || ''} ${odemeAciklamaTag}`;
+            const plakaDetay = document.getElementById('edit-arac-plaka')?.textContent || document.getElementById('police-arac')?.options[document.getElementById('police-arac')?.selectedIndex]?.text || '';
+            const guncelAciklama = `[Poliçe Düzenleme] ${plakaDetay} - ${aciklama || ''} ${odemeAciklamaTag}`;
             
             if (kredi_karti_id) {
-                const existing = await window.supabaseClient.from('kredi_karti_islemleri').select('id').ilike('aciklama', `%${odemeAciklamaTag}%`).single();
-                if (existing && existing.data) {
+                const existing = await window.supabaseClient.from('kredi_karti_islemleri').select('id, tutar, toplam_tutar').ilike('aciklama', `%${odemeAciklamaTag}%`).maybeSingle();
+                if (existing?.data) {
                     await window.supabaseClient.from('kredi_karti_islemleri').update({
                         kart_id: kredi_karti_id, tutar: toplam_tutar, taksit_sayisi: taksit_sayisi,
                         islem_tarihi: baslangic_tarihi || new Date().toISOString().split('T')[0], aciklama: guncelAciklama
@@ -709,6 +723,37 @@ window.saveDataAndClose = async function (event) {
                 let not = `[Genel Gider] `;
                 if (ref) not += `Ref: ${ref} `;
                 aciklama = not + aciklama;
+            } else if (fatura_turu === 'Bakım / Servis Gideri') {
+                const bAracId = document.getElementById('fatura-bakim-arac')?.value;
+                const bKm = parseInt(document.getElementById('fatura-bakim-km')?.value) || null;
+                const bPlaka = document.getElementById('fatura-bakim-arac')?.options[document.getElementById('fatura-bakim-arac')?.selectedIndex]?.text;
+                
+                let not = `[Bakım/Servis] `;
+                if (bPlaka) not += `Araç: ${bPlaka} `;
+                if (bKm) not += `(${bKm} KM) `;
+                aciklama = not + aciklama;
+
+                // KM Güncelleme & Teknik Geçişe Ekleme
+                if (bAracId) {
+                    try {
+                        // 1. KM Güncelle
+                        if (bKm) {
+                            const { data: aData } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', bAracId).single();
+                            if (!aData || bKm > (aData.guncel_km || 0)) {
+                                await window.supabaseClient.from('araclar').update({ guncel_km: bKm }).eq('id', bAracId);
+                            }
+                        }
+                        // 2. Teknik Bakım Geçmişine İşle (Çift kayıt ama takip için önemli)
+                        await window.supabaseClient.from('arac_bakimlari').insert([{
+                            islem_tarihi: fatura_tarihi,
+                            arac_id: bAracId,
+                            islem_turu: 'Servis/Bakım (Faturadan)',
+                            cari_id: cari_id,
+                            aciklama: aciklama,
+                            toplam_tutar: toplam_tutar
+                        }]);
+                    } catch(err) { console.error('Fatura-Bakım entegrasyon hatası:', err); }
+                }
             } else if (fatura_turu) {
                 aciklama = `[${fatura_turu}] ` + aciklama;
             }
@@ -1033,6 +1078,189 @@ async function handleCariDeletion(cariId) {
         // Ana silme işleminin devam etmesi için hatayı yutuyoruz ama logluyoruz
     }
 }
+
+window.currentOzmalFilter = 'hepsi';
+
+window.filterOzmalCizelge = function(sirketName) {
+    window.currentOzmalFilter = sirketName || 'hepsi';
+    const btns = {
+        'hepsi': 'filter-cizelge-hepsi',
+        'IDEOL': 'filter-cizelge-ideol',
+        'DİKKAN': 'filter-cizelge-dikkan',
+        'M.K.': 'filter-cizelge-mk'
+    };
+
+    // Tüm butonları pasif yap
+    Object.values(btns).forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn) btn.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all";
+    });
+
+    // Sadece basılanı aktif et
+    const activeBtn = document.getElementById(btns[sirketName] || 'filter-cizelge-hepsi');
+    if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all";
+    }
+
+    // Veriyi filtreli çek
+    if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(window.currentOzmalFilter);
+};
+
+window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilter) {
+    const tbody = document.getElementById('cizelge-tbody');
+    if (!tbody) return;
+
+    if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
+
+    // Verinin yükleniyor olduğunu göster (filtre değişikliğinde ekran temizlensin)
+    tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
+    if(window.lucide) window.lucide.createIcons();
+
+    try {
+        let query = window.supabaseClient
+            .from('araclar')
+            .select('*')
+            .eq('mulkiyet_durumu', 'ÖZMAL');
+
+        if (sirketFilter && sirketFilter !== 'hepsi') {
+            query = query.eq('sirket', sirketFilter);
+        }
+
+        const { data, error } = await query
+            .order('sirket', { ascending: true })
+            .order('plaka', { ascending: true });
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Sistemde Özmal araç kaydı bulunamadı.</td></tr>';
+            return;
+        }
+
+        const today = new Date();
+        
+        // Helper to format date relative state
+        const getDateRenderer = (dateValue, fieldName, aracId) => {
+            let cl = 'bg-orange-500/10 text-orange-400 border border-orange-500/20'; // ? empty state or warning
+            
+            if (dateValue) {
+                const dateObj = new Date(dateValue);
+                const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+                if (diffDays < 0) {
+                    cl = 'bg-red-500/20 text-red-500 border border-red-500/30'; // Süresi dolmuş
+                } else if (diffDays <= 30) {
+                    cl = 'bg-orange-500/20 text-orange-400 border border-orange-500/30'; // Yaklaşıyor
+                } else {
+                    cl = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'; // Geçerli/Güvenli
+                }
+            } else {
+                cl = 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'; // Belirtilmemiş
+            }
+
+            return `
+                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20">
+                    <input type="date" 
+                        value="${dateValue || ''}" 
+                        onchange="updateCizelgeDate('${aracId}', '${fieldName}', this.value)"
+                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer placeholder-white/20"
+                        style="color: inherit;"
+                    />
+                </div>
+            `;
+        };
+
+        const cizelgeSort = document.getElementById('cizelge-sort')?.value || 'varsayilan';
+        if (cizelgeSort !== 'varsayilan') {
+            const getTimestamp = (d) => {
+                if (!d) return 9999999999999;
+                return new Date(d).getTime();
+            };
+            
+            data.sort((a,b) => {
+                let valA = 9999999999999, valB = 9999999999999;
+                let isAsc = cizelgeSort.endsWith('_yakin') || cizelgeSort === 'yaklasan_genel';
+                let key = cizelgeSort.replace('_yakin','').replace('_uzak','');
+                
+                if (key === 'yaklasan_genel') {
+                    valA = Math.min(getTimestamp(a.sigorta_bitis), getTimestamp(a.koltuk_bitis), getTimestamp(a.kasko_bitis), getTimestamp(a.vize_bitis));
+                    valB = Math.min(getTimestamp(b.sigorta_bitis), getTimestamp(b.koltuk_bitis), getTimestamp(b.kasko_bitis), getTimestamp(b.vize_bitis));
+                } else if (key === 'trafik') {
+                    valA = getTimestamp(a.sigorta_bitis); valB = getTimestamp(b.sigorta_bitis);
+                } else if (key === 'koltuk') {
+                    valA = getTimestamp(a.koltuk_bitis); valB = getTimestamp(b.koltuk_bitis);
+                } else if (key === 'kasko') {
+                    valA = getTimestamp(a.kasko_bitis); valB = getTimestamp(b.kasko_bitis);
+                } else if (key === 'vize') {
+                    valA = getTimestamp(a.vize_bitis); valB = getTimestamp(b.vize_bitis);
+                }
+                
+                if (valA < valB) return isAsc ? -1 : 1;
+                if (valA > valB) return isAsc ? 1 : -1;
+                return 0;
+            });
+        }
+
+        const rows = data.map(a => {
+            const sirket = a.sirket || 'IDEOL TURİZM';
+            const plaka = a.plaka || '-';
+            
+            // Kullanıcı marka ve model istiyor. Eğer "marka_model" bütünleşikse bölelim veya direkt yazalım.
+            const marka_model = a.marka_model || '-'; 
+
+            return `
+                <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="p-3 text-xs font-bold text-gray-300 uppercase bg-black/10 border-b border-white/5">${sirket}</td>
+                    <td class="p-3 text-xs font-black text-white border-l border-b border-white/5 whitespace-nowrap">${plaka}</td>
+                    <td class="p-3 text-[11px] font-bold text-gray-400 border-l border-b border-white/5 uppercase break-words">${marka_model}</td>
+                    
+                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                        ${getDateRenderer(a.sigorta_bitis, 'sigorta_bitis', a.id)}
+                    </td>
+                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                        ${getDateRenderer(a.koltuk_bitis, 'koltuk_bitis', a.id)}
+                    </td>
+                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                        ${getDateRenderer(a.kasko_bitis, 'kasko_bitis', a.id)}
+                    </td>
+                    <td class="p-2 border-l border-b border-white/5 w-40">
+                        ${getDateRenderer(a.vize_bitis, 'vize_bitis', a.id)}
+                    </td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = rows.join('');
+        if (window.lucide) window.lucide.createIcons();
+
+    } catch (e) {
+        console.error("[fetchOzmalCizelge] Error:", e);
+        if (typeof showToast === 'function') showToast('Çizelge verisi alınamadı: ' + e.message, 'error');
+    }
+};
+
+window.updateCizelgeDate = async function(aracId, fieldName, newDate) {
+    if (!aracId) return;
+    const payload = {};
+    payload[fieldName] = newDate || null;
+
+    try {
+        const { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', aracId);
+        if (error) throw error;
+        
+        if (typeof showToast === 'function') showToast('Tarih başarıyla güncellendi!', 'success');
+        
+        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge();
+        if (typeof fetchAraclar === 'function') fetchAraclar();
+        // Dashboard'da Evrak Bitişleri var, oranında tazelenmesi için:
+        if (typeof fetchDashboardData === 'function') setTimeout(fetchDashboardData, 500);
+
+    } catch (e) {
+        console.error("updateCizelgeDate Error:", e);
+        if (typeof showToast === 'function') showToast('Tarih güncellenirken hata oluştu!', 'error');
+        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(); // revert
+    }
+};
+
 /* === 4. SUPABASE VERİ ÇEKME (READ / SELECT) İŞLEMLERİ === */
 window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi') {
     const grid = document.getElementById('arac-cards-grid');
@@ -1117,7 +1345,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
             if (!dateString) {
                 // "Yok" — zarif dashed border badge
-                return `<span onclick="openModal('Yeni Poliçe Kaydı')"
+                return `<span onclick="openModal('Yeni Poliçe Kaydı', '${aracId}')"
                             style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1.5px dashed hsl(var(--border-strong));color:hsl(var(--surface-muted));font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px;transition:all 0.15s ease;background:hsl(var(--surface-alt))"
                             onmouseover="this.style.borderColor='hsl(var(--accent))';this.style.color='hsl(var(--accent))'"
                             onmouseout="this.style.borderColor='hsl(var(--border-strong))';this.style.color='hsl(var(--surface-muted))'">
@@ -1425,51 +1653,90 @@ window.loadAracCariKarti = async function(aracId) {
     const section = document.getElementById('arac-cari-section');
     if (!section) return;
     try {
-        const [bakimRes, yakitRes] = await Promise.all([
+        const [bakimRes, yakitRes, policeRes] = await Promise.all([
             window.supabaseClient.from('arac_bakimlari')
                 .select('islem_tarihi, islem_turu, aciklama, toplam_tutar, cariler(unvan)')
                 .eq('arac_id', aracId).order('islem_tarihi', { ascending: false }).limit(10),
             window.supabaseClient.from('yakit_islemleri')
                 .select('tarih, litre, tutar, aciklama')
-                .eq('arac_id', aracId).order('tarih', { ascending: false }).limit(10)
+                .eq('arac_id', aracId).order('tarih', { ascending: false }).limit(10),
+            window.supabaseClient.from('arac_policeler')
+                .select('baslangic_tarihi, police_turu, toplam_tutar, cariler(unvan), aciklama')
+                .eq('arac_id', aracId).order('baslangic_tarihi', { ascending: false }).limit(10)
         ]);
         const bakimlar = bakimRes.data || [];
         const yakitlar = yakitRes.data || [];
+        const policeler = policeRes.data || [];
+        
         const fmt = v => Number(v || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         const fmtDate = d => d ? new Date(d).toLocaleDateString('tr-TR') : '-';
+        
         const toplamBakim = bakimlar.reduce((s, b) => s + Number(b.toplam_tutar || 0), 0);
         const toplamYakit = yakitlar.reduce((s, y) => s + Number(y.tutar || 0), 0);
+        const toplamPolice = policeler.reduce((s, p) => s + Number(p.toplam_tutar || 0), 0);
 
         const tabId = 'ct' + aracId;
+        
+        // Tab function to handle 3 tabs
+        window[`switchTab_${tabId}`] = function(type) {
+            document.getElementById(`${tabId}-bakim`).classList.add('hidden');
+            document.getElementById(`${tabId}-yakit`).classList.add('hidden');
+            document.getElementById(`${tabId}-police`).classList.add('hidden');
+            
+            document.getElementById(`${tabId}-b`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';
+            document.getElementById(`${tabId}-y`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';
+            document.getElementById(`${tabId}-p`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';
+            
+            if (type === 'bakim') {
+                document.getElementById(`${tabId}-bakim`).classList.remove('hidden');
+                document.getElementById(`${tabId}-b`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all';
+            } else if (type === 'yakit') {
+                document.getElementById(`${tabId}-yakit`).classList.remove('hidden');
+                document.getElementById(`${tabId}-y`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all';
+            } else if (type === 'police') {
+                document.getElementById(`${tabId}-police`).classList.remove('hidden');
+                document.getElementById(`${tabId}-p`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-emerald-500 text-white transition-all';
+            }
+        };
+
         let html = `<div class="flex gap-2 mb-3">
-            <button id="${tabId}-b" onclick="document.getElementById('${tabId}-bakim').classList.remove('hidden');document.getElementById('${tabId}-yakit').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all';document.getElementById('${tabId}-yb').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">
+            <button id="${tabId}-b" onclick="window.switchTab_${tabId}('bakim')" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">
                 Bakım (${bakimlar.length})
             </button>
-            <button id="${tabId}-yb" onclick="document.getElementById('${tabId}-yakit').classList.remove('hidden');document.getElementById('${tabId}-bakim').classList.add('hidden');this.className='flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all';document.getElementById('${tabId}-b').className='flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all';" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all">
+            <button id="${tabId}-y" onclick="window.switchTab_${tabId}('yakit')" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all">
                 Yakıt (${yakitlar.length})
             </button>
+            <button id="${tabId}-p" onclick="window.switchTab_${tabId}('police')" class="flex-1 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 bg-white/5 transition-all">
+                Sigorta (${policeler.length})
+            </button>
             </div>
+            
+            <!-- BAKIM Tabi -->
             <div id="${tabId}-bakim" class="max-h-52 overflow-y-auto space-y-1.5">`;
 
         if (bakimlar.length === 0) {
             html += `<p class="text-xs text-gray-500 italic text-center py-4">Bakım geçmişi yok.</p>`;
         } else {
             bakimlar.forEach(b => {
-                html += `<div class="flex items-start justify-between py-1.5 px-2 rounded-lg bg-white/5">
+                html += `<div class="flex items-start justify-between py-2 px-3 rounded-lg bg-white/5">
                     <div class="flex-1 min-w-0">
                         <div class="text-[11px] font-bold text-orange-400 uppercase">${b.islem_turu}</div>
-                        <div class="text-[10px] text-gray-500">${fmtDate(b.islem_tarihi)}${b.cariler && b.cariler.unvan ? ' · ' + b.cariler.unvan : ''}</div>
+                        <div class="text-[10px] text-gray-400 font-bold mb-0.5">${fmtDate(b.islem_tarihi)}${b.cariler && b.cariler.unvan ? ' · Servis: ' + b.cariler.unvan : ''}</div>
+                        ${b.aciklama ? `<div class="text-[10px] text-gray-500 italic max-w-[200px] truncate" title="${b.aciklama}">Detay: ${b.aciklama}</div>` : ''}
                     </div>
                     <div class="text-[11px] font-black text-orange-400 ml-2 whitespace-nowrap">${fmt(b.toplam_tutar)} ₺</div>
                 </div>`;
             });
-            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
-                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
+            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1 px-1">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam Bakım</span>
                 <span class="text-sm font-black text-orange-400">${fmt(toplamBakim)} ₺</span>
             </div>`;
         }
 
-        html += `</div><div id="${tabId}-yakit" class="hidden max-h-52 overflow-y-auto space-y-1.5">`;
+        html += `</div>
+        
+        <!-- YAKIT Tabi -->
+        <div id="${tabId}-yakit" class="hidden max-h-52 overflow-y-auto space-y-1.5">`;
 
         if (yakitlar.length === 0) {
             html += `<p class="text-xs text-gray-500 italic text-center py-4">Yakıt geçmişi yok.</p>`;
@@ -1477,16 +1744,41 @@ window.loadAracCariKarti = async function(aracId) {
             yakitlar.forEach(y => {
                 html += `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg bg-white/5">
                     <div class="flex-1 min-w-0">
-                        <div class="text-[10px] text-gray-400">${fmtDate(y.tarih)}${y.litre ? ' · ' + y.litre + ' Lt' : ''}</div>
+                        <div class="text-[10px] text-gray-400 font-bold">${fmtDate(y.tarih)}${y.litre ? ' · ' + y.litre + ' Lt' : ''}</div>
                     </div>
                     <div class="text-[11px] font-black text-blue-400 ml-2 whitespace-nowrap">${fmt(y.tutar)} ₺</div>
                 </div>`;
             });
-            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1">
-                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam</span>
+            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1 px-1">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam Yakıt</span>
                 <span class="text-sm font-black text-blue-400">${fmt(toplamYakit)} ₺</span>
             </div>`;
         }
+        
+        html += `</div>
+        
+        <!-- POLİÇE (SİGORTA) Tabi -->
+        <div id="${tabId}-police" class="hidden max-h-52 overflow-y-auto space-y-1.5">`;
+
+        if (policeler.length === 0) {
+            html += `<p class="text-xs text-gray-500 italic text-center py-4">Sigorta geçmişi yok.</p>`;
+        } else {
+            policeler.forEach(p => {
+                html += `<div class="flex items-start justify-between py-2 px-3 rounded-lg bg-white/5">
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[11px] font-bold text-emerald-400 uppercase">${p.police_turu || 'Sigorta'}</div>
+                        <div class="text-[10px] text-gray-400 font-bold mb-0.5">${fmtDate(p.baslangic_tarihi)}${p.cariler && p.cariler.unvan ? ' · Sigorta: ' + p.cariler.unvan : ''}</div>
+                        ${p.aciklama ? `<div class="text-[10px] text-gray-500 italic max-w-[200px] truncate" title="${p.aciklama}">Poliçe Notu: ${p.aciklama}</div>` : ''}
+                    </div>
+                    <div class="text-[11px] font-black text-emerald-400 ml-2 whitespace-nowrap">${fmt(p.toplam_tutar)} ₺</div>
+                </div>`;
+            });
+            html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1 px-1">
+                <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam Sigorta</span>
+                <span class="text-sm font-black text-emerald-400">${fmt(toplamPolice)} ₺</span>
+            </div>`;
+        }
+
         html += `</div>`;
         section.innerHTML = html;
     } catch(e) {
@@ -2209,27 +2501,45 @@ async function fetchTaseronFinans() {
                     summary[aId].giris_2030 = (summary[aId].giris_2030 || 0) + g2;
                     summary[aId].mesai    = (summary[aId].mesai    || 0) + m;
 
-                    if(!summary[aId].musteriDetay[mId]) {
-                        summary[aId].musteriDetay[mId] = { vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, vardiya_fiyat: 0, tek_fiyat: 0, cikis_8_fiyat: 0, giris_2030_fiyat: 0, mesai_fiyat: 0, kdv_oran: 0, tev_oran: 0, musteri_ad: musteriAdMap[mId] || '?' };
-                        // Find match: Try specific month first, then global (null)
-                        const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && x.donem === filterAy) 
-                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (!x.donem || x.donem === ''));
+                    // ⭐ Key = musteri_id + bolge → İzmir ve Manisa ayrı panel
+                    const bolge   = p.bolge || 'Manisa';
+                    const detayKey = `${mId}|||${bolge}`;
+                    const isIzmir  = bolge === 'İzmir';
+                    const bolgeBadge = `<span style="font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:6px;${
+                        isIzmir
+                            ? 'background:rgba(59,130,246,0.2);color:#3b82f6'
+                            : 'background:rgba(249,115,22,0.2);color:#f97316'
+                    }">${isIzmir ? '🔵' : '🟠'} ${bolge}</span>`;
 
+                    if(!summary[aId].musteriDetay[detayKey]) {
+                        summary[aId].musteriDetay[detayKey] = {
+                            vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0,
+                            vardiya_fiyat: 0, tek_fiyat: 0, cikis_8_fiyat: 0, giris_2030_fiyat: 0, mesai_fiyat: 0,
+                            kdv_oran: 0, tev_oran: 0,
+                            musteri_ad: (musteriAdMap[mId] || '?') + bolgeBadge,
+                            bolge: bolge,
+                            musteri_id: mId
+                        };
+                        // Fiyat tanımını bul — önce bolge eşleşmesi, yoksa bolge'siz (eski/genel) kayıt
+                        const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (x.bolge || 'Manisa') === bolge && x.donem === filterAy)
+                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (x.bolge || 'Manisa') === bolge && (!x.donem || x.donem === ''))
+                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && x.donem === filterAy)
+                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (!x.donem || x.donem === ''));
                         if(tanim) {
-                            summary[aId].musteriDetay[mId].vardiya_fiyat     = parseFloat(tanim.vardiya_fiyat)     || 0;
-                            summary[aId].musteriDetay[mId].tek_fiyat         = parseFloat(tanim.tek_fiyat)         || 0;
-                            summary[aId].musteriDetay[mId].cikis_8_fiyat     = parseFloat(tanim.cikis_8_fiyat)     || 0;
-                            summary[aId].musteriDetay[mId].giris_2030_fiyat  = parseFloat(tanim.giris_2030_fiyat)  || 0;
-                            summary[aId].musteriDetay[mId].mesai_fiyat       = parseFloat(tanim.mesai_fiyat)       || 0;
-                            summary[aId].musteriDetay[mId].kdv_oran          = parseFloat(tanim.kdv_oran)          || 0;
-                            summary[aId].musteriDetay[mId].tev_oran          = parseFloat(tanim.tev_oran)          || 0;
+                            summary[aId].musteriDetay[detayKey].vardiya_fiyat    = parseFloat(tanim.vardiya_fiyat)    || 0;
+                            summary[aId].musteriDetay[detayKey].tek_fiyat        = parseFloat(tanim.tek_fiyat)        || 0;
+                            summary[aId].musteriDetay[detayKey].cikis_8_fiyat    = parseFloat(tanim.cikis_8_fiyat)    || 0;
+                            summary[aId].musteriDetay[detayKey].giris_2030_fiyat = parseFloat(tanim.giris_2030_fiyat) || 0;
+                            summary[aId].musteriDetay[detayKey].mesai_fiyat      = parseFloat(tanim.mesai_fiyat)      || 0;
+                            summary[aId].musteriDetay[detayKey].kdv_oran         = parseFloat(tanim.kdv_oran)         || 0;
+                            summary[aId].musteriDetay[detayKey].tev_oran         = parseFloat(tanim.tev_oran)         || 0;
                         }
                     }
-                    summary[aId].musteriDetay[mId].vardiya   += v;
-                    summary[aId].musteriDetay[mId].tek       += t;
-                    summary[aId].musteriDetay[mId].cikis_8   = (summary[aId].musteriDetay[mId].cikis_8  || 0) + c8;
-                    summary[aId].musteriDetay[mId].giris_2030 = (summary[aId].musteriDetay[mId].giris_2030 || 0) + g2;
-                    summary[aId].musteriDetay[mId].mesai     = (summary[aId].musteriDetay[mId].mesai    || 0) + m;
+                    summary[aId].musteriDetay[detayKey].vardiya    += v;
+                    summary[aId].musteriDetay[detayKey].tek        += t;
+                    summary[aId].musteriDetay[detayKey].cikis_8    = (summary[aId].musteriDetay[detayKey].cikis_8    || 0) + c8;
+                    summary[aId].musteriDetay[detayKey].giris_2030 = (summary[aId].musteriDetay[detayKey].giris_2030 || 0) + g2;
+                    summary[aId].musteriDetay[detayKey].mesai      = (summary[aId].musteriDetay[detayKey].mesai      || 0) + m;
                 }
             });
         }
@@ -2789,7 +3099,11 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
         const taseronAy = specificDonem || document.getElementById('taseron-ay')?.value;
 
         for (const row of rows) {
-            const musteri_id = row.getAttribute('data-mid');
+            // data-mid contains composite key "uuid|||bolge" — extract real musteri_id and bolge
+            const rawMid = row.getAttribute('data-mid') || '';
+            const midParts = rawMid.split('|||');
+            const musteri_id = midParts[0];
+            const rowBolge   = midParts[1] || 'Manisa';
             const tk   = parseFloat(row.querySelector('.calc-tek-fiyat')?.value)        || 0;
             const vd   = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value)    || 0;
             const c8f  = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)     || 0;
@@ -2813,19 +3127,35 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                 { tek_fiyat: tk, vardiya_fiyat: vd, mesai_fiyat: mf, tarife_turu: 'Vardiya' }
             ];
 
-            // Mevcut kaydi bul: donem=null VEYA donem=taseronAy
+            // Mevcut kaydi bul: donem=null VEYA donem=taseronAy, bolge eşleşmesi zorunlu
             // Dikkan import null donem ile ekler; manuel kayitlar ay bazli olabilir
             const orFilter = taseronAy
                 ? `donem.eq.${taseronAy},donem.is.null`
                 : 'donem.is.null';
 
-            const { data: existingList } = await window.supabaseClient
-                .from('musteri_arac_tanimlari')
-                .select('id, donem')
-                .eq('arac_id', arac_id)
-                .eq('musteri_id', musteri_id)
-                .or(orFilter)
-                .order('donem', { ascending: false, nullsFirst: false });
+            // bolge kolonu varsa ona göre, yoksa graceful fallback
+            let existingList = null;
+            try {
+                const { data: d1 } = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .select('id, donem, bolge')
+                    .eq('arac_id', arac_id)
+                    .eq('musteri_id', musteri_id)
+                    .eq('bolge', rowBolge)
+                    .or(orFilter)
+                    .order('donem', { ascending: false, nullsFirst: false });
+                existingList = d1;
+            } catch(_) {
+                // bolge kolonu henüz yoksa bolgesiz sorgula
+                const { data: d2 } = await window.supabaseClient
+                    .from('musteri_arac_tanimlari')
+                    .select('id, donem')
+                    .eq('arac_id', arac_id)
+                    .eq('musteri_id', musteri_id)
+                    .or(orFilter)
+                    .order('donem', { ascending: false, nullsFirst: false });
+                existingList = d2;
+            }
 
             // Spesifik ay esleseni, yoksa null donem kaydi kullan
             const existing = existingList?.find(e => e.donem === taseronAy)
@@ -2845,15 +3175,26 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                 }
                 if (!saved) throw new Error('Fiyatlar kaydedilemedi.');
             } else {
-                // Hic kayit yok, yeni olustur - en dolu payload'dan basla
+                // Hic kayit yok, yeni olustur - bolge dahil payload
                 let saved = false;
                 for (const payload of payloads) {
+                    // Önce bolge ile insert dene, hata alırsan bolgesiz dene
                     const { error: insErr } = await window.supabaseClient
                         .from('musteri_arac_tanimlari')
-                        .insert([{ arac_id, musteri_id, donem: taseronAy || null, ...payload }]);
+                        .insert([{ arac_id, musteri_id, bolge: rowBolge, donem: taseronAy || null, ...payload }]);
                     if (!insErr) { saved = true; break; }
                     if (insErr.message?.includes('duplicate')) { saved = true; break; }
-                    if (!isColErr(insErr)) throw insErr;
+                    if (isColErr(insErr)) {
+                        // bolge kolonu yoksa bolgesiz dene
+                        const { error: insErr2 } = await window.supabaseClient
+                            .from('musteri_arac_tanimlari')
+                            .insert([{ arac_id, musteri_id, donem: taseronAy || null, ...payload }]);
+                        if (!insErr2) { saved = true; break; }
+                        if (insErr2.message?.includes('duplicate')) { saved = true; break; }
+                        if (!isColErr(insErr2)) throw insErr2;
+                    } else {
+                        throw insErr;
+                    }
                 }
                 if (!saved) throw new Error('Fiyat kaydi eklenemedi.');
             }
@@ -3666,6 +4007,7 @@ window.fetchCariler = async function() {
                     ${aylikYuk > 0 ? `<div class="text-[10px] text-gray-400">Aylık Yük: ₺${aylikYuk.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</div>` : ''}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                    <button onclick="event.stopPropagation(); openModal('Yeni Bakım/Parça Kaydı', '${c.id}')" class="text-orange-600 hover:text-orange-800 text-[10px] font-bold uppercase border border-orange-200 px-2 py-1 rounded bg-orange-50">Bakım Ekle</button>
                     <button onclick="event.stopPropagation(); openModal('Yeni Fatura Kaydı', '${c.id}')" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase border border-blue-200 px-2 py-1 rounded bg-blue-50">Fatura Ekle</button>
                     <button onclick="event.stopPropagation(); openModal('Cari Güncelle', '${c.id}')" class="text-green-600 hover:text-green-800 text-[10px] font-bold uppercase border border-green-200 px-2 py-1 rounded bg-green-50">Düzenle</button>
                     <button onclick="event.stopPropagation(); deleteRecord('cariler', '${c.id}', 'fetchCariler')" class="text-danger hover:text-red-800 text-xs font-bold uppercase">Sil</button>
@@ -4554,6 +4896,10 @@ async function fetchBakimlar() {
         });
         const ozet = document.getElementById('ozet-bakim');
         if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        
+        if (typeof window.makeTableSortable === 'function') {
+            window.makeTableSortable(tbody.closest('table'));
+        }
     } catch (e) { console.error(e); }
 }
 
@@ -6068,7 +6414,7 @@ window.fetchTaseronHakedis = async function () {
 
     const donem = document.getElementById('taseron-hakedis-month')?.value;
     if (!donem) {
-        tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Lütfen bir dönem seçiniz.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Lütfen bir dönem seçiniz.</td></tr>';
         return;
     }
 
@@ -6077,17 +6423,25 @@ window.fetchTaseronHakedis = async function () {
         const startDate = `${year}-${month}-01`;
         const endDate = `${year}-${month}-${new Date(year, month, 0).getDate()}`;
 
-        const { data, error } = await window.supabaseClient
+        // Bölge filtresi
+        const bolgeFilter = document.getElementById('taseron-hakedis-bolge')?.value || '';
+
+        let query = window.supabaseClient
             .from('taseron_hakedis')
             .select('*, araclar(plaka, firma_adi)')
             .gte('sefer_tarihi', startDate)
             .lte('sefer_tarihi', endDate);
 
+        if (bolgeFilter) {
+            query = query.eq('bolge', bolgeFilter);
+        }
+
+        const { data, error } = await query;
         if (error) throw error;
 
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu dönemde hakediş kaydı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu dönemde hakediş kaydı bulunamadı.</td></tr>';
             return;
         }
 
@@ -6098,22 +6452,35 @@ window.fetchTaseronHakedis = async function () {
             filteredData = data.filter(h => (h.araclar?.plaka || '').toUpperCase().includes(plakaFilter));
         }
 
-        // Firma bazlı grupla
+        // Firma + Bölge bazlı grupla — her kombinasyon ayrı satır
         const hakedisMap = {};
         filteredData.forEach(h => {
             const firma = h.araclar?.firma_adi || 'Bireysel / Diğer';
-            if (!hakedisMap[firma]) hakedisMap[firma] = { count: 0, trips: 0, total: 0 };
-            hakedisMap[firma].count = 1; // Basit sayım
-            hakedisMap[firma].trips++;
-            hakedisMap[firma].total += Number(h.anlasilan_tutar || 0);
+            const bolge = h.bolge || 'Manisa';
+            const key   = `${firma}|||${bolge}`;
+            if (!hakedisMap[key]) {
+                hakedisMap[key] = { firma, bolge, araclar: new Set(), trips: 0, total: 0 };
+            }
+            // Unique araç sayısı için Set kullan
+            if (h.arac_id) hakedisMap[key].araclar.add(h.arac_id);
+            hakedisMap[key].trips++;
+            hakedisMap[key].total += Number(h.anlasilan_tutar || 0);
         });
 
-        Object.keys(hakedisMap).forEach(f => {
-            const d = hakedisMap[f];
+        // Bölge badge
+        const bolgeBadge = (bolge) => {
+            const isIzmir = bolge === 'İzmir';
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                isIzmir ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+            }">${isIzmir ? '🔵' : '🟠'} ${bolge}</span>`;
+        };
+
+        Object.values(hakedisMap).forEach(d => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td class="px-6 py-4 font-bold text-white">${f}</td>
-                <td class="px-6 py-4 text-gray-400">${d.count}</td>
+                <td class="px-6 py-4 font-bold text-white">${d.firma}</td>
+                <td class="px-6 py-4">${bolgeBadge(d.bolge)}</td>
+                <td class="px-6 py-4 text-gray-400">${d.araclar.size}</td>
                 <td class="px-6 py-4 text-gray-400">${d.trips}</td>
                 <td class="px-6 py-4 font-bold text-orange-400">${window.formatCurrency(d.total)}</td>
                 <td class="px-6 py-4 text-right">
@@ -6123,9 +6490,14 @@ window.fetchTaseronHakedis = async function () {
             tbody.appendChild(tr);
         });
 
+        // Tabloyu sıralanabilir yap
+        if (typeof window.makeTableSortable === 'function') {
+            window.makeTableSortable(tbody.closest('table'));
+        }
+
     } catch (e) {
         console.error('Hakediş fetch hatası:', e);
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 };
 
@@ -6137,7 +6509,7 @@ window.fetchTaseronSeferler = async function () {
     try {
         const { data, error } = await window.supabaseClient
             .from('taseron_hakedis')
-            .select('*, araclar(plaka)')
+            .select('*, araclar(plaka), bolge')
             .order('sefer_tarihi', { ascending: false })
             .limit(50);
 
@@ -6145,15 +6517,23 @@ window.fetchTaseronSeferler = async function () {
 
         tbody.innerHTML = '';
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Henüz sefer kaydı yok.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Henüz sefer kaydı yok.</td></tr>';
             return;
         }
+
+        const bolgeBadge = (bolge) => {
+            const isIzmir = bolge === 'İzmir';
+            return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black ${
+                isIzmir ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30' : 'bg-orange-500/15 text-orange-400 border border-orange-500/30'
+            }">${isIzmir ? '🔵' : '🟠'} ${bolge || 'Manisa'}</span>`;
+        };
 
         data.forEach(s => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="px-6 py-4 text-gray-400">${new Date(s.sefer_tarihi).toLocaleDateString('tr-TR')}</td>
                 <td class="px-6 py-4 font-bold text-white font-mono">${s.araclar?.plaka || '-'}</td>
+                <td class="px-6 py-4">${bolgeBadge(s.bolge)}</td>
                 <td class="px-6 py-4 text-gray-400">${s.guzergah || '-'}</td>
                 <td class="px-6 py-4 text-gray-400">${s.musteriler?.unvan || '-'}</td>
                 <td class="px-6 py-4 text-right font-bold text-green-400">${window.formatCurrency(s.anlasilan_tutar || 0)}</td>
@@ -6163,7 +6543,7 @@ window.fetchTaseronSeferler = async function () {
 
     } catch (e) {
         console.error('Sefer raporu hatası:', e);
-        tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-4">Hata: ${e.message}</td></tr>`;
     }
 };
 /* === PHASE 8: ADVANCED REPORTING LOGIC === */
@@ -6223,10 +6603,10 @@ window.fetchCariDetails = async function (cariId) {
 
         let entries = [];
 
-        (faturalar || []).forEach(f => entries.push({ id: f.id, table: 'cari_faturalar', tarih: f.fatura_tarihi || f.tarih, type: 'FATURA', desc: f.fatura_no ? `Fatura: ${f.fatura_no}` : (f.aciklama || 'Hizmet/Ürün Alımı'), borc: f.toplam_tutar, alacak: 0 }));
-        (odemeler || []).forEach(o => entries.push({ id: o.id, table: 'cari_odemeler', tarih: o.tarih, type: 'ÖDEME', desc: o.aciklama || 'Kasa/Banka Ödemesi', borc: 0, alacak: o.tutar }));
-        (policeler || []).forEach(p => entries.push({ id: p.id, table: 'arac_policeler', tarih: p.baslangic_tarihi, type: 'POLİÇE', desc: `${p.police_turu || p.tur || 'Sigorta'} Poliçesi (${p.araclar ? p.araclar.plaka : '-'})`, borc: p.toplam_tutar, alacak: 0 }));
-        (bakimlar || []).forEach(b => entries.push({ id: b.id, table: 'arac_bakimlari', tarih: b.islem_tarihi, type: 'BAKIM/TAMİR', desc: `${b.islem_turu || 'Bakım'} - ${b.aciklama || '-'} (${b.araclar ? b.araclar.plaka : '-'})`, borc: b.toplam_tutar, alacak: 0 }));
+        (faturalar || []).forEach(f => entries.push({ id: f.id, table: 'cari_faturalar', tarih: f.fatura_tarihi || f.tarih, type: 'FATURA', desc: f.fatura_no ? `Fatura: ${f.fatura_no}` : (f.aciklama || 'Hizmet/Ürün Alımı'), borc: f.toplam_tutar || f.tutar || 0, alacak: 0 }));
+        (odemeler || []).forEach(o => entries.push({ id: o.id, table: 'cari_odemeler', tarih: o.tarih, type: 'ÖDEME', desc: o.aciklama || 'Kasa/Banka Ödemesi', borc: 0, alacak: o.tutar || o.toplam_tutar || 0 }));
+        (policeler || []).forEach(p => entries.push({ id: p.id, table: 'arac_policeler', tarih: p.baslangic_tarihi, type: 'POLİÇE', desc: `${p.police_turu || p.tur || 'Sigorta'} Poliçesi (${p.araclar ? p.araclar.plaka : '-'})`, borc: p.toplam_tutar || p.tutar || 0, alacak: 0 }));
+        (bakimlar || []).forEach(b => entries.push({ id: b.id, table: 'arac_bakimlari', tarih: b.islem_tarihi, type: 'BAKIM/TAMİR', desc: `${b.islem_turu || 'Bakım'} - ${b.aciklama || '-'} (${b.araclar ? b.araclar.plaka : '-'})`, borc: b.toplam_tutar || b.tutar || 0, alacak: 0 }));
         
         // Push Credit Card Transactions as Debt
         (kartIslemleri || []).forEach(ki => entries.push({ 
@@ -6235,11 +6615,50 @@ window.fetchCariDetails = async function (cariId) {
             tarih: ki.islem_tarihi, 
             type: 'KART HARCAMA', 
             desc: ki.aciklama || 'Kredi Kartı Harcaması', 
-            borc: ki.toplam_tutar || ki.tutar || 0, 
+            borc: ki.tutar || ki.toplam_tutar || 0, 
             alacak: 0 
         }));
 
         entries.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
+
+        // --- 8.B. POLİÇE ID'LERİNİ DİNAMİK ÇÖZÜMLEME (Plate/Acente Translation) ---
+        const policyIdsInList = entries.filter(e => e.desc && e.desc.includes('POLİÇE ID: ')).map(e => {
+            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
+            return match ? match[1] : null;
+        }).filter(id => id);
+
+        if (policyIdsInList.length > 0) {
+            try {
+                // Toplu poliçe bilgilerini çek (araclar ve carilerle joinleyerek)
+                const { data: pInfos } = await window.supabaseClient
+                    .from('arac_policeler')
+                    .select('id, police_turu, taksit_sayisi, araclar(plaka), cariler(unvan)')
+                    .in('id', policyIdsInList);
+
+                if (pInfos && pInfos.length > 0) {
+                    const infoMap = {};
+                    pInfos.forEach(p => {
+                        infoMap[p.id] = {
+                            plaka: p.araclar ? p.araclar.plaka : '-',
+                            acente: p.cariler ? p.cariler.unvan : '-',
+                            taksit: p.taksit_sayisi || 1,
+                            tur: p.police_turu || 'Poliçe'
+                        };
+                    });
+
+                    // Listeyi güncelle
+                    entries.forEach(e => {
+                        if (e.desc && e.desc.includes('POLİÇE ID: ')) {
+                            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
+                            if (match && infoMap[match[1]]) {
+                                const i = infoMap[match[1]];
+                                e.desc = e.desc.replace(/POLİÇE ID: [a-f0-9-]{36}/i, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`).replace(/\[POLİÇE ID: [a-f0-9-]{36}\]/i, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`);
+                            }
+                        }
+                    });
+                }
+            } catch(translateErr) { console.warn("Poliçe detay çözümleme hatası:", translateErr); }
+        }
 
         let currentBakiye = 0;
         let totalBorc = 0;
@@ -6472,7 +6891,7 @@ window.fetchKrediKartlari = async function () {
             const cariIdStr = k.cari_id ? `'${k.cari_id}'` : 'null';
 
             tr.innerHTML = `
-                <td class="px-6 py-4 cursor-pointer" onclick="if(${cariIdStr}) window.openCariDetail(${cariIdStr})">
+                <td class="px-6 py-4 cursor-pointer" onclick="if(${cariIdStr} !== 'null' && ${cariIdStr} !== null) window.openCariDetail(${cariIdStr})">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <i data-lucide="credit-card" class="w-5 h-5 text-orange-500"></i>
@@ -6494,7 +6913,7 @@ window.fetchKrediKartlari = async function () {
                     ${kIslem.count} İşlem
                 </td>
                 <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                    <button onclick="if(${cariIdStr}) window.openCariDetail(${cariIdStr})" class="px-4 py-1.5 text-xs font-bold bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500 hover:text-white transition-all">Detay (Ekstre)</button>
+                    <button onclick="window.openKrediKartiDetay('${k.id}', '${k.kart_adi}')" class="px-4 py-1.5 text-xs font-bold bg-orange-500/10 text-orange-400 rounded-lg hover:bg-orange-500 hover:text-white transition-all">Detay (Ekstre)</button>
                     <button onclick="deleteRecord('kredi_kartlari','${k.id}','fetchKrediKartlari')" class="text-danger text-[10px] font-bold hover:underline px-2">Sil</button>
                 </td>
             `;
@@ -6508,6 +6927,102 @@ window.fetchKrediKartlari = async function () {
         tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">Veri çekilemedi: ${e.message}</td></tr>`;
     }
 }
+
+window.fetchKrediKartiDetails = async function (kartId) {
+    const tbody = document.getElementById('cari-detail-tbody');
+    if (!tbody) return;
+
+    try {
+        // 1. Kart Bilgilerini ve İşlemleri Al
+        const [kartRes, islemRes] = await Promise.all([
+            window.supabaseClient.from('kredi_kartlari').select('*').eq('id', kartId).single(),
+            window.supabaseClient.from('kredi_karti_islemleri').select('*').eq('kart_id', kartId).order('islem_tarihi', { ascending: false })
+        ]);
+
+        if (kartRes.error) throw kartRes.error;
+        const kart = kartRes.data;
+        const islemler = islemRes.data || [];
+
+        // 2. Özetleri Hesapla
+        const limit = Number(kart.limit_tutari || 0);
+        const harcanan = islemler.reduce((sum, i) => sum + (Number(i.tutar || i.toplam_tutar || 0)), 0);
+        const kullanilabilir = (limit - harcanan > 0) ? limit - harcanan : 0;
+
+        // 3. UI Güncelle (Başı)
+        document.getElementById('cari-detail-borc').innerText = window.formatCurrency(harcanan);
+        document.getElementById('cari-detail-odenen').innerText = window.formatCurrency(limit);
+        document.getElementById('cari-detail-bakiye').innerText = window.formatCurrency(kullanilabilir);
+        
+        // Modal başlıklarını/etiketlerini geçici olarak değiştir (Cari terminolojisinden Kart terminolojisine)
+        // Not: Bu alanlar statik HTML olabildiği için document selector ile bulup metni güncelliyoruz.
+        const labels = document.querySelectorAll('#cari-detail-modal label');
+        labels.forEach(lbl => {
+            if (lbl.innerText.includes('TOPLAM BORÇ')) lbl.innerText = 'TOPLAM HARCAMA';
+            if (lbl.innerText.includes('TOPLAM ÖDEME')) lbl.innerText = 'KART LİMİTİ';
+            if (lbl.innerText.includes('KALAN BAKİYE')) lbl.innerText = 'KULLANILABİLİR';
+        });
+
+        // 4. Detaylı Bilgileri Çözümle (Poliçe ID -> Plaka/Acente)
+        const policyIdsInList = islemler.filter(i => i.aciklama && i.aciklama.includes('POLİÇE ID: ')).map(i => {
+            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
+            return match ? match[1] : null;
+        }).filter(id => id);
+
+        if (policyIdsInList.length > 0) {
+            try {
+                const { data: pInfos } = await window.supabaseClient
+                    .from('arac_policeler')
+                    .select('id, police_turu, taksit_sayisi, araclar(plaka), cariler(unvan)')
+                    .in('id', policyIdsInList);
+
+                if (pInfos && pInfos.length > 0) {
+                    const infoMap = {};
+                    pInfos.forEach(p => {
+                        infoMap[p.id] = {
+                            plaka: p.araclar ? p.araclar.plaka : '-',
+                            acente: p.cariler ? p.cariler.unvan : '-',
+                            taksit: p.taksit_sayisi || 1
+                        };
+                    });
+
+                    islemler.forEach(i => {
+                        if (i.aciklama && i.aciklama.includes('POLİÇE ID: ')) {
+                            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
+                            if (match && infoMap[match[1]]) {
+                                const info = infoMap[match[1]];
+                                i.aciklama = i.aciklama.replace(/POLİÇE ID: [a-f0-9-]{36}/i, `${info.plaka} - ${info.acente} - ${info.taksit} Taksit`).replace(/\[POLİÇE ID: [a-f0-9-]{36}\]/i, `${info.plaka} - ${info.acente} - ${info.taksit} Taksit`);
+                            }
+                        }
+                    });
+                }
+            } catch(e) { console.warn("Kart ekstre detay çözümleme hatası:", e); }
+        }
+
+        // 5. Tabloyu Doldur
+        if (islemler.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu karta ait henüz bir işlem bulunmamaktadır.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = islemler.map(i => {
+            const tarih = i.islem_tarihi ? new Date(i.islem_tarihi).toLocaleDateString('tr-TR') : '-';
+            const tutarGoster = Number(i.tutar || i.toplam_tutar || 0);
+            return `
+                <tr class="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">${tarih}</td>
+                    <td class="px-6 py-4 text-sm font-bold text-primary active:text-orange-500">${i.aciklama || 'Kredi Kartı Harcaması'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-danger">₺${tutarGoster.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">-</td>
+                </tr>
+            `;
+        }).join('');
+
+    } catch (e) {
+        console.error('[KrediKartiDetails]', e);
+        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">Hata: ${e.message}</td></tr>`;
+    }
+};
 
 window.fetchTaksitler = async function (category = 'HEPSİ') {
     const tbody = document.getElementById('taksitler-tbody');

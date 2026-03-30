@@ -338,7 +338,7 @@
         const [aracRes, musteriRes, mevcutRes] = await Promise.all([
             supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
             supabase.from('musteriler').select('id, ad'),
-            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id')
+            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id, bolge')
         ]);
 
         if (aracRes.error)   throw new Error('Araç listesi alınamadı: ' + aracRes.error.message);
@@ -346,7 +346,8 @@
 
         const plakaMap   = Object.fromEntries((aracRes.data || []).map(a => [a.plaka.toUpperCase().trim(), a]));
         const musteriMap = Object.fromEntries((musteriRes.data || []).map(m => [m.ad.toUpperCase().trim(), m]));
-        const mevcutMap  = Object.fromEntries((mevcutRes.data || []).map(r => [`${r.tarih}|${r.arac_id}|${r.musteri_id}`, r.id]));
+        // ⭐ key'e bolge eklendi: aynı plaka+tarih+fabrika İzmir için ayrı, Manisa için ayrı kayıt
+        const mevcutMap  = Object.fromEntries((mevcutRes.data || []).map(r => [`${r.tarih}|${r.arac_id}|${r.musteri_id}|${r.bolge || 'Manisa'}`, r.id]));
         const musteriAracSet = new Set(musteriAracTanımlarList.map(r => `${r.musteri_id}|${r.arac_id}`));
 
         return kayitlar.map((k, i) => {
@@ -369,10 +370,12 @@
 
             let existing_id = null;
             if (arac && musteri) {
-                const key = `${k.tarih}|${arac.id}|${musteri.id}`;
+                // ⭐ Bölge de key'in parçası — İzmir ve Manisa kaydı bağımsız
+                const importBolge = window._importBolge || 'Manisa';
+                const key = `${k.tarih}|${arac.id}|${musteri.id}|${importBolge}`;
                 if (mevcutMap[key]) {
                     existing_id = mevcutMap[key];
-                    warnings.push('Bu kayıt zaten mevcut, üzerine yazılacak');
+                    warnings.push(`Bu kayıt (${importBolge}) zaten mevcut, üzerine yazılacak`);
                 }
             }
 
@@ -407,7 +410,8 @@
                 <span class="badge badge-warning">⚠ ${uyarili} uyarı</span>
                 <span class="badge badge-error">✗ ${hatali} hata</span>
                 <span style="margin-left:auto;font-size:0.75rem;color:hsl(var(--text-dim));">
-                    Müşteri: <strong>${validatedRows[0]?.musteriAdi || '?'}</strong>
+                    Bölge: <strong>${window._importBolge || '?'}</strong>
+                    &nbsp;|&nbsp; Müşteri: <strong>${validatedRows[0]?.musteriAdi || '?'}</strong>
                     &nbsp;|&nbsp; Tarih: <strong>${validatedRows[0]?.tarih || '?'}</strong>
                 </span>
             </div>
@@ -470,6 +474,13 @@
     window.importConfirm = async function () {
         const validatedRows = window._importRows;
         if (!validatedRows || validatedRows.length === 0) return;
+
+        // Bölge kontrol
+        const bolge = window._importBolge;
+        if (!bolge) {
+            showImportToast('Lütfen önce bir bölge seçiniz (İzmir veya Manisa).', 'error');
+            return;
+        }
 
         const aktarilacaklar = validatedRows.filter(r => r.durum !== 'hata');
         if (aktarilacaklar.length === 0) {
@@ -587,25 +598,35 @@
                     }
                 }
 
-                // musteri_servis_puantaj'a yaz (Upsert via ID to prevent duplicate failures)
+                // musteri_servis_puantaj'a yaz
+                // existing_id varsa UPDATE, yoksa INSERT (upsert değil — constraint sorununu önler)
                 const payload = {
-                    musteri_id: musteriId,
-                    arac_id:    aracId,
-                    tarih:      row.tarih,
-                    vardiya:    row.vardiya,
-                    tek:        row.tek,
-                    gunluk_ucret: 0
+                    musteri_id:   musteriId,
+                    arac_id:      aracId,
+                    tarih:        row.tarih,
+                    vardiya:      row.vardiya,
+                    tek:          row.tek,
+                    gunluk_ucret: 0,
+                    bolge:        bolge  // ⭐ BÖLGE
                 };
-                if (row.existing_id) {
-                    payload.id = row.existing_id; // Pass specific PK to overwrite perfectly
-                }
 
-                const { error: sErr } = await supabase
-                    .from('musteri_servis_puantaj')
-                    .upsert(payload);
+                let sErr;
+                if (row.existing_id) {
+                    // Aynı bölgede aynı kayıt var → güncelle
+                    ({ error: sErr } = await supabase
+                        .from('musteri_servis_puantaj')
+                        .update(payload)
+                        .eq('id', row.existing_id));
+                } else {
+                    // Yeni kayıt → ekle
+                    ({ error: sErr } = await supabase
+                        .from('musteri_servis_puantaj')
+                        .insert(payload));
+                }
 
                 if (sErr) {
                     console.error(`[import] satır ${row.satir} servis hatası:`, sErr);
+                    showImportToast(`Satır ${row.satir} kaydedilemedi: ${sErr.message}`, 'error');
                 } else {
                     servisCount++;
                 }
@@ -622,7 +643,8 @@
                                     sefer_tarihi:    row.tarih,
                                     guzergah:        `${hakedis.guzergah} (${hakedis.giris_saati || ''})`,
                                     anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
-                                    yakit_kesintisi: 0
+                                    yakit_kesintisi: 0,
+                                    bolge:           bolge  // ⭐ BÖLGE EKLENDİ
                                 });
                             if (!hErr) hakedisCount++;
                         }
@@ -634,7 +656,8 @@
                                 sefer_tarihi:    row.tarih,
                                 guzergah:        `${row.guzergah} (${row.giris_saati || ''})`,
                                 anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
-                                yakit_kesintisi: 0
+                                yakit_kesintisi: 0,
+                                bolge:           bolge  // ⭐ BÖLGE EKLENDİ
                             });
                         if (!hErr) hakedisCount++;
                     }
@@ -667,6 +690,33 @@
     window.handleImportFile = async function (file) {
         console.log("General import started:", file?.name);
         if (!file) return;
+
+        // ⭐ BÖLGE KONTROLÜ — seçilmemişse import engelle
+        // İki farklı import alanı var: Genel Bakış (import-bolge-select) ve Fabrikalar (import-bolge-select-musteri)
+        const bolgeSelectGenel   = document.getElementById('import-bolge-select');
+        const bolgeSelectFabrika = document.getElementById('import-bolge-select-musteri');
+        const bolge = (bolgeSelectGenel?.value) || (bolgeSelectFabrika?.value) || '';
+        const activeSelect = (bolgeSelectGenel?.value) ? bolgeSelectGenel : bolgeSelectFabrika;
+        if (!bolge) {
+            showImportToast('Önce bir bölge seçmelisiniz (İzmir veya Manisa)!', 'error');
+            if (activeSelect) {
+                activeSelect.style.borderColor = '#ef4444';
+                activeSelect.focus();
+                setTimeout(() => { activeSelect.style.borderColor = ''; }, 3000);
+            }
+            return;
+        }
+        window._importBolge = bolge;
+
+        // Bölge badge'i güncelle
+        const badge = document.getElementById('import-bolge-badge');
+        if (badge) {
+            badge.classList.remove('hidden');
+            const isIzmir = bolge === 'İzmir';
+            badge.className = `px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest ${isIzmir ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`;
+            badge.textContent = `${isIzmir ? '🔵' : '🟠'} ${bolge} Servisleri`;
+        }
+
         if (!file.name.match(/\.(xlsx|xls)$/i)) {
             showImportToast('Sadece .xlsx veya .xls dosyaları kabul edilir.', 'error');
             return;
@@ -712,7 +762,48 @@
         const dropArea = document.querySelector('.import-drop-area');
         if (dropArea) dropArea.classList.remove('import-drop-hover');
         const file = e.dataTransfer?.files?.[0];
-        if (file) window.handleImportFile(file);
+        if (file) {
+            // Bölge kontrolü drop için de yap — handleImportFile içinde de yapılıyor
+            window.handleImportFile(file);
+        }
+    };
+
+    // ⭐ Yeni helper: Bölge seçiliyse dosya dialogını aç, seçilmemişse uyar (Genel Bakış)
+    window.checkBolgeAndOpenFile = function () {
+        const bolgeSelect = document.getElementById('import-bolge-select');
+        const bolge = bolgeSelect ? bolgeSelect.value : '';
+        if (!bolge) {
+            showImportToast('Önce bölge seçiniz: İzmir veya Manisa!', 'error');
+            if (bolgeSelect) {
+                bolgeSelect.style.borderColor = '#ef4444';
+                bolgeSelect.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
+                bolgeSelect.focus();
+                setTimeout(() => { bolgeSelect.style.borderColor = ''; bolgeSelect.style.boxShadow = ''; }, 3000);
+            }
+            return;
+        }
+        const fi = document.getElementById('import-file-input');
+        if (fi) fi.click();
+    };
+
+    // ⭐ Fabrikalar modülü için ayrı helper
+    window.checkBolgeAndOpenFileFabrika = function () {
+        const bolgeSelect = document.getElementById('import-bolge-select-musteri');
+        const bolge = bolgeSelect ? bolgeSelect.value : '';
+        if (!bolge) {
+            showImportToast('Önce bölge seçiniz: İzmir veya Manisa!', 'error');
+            if (bolgeSelect) {
+                bolgeSelect.style.borderColor = '#ef4444';
+                bolgeSelect.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
+                bolgeSelect.focus();
+                setTimeout(() => { bolgeSelect.style.borderColor = ''; bolgeSelect.style.boxShadow = ''; }, 3000);
+            }
+            return;
+        }
+        // Fabrika seçimini global'e yaz (handleImportFile bunu okuyacak)
+        window._importBolge = bolge;
+        const fi = document.getElementById('import-file-input-musteri');
+        if (fi) fi.click();
     };
 
     window.handleImportDragOver = function (e) {

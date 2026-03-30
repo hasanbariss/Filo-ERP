@@ -198,9 +198,11 @@ function initCharts() {
 function switchFiloTab(tabName) {
     const aracBtn = document.getElementById('tab-btn-araclar');
     const soforBtn = document.getElementById('tab-btn-soforler');
+    const cizelgeBtn = document.getElementById('tab-btn-cizelge');
 
     const aracSub = document.getElementById('sub-araclar');
     const soforSub = document.getElementById('sub-soforler');
+    const cizelgeSub = document.getElementById('sub-cizelge');
 
     // Reset styles
     const inactiveClass = "px-6 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2";
@@ -208,9 +210,11 @@ function switchFiloTab(tabName) {
 
     if (aracBtn) aracBtn.className = inactiveClass;
     if (soforBtn) soforBtn.className = inactiveClass;
+    if (cizelgeBtn) cizelgeBtn.className = inactiveClass;
 
     if (aracSub) { aracSub.classList.add('hidden'); aracSub.classList.remove('block'); }
     if (soforSub) { soforSub.classList.add('hidden'); soforSub.classList.remove('block'); }
+    if (cizelgeSub) { cizelgeSub.classList.add('hidden'); cizelgeSub.classList.remove('block'); }
 
     // Set active
     if (tabName === 'araclar' && aracBtn && aracSub) {
@@ -223,6 +227,11 @@ function switchFiloTab(tabName) {
         soforSub.classList.remove('hidden');
         soforSub.classList.add('block');
         if (typeof fetchSoforler === 'function') fetchSoforler();
+    } else if (tabName === 'cizelge' && cizelgeBtn && cizelgeSub) {
+        cizelgeBtn.className = activeClass;
+        cizelgeSub.classList.remove('hidden');
+        cizelgeSub.classList.add('block');
+        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge();
     }
 }
 
@@ -446,8 +455,9 @@ window.filterTaksitler = function (category) {
 /* === 2.C. CARİ DETAY & EKSTRE (PHASE 8) === */
 window.openCariDetail = function (cariId) {
     if (!cariId || cariId === 'undefined' || cariId === 'null') {
-        console.warn("[CariDetail] Geçersiz ID ile modal açılmaya çalışıldı:", cariId);
-        if (window.Toast) window.Toast.error("Bu işlem için geçerli bir Cari Kart kaydı bulunamadı.");
+        console.warn("[CariDetail] Geçersiz ID:", cariId);
+        if (typeof showToast === 'function') showToast("Bu işlem için bir Cari Kart eşleşmesi (ID) bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.", 'error');
+        else alert("Bu işlem için bir Cari Kart eşleşmesi bulunamadı.");
         return;
     }
     const modal = document.getElementById('cari-detail-modal');
@@ -471,6 +481,29 @@ window.closeCariDetail = function () {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
     document.body.style.overflow = '';
+};
+
+window.openKrediKartiDetay = function (kartId, kartAdi) {
+    const modal = document.getElementById('cari-detail-modal');
+    if (!modal) return;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+
+    // UI Reset for CC Statement
+    document.getElementById('cari-detail-unvan').innerText = kartAdi;
+    document.getElementById('cari-detail-tur').innerText = "Kredi Kartı Ekstresi";
+    document.getElementById('cari-detail-borc').innerText = "Yükleniyor...";
+    document.getElementById('cari-detail-odenen').innerText = "-";
+    document.getElementById('cari-detail-bakiye').innerText = "-";
+
+    const tbody = document.getElementById('cari-detail-tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Harcamalar yükleniyor...</td></tr>';
+
+    if (typeof fetchKrediKartiDetails === 'function') {
+        fetchKrediKartiDetails(kartId);
+    }
 };
 
 window.printCariEkstre = function () {
@@ -1414,6 +1447,13 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('bakim-cari', 'cariler', 'id', 'unvan', 'tur', ['Tedarikçi', 'Tamirci', 'Servis', 'Tedarikçi/Tamirci']);
             loadSelectOptions('bakim-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('bakim-odeme-cari', 'cariler', 'id', 'unvan');
+            
+            if (id) {
+                setTimeout(() => {
+                    const sel = document.getElementById('bakim-cari');
+                    if (sel) sel.value = id;
+                }, 100);
+            }
         }, 50);
     } else if (title === 'Yeni Poliçe Kaydı') {
         content = `
@@ -1490,6 +1530,14 @@ window.openModal = function (title, id = null, extra = null) {
             loadSelectOptions('police-cari', 'cariler', 'id', 'unvan', 'tur', ['Sigorta Acentesi', 'Acente', 'Sigorta']);
             loadSelectOptions('police-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('police-odeme-cari', 'cariler', 'id', 'unvan');
+            
+            // Eğer bir ID (Araç ID) ile açılmışsa, o aracı seç
+            if (id) {
+                setTimeout(() => {
+                    const sel = document.getElementById('police-arac');
+                    if (sel) sel.value = id;
+                }, 100);
+            }
         }, 50);
     } else if (title === 'Poliçe Düzenle') {
         content = `
@@ -1551,6 +1599,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Fatura Türü</label>
                             <select id="fatura-tur" onchange="if(window.handleFaturaTurChange) window.handleFaturaTurChange(this.value)" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors">
                                 <option value="Genel Gider">Genel Gider (Ofis vb.)</option>
+                                <option value="Bakım / Servis Gideri">Bakım / Servis Gideri</option>
                                 <option value="Yakıt">Yakıt (Araç Bazlı)</option>
                                 <option value="OGS/HGS">OGS/HGS Geçişi</option>
                                 <option value="Sigorta/Kasko">Sigorta/Kasko Ödemesi</option>
@@ -2518,7 +2567,24 @@ window.handleFaturaTurChange = function (tur) {
 
     container.innerHTML = '';
 
-    if (tur === 'Yakıt') {
+    if (tur === 'Bakım / Servis Gideri') {
+        container.innerHTML = `
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Araç Seçin</label>
+                    <select id="fatura-bakim-arac" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Anlık KM</label>
+                    <input type="number" id="fatura-bakim-km" class="w-full border-gray-300 border px-3 py-2 text-primary focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger transition-colors text-sm font-mono" placeholder="Örn: 125000">
+                </div>
+            </div>
+        `;
+        container.classList.remove('hidden');
+        if (typeof window.loadSelectOptions === 'function') {
+            window.loadSelectOptions('fatura-bakim-arac', 'araclar', 'id', 'plaka');
+        }
+    } else if (tur === 'Yakıt') {
         container.innerHTML = `
             <div class="grid grid-cols-2 gap-4">
                 <div>
@@ -3106,3 +3172,120 @@ window.toggleViewMode = function (module, mode, colorClass) {
         gridContainer.classList.add('hidden');
     }
 };
+
+/* === TABLO SIRALAMA (TABLE SORTING) MANTIĞI === */
+window.makeTableSortable = function(tableIdOrElem) {
+    const table = typeof tableIdOrElem === 'string' ? document.getElementById(tableIdOrElem) : tableIdOrElem;
+    if (!table) return;
+    
+    const headers = table.querySelectorAll('thead th');
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    // Her başlık için
+    headers.forEach((header, index) => {
+        // Zaten eklenmişse ekleme
+        if (header.classList.contains('sortable-header-added')) return;
+        if (header.classList.contains('no-sort')) return;
+
+        header.classList.add('sortable-header-added');
+        header.style.cursor = 'pointer';
+        header.classList.add('hover:bg-white/5', 'transition-colors', 'select-none', 'relative');
+        header.title = "Sıralamak için tıklayın";
+
+        // İkon container ekle
+        let iconSpan = document.createElement('span');
+        iconSpan.className = "sort-icon ml-1 opacity-40 text-[9px] inline-block";
+        iconSpan.innerHTML = '↕';
+        header.appendChild(iconSpan);
+
+        // Tıklama event'i
+        header.addEventListener('click', () => {
+            // Yönü belirle (asc -> desc -> asc)
+            const isAsc = header.getAttribute('data-sort-dir') !== 'asc';
+            
+            // Tüm başlıklardan ikon durumunu temizle
+            headers.forEach(th => {
+                th.setAttribute('data-sort-dir', '');
+                const ic = th.querySelector('.sort-icon');
+                if(ic) { ic.innerHTML = '↕'; ic.classList.remove('text-orange-400', 'opacity-100'); ic.classList.add('opacity-40'); }
+            });
+
+            // Tıklananı ayarla
+            header.setAttribute('data-sort-dir', isAsc ? 'asc' : 'desc');
+            const activeIcon = header.querySelector('.sort-icon');
+            if (activeIcon) {
+                activeIcon.innerHTML = isAsc ? '↑' : '↓';
+                activeIcon.classList.remove('opacity-40');
+                activeIcon.classList.add('text-orange-400', 'opacity-100');
+            }
+
+            // Satırları çek
+            const rowsArray = Array.from(tbody.querySelectorAll('tr'));
+            
+            // Yükleniyor veya boş satırlarını atla (tek td olan satırlar genellikle)
+            const validRows = rowsArray.filter(row => row.cells.length > 1);
+            const emptyRows = rowsArray.filter(row => row.cells.length <= 1);
+
+            validRows.sort((rowA, rowB) => {
+                // Sütun indeksindeki hücre verisini al
+                const cellA = rowA.cells[index]?.innerText?.trim() || '';
+                const cellB = rowB.cells[index]?.innerText?.trim() || '';
+
+                // Tip kontrolü (Para birimi, Sayı veya Tarih mi?)
+                let valA = parseCellValue(cellA);
+                let valB = parseCellValue(cellB);
+
+                if (valA < valB) return isAsc ? -1 : 1;
+                if (valA > valB) return isAsc ? 1 : -1;
+                return 0;
+            });
+
+            // Tbody'yi temizle ve yeni sıraya göre ekle
+            tbody.innerHTML = '';
+            validRows.forEach(row => tbody.appendChild(row));
+            emptyRows.forEach(row => tbody.appendChild(row)); // Hata/Boş mesajını en sona koy
+        });
+    });
+};
+
+function parseCellValue(str) {
+    if (!str) return '';
+    
+    // 1. Para birimi veya Noktalı/Virgüllü sayı kontrolü (örn: 1.500,00 ₺ -> 1500.00)
+    // TL, ₺, USD gibi sembolleri at
+    const currencyMatch = str.match(/^[\d\.\,\-]+\s*(₺|TL|USD|EUR)?$/);
+    if (currencyMatch || str.includes('₺')) {
+        let clean = str.replace(/[₺a-zA-Z\s]/g, ''); // Harfleri, boşlukları ve ₺ at
+        // Eğer format 1.500,00 ise:
+        if (clean.includes(',') && clean.includes('.')) {
+            // Noktaları (binlik ayracı) sil, virgülü noktaya çevir
+            clean = clean.replace(/\./g, '').replace(',', '.');
+        } else if (clean.includes(',')) {
+            // Sadece virgül varsa ondalık olabilir (1500,00 -> 1500.00)
+            clean = clean.replace(',', '.');
+        }
+        const num = parseFloat(clean);
+        if (!isNaN(num)) return num;
+    }
+
+    // 2. Basit Sayı kontrolü
+    if (/^\d+$/.test(str)) {
+        return parseInt(str, 10);
+    }
+
+    // 3. Tarih kontrolü (GG.AA.YYYY veya YYYY-AA-GG)
+    // 30.03.2024 -> 2024-03-30
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(str)) {
+        const parts = str.split('.');
+        const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+        if (!isNaN(dateObj.getTime())) return dateObj.getTime();
+    }
+    const possibleDate = new Date(str);
+    if (str.includes('-') && !isNaN(possibleDate.getTime())) {
+        return possibleDate.getTime();
+    }
+
+    // 4. Standart metin
+    return str.toLowerCase();
+}

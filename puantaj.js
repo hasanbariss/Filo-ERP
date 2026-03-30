@@ -1,6 +1,7 @@
 const urlParams = new URLSearchParams(window.location.search);
 const musteriId = urlParams.get('musteri_id');
 const monthStr = urlParams.get('ay'); // 'YYYY-MM'
+const urlBolge = urlParams.get('bolge') || ''; // opsiyonel bölge param
 
 let isolatedGridData = [];
 let isolatedAraclar = [];
@@ -64,7 +65,8 @@ async function loadGridData(tanimlar, musteriAdi) {
             return;
         }
 
-        // Parallelize month records fetch
+        // Tüm kayıtları çek — bölge filtresi DB seviyesinde değil, client-side yapılır
+        // Böylece dropdown değişince yeni sorgu atmadan anında filtrele
         const { data: qKayitlar, error: kayitErr } = await window.supabaseClient
             .from('musteri_servis_puantaj')
             .select('*')
@@ -75,31 +77,51 @@ async function loadGridData(tanimlar, musteriAdi) {
         if (kayitErr) throw kayitErr;
         isolatedKayitlar = qKayitlar || [];
 
+        const isDikkan = musteriAdi.toLowerCase().includes('dikkan');
+
         // 2. O(1) Indexing for records
         kayitlarMap = {};
         isolatedKayitlar.forEach(k => {
-            kayitlarMap[`${k.arac_id}_${k.tarih}_vardiya`]    = k.vardiya    || '';
-            kayitlarMap[`${k.arac_id}_${k.tarih}_tek`]        = k.tek        || '';
-            kayitlarMap[`${k.arac_id}_${k.tarih}_cikis_8`]   = k.cikis_8   || 0;
-            kayitlarMap[`${k.arac_id}_${k.tarih}_giris_2030`] = k.giris_2030 || 0;
-            kayitlarMap[`${k.arac_id}_${k.tarih}_mesai`]      = k.mesai      || 0;
-            kayitlarMap[`${k.arac_id}_${k.tarih}_id`]         = k.id;
+            let b = k.bolge || (isDikkan ? 'İzmir' : 'Manisa');
+            if (isDikkan) b = 'İzmir';
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_vardiya`]    = (k.vardiya === 0 || k.vardiya === '0') ? '' : (k.vardiya || '');
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_tek`]        = (k.tek === 0 || k.tek === '0') ? '' : (k.tek || '');
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_cikis_8`]   = (k.cikis_8 === 0 || k.cikis_8 === '0') ? '' : (k.cikis_8 || '');
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_giris_2030`] = (k.giris_2030 === 0 || k.giris_2030 === '0') ? '' : (k.giris_2030 || '');
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_mesai`]      = (k.mesai === 0 || k.mesai === '0') ? '' : (k.mesai || '');
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_id`]         = k.id;
+            kayitlarMap[`${k.arac_id}_${k.tarih}_${b}_bolge`]      = b;
+            
+            if (isDikkan) k.bolge = 'İzmir';
         });
 
-        const seenIds = new Set();
+        // ⭐ Gruplama: arac_id + bolge kombinasyonu — aynı plaka İzmir ve Manisa için ayrı satır
+        const seenKeys = new Set();
         isolatedAraclar = [];
         for (const t of tanimlar) {
-            if (t.araclar && t.araclar.id && !seenIds.has(t.araclar.id)) {
-                seenIds.add(t.araclar.id);
-                isolatedAraclar.push({
-                    id: t.araclar.id,
-                    plaka: t.araclar.plaka,
-                    mulkiyet: t.araclar.mulkiyet_durumu
-                });
+            if (t.araclar && t.araclar.id) {
+                // Bu araç için kac farkli bolge var?
+                const aracBolgeler = [...new Set(
+                    isolatedKayitlar
+                        .filter(k => k.arac_id === t.araclar.id)
+                        .map(k => k.bolge || (isDikkan ? 'İzmir' : 'Manisa'))
+                )];
+                // Kaydı olmayan ama tanimda olan araçlar için en az bir satır goster
+                if (aracBolgeler.length === 0) aracBolgeler.push(isDikkan ? 'İzmir' : 'Manisa');
+                for (const bolge of aracBolgeler) {
+                    const key = `${t.araclar.id}|${bolge}`;
+                    if (!seenKeys.has(key)) {
+                        seenKeys.add(key);
+                        isolatedAraclar.push({
+                            id:      t.araclar.id,
+                            plaka:   t.araclar.plaka,
+                            mulkiyet: t.araclar.mulkiyet_durumu,
+                            bolge:   bolge
+                        });
+                    }
+                }
             }
         }
-
-        const isDikkan = musteriAdi.toLowerCase().includes('dikkan');
 
         // Build THEAD
         let thHtml = `<tr>
@@ -128,109 +150,106 @@ async function loadGridData(tanimlar, musteriAdi) {
             let rowVardiyaTotal = 0, rowTekTotal = 0, rowCikis8Total = 0, rowGiris2030Total = 0, rowMesaiTotal = 0;
 
             // Pre-calculate visibility and filter
-            const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && (Boolean(k.vardiya) || Boolean(k.tek)));
+            const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && k.bolge === arac.bolge && (Boolean(k.vardiya) || Boolean(k.tek)));
             const dataStr = hasDataInMonth ? 'true' : 'false';
+            const aracBolge = arac.bolge; // ⭐ Artık objeden geliyor
+
+            // Bölge badge HTML
+            const isIzmir = aracBolge === 'İzmir';
+            const bolgeBadge = `<span style="display:block;font-size:8px;font-weight:900;letter-spacing:0.05em;margin-top:2px;padding:1px 4px;border-radius:4px;${
+                isIzmir
+                    ? 'background:rgba(59,130,246,0.15);color:#3b82f6;border:1px solid rgba(59,130,246,0.3)'
+                    : 'background:rgba(249,115,22,0.15);color:#f97316;border:1px solid rgba(249,115,22,0.3)'
+            }">${isIzmir ? '🔵' : '🟠'} ${aracBolge}</span>`;
 
             // --- VARDİYA ROW ---
-            let vRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
-                <td class="sticky-col font-black text-slate-800 text-[11px] text-center brand-font" rowspan="${rowSpan}">${arac.plaka}</td>
+            let vRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}" data-bolge="${aracBolge}">
+                <td class="sticky-col font-black text-slate-800 text-[11px] text-center brand-font" rowspan="${rowSpan}">${arac.plaka}${bolgeBadge}</td>
                 <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Vardiya</td>`;
 
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const val = kayitlarMap[`${arac.id}_${dateCode}_vardiya`] || '';
-                const safeVal = String(val);
-                if (!isNaN(parseInt(safeVal))) {
+                const tempVal = kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_vardiya`];
+                const safeVal = (tempVal === 0 || tempVal === '0' || !tempVal) ? '' : String(tempVal);
+                if (safeVal !== '' && !isNaN(parseInt(safeVal))) {
                     const vNum = parseInt(safeVal);
                     rowVardiyaTotal += vNum;
                     colV[i] += vNum;
                 }
 
-                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'vardiya', val_original: safeVal, val_new: safeVal });
+                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'vardiya', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
 
                 const uv = safeVal.toUpperCase();
                 let cellClass = (uv === 'X') ? 'cell-x' : (uv === 'R' ? 'cell-r' : ((uv === 'İ' || uv === 'I') ? 'cell-i' : ''));
-                vRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${dateCode}-vardiya" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'vardiya', ${i})"></td>`;
+                vRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-vardiya" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'vardiya', ${i}, '${aracBolge}')"></td>`;
             }
-            vRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-indigo-600 font-mono" id="total-${arac.id}-vardiya">${rowVardiyaTotal}</td></tr>`;
+            vRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-indigo-600 font-mono" id="total-${arac.id}-${aracBolge}-vardiya">${rowVardiyaTotal}</td></tr>`;
             tblHtml += vRow;
 
             // --- TEK ROW ---
-            let tRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+            let tRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}" data-bolge="${aracBolge}">
                 <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Tek Sefer</td>`;
 
             for (let i = 1; i <= daysInMonth; i++) {
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const val = kayitlarMap[`${arac.id}_${dateCode}_tek`] || '';
-                const safeVal = String(val);
-                if (!isNaN(parseInt(safeVal))) {
+                const tempVal = kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_tek`];
+                const safeVal = (tempVal === 0 || tempVal === '0' || !tempVal) ? '' : String(tempVal);
+                if (safeVal !== '' && !isNaN(parseInt(safeVal))) {
                     const tNum = parseInt(safeVal);
                     rowTekTotal += tNum;
                     colT[i] += tNum;
                 }
 
-                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'tek', val_original: safeVal, val_new: safeVal });
+                isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'tek', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
 
                 const uv = safeVal.toUpperCase();
                 let cellClass = (uv === 'X') ? 'cell-x' : (uv === 'R' ? 'cell-r' : ((uv === 'İ' || uv === 'I') ? 'cell-i' : ''));
-                tRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${dateCode}-tek" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'tek', ${i})"></td>`;
+                tRow += `<td class="${cellClass}"><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-tek" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'tek', ${i}, '${aracBolge}')"></td>`;
             }
-            tRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-orange-600 font-mono" id="total-${arac.id}-tek">${rowTekTotal}</td></tr>`;
+            tRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-orange-600 font-mono" id="total-${arac.id}-${aracBolge}-tek">${rowTekTotal}</td></tr>`;
             tblHtml += tRow;
 
             if (isDikkan) {
                 // --- 8 ÇIKIŞI ROW ---
-                let c8Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                let c8Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}" data-bolge="${aracBolge}">
                     <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-amber-500 text-center uppercase">8 Çıkışı</td>`;
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                    const val = kayitlarMap[`${arac.id}_${dateCode}_cikis_8`] || 0;
-                    const safeVal = String(val);
-                    if (!isNaN(parseInt(safeVal))) {
-                        const n = parseInt(safeVal);
-                        rowCikis8Total += n;
-                        colC8[i] += n;
-                    }
-                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'cikis_8', val_original: safeVal, val_new: safeVal });
-                    c8Row += `<td style="background:#fffbeb"><input type="text" id="cell-${arac.id}-${dateCode}-cikis_8" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'cikis_8', ${i})"></td>`;
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_cikis_8`];
+                    const safeVal = (val === 0 || val === '0' || !val) ? '' : String(val);
+                    if (safeVal !== '' && !isNaN(parseInt(safeVal))) { const n = parseInt(safeVal); rowCikis8Total += n; colC8[i] += n; }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'cikis_8', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
+                    c8Row += `<td style="background:#fffbeb"><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-cikis_8" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'cikis_8', ${i}, '${aracBolge}')"></td>`;
                 }
-                c8Row += `<td class="sticky right-0 bg-amber-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-amber-600 font-mono" id="total-${arac.id}-cikis_8">${rowCikis8Total}</td></tr>`;
+                c8Row += `<td class="sticky right-0 bg-amber-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-amber-600 font-mono" id="total-${arac.id}-${aracBolge}-cikis_8">${rowCikis8Total}</td></tr>`;
                 tblHtml += c8Row;
 
                 // --- 20:30 GİRİŞİ ROW ---
-                let g2Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                let g2Row = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}" data-bolge="${aracBolge}">
                     <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-purple-500 text-center uppercase">20:30 Giriş</td>`;
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                    const val = kayitlarMap[`${arac.id}_${dateCode}_giris_2030`] || 0;
-                    const safeVal = String(val);
-                    if (!isNaN(parseInt(safeVal))) {
-                        const n = parseInt(safeVal);
-                        rowGiris2030Total += n;
-                        colG2[i] += n;
-                    }
-                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'giris_2030', val_original: safeVal, val_new: safeVal });
-                    g2Row += `<td style="background:#faf5ff"><input type="text" id="cell-${arac.id}-${dateCode}-giris_2030" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'giris_2030', ${i})"></td>`;
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_giris_2030`];
+                    const safeVal = (val === 0 || val === '0' || !val) ? '' : String(val);
+                    if (safeVal !== '' && !isNaN(parseInt(safeVal))) { const n = parseInt(safeVal); rowGiris2030Total += n; colG2[i] += n; }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'giris_2030', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
+                    g2Row += `<td style="background:#faf5ff"><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-giris_2030" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'giris_2030', ${i}, '${aracBolge}')"></td>`;
                 }
-                g2Row += `<td class="sticky right-0 bg-purple-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-purple-600 font-mono" id="total-${arac.id}-giris_2030">${rowGiris2030Total}</td></tr>`;
+                g2Row += `<td class="sticky right-0 bg-purple-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-purple-600 font-mono" id="total-${arac.id}-${aracBolge}-giris_2030">${rowGiris2030Total}</td></tr>`;
                 tblHtml += g2Row;
 
                 // --- MESAİ ROW ---
-                let mRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}">
+                let mRow = `<tr class="${rowClass}" data-arac-id="${arac.id}" data-has-data="${dataStr}" data-bolge="${aracBolge}">
                     <td class="sticky left-[100px] bg-inherit z-20 border-r-2 border-slate-200 text-[9px] font-bold text-slate-400 text-center uppercase">Mesai</td>`;
                 for (let i = 1; i <= daysInMonth; i++) {
                     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                    const val = kayitlarMap[`${arac.id}_${dateCode}_mesai`] || 0;
-                    const safeVal = String(val);
-                    if (!isNaN(parseInt(safeVal))) {
-                        const mNum = parseInt(safeVal);
-                        rowMesaiTotal += mNum;
-                        colM[i] += mNum;
-                    }
-                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_id`], arac_id: arac.id, tarih: dateCode, field: 'mesai', val_original: safeVal, val_new: safeVal });
-                    mRow += `<td><input type="text" id="cell-${arac.id}-${dateCode}-mesai" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i})"></td>`;
+                    const val = kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_mesai`];
+                    const safeVal = (val === 0 || val === '0' || !val) ? '' : String(val);
+                    if (safeVal !== '' && !isNaN(parseInt(safeVal))) { const mNum = parseInt(safeVal); rowMesaiTotal += mNum; colM[i] += mNum; }
+                    isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'mesai', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
+                    mRow += `<td><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-mesai" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i}, '${aracBolge}')"></td>`;
                 }
-                mRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-emerald-600 font-mono" id="total-${arac.id}-mesai">${rowMesaiTotal}</td></tr>`;
+                mRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-emerald-600 font-mono" id="total-${arac.id}-${aracBolge}-mesai">${rowMesaiTotal}</td></tr>`;
                 tblHtml += mRow;
             }
         });
@@ -263,7 +282,33 @@ async function loadGridData(tanimlar, musteriAdi) {
         gSumRow += `<td class="sticky right-0 bg-slate-900 z-20 border-l-2 border-slate-700 text-center text-sm font-mono" id="geneltotal-grand">${sumV + sumT + sumC8 + sumG2 + sumM}</td></tr>`;
 
         tbody.innerHTML = tblHtml + vSumRow + tSumRow + c8SumRow + g2SumRow + gSumRow;
-        
+
+        // ⭐ Plaka Filtresi: filter-arac dropdown'ını doldur
+        const filterAracDropdown = document.getElementById('filter-arac-dropdown');
+        if (filterAracDropdown) {
+            const hiddenInput = document.getElementById('filter-arac');
+            const searchInput = document.getElementById('filter-arac-input');
+            const currentVal = hiddenInput ? hiddenInput.value : 'ALL';
+
+            let htmlStr = `<div class="arac-option px-4 py-2.5 text-[10px] font-black text-indigo-600 uppercase tracking-widest cursor-pointer hover:bg-slate-50 border-b border-slate-100 transition-colors" data-plaka="" onclick="window.selectAracFilter('ALL', '')">TÜM ARAÇLAR</div>`;
+            const seenPlates = new Set();
+            isolatedAraclar.forEach(arac => {
+                if (!seenPlates.has(arac.id)) {
+                    seenPlates.add(arac.id);
+                    htmlStr += `<div class="arac-option px-4 py-2 text-[10px] font-bold text-slate-600 uppercase cursor-pointer hover:bg-slate-50 hover:text-indigo-600 border-b border-slate-50 transition-colors" data-plaka="${arac.plaka}" onclick="window.selectAracFilter('${arac.id}', '${arac.plaka}')">${arac.plaka}</div>`;
+                }
+            });
+            filterAracDropdown.innerHTML = htmlStr;
+
+            // Eski seçimi geri yazdırma / input update
+            if (currentVal && currentVal !== 'ALL') {
+                const ar = isolatedAraclar.find(a => a.id.toString() === currentVal);
+                if (ar && searchInput) {
+                    searchInput.value = ar.plaka;
+                }
+            }
+        }
+
         // Final Top Summary
         if (document.getElementById('summary-vardiya')) document.getElementById('summary-vardiya').textContent = sumV;
         if (document.getElementById('summary-tek'))     document.getElementById('summary-tek').textContent = sumT;
@@ -276,18 +321,18 @@ async function loadGridData(tanimlar, musteriAdi) {
     }
 }
 
-window.excelInputChanged = function (aracId, type, day) {
+window.excelInputChanged = function (aracId, type, day, bolge) {
     const [year, mStr] = monthStr.split('-');
     const ay = parseInt(mStr, 10);
     const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const inp = document.getElementById(`cell-${aracId}-${dateCode}-${type}`);
+    const inp = document.getElementById(`cell-${aracId}-${bolge}-${dateCode}-${type}`);
     if (!inp) return;
     let val = String(inp.value).trim().toUpperCase();
     inp.value = val;
-    const dataObj = isolatedGridData.find(d => d.arac_id === aracId && d.tarih === dateCode && d.field === type);
+    const dataObj = isolatedGridData.find(d => d.arac_id === aracId && d.tarih === dateCode && d.field === type && d.bolge === bolge);
     if (dataObj) dataObj.val_new = val;
     const td = inp.parentElement;
-    td.className = ""; 
+    td.className = "";
     const uv = val.toUpperCase();
     if (uv === 'X') td.classList.add('cell-x'); else if (uv === 'R') td.classList.add('cell-r'); else if (uv === 'İ' || uv === 'I') td.classList.add('cell-i');
     const daysInMonth = new Date(year, ay, 0).getDate();
@@ -305,11 +350,12 @@ function recalcAllTotals(daysInMonth) {
         let colV = 0, colT = 0, colC8 = 0, colG2 = 0, colM = 0;
         const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
         isolatedAraclar.forEach(arac => {
-            const vInp  = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-            const tInp  = document.getElementById(`cell-${arac.id}-${dateCode}-tek`);
-            const c8Inp = document.getElementById(`cell-${arac.id}-${dateCode}-cikis_8`);
-            const g2Inp = document.getElementById(`cell-${arac.id}-${dateCode}-giris_2030`);
-            const mInp  = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`);
+            const b = arac.bolge;
+            const vInp  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-vardiya`);
+            const tInp  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-tek`);
+            const c8Inp = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-cikis_8`);
+            const g2Inp = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-giris_2030`);
+            const mInp  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-mesai`);
             if (vInp  && !isNaN(parseInt(vInp.value)))  colV  += parseInt(vInp.value);
             if (tInp  && !isNaN(parseInt(tInp.value)))  colT  += parseInt(tInp.value);
             if (c8Inp && !isNaN(parseInt(c8Inp.value))) colC8 += parseInt(c8Inp.value);
@@ -334,22 +380,23 @@ function recalcAllTotals(daysInMonth) {
         let rV = 0, rT = 0, rC8 = 0, rG2 = 0, rM = 0;
         for (let i = 1; i <= daysInMonth; i++) {
             const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-            const vVal  = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`)?.value;
-            const tVal  = document.getElementById(`cell-${arac.id}-${dateCode}-tek`)?.value;
-            const c8Val = document.getElementById(`cell-${arac.id}-${dateCode}-cikis_8`)?.value;
-            const g2Val = document.getElementById(`cell-${arac.id}-${dateCode}-giris_2030`)?.value;
-            const mVal  = document.getElementById(`cell-${arac.id}-${dateCode}-mesai`)?.value;
+            const b = arac.bolge;
+            const vVal  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-vardiya`)?.value;
+            const tVal  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-tek`)?.value;
+            const c8Val = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-cikis_8`)?.value;
+            const g2Val = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-giris_2030`)?.value;
+            const mVal  = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-mesai`)?.value;
             if(!isNaN(parseInt(vVal)))  rV  += parseInt(vVal);
             if(!isNaN(parseInt(tVal)))  rT  += parseInt(tVal);
             if(!isNaN(parseInt(c8Val))) rC8 += parseInt(c8Val);
             if(!isNaN(parseInt(g2Val))) rG2 += parseInt(g2Val);
             if(!isNaN(parseInt(mVal)))  rM  += parseInt(mVal);
         }
-        const vT  = document.getElementById(`total-${arac.id}-vardiya`);
-        const tT  = document.getElementById(`total-${arac.id}-tek`);
-        const c8T = document.getElementById(`total-${arac.id}-cikis_8`);
-        const g2T = document.getElementById(`total-${arac.id}-giris_2030`);
-        const mT  = document.getElementById(`total-${arac.id}-mesai`);
+        const vT  = document.getElementById(`total-${arac.id}-${arac.bolge}-vardiya`);
+        const tT  = document.getElementById(`total-${arac.id}-${arac.bolge}-tek`);
+        const c8T = document.getElementById(`total-${arac.id}-${arac.bolge}-cikis_8`);
+        const g2T = document.getElementById(`total-${arac.id}-${arac.bolge}-giris_2030`);
+        const mT  = document.getElementById(`total-${arac.id}-${arac.bolge}-mesai`);
         if(vT)  vT.textContent  = rV;
         if(tT)  tT.textContent  = rT;
         if(c8T) c8T.textContent = rC8;
@@ -376,11 +423,28 @@ window.autoFillWeekdays = function () {
         const d = new Date(year, ay - 1, i);
         if (d.getDay() !== 0 && d.getDay() !== 6) { 
             isolatedAraclar.forEach(arac => {
+                const b = arac.bolge;
                 const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-                const inp = document.getElementById(`cell-${arac.id}-${dateCode}-vardiya`);
-                if (inp && !inp.value) { inp.value = '1'; window.excelInputChanged(arac.id, 'vardiya', i); }
+                const inp = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-vardiya`);
+                if (inp && !inp.value) { inp.value = '1'; window.excelInputChanged(arac.id, 'vardiya', i, b); }
             });
         }
+    }
+}
+
+window.bulkFillAll = function () {
+    const fillVal = document.getElementById('bulk-fill-value')?.value || '1';
+    if (!confirm(`Tüm araçların boş hücrelerine '${fillVal}' eklenecek. Onaylıyor musunuz?`)) return;
+    const [year, mStr] = monthStr.split('-');
+    const ay = parseInt(mStr, 10);
+    const daysInMonth = new Date(year, ay, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+        isolatedAraclar.forEach(arac => {
+            const b = arac.bolge;
+            const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const inp = document.getElementById(`cell-${arac.id}-${b}-${dateCode}-vardiya`);
+            if (inp && !inp.value) { inp.value = fillVal; window.excelInputChanged(arac.id, 'vardiya', i, b); }
+        });
     }
 }
 
@@ -420,15 +484,30 @@ window.saveExcelGrid = async function () {
 }
 
 window.filterPuantaj = function() {
-    const sId = document.getElementById('filter-arac')?.value || 'ALL';
+    const filterAracEl = document.getElementById('filter-arac');
+    const sId    = filterAracEl?.value || 'ALL';
     const sOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
+    const sBolge = document.getElementById('filter-bolge')?.value || '';
+
     document.querySelectorAll('#excel-tbody tr[data-arac-id]').forEach(tr => {
-        const aId = tr.getAttribute('data-arac-id'), hasData = tr.getAttribute('data-has-data') === 'true';
-        const arac = isolatedAraclar.find(a => a.id.toString() === aId);
+        const aId     = tr.getAttribute('data-arac-id');
+        const trBolge = tr.getAttribute('data-bolge') || '';
+        const hasData = tr.getAttribute('data-has-data') === 'true';
+
+        const arac = isolatedAraclar.find(a => a.id.toString() === aId && a.bolge === trBolge);
         const aMulkiyet = (arac?.mulkiyet || 'Diğer').toUpperCase();
-        const mV = (sId === 'ALL' || aId === sId), mO = (sOwner === 'TÜMÜ' || aMulkiyet === sOwner);
-        tr.style.display = (mV && mO && (sId !== 'ALL' || sOwner !== 'TÜMÜ' || hasData)) ? '' : 'none';
+
+        // Plaka filtresi: sadece arac_id eşleşmesi (bölge farkı gözetmez)
+        const mV = (sId === 'ALL' || aId === sId);
+        const mO = (sOwner === 'TÜMÜ' || aMulkiyet === sOwner);
+        // Bölge filtresi: üstteki dropdown'dan ayrı kontrol edilir
+        const mB = (!sBolge || trBolge === sBolge);
+
+        // Varsayılan görünüm: veri olan satırlar gösterilir
+        const show = mV && mO && mB && (sId !== 'ALL' || sOwner !== 'TÜMÜ' || sBolge || hasData);
+        tr.style.display = show ? '' : 'none';
     });
+
     const [y, m] = monthStr.split('-');
     recalcAllTotals(new Date(y, parseInt(m), 0).getDate());
 }
@@ -463,15 +542,31 @@ window.handlePrint = function() {
     h += `<th style="border: 1px solid #e2e8f0; width: 30px; background-color: #f1f5f9; font-weight: 900; color: #1e293b; text-align: center;">TOP</th></tr></thead><tbody>`;
 
     const sOwner = (document.getElementById('filter-owner')?.value || 'Tümü').toUpperCase();
-    const rowsToPrint = isolatedAraclar.filter(a => (sId === 'ALL' || a.id.toString() === sId) && (sOwner === 'TÜMÜ' || (a.mulkiyet || 'Diğer').toUpperCase() === sOwner));
+    const sBolge = document.getElementById('filter-bolge')?.value || '';
+
+    // Aktif filtrelere göre yazdırılacak araçları belirle (bölge filtresi dahil)
+    const rowsToPrint = isolatedAraclar.filter(a => {
+        const mV = (sId === 'ALL' || a.id.toString() === sId);
+        const mO = (sOwner === 'TÜMÜ' || (a.mulkiyet || 'Diğer').toUpperCase() === sOwner);
+        const mB = (!sBolge || a.bolge === sBolge);
+        return mV && mO && mB;
+    });
+
     const isD = headersTitle.toLowerCase().includes('dikkan');
     let cV = new Array(dim+1).fill(0), cT = new Array(dim+1).fill(0);
     let cC8 = new Array(dim+1).fill(0), cG2 = new Array(dim+1).fill(0);
     let cM = new Array(dim+1).fill(0);
 
     rowsToPrint.forEach(arac => {
+        const b = arac.bolge;
+        const isIzmir = b === 'İzmir';
+        const bolgeStyle = isIzmir
+            ? 'background:rgba(59,130,246,0.1);color:#1d4ed8;'
+            : 'background:rgba(249,115,22,0.1);color:#c2410c;';
+        const bolgeText = (isIzmir ? '🔵 ' : '🟠 ') + b;
+
         let rV = 0, rT = 0, rC8 = 0, rG2 = 0, rM = 0, hasData = false;
-        let vH  = `<tr style="page-break-inside: avoid;"><td rowspan="${isD?5:2}" style="border: 1px solid #e2e8f0; font-weight: 800; text-align: center; color: #0f172a; background: #fff; font-size: 9px;">${arac.plaka}</td><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Vardiya</td>`;
+        let vH  = `<tr style="page-break-inside: avoid;"><td rowspan="${isD?5:2}" style="border: 1px solid #e2e8f0; font-weight: 800; text-align: center; color: #0f172a; background: #fff; font-size: 9px;">${arac.plaka}<br><span style="font-size:7px;font-weight:900;padding:1px 3px;border-radius:3px;${bolgeStyle}">${bolgeText}</span></td><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Vardiya</td>`;
         let tH  = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #64748b; background-color: #f8fafc; font-weight: 700; font-size: 7px; text-transform: uppercase;">Tek</td>`;
         let c8H = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #d97706; background-color: #fffbeb; font-weight: 700; font-size: 7px; text-transform: uppercase;">8 Çıkışı</td>`;
         let g2H = `<tr style="page-break-inside: avoid;"><td style="border: 1px solid #e2e8f0; padding: 4px; color: #7c3aed; background-color: #faf5ff; font-weight: 700; font-size: 7px; text-transform: uppercase;">20:30 Giriş</td>`;
@@ -479,11 +574,12 @@ window.handlePrint = function() {
         
         for(let i=1; i<=dim; i++) {
             const dc = `${y}-${mStr}-${String(i).padStart(2,'0')}`;
-            const v  = document.getElementById(`cell-${arac.id}-${dc}-vardiya`)?.value    || '';
-            const t  = document.getElementById(`cell-${arac.id}-${dc}-tek`)?.value        || '';
-            const c8 = document.getElementById(`cell-${arac.id}-${dc}-cikis_8`)?.value    || '';
-            const g2 = document.getElementById(`cell-${arac.id}-${dc}-giris_2030`)?.value || '';
-            const n  = document.getElementById(`cell-${arac.id}-${dc}-mesai`)?.value      || '';
+            // ⭐ Doğru cell ID formatı: cell-{arac_id}-{bolge}-{dateCode}-{field}
+            const v  = document.getElementById(`cell-${arac.id}-${b}-${dc}-vardiya`)?.value    || '';
+            const t  = document.getElementById(`cell-${arac.id}-${b}-${dc}-tek`)?.value        || '';
+            const c8 = document.getElementById(`cell-${arac.id}-${b}-${dc}-cikis_8`)?.value    || '';
+            const g2 = document.getElementById(`cell-${arac.id}-${b}-${dc}-giris_2030`)?.value || '';
+            const n  = document.getElementById(`cell-${arac.id}-${b}-${dc}-mesai`)?.value      || '';
             if(v||t||c8||g2||n) hasData = true;
             if(!isNaN(parseInt(v)))  { rV  += parseInt(v);  cV[i]  += parseInt(v); }
             if(!isNaN(parseInt(t)))  { rT  += parseInt(t);  cT[i]  += parseInt(t); }
@@ -502,7 +598,8 @@ window.handlePrint = function() {
             g2H += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #7c3aed; background:#faf5ff;">${g2}</td>`;
             mH  += `<td style="border: 1px solid #e2e8f0; text-align: center; color: #334155;">${n}</td>`;
         }
-        if(hasData) {
+        const shouldPrint = (sId !== 'ALL' || sOwner !== 'TÜMÜ' || sBolge || hasData);
+        if(shouldPrint) {
             vH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #4f46e5;">${rV}</td></tr>`;
             tH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #ea580c;">${rT}</td></tr>`;
             c8H += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #fffbeb; color: #d97706;">${rC8}</td></tr>`;
@@ -566,3 +663,46 @@ window.changeDonem = function() {
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initPuantaj);
 else initPuantaj();
+
+// Araca Özel Custom Dropdown Event'leri
+window.openAracDropdown = function() {
+    const el = document.getElementById('filter-arac-dropdown');
+    if(el) {
+        el.classList.remove('hidden', 'scale-95', 'opacity-0');
+        el.classList.add('flex', 'scale-100', 'opacity-100');
+    }
+}
+window.closeAracDropdown = function() {
+    const el = document.getElementById('filter-arac-dropdown');
+    if(!el) return;
+    el.classList.remove('flex', 'scale-100', 'opacity-100');
+    el.classList.add('hidden', 'scale-95', 'opacity-0');
+    
+    // Eğer Input'ta yazılı olan metin silinmiş ama hidden value hala id ise metni geri getir
+    const hi = document.getElementById('filter-arac');
+    const input = document.getElementById('filter-arac-input');
+    if (hi && input) {
+        if (hi.value === 'ALL') {
+            input.value = '';
+        } else {
+            const ar = isolatedAraclar.find(a => a.id.toString() === hi.value);
+            if (ar) input.value = ar.plaka;
+        }
+    }
+}
+window.filterAracOptions = function() {
+    const search = document.getElementById('filter-arac-input').value.toUpperCase();
+    document.querySelectorAll('#filter-arac-dropdown .arac-option').forEach(opt => {
+        const plaka = opt.getAttribute('data-plaka') || '';
+        if (plaka === '') {
+            opt.style.display = search === '' ? 'block' : 'none';
+        } else {
+            opt.style.display = plaka.includes(search) ? 'block' : 'none';
+        }
+    });
+}
+window.selectAracFilter = function(id, plaka) {
+    document.getElementById('filter-arac').value = id;
+    document.getElementById('filter-arac-input').value = plaka;
+    document.getElementById('filter-arac').dispatchEvent(new Event('change'));
+}
