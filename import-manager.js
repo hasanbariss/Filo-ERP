@@ -1,0 +1,833 @@
+// ============================================================
+// IDEOL Filo ERP — Import Manager
+// GRUP 7: Günlük Puantaj Grid Excel Import Sistemi
+//
+// Excel formatı:
+//   Satır 0 : [MÜŞTERİ ADI] [TARİH:] [tarih metni]
+//   Satır 1 : [GÜZERGAH]  [CİNSİ] [SAAT] [07:30] [08:00] [18:00] [20:30] [21:00]
+//   Satır 2 : [NO] [İZMİR]              [GİRİŞ] [ÇIKIŞ] [ÇIKIŞ] [GİRİŞ] [ÇIKIŞ]
+//   Satır 3+: [no] [güzergah adı] [cin] [saat] [PLAKA|boş] ...
+//
+// Vardiya kuralı:
+//   Aynı plaka art arda iki sütunda → 1 TAM vardiya
+//   Yalnız ya da boşlukla ayrılmış  → her biri 1 TEK vardiya
+//
+// Yazılan tablo: musteri_servis_puantaj
+// ============================================================
+
+(function () {
+    'use strict';
+
+    // ── Türkçe ay isimleri ──────────────────────────────────────────────
+    const TURKCE_AYLAR = {
+        'ocak': '01', 'şubat': '02', 'mart': '03', 'nisan': '04',
+        'mayıs': '05', 'haziran': '06', 'temmuz': '07', 'ağustos': '08',
+        'eylül': '09', 'ekim': '10', 'kasım': '11', 'aralık': '12'
+    };
+
+    // ── Toast ────────────────────────────────────────────────────────────
+    function showImportToast(mesaj, tip) {
+        if (window.Toast) {
+            window.Toast.show(mesaj, tip || 'info');
+        } else {
+            alert(mesaj);
+        }
+    }
+
+    // ── Loading butonu ───────────────────────────────────────────────────
+    function setImportLoading(durum) {
+        const btn = document.getElementById('import-onayla-btn');
+        if (!btn) return;
+        btn.disabled = durum;
+        btn.innerHTML = durum
+            ? '<span class="inline-block animate-spin mr-1">↻</span> Aktarılıyor...'
+            : (btn.dataset.originalText || 'İçe Aktar');
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  1. Ham Excel → 2D array okuyucu
+    // ══════════════════════════════════════════════════════════════════════
+    async function readRawExcel(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    if (typeof XLSX === 'undefined') {
+                        reject(new Error('SheetJS yüklenemedi.')); return;
+                    }
+                    const wb = XLSX.read(e.target.result, { type: 'binary', cellDates: false });
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    // header:1 → 2D dizi, boş hücreler '' olsun
+                    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                    if (rows.length === 0) reject(new Error('Excel boş.'));
+                    else resolve(rows);
+                } catch (err) {
+                    reject(new Error('Excel okunamadı: ' + err.message));
+                }
+            };
+            reader.onerror = () => reject(new Error('Dosya okunamadı.'));
+            reader.readAsBinaryString(file);
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  2. Tarih parser ("31 Ocak 2026 Cumartesi" veya "20.3.2026" → "2026-01-31")
+    // ══════════════════════════════════════════════════════════════════════
+    function parseTurkishDate(text) {
+        if (!text) return null;
+        const s = String(text).toLowerCase().trim();
+
+        const dotMatch = s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{4})/);
+        if (dotMatch) {
+            const gun = dotMatch[1].padStart(2, '0');
+            const ay = dotMatch[2].padStart(2, '0');
+            const yil = dotMatch[3];
+            return `${yil}-${ay}-${gun}`;
+        }
+
+        const m = s.match(/(\d{1,2})\s+(\S+)\s+(\d{4})/);
+        if (m) {
+            const gun  = m[1].padStart(2, '0');
+            const ay   = TURKCE_AYLAR[m[2]] || null;
+            const yil  = m[3];
+            if (ay) return `${yil}-${ay}-${gun}`;
+        }
+
+        const iso = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) return iso[0];
+        return null;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  3. Header analizi: müşteri adı, tarih, sütun indeksleri, veri başlangıcı
+    // ══════════════════════════════════════════════════════════════════════
+    function parseHeaderInfo(rows) {
+        let musteriAdi   = '';
+        let tarih        = null;
+        let timeColIdx   = -1;  // HH:MM başlıklarının başladığı satır indeksi
+        let dataStartRow = -1;
+        let guzergahCol  = -1;  // güzergah isim sütunu
+        let timeCols     = [];  // { colIdx, saat, yon } listesi
+
+        // ── 3A. Müşteri adı ve tarihi bul ─────────────────────────────
+        for (let r = 0; r < Math.min(rows.length, 5); r++) {
+            const row = rows[r];
+            for (let c = 0; c < row.length; c++) {
+                const val = String(row[c] || '').trim();
+                if (!val) continue;
+
+                // Tarih ara
+                const d = parseTurkishDate(val);
+                if (d && !tarih) { tarih = d; continue; }
+
+                // "TARİH:" veya "DATE:" gibi etiket hücresini atla
+                if (/^tarih[:\s]/i.test(val)) continue;
+
+                // İlk anlamlı alfanümerik hücre = müşteri adı (büyük harf, Türkçe)
+                if (!musteriAdi && /^[A-ZÇĞİÖŞÜa-zçğışöüñ\s]+$/.test(val) && val.length > 2) {
+                    musteriAdi = val.toUpperCase();
+                }
+            }
+        }
+
+        // ── 3B. Zaman sütunlarını bul (HH:MM pattern) ──────────────────
+        for (let r = 0; r < Math.min(rows.length, 6); r++) {
+            const row = rows[r];
+            const timesInRow = row.filter(v => /^\d{1,2}:\d{2}$/.test(String(v || '').trim()));
+            if (timesInRow.length >= 2) {
+                timeColIdx = r;
+                // Saat başlıklarının sütun indekslerini kaydet
+                row.forEach((v, c) => {
+                    if (/^\d{1,2}:\d{2}$/.test(String(v || '').trim())) {
+                        timeCols.push({ colIdx: c, saat: String(v).trim() });
+                    }
+                });
+                break;
+            }
+        }
+
+        if (timeCols.length === 0) throw new Error('Zaman sütunları bulunamadı (07:30, 18:00 gibi HH:MM başlıkları bekleniyor).');
+        if (!tarih) throw new Error('Tarih bulunamadı. Başlıkta "31 Ocak 2026" gibi bir tarih olmalı.');
+        if (!musteriAdi) throw new Error('Müşteri/Şirket adı Excel başlığında bulunamadı.');
+
+        // ── 3C. Giriş/Çıkış alt başlık satırı + veri başlangıcı ──────────
+        // Saat başlıklarından sonraki satır GİRİŞ/ÇIKIŞ alt başlıkları
+        const subHeaderRow = rows[timeColIdx + 1] || [];
+
+        // timeCols'a yön bilgisini ekle
+        timeCols = timeCols.map(tc => {
+            const sub = String(subHeaderRow[tc.colIdx] || '').toUpperCase().trim();
+            const yon = sub.includes('ÇIKIŞ') ? 'ÇIKIŞ' : 'GİRİŞ';
+            return { ...tc, yon };
+        });
+
+        // Veri satırları GİRİŞ/ÇIKIŞ satırından sonra başlar
+        dataStartRow = timeColIdx + 2;
+
+        // ── 3D. Güzergah sütununu bul: Çok katmanlı header taraması
+        // "NO", "İZMİR", "GÜZERGAH" kelimesine bak
+        const headerRow = rows[timeColIdx] || [];
+        guzergahCol = 1; // varsayılan
+        for (let c = 0; c < Math.min(headerRow.length, timeCols[0].colIdx); c++) {
+            const vText = [
+                String(rows[Math.max(0, timeColIdx - 1)]?.[c] || ''),
+                String(rows[timeColIdx]?.[c] || ''),
+                String(rows[timeColIdx + 1]?.[c] || '')
+            ].join(' ').toUpperCase();
+
+            if (vText.includes('GÜZERGAH') || vText.includes('GUZERGAH') || vText.includes('İZMİR') || vText.includes('IZMIR')) {
+                guzergahCol = c;
+            }
+        }
+
+        return { musteriAdi, tarih, timeCols, dataStartRow, guzergahCol };
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  4. Vardiya Gruplama — Aynı plaka yan yana → TAM, tek/aralıklı → TEK
+    // ══════════════════════════════════════════════════════════════════════
+    function grupVardiyalar(plakalar, timeCols) {
+        // plakalar: string[], timeCols[i].saat / .yon ile eşleşiyor
+        const result = [];
+        let i = 0;
+        while (i < plakalar.length) {
+            const plaka = String(plakalar[i] || '').trim();
+            if (!plaka) { i++; continue; }
+
+            const sonrakiPlaka = i + 1 < plakalar.length ? String(plakalar[i + 1] || '').trim() : '';
+            if (sonrakiPlaka && sonrakiPlaka === plaka) {
+                // TAM vardiya: iki sütun birden (yan yana aynı plaka 1 TAM vardiya sayılır)
+                result.push({
+                    plaka,
+                    vardiya: '1',
+                    tek: null,
+                    giris_saati: timeCols[i].saat,
+                    cikis_saati: timeCols[i + 1].saat
+                });
+                i += 2;
+            } else {
+                // TEK sefer
+                result.push({
+                    plaka,
+                    vardiya: null,
+                    tek: '1',
+                    giris_saati: timeCols[i].saat,
+                    cikis_saati: null
+                });
+                i++;
+            }
+        }
+        return result;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  5. Tüm Excel'i parse et → ham kayıt listesi
+    // ══════════════════════════════════════════════════════════════════════
+    function parseExcelRows(rows, headerInfo) {
+        const { musteriAdi, tarih, timeCols, dataStartRow, guzergahCol } = headerInfo;
+        const kayitlar = [];
+
+        // Sona kadar satır oku
+        for (let r = dataStartRow; r < rows.length; r++) {
+            const row = rows[r];
+
+            // Güzergah adı
+            const guzergah = String(row[guzergahCol] || '').trim();
+
+            // Boş satır veya TOPLAM satırı atla
+            if (!guzergah || /^toplam/i.test(guzergah)) continue;
+
+            // Her zaman sütunu için plaka al
+            const plakalar = timeCols.map(tc => {
+                const val = String(row[tc.colIdx] || '').trim();
+                // Hücre plaka formatında mı? Harf+rakam içeriyorsa plaka kabul et
+                return val && /[A-Z0-9]/.test(val.toUpperCase()) ? val.toUpperCase() : '';
+            });
+
+            // Hiç plaka yoksa bu satırı atla
+            if (plakalar.every(p => !p)) continue;
+
+            // Vardiya gruplama uygula
+            const vardiyalar = grupVardiyalar(plakalar, timeCols);
+
+            for (const v of vardiyalar) {
+                kayitlar.push({
+                    musteriAdi,
+                    tarih,
+                    guzergah,
+                    plaka: v.plaka,
+                    vardiya: v.vardiya,
+                    tek: v.tek,
+                    giris_saati: v.giris_saati,
+                    cikis_saati: v.cikis_saati
+                });
+            }
+        }
+
+        return kayitlar;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  5.5. Aynı Araç ve Aynı Günü Birleştir (Consolidate)
+    // ══════════════════════════════════════════════════════════════════════
+    function consolidateKayitlar(kayitlar) {
+        const map = {};
+        const result = [];
+
+        kayitlar.forEach(k => {
+            const key = `${k.plaka}_${k.tarih}`;
+            if (!map[key]) {
+                const newObj = {
+                    musteriAdi: k.musteriAdi,
+                    tarih: k.tarih,
+                    guzergah: k.guzergah,
+                    plaka: k.plaka,
+                    vardiya_count: 0,
+                    tek_count: 0,
+                    giris_saati: k.giris_saati,
+                    cikis_saati: k.cikis_saati,
+                    hakedis_list: []
+                };
+                map[key] = newObj;
+                result.push(newObj);
+            }
+
+            const row = map[key];
+            if (k.vardiya && !isNaN(parseInt(k.vardiya))) row.vardiya_count += parseInt(k.vardiya);
+            if (k.tek     && !isNaN(parseInt(k.tek)))     row.tek_count     += parseInt(k.tek);
+
+            row.hakedis_list.push({
+                guzergah: k.guzergah,
+                giris_saati: k.giris_saati
+            });
+
+            if (row.guzergah !== k.guzergah && !row.guzergah.includes(k.guzergah)) {
+                row.guzergah += `, ${k.guzergah}`;
+            }
+        });
+
+        result.forEach(r => {
+            r.vardiya = r.vardiya_count > 0 ? String(r.vardiya_count) : null;
+            r.tek     = r.tek_count > 0     ? String(r.tek_count)     : null;
+        });
+
+        return result;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  6. Supabase Validasyonu
+    // ══════════════════════════════════════════════════════════════════════
+    async function validateKayitlar(kayitlar) {
+        const supabase = window.supabaseClient;
+
+        // Paginated assignment fetch
+        const musteriAracTanımlarList = [];
+        let rangeFrom = 0;
+        const rangeStep = 1000;
+        while (true) {
+            const { data, error } = await supabase
+                .from('musteri_arac_tanimlari')
+                .select('musteri_id, arac_id')
+                .range(rangeFrom, rangeFrom + rangeStep - 1);
+            if (error || !data || data.length === 0) break;
+            musteriAracTanımlarList.push(...data);
+            if (data.length < rangeStep) break;
+            rangeFrom += rangeStep;
+        }
+
+        const [aracRes, musteriRes, mevcutRes] = await Promise.all([
+            supabase.from('araclar').select('plaka, id, mulkiyet_durumu, kira_bedeli'),
+            supabase.from('musteriler').select('id, ad'),
+            supabase.from('musteri_servis_puantaj').select('id, tarih, arac_id, musteri_id, bolge')
+        ]);
+
+        if (aracRes.error)   throw new Error('Araç listesi alınamadı: ' + aracRes.error.message);
+        if (musteriRes.error) throw new Error('Müşteri listesi alınamadı: ' + musteriRes.error.message);
+
+        const plakaMap   = Object.fromEntries((aracRes.data || []).map(a => [a.plaka.toUpperCase().trim(), a]));
+        const musteriMap = Object.fromEntries((musteriRes.data || []).map(m => [m.ad.toUpperCase().trim(), m]));
+        // ⭐ key'e bolge eklendi: aynı plaka+tarih+fabrika İzmir için ayrı, Manisa için ayrı kayıt
+        const mevcutMap  = Object.fromEntries((mevcutRes.data || []).map(r => [`${r.tarih}|${r.arac_id}|${r.musteri_id}|${r.bolge || 'Manisa'}`, r.id]));
+        const musteriAracSet = new Set(musteriAracTanımlarList.map(r => `${r.musteri_id}|${r.arac_id}`));
+
+        return kayitlar.map((k, i) => {
+            const errors   = [];
+            const warnings = [];
+
+            const arac    = plakaMap[k.plaka] || null;
+            const musteri = musteriMap[k.musteriAdi.toUpperCase().trim()] || null;
+
+            if (!arac)    warnings.push(`Plaka "${k.plaka}" sistemde yok — otomatik eklenecek.`);
+            if (!musteri) warnings.push(`Müşteri "${k.musteriAdi}" sistemde yok — yeni oluşturulacak.`);
+
+            // Fabrika (Müşteri) atama kontrolü
+            if (arac && musteri) {
+                const isAssigned = musteriAracSet.has(`${musteri.id}|${arac.id}`);
+                if (!isAssigned) {
+                    warnings.push(`Plaka "${k.plaka}" şu an ${k.musteriAdi} fabrikasına atanmamış! Otomatik atanacak.`);
+                }
+            }
+
+            let existing_id = null;
+            if (arac && musteri) {
+                // ⭐ Bölge de key'in parçası — İzmir ve Manisa kaydı bağımsız
+                const importBolge = window._importBolge || 'Manisa';
+                const key = `${k.tarih}|${arac.id}|${musteri.id}|${importBolge}`;
+                if (mevcutMap[key]) {
+                    existing_id = mevcutMap[key];
+                    warnings.push(`Bu kayıt (${importBolge}) zaten mevcut, üzerine yazılacak`);
+                }
+            }
+
+            return {
+                ...k,
+                satir: i + 1,
+                arac,
+                musteri,
+                existing_id,
+                durum:  errors.length > 0 ? 'hata' : warnings.length > 0 ? 'uyari' : 'ok',
+                errors,
+                warnings
+            };
+        });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  7. Önizleme Tablosu
+    // ══════════════════════════════════════════════════════════════════════
+    function renderPreview(validatedRows) {
+        const hatali      = validatedRows.filter(r => r.durum === 'hata').length;
+        const uyarili     = validatedRows.filter(r => r.durum === 'uyari').length;
+        const temiz       = validatedRows.filter(r => r.durum === 'ok').length;
+        const aktarilacak = temiz + uyarili;
+
+        const body = document.getElementById('import-modal-body');
+        if (!body) return;
+
+        body.innerHTML = `
+            <div class="import-ozet">
+                <span class="badge badge-success">✓ ${temiz} hazır</span>
+                <span class="badge badge-warning">⚠ ${uyarili} uyarı</span>
+                <span class="badge badge-error">✗ ${hatali} hata</span>
+                <span style="margin-left:auto;font-size:0.75rem;color:hsl(var(--text-dim));">
+                    Bölge: <strong>${window._importBolge || '?'}</strong>
+                    &nbsp;|&nbsp; Müşteri: <strong>${validatedRows[0]?.musteriAdi || '?'}</strong>
+                    &nbsp;|&nbsp; Tarih: <strong>${validatedRows[0]?.tarih || '?'}</strong>
+                </span>
+            </div>
+
+            ${hatali > 0 ? `<div class="import-hatalar-kutu"><strong>⚠ ${hatali} satırda hata var</strong> — bu satırlar aktarılmayacak.</div>` : ''}
+
+            <div class="import-tablo-kap">
+                <table class="import-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Güzergah</th>
+                            <th>Plaka</th>
+                            <th>Vardiya</th>
+                            <th>Giriş Saati</th>
+                            <th>Durum</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${validatedRows.map(r => `
+                            <tr class="row-${r.durum}">
+                                <td class="text-center">${r.satir}</td>
+                                <td>${r.guzergah}</td>
+                                <td><strong>${r.plaka}</strong></td>
+                                <td><span class="${r.vardiya ? 'badge badge-success' : 'badge badge-warning'}">${r.vardiya || r.tek}</span></td>
+                                <td>${r.giris_saati || ''}${r.cikis_saati ? ' – ' + r.cikis_saati : ''}</td>
+                                <td class="durum-cell">
+                                    ${r.errors.map(e => `<div class="import-err">✗ ${e}</div>`).join('')}
+                                    ${r.warnings.map(w => `<div class="import-warn">⚠ ${w}</div>`).join('')}
+                                    ${r.durum === 'ok' ? '<div class="import-ok">✓ Hazır</div>' : ''}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="import-actions">
+                <button id="import-onayla-btn"
+                    onclick="window.importConfirm()"
+                    class="import-btn-primary"
+                    data-original-text="${aktarilacak} Kaydı İçe Aktar"
+                    ${aktarilacak === 0 ? 'disabled' : ''}>
+                    ${aktarilacak === 0
+                        ? 'Tüm satırlarda hata — düzeltin'
+                        : hatali > 0
+                        ? `${aktarilacak} kaydı aktar (${hatali} hatalı atlanacak)`
+                        : `${aktarilacak} Kaydı İçe Aktar`}
+                </button>
+                <button onclick="window.closeImportModal()" class="import-btn-secondary">İptal</button>
+            </div>
+        `;
+
+        openImportModal();
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  8. Toplu Supabase Yazma
+    // ══════════════════════════════════════════════════════════════════════
+    window.importConfirm = async function () {
+        const validatedRows = window._importRows;
+        if (!validatedRows || validatedRows.length === 0) return;
+
+        // Bölge kontrol
+        const bolge = window._importBolge;
+        if (!bolge) {
+            showImportToast('Lütfen önce bir bölge seçiniz (İzmir veya Manisa).', 'error');
+            return;
+        }
+
+        const aktarilacaklar = validatedRows.filter(r => r.durum !== 'hata');
+        if (aktarilacaklar.length === 0) {
+            showImportToast('Aktarılacak geçerli satır yok.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('import-onayla-btn');
+        if (btn) btn.dataset.originalText = btn.textContent.trim();
+        setImportLoading(true);
+
+        const supabase = window.supabaseClient;
+
+        try {
+            let servisCount      = 0;
+            let yeniMusteriCount = 0;
+            let yeniAracCount    = 0;
+            let atamaCount       = 0;
+            let hakedisCount     = 0;
+
+            // Aynı müşteri adı için yeni oluşturmayı cache'le
+            const yeniMusteriCache = {};
+            const yeniAracCache    = {};
+            const yeniAtamaCache   = new Set();
+
+            // validation adımında gelen set
+            // Ancak en taze halini tutmak için de yeniAtamaCache devrede
+            let musteriAracSetMap = new Set();
+            try {
+                let rangeFrom = 0;
+                const rangeStep = 1000;
+                while (true) {
+                    const { data, error } = await supabase
+                        .from('musteri_arac_tanimlari')
+                        .select('musteri_id, arac_id')
+                        .range(rangeFrom, rangeFrom + rangeStep - 1);
+                    
+                    if (error) {
+                        console.error('Tanimlar fetch error during import at range', rangeFrom, error);
+                        break;
+                    }
+                    if (!data || data.length === 0) break;
+                    
+                    data.forEach(r => musteriAracSetMap.add(`${r.musteri_id}|${r.arac_id}`));
+                    if (data.length < rangeStep) break;
+                    rangeFrom += rangeStep;
+                }
+                console.log(`[Import] Mevcut Atamalar Yüklendi: ${musteriAracSetMap.size}`);
+            } catch(e){
+                console.error('Import assignment fetch error:', e);
+            }
+
+            for (const row of aktarilacaklar) {
+                // Müşteri ID bul ya da oluştur
+                let musteriId = row.musteri?.id || null;
+
+                if (!musteriId) {
+                    // Cache'de var mı?
+                    if (yeniMusteriCache[row.musteriAdi]) {
+                        musteriId = yeniMusteriCache[row.musteriAdi];
+                    } else {
+                        const { data: yeni, error: mErr } = await supabase
+                            .from('musteriler')
+                            .insert({ ad: row.musteriAdi })
+                            .select('id')
+                            .single();
+                        if (mErr) { console.error('Müşteri oluşturulamadı:', mErr); continue; }
+                        musteriId = yeni.id;
+                        yeniMusteriCache[row.musteriAdi] = musteriId;
+                        yeniMusteriCount++;
+                    }
+                }
+
+                // Araç ID bul ya da oluştur
+                let aracId = row.arac?.id || null;
+                if (!aracId) {
+                    if (yeniAracCache[row.plaka]) {
+                        aracId = yeniAracCache[row.plaka];
+                    } else {
+                        const { data: yeniArac, error: aErr } = await supabase
+                            .from('araclar')
+                            .insert({ 
+                                plaka: row.plaka
+                            })
+                            .select('id')
+                            .single();
+                        if (aErr) { console.error('Araç oluşturulamadı:', aErr); continue; }
+                        aracId = yeniArac.id;
+                        yeniAracCache[row.plaka] = aracId;
+                        yeniAracCount++;
+                    }
+                }
+
+                // Müşteri - Araç Ataması (Mevcut değilse)
+                const atamaKey = `${musteriId}|${aracId}`;
+                if (!musteriAracSetMap.has(atamaKey) && !yeniAtamaCache.has(atamaKey)) {
+                    // Import sırasında tarife türünü belirle (Vardiya varsa Vardiya, yoksa Tek)
+                    const varsayilanTur = (parseFloat(row.vardiya) > 0) ? 'Vardiya' : 'Tek';
+                    
+                    const { error: atamaErr } = await supabase
+                        .from('musteri_arac_tanimlari')
+                        .insert({ 
+                            musteri_id: musteriId, 
+                            arac_id: aracId,
+                            tarife_turu: varsayilanTur,
+                            tek_fiyat: 0,
+                            vardiya_fiyat: 0
+                        });
+                     
+                    if (atamaErr && atamaErr.code !== '23505') {
+                        console.error('Araç fabrikaya atanamadı:', atamaErr);
+                    } else {
+                        yeniAtamaCache.add(atamaKey);
+                        atamaCount++;
+                    }
+                }
+
+                // musteri_servis_puantaj'a yaz
+                // existing_id varsa UPDATE, yoksa INSERT (upsert değil — constraint sorununu önler)
+                const payload = {
+                    musteri_id:   musteriId,
+                    arac_id:      aracId,
+                    tarih:        row.tarih,
+                    vardiya:      row.vardiya,
+                    tek:          row.tek,
+                    gunluk_ucret: 0,
+                    bolge:        bolge  // ⭐ BÖLGE
+                };
+
+                let sErr;
+                if (row.existing_id) {
+                    // Aynı bölgede aynı kayıt var → güncelle
+                    ({ error: sErr } = await supabase
+                        .from('musteri_servis_puantaj')
+                        .update(payload)
+                        .eq('id', row.existing_id));
+                } else {
+                    // Yeni kayıt → ekle
+                    ({ error: sErr } = await supabase
+                        .from('musteri_servis_puantaj')
+                        .insert(payload));
+                }
+
+                if (sErr) {
+                    console.error(`[import] satır ${row.satir} servis hatası:`, sErr);
+                    showImportToast(`Satır ${row.satir} kaydedilemedi: ${sErr.message}`, 'error');
+                } else {
+                    servisCount++;
+                }
+
+                // Taşeron araç ise taseron_hakedis'e de yaz
+                const isTaseron = row.arac ? (row.arac.mulkiyet_durumu === 'TAŞERON') : false;
+                if (isTaseron) {
+                    if (row.hakedis_list && row.hakedis_list.length > 0) {
+                        for (const hakedis of row.hakedis_list) {
+                            const { error: hErr } = await supabase
+                                .from('taseron_hakedis')
+                                .insert({
+                                    arac_id:         aracId,
+                                    sefer_tarihi:    row.tarih,
+                                    guzergah:        `${hakedis.guzergah} (${hakedis.giris_saati || ''})`,
+                                    anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
+                                    yakit_kesintisi: 0,
+                                    bolge:           bolge  // ⭐ BÖLGE EKLENDİ
+                                });
+                            if (!hErr) hakedisCount++;
+                        }
+                    } else {
+                        const { error: hErr } = await supabase
+                            .from('taseron_hakedis')
+                            .insert({
+                                arac_id:         aracId,
+                                sefer_tarihi:    row.tarih,
+                                guzergah:        `${row.guzergah} (${row.giris_saati || ''})`,
+                                anlasilan_tutar: row.arac ? (row.arac.kira_bedeli || 0) : 0,
+                                yakit_kesintisi: 0,
+                                bolge:           bolge  // ⭐ BÖLGE EKLENDİ
+                            });
+                        if (!hErr) hakedisCount++;
+                    }
+                }
+            }
+
+            let mesaj = `${servisCount} servis kaydı aktarıldı.`;
+            if (yeniMusteriCount > 0) mesaj += ` ${yeniMusteriCount} yeni firma açıldı.`;
+            if (yeniAracCount > 0)    mesaj += ` ${yeniAracCount} yeni plaka eklendi.`;
+            if (atamaCount > 0)       mesaj += ` ${atamaCount} atanmamış plaka fabrikaya bağlandı.`;
+            if (hakedisCount > 0)     mesaj += ` ${hakedisCount} taşeron hakediş oluşturuldu.`;
+
+            showImportToast(mesaj, 'success');
+            window.closeImportModal();
+
+            if (typeof window.refreshAllModules === 'function') window.refreshAllModules();
+            if (typeof window.fetchMusteriler    === 'function') window.fetchMusteriler();
+
+        } catch (err) {
+            console.error('[import] Genel hata:', err);
+            showImportToast('İçe aktarma hatası: ' + err.message, 'error');
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
+    // ══════════════════════════════════════════════════════════════════════
+    //  9. Dosya Tetikleyicileri
+    // ══════════════════════════════════════════════════════════════════════
+    window.handleImportFile = async function (file) {
+        console.log("General import started:", file?.name);
+        if (!file) return;
+
+        // ⭐ BÖLGE KONTROLÜ — seçilmemişse import engelle
+        // İki farklı import alanı var: Genel Bakış (import-bolge-select) ve Fabrikalar (import-bolge-select-musteri)
+        const bolgeSelectGenel   = document.getElementById('import-bolge-select');
+        const bolgeSelectFabrika = document.getElementById('import-bolge-select-musteri');
+        const bolge = (bolgeSelectGenel?.value) || (bolgeSelectFabrika?.value) || '';
+        const activeSelect = (bolgeSelectGenel?.value) ? bolgeSelectGenel : bolgeSelectFabrika;
+        if (!bolge) {
+            showImportToast('Önce bir bölge seçmelisiniz (İzmir veya Manisa)!', 'error');
+            if (activeSelect) {
+                activeSelect.style.borderColor = '#ef4444';
+                activeSelect.focus();
+                setTimeout(() => { activeSelect.style.borderColor = ''; }, 3000);
+            }
+            return;
+        }
+        window._importBolge = bolge;
+
+        // Bölge badge'i güncelle
+        const badge = document.getElementById('import-bolge-badge');
+        if (badge) {
+            badge.classList.remove('hidden');
+            const isIzmir = bolge === 'İzmir';
+            badge.className = `px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest ${isIzmir ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`;
+            badge.textContent = `${isIzmir ? '🔵' : '🟠'} ${bolge} Servisleri`;
+        }
+
+        if (!file.name.match(/\.(xlsx|xls)$/i)) {
+            showImportToast('Sadece .xlsx veya .xls dosyaları kabul edilir.', 'error');
+            return;
+        }
+
+        const dropArea = document.querySelector('.import-drop-area');
+        if (dropArea) dropArea.classList.add('import-drop-active');
+
+        try {
+            showImportToast('Excel okunuyor...', 'info');
+            const rows = await readRawExcel(file);
+
+            const headerInfo = parseHeaderInfo(rows);
+            showImportToast(
+                `Müşteri: ${headerInfo.musteriAdi} | Tarih: ${headerInfo.tarih} | ${headerInfo.timeCols.length} saat sütunu`,
+                'info'
+            );
+
+            const kayitlar = parseExcelRows(rows, headerInfo);
+            if (kayitlar.length === 0) throw new Error('İçe aktarılacak geçerli satır bulunamadı.');
+
+            const consolidated = consolidateKayitlar(kayitlar);
+
+            showImportToast(`${consolidated.length} sefer tespit edildi, doğrulanıyor...`, 'info');
+            const validated = await validateKayitlar(consolidated);
+            window._importRows = validated;
+            renderPreview(validated);
+
+        } catch (err) {
+            showImportToast(err.message, 'error');
+        } finally {
+            if (dropArea) dropArea.classList.remove('import-drop-active');
+            // Reset both possible inputs
+            ['import-file-input', 'import-file-input-musteri'].forEach(id => {
+                const fi = document.getElementById(id);
+                if (fi) fi.value = '';
+            });
+        }
+    };
+
+    window.handleImportDrop = function (e) {
+        e.preventDefault(); e.stopPropagation();
+        const dropArea = document.querySelector('.import-drop-area');
+        if (dropArea) dropArea.classList.remove('import-drop-hover');
+        const file = e.dataTransfer?.files?.[0];
+        if (file) {
+            // Bölge kontrolü drop için de yap — handleImportFile içinde de yapılıyor
+            window.handleImportFile(file);
+        }
+    };
+
+    // ⭐ Yeni helper: Bölge seçiliyse dosya dialogını aç, seçilmemişse uyar (Genel Bakış)
+    window.checkBolgeAndOpenFile = function () {
+        const bolgeSelect = document.getElementById('import-bolge-select');
+        const bolge = bolgeSelect ? bolgeSelect.value : '';
+        if (!bolge) {
+            showImportToast('Önce bölge seçiniz: İzmir veya Manisa!', 'error');
+            if (bolgeSelect) {
+                bolgeSelect.style.borderColor = '#ef4444';
+                bolgeSelect.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
+                bolgeSelect.focus();
+                setTimeout(() => { bolgeSelect.style.borderColor = ''; bolgeSelect.style.boxShadow = ''; }, 3000);
+            }
+            return;
+        }
+        const fi = document.getElementById('import-file-input');
+        if (fi) fi.click();
+    };
+
+    // ⭐ Fabrikalar modülü için ayrı helper
+    window.checkBolgeAndOpenFileFabrika = function () {
+        const bolgeSelect = document.getElementById('import-bolge-select-musteri');
+        const bolge = bolgeSelect ? bolgeSelect.value : '';
+        if (!bolge) {
+            showImportToast('Önce bölge seçiniz: İzmir veya Manisa!', 'error');
+            if (bolgeSelect) {
+                bolgeSelect.style.borderColor = '#ef4444';
+                bolgeSelect.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.2)';
+                bolgeSelect.focus();
+                setTimeout(() => { bolgeSelect.style.borderColor = ''; bolgeSelect.style.boxShadow = ''; }, 3000);
+            }
+            return;
+        }
+        // Fabrika seçimini global'e yaz (handleImportFile bunu okuyacak)
+        window._importBolge = bolge;
+        const fi = document.getElementById('import-file-input-musteri');
+        if (fi) fi.click();
+    };
+
+    window.handleImportDragOver = function (e) {
+        e.preventDefault();
+        const dropArea = document.querySelector('.import-drop-area');
+        if (dropArea) dropArea.classList.add('import-drop-hover');
+    };
+
+    window.handleImportDragLeave = function () {
+        const dropArea = document.querySelector('.import-drop-area');
+        if (dropArea) dropArea.classList.remove('import-drop-hover');
+    };
+
+    // ── Modal Aç/Kapat ───────────────────────────────────────────────────
+    function openImportModal() {
+        const m = document.getElementById('import-preview-modal');
+        if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.closeImportModal = function () {
+        const m = document.getElementById('import-preview-modal');
+        if (m) { m.classList.add('hidden'); m.classList.remove('flex'); }
+        window._importRows = null;
+    };
+
+})();
