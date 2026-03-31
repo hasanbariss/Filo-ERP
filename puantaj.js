@@ -150,7 +150,11 @@ async function loadGridData(tanimlar, musteriAdi) {
             let rowVardiyaTotal = 0, rowTekTotal = 0, rowCikis8Total = 0, rowGiris2030Total = 0, rowMesaiTotal = 0;
 
             // Pre-calculate visibility and filter
-            const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && k.bolge === arac.bolge && (Boolean(k.vardiya) || Boolean(k.tek)));
+            const hasDataInMonth = isolatedKayitlar.some(k => 
+                k.arac_id === arac.id && 
+                (k.bolge || (isDikkan ? 'İzmir' : 'Manisa')) === arac.bolge && 
+                (Boolean(k.vardiya) || Boolean(k.tek))
+            );
             const dataStr = hasDataInMonth ? 'true' : 'false';
             const aracBolge = arac.bolge; // ⭐ Artık objeden geliyor
 
@@ -456,12 +460,15 @@ window.saveExcelGrid = async function () {
         const toSaveOrUpdate = isolatedGridData.filter(d => d.val_new !== d.val_original);
         if (toSaveOrUpdate.length === 0) { alert('Değişiklik bulunamadı.'); btn.innerHTML = ogHtml; return; }
         const updatesByDateAndVehicle = {};
-        const dbMap = {};
-        // ⭐ FIX: bolge'yi key'e dahil et — aynı araç İzmir/Manisa için ayrı kayıt olabilir
-        isolatedKayitlar.forEach(k => { dbMap[`${k.arac_id}_${k.tarih}_${k.bolge || ''}`] = k; });
+        const isDikkan = document.getElementById('header-title').textContent.toLowerCase().includes('dikkan');
+        // ⭐ FIX: bolge referansını fallback ile kur, böylece eski kayıtlarda duplicate oluşmaz
+        isolatedKayitlar.forEach(k => { 
+            const b = k.bolge || (isDikkan ? 'İzmir' : 'Manisa');
+            dbMap[`${k.arac_id}_${k.tarih}_${b}`] = k; 
+        });
         toSaveOrUpdate.forEach(item => {
-            // ⭐ FIX: key'e bolge ekle — İzmir ve Manisa kayıtları çakışmasın
-            const key = `${item.arac_id}_${item.tarih}_${item.bolge || ''}`;
+            // ⭐ FIX: item.bolge aracBolge olarak grid'den geldiği için her zaman dolu
+            const key = `${item.arac_id}_${item.tarih}_${item.bolge}`;
             if (!updatesByDateAndVehicle[key]) {
                 updatesByDateAndVehicle[key] = { ...(dbMap[key] || {
                     musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih,
