@@ -2825,12 +2825,29 @@
                 if (em) em.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.doLogin(); });
 
                 if (window.supabaseClient && window.supabaseClient.auth) {
+                    // 1. Check existing session on load
+                    window.supabaseClient.auth.getSession().then(function(result) {
+                        var session = result.data ? result.data.session : null;
+                        if (session) {
+                            _hideAuthOverlay(session.user);
+                            if (typeof window.initApp === 'function') window.initApp();
+                        } else {
+                            _showAuthOverlay();
+                        }
+                    }).catch(function(err) {
+                        console.error('Session check error:', err);
+                        _showAuthOverlay();
+                    });
+
+                    // 2. Listen for future auth changes (login/logout)
                     window.supabaseClient.auth.onAuthStateChange(function (ev, sess) {
                         if (ev === 'SIGNED_IN' && sess) {
                             _hideAuthOverlay(sess.user);
                             if (typeof window.initApp === 'function') window.initApp();
                         }
-                        else if (ev === 'SIGNED_OUT') _showAuthOverlay();
+                        else if (ev === 'SIGNED_OUT') {
+                            _showAuthOverlay();
+                        }
                     });
                 }
             });

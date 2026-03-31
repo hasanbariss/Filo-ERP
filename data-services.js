@@ -7795,7 +7795,10 @@ window.fetchSonAktiviteler = async function(filterTur) {
             window.supabaseClient.from('cari_faturalar')
                 .select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)')
                 .order('fatura_tarihi', { ascending: false }).limit(20)
-                .catch(() => ({ data: [] })),
+                .then(
+                    res => res.error ? { data: [] } : res,
+                    err => ({ data: [] })
+                )
         ]);
 
         // --- Tarih formatlama ---
