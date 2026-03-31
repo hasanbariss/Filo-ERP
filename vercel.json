@@ -1,6 +1,4 @@
 {
-  "buildCommand": "echo 'No build step'",
-  "installCommand": "echo 'Skipping install for Vercel static deploy'",
   "rewrites": [
     { "source": "/", "destination": "/filoyonetim.html" }
   ]

@@ -99,23 +99,26 @@ async function loadGridData(tanimlar, musteriAdi) {
         const seenKeys = new Set();
         isolatedAraclar = [];
         for (const t of tanimlar) {
-            if (t.araclar && t.araclar.id) {
+            // Supabase object or array normalization handling
+            const aracObj = Array.isArray(t.araclar) ? t.araclar[0] : t.araclar;
+            
+            if (aracObj && aracObj.id) {
                 // Bu araç için kac farkli bolge var?
                 const aracBolgeler = [...new Set(
                     isolatedKayitlar
-                        .filter(k => k.arac_id === t.araclar.id)
+                        .filter(k => k.arac_id === aracObj.id)
                         .map(k => k.bolge || (isDikkan ? 'İzmir' : 'Manisa'))
                 )];
                 // Kaydı olmayan ama tanimda olan araçlar için en az bir satır goster
                 if (aracBolgeler.length === 0) aracBolgeler.push(isDikkan ? 'İzmir' : 'Manisa');
                 for (const bolge of aracBolgeler) {
-                    const key = `${t.araclar.id}|${bolge}`;
+                    const key = `${aracObj.id}|${bolge}`;
                     if (!seenKeys.has(key)) {
                         seenKeys.add(key);
                         isolatedAraclar.push({
-                            id:      t.araclar.id,
-                            plaka:   t.araclar.plaka,
-                            mulkiyet: t.araclar.mulkiyet_durumu,
+                            id:      aracObj.id,
+                            plaka:   aracObj.plaka,
+                            mulkiyet: aracObj.mulkiyet_durumu,
                             bolge:   bolge
                         });
                     }
@@ -150,11 +153,7 @@ async function loadGridData(tanimlar, musteriAdi) {
             let rowVardiyaTotal = 0, rowTekTotal = 0, rowCikis8Total = 0, rowGiris2030Total = 0, rowMesaiTotal = 0;
 
             // Pre-calculate visibility and filter
-            const hasDataInMonth = isolatedKayitlar.some(k => 
-                k.arac_id === arac.id && 
-                (k.bolge || (isDikkan ? 'İzmir' : 'Manisa')) === arac.bolge && 
-                (Boolean(k.vardiya) || Boolean(k.tek))
-            );
+            const hasDataInMonth = isolatedKayitlar.some(k => k.arac_id === arac.id && k.bolge === arac.bolge && (Boolean(k.vardiya) || Boolean(k.tek)));
             const dataStr = hasDataInMonth ? 'true' : 'false';
             const aracBolge = arac.bolge; // ⭐ Artık objeden geliyor
 
@@ -459,37 +458,39 @@ window.saveExcelGrid = async function () {
     try {
         const toSaveOrUpdate = isolatedGridData.filter(d => d.val_new !== d.val_original);
         if (toSaveOrUpdate.length === 0) { alert('Değişiklik bulunamadı.'); btn.innerHTML = ogHtml; return; }
-        const updatesByDateAndVehicle = {};
-        const isDikkan = document.getElementById('header-title').textContent.toLowerCase().includes('dikkan');
-        // ⭐ FIX: bolge referansını fallback ile kur, böylece eski kayıtlarda duplicate oluşmaz
-        isolatedKayitlar.forEach(k => { 
-            const b = k.bolge || (isDikkan ? 'İzmir' : 'Manisa');
-            dbMap[`${k.arac_id}_${k.tarih}_${b}`] = k; 
-        });
+        
+        const updatesByKey = {};
+        const kayitlarMapDB = {};
+        isolatedKayitlar.forEach(k => { kayitlarMapDB[`${k.arac_id}_${k.tarih}_${k.bolge || ''}`] = k; });
+        
         toSaveOrUpdate.forEach(item => {
-            // ⭐ FIX: item.bolge aracBolge olarak grid'den geldiği için her zaman dolu
-            const key = `${item.arac_id}_${item.tarih}_${item.bolge}`;
-            if (!updatesByDateAndVehicle[key]) {
-                updatesByDateAndVehicle[key] = { ...(dbMap[key] || {
-                    musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih,
-                    // ⭐ FIX: yeni kayıtta bolge alanını da kaydet
-                    bolge: item.bolge || '',
+            const key = `${item.arac_id}_${item.tarih}_${item.bolge || ''}`;
+            if (!updatesByKey[key]) {
+                updatesByKey[key] = { ...(kayitlarMapDB[key] || {
+                    musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih, bolge: item.bolge,
                     vardiya: '', tek: '', cikis_8: 0, giris_2030: 0, mesai: 0
                 }) };
             }
-            if (item.field === 'vardiya')    updatesByDateAndVehicle[key].vardiya    = item.val_new;
-            if (item.field === 'tek')        updatesByDateAndVehicle[key].tek        = item.val_new;
-            if (item.field === 'cikis_8')    updatesByDateAndVehicle[key].cikis_8   = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
-            if (item.field === 'giris_2030') updatesByDateAndVehicle[key].giris_2030 = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
-            if (item.field === 'mesai')      updatesByDateAndVehicle[key].mesai      = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (item.field === 'vardiya')    updatesByKey[key].vardiya    = item.val_new;
+            if (item.field === 'tek')        updatesByKey[key].tek        = item.val_new;
+            if (item.field === 'cikis_8')    updatesByKey[key].cikis_8   = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (item.field === 'giris_2030') updatesByKey[key].giris_2030 = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
+            if (item.field === 'mesai')      updatesByKey[key].mesai      = !item.val_new ? 0 : (parseInt(item.val_new) || 0);
         });
+        
         const upsertArray = [], deleteIds = [];
-        Object.values(updatesByDateAndVehicle).forEach(item => {
-            if (!item.vardiya && !item.tek && !item.cikis_8 && !item.giris_2030 && !item.mesai && item.id) deleteIds.push(item.id);
-            else { if (!item.id) delete item.id; upsertArray.push(item); }
+        Object.values(updatesByKey).forEach(item => {
+            if (!item.vardiya && !item.tek && !item.cikis_8 && !item.giris_2030 && !item.mesai && item.id) {
+                deleteIds.push(item.id);
+            } else { 
+                if (!item.id) delete item.id; 
+                upsertArray.push(item); 
+            }
         });
+        
         if (upsertArray.length > 0) { const { error: ue } = await window.supabaseClient.from('musteri_servis_puantaj').upsert(upsertArray); if (ue) throw ue; }
         if (deleteIds.length > 0) { const { error: de } = await window.supabaseClient.from('musteri_servis_puantaj').delete().in('id', deleteIds); if (de) throw de; }
+        
         alert(`Mükemmel! Kaydedildi.`); window.location.reload();
     } catch (e) { alert('Hata: ' + e.message); btn.innerHTML = ogHtml; }
 }
@@ -514,8 +515,8 @@ window.filterPuantaj = function() {
         // Bölge filtresi: üstteki dropdown'dan ayrı kontrol edilir
         const mB = (!sBolge || trBolge === sBolge);
 
-        // Varsayılan görünüm: Filtrelere uyan tüm kayıtlar gösterilir
-        const show = mV && mO && mB;
+        // Varsayılan görünüm: veri olan satırlar gösterilir
+        const show = mV && mO && mB && (sId !== 'ALL' || sOwner !== 'TÜMÜ' || sBolge || hasData);
         tr.style.display = show ? '' : 'none';
     });
 
