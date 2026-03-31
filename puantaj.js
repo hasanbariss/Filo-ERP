@@ -457,12 +457,16 @@ window.saveExcelGrid = async function () {
         if (toSaveOrUpdate.length === 0) { alert('Değişiklik bulunamadı.'); btn.innerHTML = ogHtml; return; }
         const updatesByDateAndVehicle = {};
         const dbMap = {};
-        isolatedKayitlar.forEach(k => { dbMap[`${k.arac_id}_${k.tarih}`] = k; });
+        // ⭐ FIX: bolge'yi key'e dahil et — aynı araç İzmir/Manisa için ayrı kayıt olabilir
+        isolatedKayitlar.forEach(k => { dbMap[`${k.arac_id}_${k.tarih}_${k.bolge || ''}`] = k; });
         toSaveOrUpdate.forEach(item => {
-            const key = `${item.arac_id}_${item.tarih}`;
+            // ⭐ FIX: key'e bolge ekle — İzmir ve Manisa kayıtları çakışmasın
+            const key = `${item.arac_id}_${item.tarih}_${item.bolge || ''}`;
             if (!updatesByDateAndVehicle[key]) {
                 updatesByDateAndVehicle[key] = { ...(dbMap[key] || {
                     musteri_id: musteriId, arac_id: item.arac_id, tarih: item.tarih,
+                    // ⭐ FIX: yeni kayıtta bolge alanını da kaydet
+                    bolge: item.bolge || '',
                     vardiya: '', tek: '', cikis_8: 0, giris_2030: 0, mesai: 0
                 }) };
             }

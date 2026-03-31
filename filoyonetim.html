@@ -647,26 +647,61 @@
                     </div>
                 </div>
 
-                <!-- Son İşlemler Satırı -->
-                <div class="dashboard-card mt-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
-                        <button onclick="fetchDashboardData()" class="text-xs bg-white/5 hover:bg-white/10 text-gray-400 px-2 py-1 rounded-lg transition-all flex items-center gap-1"><i data-lucide="refresh-cw" class="w-3 h-3"></i>Yenile</button>
+                <!-- Son Sistemsel Aktiviteler - Premium Feed -->
+                <div class="mt-6 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shadow-black/40" style="background: linear-gradient(135deg, rgba(16,185,129,0.04) 0%, rgba(15,23,42,0.95) 40%, rgba(15,23,42,0.98) 100%); backdrop-filter: blur(20px);">
+                    <!-- Header -->
+                    <div class="px-6 py-5 border-b border-white/8" style="background: linear-gradient(90deg, rgba(16,185,129,0.08) 0%, transparent 60%);">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                                    <i data-lucide="activity" class="w-4 h-4 text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="font-black text-white text-sm tracking-wide">Son Sistemsel Aktiviteler</h3>
+                                        <span class="flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3);">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            CANLI
+                                        </span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-500 mt-0.5">Yakıt, Bakım, Maaş, Poliçe ve Cari işlemleri</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <!-- Filtre butonları -->
+                                <div id="aktivite-filter-tabs" class="hidden sm:flex items-center gap-1 p-1 rounded-xl" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);">
+                                    <button onclick="window.filterAktiviteler('Tümü', this)" class="aktivite-tab-btn px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-white transition-all" style="background:rgba(16,185,129,0.2); color:#10b981;">Tümü</button>
+                                    <button onclick="window.filterAktiviteler('Yakıt', this)" class="aktivite-tab-btn px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-white transition-all">Yakıt</button>
+                                    <button onclick="window.filterAktiviteler('Bakım', this)" class="aktivite-tab-btn px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-white transition-all">Bakım</button>
+                                    <button onclick="window.filterAktiviteler('Maaş', this)" class="aktivite-tab-btn px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-white transition-all">Maaş</button>
+                                    <button onclick="window.filterAktiviteler('Poliçe', this)" class="aktivite-tab-btn px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider text-gray-500 hover:text-white transition-all">Poliçe</button>
+                                </div>
+                                <button onclick="if(window.fetchSonAktiviteler) window.fetchSonAktiviteler();" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide transition-all" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#9ca3af;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+                                    <i data-lucide="refresh-cw" class="w-3 h-3"></i>Yenile
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="overflow-x-auto overflow-y-auto max-h-[450px]">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 bg-[#0f172a] z-10">
-                                <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-white/5 bg-[#0f172a]">
-                                    <th class="pb-3 px-2">Tarih</th>
-                                    <th class="pb-3 px-2">Tür</th>
-                                    <th class="pb-3 px-2">İşlem Detayı</th>
-                                    <th class="pb-3 px-2 text-right">Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
-                                <tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic">Aktiviteler yükleniyor...</td></tr>
-                            </tbody>
-                        </table>
+                    <!-- Activity Feed -->
+                    <div class="overflow-y-auto" style="max-height: 520px;" id="aktivite-feed-scroll">
+                        <div id="son-islemler-tbody" class="divide-y divide-white/5">
+                            <!-- Loading skeleton -->
+                            <div class="px-6 py-8 text-center">
+                                <div class="flex flex-col items-center gap-3">
+                                    <div class="w-10 h-10 rounded-full flex items-center justify-center animate-pulse" style="background:rgba(16,185,129,0.1);">
+                                        <i data-lucide="loader-2" class="w-5 h-5 text-emerald-500 animate-spin"></i>
+                                    </div>
+                                    <p class="text-xs text-gray-500 font-medium">Aktiviteler hazırlanıyor...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Footer stat bar -->
+                    <div class="px-6 py-3 border-t border-white/5 flex items-center justify-between" style="background:rgba(255,255,255,0.02);">
+                        <span class="text-[10px] text-gray-600 font-medium">Son 50 işlem gösteriliyor</span>
+                        <div id="aktivite-toplam-bar" class="flex items-center gap-4 text-[10px] font-black text-gray-500">
+                            <!-- JS tarafından doldurulacak -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2790,12 +2825,29 @@
                 if (em) em.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.doLogin(); });
 
                 if (window.supabaseClient && window.supabaseClient.auth) {
+                    // 1. Check existing session on load
+                    window.supabaseClient.auth.getSession().then(function(result) {
+                        var session = result.data ? result.data.session : null;
+                        if (session) {
+                            _hideAuthOverlay(session.user);
+                            if (typeof window.initApp === 'function') window.initApp();
+                        } else {
+                            _showAuthOverlay();
+                        }
+                    }).catch(function(err) {
+                        console.error('Session check error:', err);
+                        _showAuthOverlay();
+                    });
+
+                    // 2. Listen for future auth changes (login/logout)
                     window.supabaseClient.auth.onAuthStateChange(function (ev, sess) {
                         if (ev === 'SIGNED_IN' && sess) {
                             _hideAuthOverlay(sess.user);
                             if (typeof window.initApp === 'function') window.initApp();
                         }
-                        else if (ev === 'SIGNED_OUT') _showAuthOverlay();
+                        else if (ev === 'SIGNED_OUT') {
+                            _showAuthOverlay();
+                        }
                     });
                 }
             });

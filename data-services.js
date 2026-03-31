@@ -5803,103 +5803,7 @@ window.fetchDashboardData = async function () {
     }
 };
 
-/**
- * === SON SİSTEMSEL AKTİVİTELER ===
- * Fetches recent expenses (Yakıt, Bakım, Maaş, Poliçe) and populates the dashboard feed.
- * Optimized for performance and 50-item limit.
- */
-window.fetchSonAktiviteler = async function () {
-    const tbody = document.getElementById('son-islemler-tbody');
-    if (!tbody) return;
-
-    try {
-        const [resYakit, resBakim, resMaas, resPolice] = await Promise.all([
-            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', { ascending: false }).limit(30),
-            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka), cariler(unvan)').order('islem_tarihi', { ascending: false }).limit(30),
-            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('id', { ascending: false }).limit(30),
-            window.supabaseClient.from('arac_policeler').select('bitis_tarihi, toplam_tutar, police_turu, araclar(plaka), cariler(unvan)').order('bitis_tarihi', { ascending: false }).limit(30)
-        ]);
-
-        let activities = [];
-
-        // 1. Yakıt (Expenses)
-        (resYakit.data || []).forEach(y => {
-            activities.push({
-                date: y.tarih,
-                type: 'YAKIT',
-                detail: `${y.araclar?.plaka || '-'} / Yakıt Alımı`,
-                tutar: -(y.toplam_tutar || 0)
-            });
-        });
-
-        // 2. Bakım (Expenses)
-        (resBakim.data || []).forEach(b => {
-            const desc = b.aciklama || 'Servis Bakımı';
-            const vendor = b.cariler?.unvan ? ` [Servis: ${b.cariler.unvan}]` : '';
-            activities.push({
-                date: b.islem_tarihi,
-                type: 'BAKIM',
-                detail: `${b.araclar?.plaka || '-'} / ${desc}${vendor}`,
-                tutar: -(b.toplam_tutar || 0)
-            });
-        });
-
-        // 3. Maaş (Expenses)
-        (resMaas.data || []).forEach(m => {
-            activities.push({
-                date: m.donem ? `${m.donem}-01` : new Date().toISOString().split('T')[0],
-                type: 'MAAŞ',
-                detail: `${m.soforler?.ad_soyad || '-'} / Personel Maaş`,
-                tutar: -(m.net_maas || 0)
-            });
-        });
-
-        // 4. Poliçe (Expenses)
-        (resPolice.data || []).forEach(p => {
-            const vendor = p.cariler?.unvan ? ` [Acente: ${p.cariler.unvan}]` : '';
-            activities.push({
-                date: p.bitis_tarihi,
-                type: 'POLİÇE',
-                detail: `${p.araclar?.plaka || '-'} / ${p.police_turu || 'Sigorta'}${vendor}`,
-                tutar: -(p.toplam_tutar || 0)
-            });
-        });
-
-        // Combine and Sort
-        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const finalItems = activities.slice(0, 50);
-
-        if (finalItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic uppercase tracking-widest">Son işlem bulunmuyor.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = finalItems.map(item => {
-            const typeColor = item.type === 'YAKIT' ? 'text-orange-400 bg-orange-400/10 border-orange-400/20' :
-                             item.type === 'BAKIM' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' :
-                             item.type === 'MAAŞ' ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' :
-                                                   'text-pink-400 bg-pink-400/10 border-pink-400/20';
-            
-            const displayDate = item.date ? (window.formatDate ? window.formatDate(item.date) : item.date) : '-';
-            const displayTutar = (item.tutar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
-
-            return `<tr class="hover:bg-white/5 transition-colors">
-                <td class="py-3 px-2 text-xs text-gray-400 font-medium">${displayDate}</td>
-                <td class="py-3 px-2">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-black border ${typeColor}">${item.type}</span>
-                </td>
-                <td class="py-3 px-2 text-xs font-bold text-gray-200 leading-normal whitespace-normal break-words" style="min-width: 300px;" title="${item.detail}">${item.detail}</td>
-                <td class="py-3 px-2 text-right font-black text-red-500 whitespace-nowrap">${displayTutar}</td>
-            </tr>`;
-        }).join('');
-
-        if (window.lucide) window.lucide.createIcons();
-
-    } catch (err) {
-        console.error('[fetchSonAktiviteler] Hata:', err);
-        tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-red-500 font-bold uppercase tracking-widest">Veri yükleme hatası!</td></tr>';
-    }
-};
+// fetchSonAktiviteler — Güncel ve tek versiyon dosyanın ilerisinde tanımlıdır.
 
 // Alias to match filoyonetim.html initialization
 window.fetchDashboard = window.fetchDashboardData;
@@ -7860,55 +7764,240 @@ window.fetchDashboardData = async function() {
     } catch(e) { console.error('[fetchDashboardData extra]', e); }
 };
 
-window.fetchSonAktiviteler = async function() {
-    const tbody = document.getElementById('son-islemler-tbody');
-    if (!tbody) return;
+window.fetchSonAktiviteler = async function(filterTur) {
+    const container = document.getElementById('son-islemler-tbody');
+    if (!container) return;
+
+    // Loading state
+    container.innerHTML = `<div class="px-6 py-8 text-center"><div class="flex flex-col items-center gap-3"><div class="w-10 h-10 rounded-full flex items-center justify-center animate-pulse" style="background:rgba(16,185,129,0.1);"><i data-lucide="loader-2" class="w-5 h-5 text-emerald-500 animate-spin"></i></div><p class="text-xs text-gray-500 font-medium">Aktiviteler yükleniyor...</p></div></div>`;
+    if (window.lucide) window.lucide.createIcons();
+
     try {
-        const conn = window.checkSupabaseConnection();
-        if (!conn.ok) return;
-
-        const typeColors = {
-            'Yakıt': 'bg-blue-500/10 text-blue-400',
-            'Bakım': 'bg-orange-500/10 text-orange-400',
-            'Maaş': 'bg-yellow-500/10 text-yellow-400',
-            'Cari Fatura': 'bg-red-500/10 text-red-400',
-            'Poliçe': 'bg-pink-500/10 text-pink-400'
-        };
-
-        const [yakitRes, bakimRes, maasRes, fatRes, policeRes] = await Promise.all([
-            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', {ascending:false}).limit(30),
-            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka)').order('islem_tarihi', {ascending:false}).limit(30),
-            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('created_at', {ascending:false}).limit(30),
-            window.supabaseClient.from('cari_faturalar').select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)').order('fatura_tarihi', {ascending:false}).limit(30),
-            window.supabaseClient.from('arac_policeler').select('baslangic_tarihi, toplam_tutar, police_turu, araclar(plaka)').order('created_at', {ascending:false}).limit(20),
-        ]);
-
-        const activities = [];
-        (yakitRes.data||[]).forEach(r => activities.push({tarih:r.tarih, tur:'Yakıt', detay:`${r.araclar?.plaka||'-'} - Yakıt`, tutar:r.toplam_tutar}));
-        (bakimRes.data||[]).forEach(r => activities.push({tarih:r.islem_tarihi, tur:'Bakım', detay:`${r.araclar?.plaka||'-'} - ${(r.aciklama||'').substring(0,30)}`, tutar:r.toplam_tutar}));
-        (maasRes.data||[]).forEach(r => activities.push({tarih:r.donem+'-01', tur:'Maaş', detay:`${r.soforler?.ad_soyad||'-'} Maaş`, tutar:r.net_maas}));
-        (fatRes.data||[]).forEach(r => activities.push({tarih:r.fatura_tarihi, tur:'Cari Fatura', detay:`${r.cariler?.unvan||'-'} - ${(r.aciklama||'').substring(0,25)}`, tutar:r.toplam_tutar}));
-        (policeRes.data||[]).forEach(r => activities.push({tarih:r.baslangic_tarihi, tur:'Poliçe', detay:`${r.araclar?.plaka||'-'} ${r.police_turu}`, tutar:r.toplam_tutar}));
-
-        activities.sort((a,b) => new Date(b.tarih) - new Date(a.tarih));
-        const top = activities.slice(0, 50);
-
-        if (top.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Henüz kayıt yok.</td></tr>';
+        const conn = window.checkSupabaseConnection ? window.checkSupabaseConnection() : { ok: true };
+        if (!conn.ok) {
+            container.innerHTML = `<div class="px-6 py-8 text-center text-xs text-red-400 font-bold">Bağlantı hatası!</div>`;
             return;
         }
 
-        const fmt = (n) => n != null ? '₺' + parseFloat(n).toLocaleString('tr-TR', {minimumFractionDigits:2}) : '-';
-        tbody.innerHTML = top.map(a => {
-            const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400';
-            return `<tr class="hover:bg-white/5 transition-colors border-b border-white/5">
-                <td class="py-3 px-2 text-xs text-gray-500 whitespace-nowrap">${a.tarih||'-'}</td>
-                <td class="py-3 px-2"><span class="px-2 py-0.5 ${colorClass} text-[10px] uppercase font-bold rounded whitespace-nowrap">${a.tur}</span></td>
-                <td class="py-3 px-2 text-xs text-gray-300 truncate max-w-xs" title="${a.detay}">${a.detay}</td>
-                <td class="py-3 px-2 text-xs font-bold text-right text-white whitespace-nowrap">${fmt(a.tutar)}</td>
-            </tr>`;
+        const [yakitRes, bakimRes, maasRes, policeRes, fatRes] = await Promise.all([
+            window.supabaseClient.from('yakit_takip')
+                .select('tarih, toplam_tutar, araclar(plaka), notlar')
+                .order('tarih', { ascending: false }).limit(40),
+            window.supabaseClient.from('arac_bakimlari')
+                .select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka), cariler(unvan)')
+                .order('islem_tarihi', { ascending: false }).limit(40),
+            window.supabaseClient.from('sofor_maas_bordro')
+                .select('donem, net_maas, soforler(ad_soyad), calisma_gun')
+                .order('id', { ascending: false }).limit(40),
+            window.supabaseClient.from('arac_policeler')
+                .select('baslangic_tarihi, toplam_tutar, police_turu, araclar(plaka), cariler(unvan)')
+                .order('id', { ascending: false }).limit(30),
+            window.supabaseClient.from('cari_faturalar')
+                .select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)')
+                .order('fatura_tarihi', { ascending: false }).limit(20)
+                .then(
+                    res => res.error ? { data: [] } : res,
+                    err => ({ data: [] })
+                )
+        ]);
+
+        // --- Tarih formatlama ---
+        const fmtDate = (d) => {
+            if (!d) return '-';
+            try {
+                const dt = new Date(d);
+                return dt.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch { return d; }
+        };
+
+        // --- Zaman damgası (ne kadar önce) ---
+        const timeAgo = (d) => {
+            if (!d) return '';
+            const diff = Math.floor((Date.now() - new Date(d)) / 86400000);
+            if (diff === 0) return 'Bugün';
+            if (diff === 1) return 'Dün';
+            if (diff < 7) return `${diff} gün önce`;
+            if (diff < 30) return `${Math.floor(diff / 7)} hafta önce`;
+            if (diff < 365) return `${Math.floor(diff / 30)} ay önce`;
+            return `${Math.floor(diff / 365)} yıl önce`;
+        };
+
+        // --- Tutar formatlama ---
+        const fmtTutar = (n) => {
+            if (n == null || n === '' || n === 0) return null;
+            return '₺' + parseFloat(n).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        // --- Tip yapılandırması ---
+        const typeConfig = {
+            'Yakıt':       { icon: 'fuel',          bg: 'rgba(59,130,246,0.12)',  border: 'rgba(59,130,246,0.25)',  text: '#60a5fa', badge: 'rgba(59,130,246,0.15)',  btext: '#93c5fd' },
+            'Bakım':       { icon: 'wrench',         bg: 'rgba(245,158,11,0.1)',   border: 'rgba(245,158,11,0.25)',  text: '#fbbf24', badge: 'rgba(245,158,11,0.15)', btext: '#fcd34d' },
+            'Maaş':        { icon: 'wallet',         bg: 'rgba(99,102,241,0.1)',   border: 'rgba(99,102,241,0.25)', text: '#a5b4fc', badge: 'rgba(99,102,241,0.15)', btext: '#c7d2fe' },
+            'Poliçe':      { icon: 'shield-check',   bg: 'rgba(236,72,153,0.1)',   border: 'rgba(236,72,153,0.25)', text: '#f9a8d4', badge: 'rgba(236,72,153,0.15)', btext: '#fbcfe8' },
+            'Cari Fatura': { icon: 'receipt',        bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.25)',  text: '#fca5a5', badge: 'rgba(239,68,68,0.15)',  btext: '#fecaca' },
+        };
+
+        const activities = [];
+
+        // 1. Yakıt
+        (yakitRes.data || []).forEach(r => {
+            const plaka = r.araclar?.plaka || '—';
+            activities.push({
+                tarih: r.tarih,
+                tur: 'Yakıt',
+                ozet: `${plaka} — Yakıt Alımı`,
+                detay: r.notlar || null,
+                tutar: r.toplam_tutar,
+                tutar_yon: 'gider'
+            });
+        });
+
+        // 2. Bakım
+        (bakimRes.data || []).forEach(r => {
+            const plaka = r.araclar?.plaka || '—';
+            const servis = r.cariler?.unvan ? ` · Servis: ${r.cariler.unvan}` : '';
+            activities.push({
+                tarih: r.islem_tarihi,
+                tur: 'Bakım',
+                ozet: `${plaka} — ${r.aciklama || 'Servis Bakımı'}`,
+                detay: servis || null,
+                tutar: r.toplam_tutar,
+                tutar_yon: 'gider'
+            });
+        });
+
+        // 3. Maaş Bordro
+        (maasRes.data || []).forEach(r => {
+            const ad = r.soforler?.ad_soyad || '—';
+            const gun = r.calisma_gun ? ` · ${r.calisma_gun} gün çalışma` : '';
+            activities.push({
+                tarih: r.donem ? r.donem + '-01' : null,
+                tur: 'Maaş',
+                ozet: `${ad} — Personel Maaş Bordrosu`,
+                detay: r.donem ? `Dönem: ${r.donem}${gun}` : null,
+                tutar: r.net_maas,
+                tutar_yon: 'gider'
+            });
+        });
+
+        // 4. Poliçe
+        (policeRes.data || []).forEach(r => {
+            const plaka = r.araclar?.plaka || '—';
+            const acente = r.cariler?.unvan ? ` · Acente: ${r.cariler.unvan}` : '';
+            activities.push({
+                tarih: r.baslangic_tarihi,
+                tur: 'Poliçe',
+                ozet: `${plaka} — ${r.police_turu || 'Sigorta'}`,
+                detay: acente || null,
+                tutar: r.toplam_tutar,
+                tutar_yon: 'gider'
+            });
+        });
+
+        // 5. Cari Fatura (varsa)
+        (fatRes.data || []).forEach(r => {
+            const firma = r.cariler?.unvan || '—';
+            activities.push({
+                tarih: r.fatura_tarihi,
+                tur: 'Cari Fatura',
+                ozet: `${firma} — ${r.aciklama || 'Cari Fatura'}`,
+                detay: null,
+                tutar: r.toplam_tutar,
+                tutar_yon: 'gider'
+            });
+        });
+
+        // Sırala
+        activities.sort((a, b) => new Date(b.tarih || 0) - new Date(a.tarih || 0));
+
+        // Filtre uygula
+        const aktif = filterTur && filterTur !== 'Tümü' ? filterTur : null;
+        window._aktivitelerData = activities; // cache
+        const filtered = aktif ? activities.filter(a => a.tur === aktif) : activities;
+        const top = filtered.slice(0, 50);
+
+        // Footer toplam hesapla
+        const toplam = top.reduce((s, a) => s + (parseFloat(a.tutar) || 0), 0);
+        const toplamBar = document.getElementById('aktivite-toplam-bar');
+        if (toplamBar) {
+            toplamBar.innerHTML = `
+                <span class="text-gray-600">${top.length} kayıt</span>
+                <span class="w-px h-3 bg-white/10"></span>
+                <span style="color:#f87171;">Toplam Gider: <strong>₺${toplam.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></span>
+            `;
+        }
+
+        if (top.length === 0) {
+            container.innerHTML = `
+                <div class="px-6 py-12 text-center">
+                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3" style="background:rgba(255,255,255,0.05);">
+                        <i data-lucide="inbox" class="w-6 h-6 text-gray-600"></i>
+                    </div>
+                    <p class="text-sm font-bold text-gray-500">İşlem bulunamadı</p>
+                    <p class="text-xs text-gray-600 mt-1">Bu kategoride henüz kayıt yok.</p>
+                </div>`;
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
+
+        container.innerHTML = top.map((a, idx) => {
+            const cfg = typeConfig[a.tur] || typeConfig['Cari Fatura'];
+            const tutarStr = fmtTutar(a.tutar);
+            const ago = timeAgo(a.tarih);
+            const isToday = ago === 'Bugün';
+            return `
+            <div class="px-5 py-4 flex items-start gap-4 transition-all hover:bg-white/[0.03] cursor-default" data-tur="${a.tur}"
+                 style="border-bottom: 1px solid rgba(255,255,255,0.04); ${idx === 0 ? 'animation: fadeInDown 0.3s ease;' : ''}">
+                <!-- İkon -->
+                <div class="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
+                     style="background:${cfg.bg}; border:1px solid ${cfg.border};">
+                    <i data-lucide="${cfg.icon}" class="w-4 h-4" style="color:${cfg.text};"></i>
+                </div>
+                <!-- Detay -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                                <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md" style="background:${cfg.badge}; color:${cfg.btext};">${a.tur}</span>
+                                ${isToday ? '<span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">● YENİ</span>' : ''}
+                            </div>
+                            <p class="text-sm font-bold text-white leading-snug">${a.ozet}</p>
+                            ${a.detay ? `<p class="text-[11px] text-gray-500 mt-0.5 leading-relaxed">${a.detay}</p>` : ''}
+                        </div>
+                        <!-- Tutar + Tarih -->
+                        <div class="flex-shrink-0 text-right">
+                            ${tutarStr ? `<div class="text-sm font-black" style="color:#f87171;">-${tutarStr}</div>` : '<div class="text-sm font-black text-gray-600">—</div>'}
+                            <div class="text-[10px] text-gray-500 mt-0.5">${fmtDate(a.tarih)}</div>
+                            <div class="text-[9px] font-bold mt-0.5" style="color:${isToday ? '#10b981' : '#6b7280'};">${ago}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
         }).join('');
-    } catch(e) { console.error('[fetchSonAktiviteler]', e); }
+
+        if (window.lucide) window.lucide.createIcons();
+
+    } catch (err) {
+        console.error('[fetchSonAktiviteler]', err);
+        container.innerHTML = `<div class="px-6 py-8 text-center"><p class="text-xs text-red-400 font-bold">Veri yükleme hatası: ${err.message}</p></div>`;
+    }
+};
+
+// Aktivite filtre fonksiyonu (tab butonları için)
+window.filterAktiviteler = function(tur, btn) {
+    // Tab aktif stilini güncelle
+    document.querySelectorAll('.aktivite-tab-btn').forEach(b => {
+        b.style.background = '';
+        b.style.color = '';
+        b.classList.add('text-gray-500');
+        b.classList.remove('text-white');
+    });
+    if (btn) {
+        btn.style.background = 'rgba(16,185,129,0.2)';
+        btn.style.color = '#10b981';
+        btn.classList.remove('text-gray-500');
+    }
+    window.fetchSonAktiviteler(tur);
 };
 
 
