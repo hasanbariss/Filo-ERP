@@ -514,8 +514,8 @@ window.filterPuantaj = function() {
         // Bölge filtresi: üstteki dropdown'dan ayrı kontrol edilir
         const mB = (!sBolge || trBolge === sBolge);
 
-        // Varsayılan görünüm: veri olan satırlar gösterilir
-        const show = mV && mO && mB && (sId !== 'ALL' || sOwner !== 'TÜMÜ' || sBolge || hasData);
+        // Varsayılan görünüm: Filtrelere uyan tüm kayıtlar gösterilir
+        const show = mV && mO && mB;
         tr.style.display = show ? '' : 'none';
     });
 
