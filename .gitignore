@@ -1,0 +1,12 @@
+node_modules/
+release/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Environment variables (API keys - never commit these!)
+.env
+.env.local
+.env.*.local
+config.local.js

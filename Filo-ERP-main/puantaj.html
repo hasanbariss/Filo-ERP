@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servis Puantajı | IDEOL</title>
+    <!-- iOS PWA Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Puantaj">
+    <meta name="theme-color" content="#ffffff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3045/3045501.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;600;800&display=swap');
+
+        :root {
+            --bg-main: #f8fafc;
+            --text-primary: #0f172a;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Clean White Header */
+        .white-header {
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        /* Premium Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            border: 2px solid #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Puantaj Table Custom Styles */
+        #excel-table {
+            border-spacing: 0;
+            border-collapse: separate;
+            background: white;
+        }
+
+        #excel-thead th {
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            padding: 10px 4px;
+        }
+
+        #excel-tbody td {
+            border-bottom: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            transition: all 0.1s;
+        }
+
+        #excel-tbody tr:hover td {
+            background: #f1f5f9;
+        }
+
+        /* Prevent hover effect on total rows */
+        #excel-tbody tr.total-row:hover td {
+            background: inherit !important;
+        }
+
+        .sticky-col {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+            border-right: 2px solid #e2e8f0 !important;
+        }
+
+        /* Input Styling */
+        .puantaj-input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            transition: all 0.1s;
+        }
+
+        .puantaj-input:focus {
+            background: #fff;
+            box-shadow: inset 0 0 0 2px #6366f1;
+            z-index: 20;
+        }
+
+        /* Status Colors - Pastel Light Mode */
+        .cell-x { background: #fee2e2 !important; color: #b91c1c !important; }
+        .cell-r { background: #fef3c7 !important; color: #b45309 !important; }
+        .cell-i { background: #f3e8ff !important; color: #7e22ce !important; }
+
+        @media print {
+            header, .legend-bar, #grid-container, nav { display: none !important; }
+            body, html { visibility: hidden; height: auto !important; }
+            #print-section { 
+                visibility: visible; 
+                display: block !important; 
+                position: absolute; 
+                left: 0; 
+                top: 0; 
+                width: 100% !important; 
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            @page {
+                size: landscape;
+                margin: 10mm;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col overflow-hidden">
+
+    <!-- Header Bar (Modern White) -->
+    <header class="white-header px-6 py-3 flex items-center justify-between z-50 shrink-0">
+        <div class="flex items-center gap-4">
+            <button onclick="window.history.back()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-slate-500">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+            </button>
+            <div>
+                <h1 class="brand-font text-base font-black text-slate-900 tracking-tight leading-none" id="header-title">FABRİKA PUANTAJI</h1>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1" id="header-subtitle">Dönem Yükleniyor...</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-6">
+            <!-- Stats -->
+            <div class="hidden md:flex items-center gap-6 pr-6 border-r border-slate-200">
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Vardiya</span>
+                    <span class="brand-font text-base font-black text-indigo-600 mt-1" id="summary-vardiya">0</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Tek</span>
+                    <span class="brand-font text-base font-black text-orange-600 mt-1" id="summary-tek">0</span>
+                </div>
+                <div class="flex flex-col items-end">
+                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Genel</span>
+                    <span class="brand-font text-base font-black text-slate-900 mt-1" id="summary-genel">0</span>
+                </div>
+            </div>
+
+            <!-- Toolbar Actions -->
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                    <input type="month" id="filter-donem" onchange="window.changeDonem()" 
+                        class="bg-transparent text-xs font-bold text-slate-600 px-3 py-1.5 focus:outline-none cursor-pointer">
+                    <div class="w-px h-4 bg-slate-300"></div>
+                    <select id="filter-owner" onchange="window.filterPuantaj()" 
+                        class="bg-transparent text-xs font-bold text-slate-600 px-3 py-1.5 focus:outline-none cursor-pointer">
+                        <option value="Tümü">Tümü</option>
+                        <option value="ÖZMAL">Özmal</option>
+                        <option value="TAŞERON">Taşeron</option>
+                    </select>
+                    <div class="w-px h-4 bg-slate-300"></div>
+                    <select id="filter-bolge" onchange="window.filterPuantaj()"
+                        class="bg-transparent text-xs font-bold text-slate-600 px-3 py-1.5 focus:outline-none cursor-pointer">
+                        <option value="">Tüm Bölgeler</option>
+                        <option value="İzmir">🔵 İzmir</option>
+                        <option value="Manisa">🟠 Manisa</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+                    <select id="bulk-fill-value" class="bg-transparent text-xs font-bold text-slate-600 px-3 py-1.5 focus:outline-none">
+                        <option value="1">1 (Tam)</option>
+                        <option value="X">X (Tatil)</option>
+                        <option value="R">R (Rapor)</option>
+                        <option value="İ">İ (İzin)</option>
+                    </select>
+                    <button onclick="bulkFillAll()" class="p-1.5 rounded-lg hover:bg-white text-slate-600 transition-all shadow-sm" title="Tümünü Doldur">
+                        <i data-lucide="grid-3x3" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="autoFillWeekdays()" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all ml-1">
+                        Hafta İçi
+                    </button>
+                </div>
+
+                <button onclick="saveExcelGrid()" class="px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-black text-xs uppercase tracking-widest shadow-md transition-all flex items-center gap-2 active:scale-95">
+                    <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
+                </button>
+                
+                <button onclick="window.handlePrint()" class="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all text-slate-500 shadow-sm">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Legend & Extra Filters -->
+    <div class="legend-bar px-6 py-2 bg-white border-b border-slate-200 flex items-center gap-6 z-40 shrink-0">
+        <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-slate-100 border border-slate-200"></div>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Sayı = Sefer</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-red-100 border border-red-200"></div>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">X = Tatil</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-amber-100 border border-amber-200"></div>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">R = Rapor</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-2.5 h-2.5 rounded-full bg-purple-100 border border-purple-200"></div>
+            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">İ = İzin</span>
+        </div>
+        
+        <div class="ml-auto flex items-center gap-2 relative">
+             <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
+             <div class="relative group">
+                 <input type="text" id="filter-arac-input" placeholder="PLAKA ARA..." 
+                        class="bg-transparent text-[10px] w-28 md:w-40 font-black text-slate-500 uppercase tracking-widest focus:outline-none border-b-2 border-slate-100 hover:border-indigo-400 focus:border-indigo-600 pb-0.5 transition-colors" 
+                        autocomplete="off" 
+                        onfocus="window.openAracDropdown()" 
+                        oninput="window.filterAracOptions()" 
+                        onblur="setTimeout(() => window.closeAracDropdown(), 200)">
+                 <input type="hidden" id="filter-arac" value="ALL" onchange="window.filterPuantaj()">
+                 
+                 <!-- Dynamic Dropdown Menu -->
+                 <div id="filter-arac-dropdown" class="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] w-48 max-h-60 overflow-y-auto hidden flex-col text-left transition-all origin-top-right transform scale-95 opacity-0 custom-scrollbar">
+                     <!-- Options populated via JS -->
+                 </div>
+             </div>
+        </div>
+    </div>
+
+    <!-- Main Grid View -->
+    <div class="flex-1 overflow-auto bg-slate-50 p-4 md:p-6 custom-scrollbar" id="grid-container">
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden mx-auto" style="width: max-content; min-width: 100%;">
+            <table class="w-full" id="excel-table">
+                <thead id="excel-thead"></thead>
+                <tbody id="excel-tbody">
+                    <tr>
+                        <td class="p-20 text-center text-slate-400 font-bold uppercase tracking-widest italic animate-pulse">
+                            Puantaj Tablosu Hazırlanıyor...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Hidden Print Area -->
+    <div id="print-section" class="hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+    <script src="puantaj.js?v=3"></script>
+</body>
+
+</html>
