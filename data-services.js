@@ -2400,8 +2400,12 @@ async function fetchTaseronFinans() {
         }
         const [year, month] = filterAy.split('-');
         const startDate = `${year}-${month}-01`;
+<<<<<<< HEAD
         const dInM = new Date(year, parseInt(month), 0).getDate();
         const endDate = `${year}-${month}-${String(dInM).padStart(2, '0')}`;
+=======
+        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
         // 2. Data Fetching (Paginated)
         let puantajData = [];
@@ -2487,13 +2491,22 @@ async function fetchTaseronFinans() {
                 }
                 const vStr = String(p.vardiya || '').trim();
                 const tStr = String(p.tek || '').trim();
+<<<<<<< HEAD
                 const v  = parseInt(vStr) || 0;
                 const t  = parseInt(tStr) || 0;
+=======
+                const v  = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
+                const t  = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                 const c8 = parseInt(p.cikis_8 || 0);
                 const g2 = parseInt(p.giris_2030 || 0);
                 const mId = p.musteri_id;
                 const mStr = String(p.mesai || '').trim();
+<<<<<<< HEAD
                 const m  = parseInt(mStr) || 0;
+=======
+                const m  = isNaN(mStr) || mStr === '' ? 0 : parseInt(mStr);
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                 
                 if(v > 0 || t > 0 || c8 > 0 || g2 > 0 || m > 0) {
                     summary[aId].vardiya  += v;
@@ -2503,11 +2516,15 @@ async function fetchTaseronFinans() {
                     summary[aId].mesai    = (summary[aId].mesai    || 0) + m;
 
                     // ⭐ Key = musteri_id + bolge → İzmir ve Manisa ayrı panel
+<<<<<<< HEAD
                     const mTitle  = (musteriAdMap[mId] || '').toUpperCase();
                     const isDikkan= mTitle.includes('DİKKAN') || mTitle.includes('DIKKAN');
                     let bolge     = p.bolge || 'Manisa';
                     if (isDikkan) bolge = 'İzmir';
                     
+=======
+                    const bolge   = p.bolge || 'Manisa';
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                     const detayKey = `${mId}|||${bolge}`;
                     const isIzmir  = bolge === 'İzmir';
                     const bolgeBadge = `<span style="font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:6px;${
@@ -2566,14 +2583,20 @@ async function fetchTaseronFinans() {
 
         Object.values(summary).forEach(row => {
             let totalBrutOfRow = 0;
+<<<<<<< HEAD
             let totalKdvOfRow = 0;
             let totalTevOfRow = 0;
             Object.values(row.musteriDetay).forEach(md => {
                 const mdBrut = (md.vardiya * md.vardiya_fiyat)
+=======
+            Object.values(row.musteriDetay).forEach(md => {
+                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat)
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                                + (md.tek     * md.tek_fiyat)
                                + ((md.cikis_8   || 0) * (md.cikis_8_fiyat   || 0))
                                + ((md.giris_2030 || 0) * (md.giris_2030_fiyat || 0))
                                + ((md.mesai     || 0) * (md.mesai_fiyat     || 0));
+<<<<<<< HEAD
                 
                 totalBrutOfRow += mdBrut;
                 totalKdvOfRow += mdBrut * ((md.kdv_oran || 0) / 100);
@@ -2582,6 +2605,10 @@ async function fetchTaseronFinans() {
             row.brut = totalBrutOfRow;
             row.kdv = totalKdvOfRow;
             row.tev = totalTevOfRow;
+=======
+            });
+            row.brut = totalBrutOfRow;
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
         });
 
         let rows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
@@ -2604,6 +2631,7 @@ async function fetchTaseronFinans() {
         window._taseronCariData = summary;
         window._taseronCariAy = filterAy;
 
+<<<<<<< HEAD
         let totalVardiya=0, totalTek=0, totalBrut=0, totalKdv=0, totalTev=0, totalYakit=0, totalNet=0;
 
         rows.forEach(row => {
@@ -2615,6 +2643,15 @@ async function fetchTaseronFinans() {
             totalBrut += row.brut;
             totalKdv += (row.kdv || 0);
             totalTev += (row.tev || 0);
+=======
+        let totalVardiya=0, totalTek=0, totalBrut=0, totalYakit=0, totalNet=0;
+
+        rows.forEach(row => {
+            const net = row.brut - row.yakit;
+            totalVardiya += row.vardiya;
+            totalTek += row.tek;
+            totalBrut += row.brut;
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
             totalYakit += row.yakit;
             totalNet += net;
 
@@ -2628,11 +2665,15 @@ async function fetchTaseronFinans() {
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${row.tek} T</span>
                     <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${row.mesai || 0} M</span>
                 </td>
+<<<<<<< HEAD
                 <td class="px-6 py-4 whitespace-nowrap text-right">
                     <div class="text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
                     ${(row.kdv || 0) > 0 ? `<div class="text-[10px] text-emerald-600 font-bold">+₺${row.kdv.toLocaleString('tr-TR', {minimumFractionDigits:2})} KDV</div>` : ''}
                     ${(row.tev || 0) > 0 ? `<div class="text-[10px] text-yellow-600 font-bold">-₺${row.tev.toLocaleString('tr-TR', {minimumFractionDigits:2})} TEV</div>` : ''}
                 </td>
+=======
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${row.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
@@ -2647,11 +2688,15 @@ async function fetchTaseronFinans() {
         tfoot.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary">GENEL TOPLAM</td>
             <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T - ${rows.reduce((s,r) => s+(r.mesai||0), 0)} M</td>
+<<<<<<< HEAD
             <td class="px-6 py-4 whitespace-nowrap text-right">
                 <div class="text-sm font-black text-gray-800">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
                 ${totalKdv > 0 ? `<div class="text-xs font-bold text-emerald-600">+₺${totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2})} KDV</div>` : ''}
                 ${totalTev > 0 ? `<div class="text-xs font-bold text-yellow-600">-₺${totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2})} TEV</div>` : ''}
             </td>
+=======
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td></td>
@@ -2691,8 +2736,12 @@ async function fetchTaseronAylikRapor() {
 
         const [year, month] = filterAy.split('-');
         const startDate = `${year}-${month}-01`;
+<<<<<<< HEAD
         const dInM = new Date(year, parseInt(month), 0).getDate();
         const endDate = `${year}-${month}-${String(dInM).padStart(2, '0')}`;
+=======
+        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
         // Parallel Fetch Data (Small tables)
         const [yakitRes, bakimRes, aracRes] = await Promise.all([
@@ -2852,8 +2901,12 @@ window.openCariHakedisDetay = async function(arac_id) {
         
         const [year, m] = month.split('-');
         const startDate = `${year}-${m}-01`;
+<<<<<<< HEAD
         const dInM = new Date(year, parseInt(m), 0).getDate();
         const endDate = `${year}-${m}-${String(dInM).padStart(2, '0')}`;
+=======
+        const endDate = new Date(year, parseInt(m), 0).toISOString().split('T')[0];
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
         const { data: yakitlar } = await window.supabaseClient
             .from('yakit_takip')
             .select('*')
@@ -5622,12 +5675,317 @@ window.teklifSec = async function (id) {
     }
 };
 
+<<<<<<< HEAD
+=======
+window.fetchDashboardData = async function () {
+    const conn = window.checkSupabaseConnection();
+    if (!conn.ok) {
+        console.error("[fetchDashboardData] Connection Error:", conn.msg);
+        return;
+    }
+    try {
+        const today = new Date();
+        const todayStr = today.toISOString().split('T')[0];
+        const future30Str = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const future90Str = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        const y = today.getFullYear(), m = String(today.getMonth() + 1).padStart(2, '0');
+        const monthStart = `${y}-${m}-01`;
+        const monthEnd = `${y}-${m}-${new Date(y, today.getMonth() + 1, 0).getDate()}`;
+
+        const [
+            resAraclar,
+            resSoforler,
+            resCariler,
+            resPoliceler,
+            resYakitlar,
+            resBakimlar,
+            resHakedisTaseron,
+            resHakedisServis,
+        ] = await Promise.all([
+            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sigorta_bitis, kasko_bitis, vize_bitis, koltuk_bitis, guncel_km, son_yag_km').then(r => r),
+            window.supabaseClient.from('soforler').select('id').then(r => r),
+            window.supabaseClient.from('cariler').select('id').then(r => r),
+            window.supabaseClient.from('arac_policeler').select('bitis_tarihi, police_turu, araclar(plaka)').gte('bitis_tarihi', todayStr).lte('bitis_tarihi', future30Str).order('bitis_tarihi', { ascending: true }).then(r => r),
+            window.supabaseClient.from('yakit_takip').select('toplam_tutar, tarih').gte('tarih', monthStart).lte('tarih', monthEnd).then(r => r),
+            window.supabaseClient.from('arac_bakimlari').select('toplam_tutar, islem_tarihi').gte('islem_tarihi', monthStart).lte('islem_tarihi', monthEnd).then(r => r),
+            window.supabaseClient.from('taseron_hakedis').select('net_hakedis, sefer_tarihi').gte('sefer_tarihi', monthStart).lte('sefer_tarihi', monthEnd).then(r => r),
+            window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret, tarih').gte('tarih', monthStart).lte('tarih', monthEnd).then(r => r),
+        ]);
+
+        const araclar = resAraclar.data || [];
+        const soforler = resSoforler.data || [];
+        const cariler = resCariler.data || [];
+        const policeler = resPoliceler.data || [];
+        const yakitlar = resYakitlar.data || [];
+        const bakimlar = resBakimlar.data || [];
+        const hakedisler_taseron = resHakedisTaseron.data || [];
+        const hakedisler_servis = resHakedisServis.data || [];
+
+        const fmt = v => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' ₺';
+        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+        // === KPI ===
+        setEl('kpi-arac', araclar.length);
+        setEl('kpi-sofor', soforler.length);
+        setEl('kpi-cari', cariler.length);
+
+        let kritikEvrak = 0;
+        let expiring15Days = 0;
+        const future15Str = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+        araclar.forEach(a => {
+            let is30 = false;
+            let is15 = false;
+            ['sigorta_bitis', 'kasko_bitis', 'vize_bitis', 'koltuk_bitis'].forEach(f => {
+                if (a[f] && a[f] <= future30Str) is30 = true;
+                if (a[f] && a[f] <= future15Str) is15 = true;
+            });
+            if (is30) kritikEvrak++;
+            if (is15) expiring15Days++;
+        });
+        setEl('kpi-evrak', kritikEvrak);
+
+        if (expiring15Days > 0 && typeof window.Toast !== 'undefined') {
+            setTimeout(() => {
+                window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş!`);
+            }, 1000);
+        }
+
+        const sumYakit = yakitlar.reduce((s, y) => s + (y.toplam_tutar || 0), 0);
+        const sumBakim = bakimlar.reduce((s, b) => s + (b.toplam_tutar || 0), 0);
+        const sumCiro = (hakedisler_taseron.reduce((s, h) => s + (h.net_hakedis || 0), 0))
+            + (hakedisler_servis.reduce((s, h) => s + (h.gunluk_ucret || 0), 0));
+        setEl('kpi-ciro', fmt(sumCiro));
+        setEl('kpi-gider', fmt(sumYakit + sumBakim));
+
+        // === Donut Chart ===
+        const ozmal = araclar.filter(a => a.mulkiyet_durumu === 'ÖZMAL').length;
+        const taseron = araclar.filter(a => a.mulkiyet_durumu === 'TAŞERON').length;
+        const kiralik = araclar.length - ozmal - taseron;
+        setEl('fleet-ozmal-count', ozmal);
+        setEl('fleet-taseron-count', taseron);
+        setEl('fleet-kiralik-count', kiralik);
+        setEl('donut-total', araclar.length);
+
+        const donutCanvas = document.getElementById('fleetDonutChart');
+        if (donutCanvas) {
+            const existingDonut = Chart.getChart(donutCanvas);
+            if (existingDonut) existingDonut.destroy();
+            window._fleetDonutChart = new Chart(donutCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Özmal', 'Taşeron', 'Kiralık'],
+                    datasets: [{ data: [ozmal, taseron, kiralik], backgroundColor: ['#f97316', '#3b82f6', '#a855f7'], borderWidth: 0, cutout: '78%' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+
+        // === Line Chart ===
+        const lineCanvas = document.getElementById('mainChart');
+        if (lineCanvas) {
+            const labels = [], months = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today); d.setMonth(d.getMonth() - i);
+                labels.push(d.toLocaleString('tr-TR', { month: 'short' }));
+                months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
+            }
+            const ciroByMonth = Array(6).fill(0), giderByMonth = Array(6).fill(0);
+            const sixMonthsAgo = new Date(today); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+            const sixStart = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}-01`;
+
+            const [ht6, hs6, yk6, bk6] = await Promise.all([
+                window.supabaseClient.from('taseron_hakedis').select('net_hakedis, sefer_tarihi').gte('sefer_tarihi', sixStart).then(r => r.data || []),
+                window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret, tarih').gte('tarih', sixStart).then(r => r.data || []),
+                window.supabaseClient.from('yakit_takip').select('toplam_tutar, tarih').gte('tarih', sixStart).then(r => r.data || []),
+                window.supabaseClient.from('arac_bakimlari').select('toplam_tutar, islem_tarihi').gte('islem_tarihi', sixStart).then(r => r.data || []),
+            ]);
+
+            months.forEach((mo, idx) => {
+                ciroByMonth[idx] = (ht6.filter(r => r.sefer_tarihi?.startsWith(mo)).reduce((s, r) => s + (r.net_hakedis || 0), 0))
+                    + (hs6.filter(r => r.tarih?.startsWith(mo)).reduce((s, r) => s + (r.gunluk_ucret || 0), 0));
+                giderByMonth[idx] = (yk6.filter(r => r.tarih?.startsWith(mo)).reduce((s, r) => s + (r.toplam_tutar || 0), 0))
+                    + (bk6.filter(r => r.islem_tarihi?.startsWith(mo)).reduce((s, r) => s + (r.toplam_tutar || 0), 0));
+            });
+
+            const existingLine = Chart.getChart(lineCanvas);
+            if (existingLine) existingLine.destroy();
+            window._mainLineChart = new Chart(lineCanvas, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Ciro', data: ciroByMonth, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true },
+                        { label: 'Gider', data: giderByMonth, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.08)', tension: 0.4, fill: true }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('tr-TR')} ₺` } } }
+                }
+            });
+        }
+
+        // === Widgets ===
+        const evrakList = document.getElementById('evrak-bitis-list');
+        if (evrakList) {
+            const evrakItems = [];
+            araclar.forEach(a => {
+                ['sigorta_bitis', 'kasko_bitis', 'koltuk_bitis', 'vize_bitis'].forEach(f => {
+                    if (a[f] && a[f] <= future90Str) evrakItems.push({ plaka: a.plaka, tur: f.split('_')[0].toUpperCase(), bitis: a[f] });
+                });
+            });
+            evrakItems.sort((a, b) => a.bitis.localeCompare(b.bitis));
+            evrakList.innerHTML = evrakItems.length === 0 ? '<p class="text-xs text-center py-6">Bitmek üzere olan evrak yok.</p>' :
+                evrakItems.map(e => {
+                    const days = Math.ceil((new Date(e.bitis) - today) / 86400000);
+                    const cl = days < 0 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+                    return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border ${cl} mb-1">
+                        <div><span class="text-xs font-bold">${e.plaka}</span><span class="text-[10px] text-gray-400 ml-2">${e.tur}</span></div>
+                        <span class="text-[11px] font-black">${days < 0 ? Math.abs(days) + 'g geçti' : days + 'g kaldı'}</span>
+                    </div>`;
+                }).join('');
+        }
+
+        const paymentsList = document.getElementById('upcoming-payments-list');
+        if (paymentsList) {
+            const items = policeler.map(p => ({ desc: `${p.araclar?.plaka || '-'} / ${p.police_turu}`, tarih: p.bitis_tarihi }));
+            paymentsList.innerHTML = items.length === 0 ? '<p class="text-xs text-center py-6">Yaklaşan ödeme yok.</p>' :
+                items.map(p => {
+                    const days = Math.ceil((new Date(p.tarih) - today) / 86400000);
+                    return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border text-blue-400 bg-blue-500/10 border-blue-500/20 mb-1">
+                        <span class="text-xs font-bold">${p.desc}</span>
+                        <span class="text-[11px] font-black">${days}g</span>
+                    </div>`;
+                }).join('');
+        }
+
+        const yagList = document.getElementById('yag-bakim-list');
+        if (yagList) {
+            const yagItems = araclar.filter(a => ((a.guncel_km || 0) - (a.son_yag_km || 0)) >= 9000).map(a => ({ plaka: a.plaka, kalan: 10000 - ((a.guncel_km || 0) - (a.son_yag_km || 0)) }));
+            yagList.innerHTML = yagItems.length === 0 ? '<p class="text-xs text-center py-6">Yaklaşan yağ bakımı yok.</p>' :
+                yagItems.map(y => `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border text-orange-400 bg-orange-500/10 border-orange-500/20 mb-1">
+                    <span class="text-xs font-bold">${y.plaka}</span>
+                    <span class="text-[11px] font-black uppercase">${y.kalan < 0 ? 'GEÇTİ' : y.kalan + ' KM'}</span>
+                </div>`).join('');
+        }
+
+        const sonIslemlerTbody = document.getElementById('son-islemler-tbody');
+        if (sonIslemlerTbody) {
+            if (!sonIslemlerTbody.innerHTML.trim().includes('tr')) {
+                sonIslemlerTbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic uppercase tracking-widest animate-pulse">Aktiviteler Hazırlanıyor...</td></tr>';
+            }
+        }
+
+        if (window.lucide) window.lucide.createIcons();
+        if (window.fetchSonAktiviteler) window.fetchSonAktiviteler();
+    } catch (e) {
+        console.error('[DASHBOARD ERROR]', e);
+    }
+};
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
 /**
  * === SON SİSTEMSEL AKTİVİTELER ===
  * Fetches recent expenses (Yakıt, Bakım, Maaş, Poliçe) and populates the dashboard feed.
  * Optimized for performance and 50-item limit.
  */
+<<<<<<< HEAD
+=======
+window.fetchSonAktiviteler = async function () {
+    const tbody = document.getElementById('son-islemler-tbody');
+    if (!tbody) return;
+
+    try {
+        const [resYakit, resBakim, resMaas, resPolice] = await Promise.all([
+            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', { ascending: false }).limit(30),
+            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka), cariler(unvan)').order('islem_tarihi', { ascending: false }).limit(30),
+            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('id', { ascending: false }).limit(30),
+            window.supabaseClient.from('arac_policeler').select('bitis_tarihi, toplam_tutar, police_turu, araclar(plaka), cariler(unvan)').order('bitis_tarihi', { ascending: false }).limit(30)
+        ]);
+
+        let activities = [];
+
+        // 1. Yakıt (Expenses)
+        (resYakit.data || []).forEach(y => {
+            activities.push({
+                date: y.tarih,
+                type: 'YAKIT',
+                detail: `${y.araclar?.plaka || '-'} / Yakıt Alımı`,
+                tutar: -(y.toplam_tutar || 0)
+            });
+        });
+
+        // 2. Bakım (Expenses)
+        (resBakim.data || []).forEach(b => {
+            const desc = b.aciklama || 'Servis Bakımı';
+            const vendor = b.cariler?.unvan ? ` [Servis: ${b.cariler.unvan}]` : '';
+            activities.push({
+                date: b.islem_tarihi,
+                type: 'BAKIM',
+                detail: `${b.araclar?.plaka || '-'} / ${desc}${vendor}`,
+                tutar: -(b.toplam_tutar || 0)
+            });
+        });
+
+        // 3. Maaş (Expenses)
+        (resMaas.data || []).forEach(m => {
+            activities.push({
+                date: m.donem ? `${m.donem}-01` : new Date().toISOString().split('T')[0],
+                type: 'MAAŞ',
+                detail: `${m.soforler?.ad_soyad || '-'} / Personel Maaş`,
+                tutar: -(m.net_maas || 0)
+            });
+        });
+
+        // 4. Poliçe (Expenses)
+        (resPolice.data || []).forEach(p => {
+            const vendor = p.cariler?.unvan ? ` [Acente: ${p.cariler.unvan}]` : '';
+            activities.push({
+                date: p.bitis_tarihi,
+                type: 'POLİÇE',
+                detail: `${p.araclar?.plaka || '-'} / ${p.police_turu || 'Sigorta'}${vendor}`,
+                tutar: -(p.toplam_tutar || 0)
+            });
+        });
+
+        // Combine and Sort
+        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+        const finalItems = activities.slice(0, 50);
+
+        if (finalItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic uppercase tracking-widest">Son işlem bulunmuyor.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = finalItems.map(item => {
+            const typeColor = item.type === 'YAKIT' ? 'text-orange-400 bg-orange-400/10 border-orange-400/20' :
+                             item.type === 'BAKIM' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' :
+                             item.type === 'MAAŞ' ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' :
+                                                   'text-pink-400 bg-pink-400/10 border-pink-400/20';
+            
+            const displayDate = item.date ? (window.formatDate ? window.formatDate(item.date) : item.date) : '-';
+            const displayTutar = (item.tutar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
+
+            return `<tr class="hover:bg-white/5 transition-colors">
+                <td class="py-3 px-2 text-xs text-gray-400 font-medium">${displayDate}</td>
+                <td class="py-3 px-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black border ${typeColor}">${item.type}</span>
+                </td>
+                <td class="py-3 px-2 text-xs font-bold text-gray-200 leading-normal whitespace-normal break-words" style="min-width: 300px;" title="${item.detail}">${item.detail}</td>
+                <td class="py-3 px-2 text-right font-black text-red-500 whitespace-nowrap">${displayTutar}</td>
+            </tr>`;
+        }).join('');
+
+        if (window.lucide) window.lucide.createIcons();
+
+    } catch (err) {
+        console.error('[fetchSonAktiviteler] Hata:', err);
+        tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-red-500 font-bold uppercase tracking-widest">Veri yükleme hatası!</td></tr>';
+    }
+};
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
 // Alias to match filoyonetim.html initialization
 window.fetchDashboard = window.fetchDashboardData;
@@ -7553,7 +7911,95 @@ window.handleRaporPrint = function(tab) {
 // ============================================================
 // DASHBOARD - Aktif Musteri KPI + Activity Feed + Taseron KPI
 // ============================================================
+<<<<<<< HEAD
 
+=======
+const _origFetchDashboardData = window.fetchDashboardData;
+window.fetchDashboardData = async function() {
+    // Call original first if it exists
+    if (typeof _origFetchDashboardData === 'function') {
+        try { await _origFetchDashboardData(); } catch(e) { console.warn('Original dashboard error:', e); }
+    }
+
+    // Extra KPIs
+    try {
+        const conn = window.checkSupabaseConnection();
+        if (!conn.ok) return;
+
+        const now = new Date();
+        const ay = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        const firstDay = `${ay}-01`;
+        const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+
+        // Aktif müşteri sayısı
+        const {count: musteriCount} = await window.supabaseClient.from('musteriler').select('id', {count:'exact', head:true});
+        const musteriEl = document.getElementById('kpi-musteri');
+        if (musteriEl) musteriEl.textContent = musteriCount || 0;
+
+        // Taşeron hakediş
+        const {data: hakedisler} = await window.supabaseClient.from('taseron_hakedis')
+            .select('net_hakedis').gte('sefer_tarihi', firstDay).lte('sefer_tarihi', lastDay);
+        const totalHakedis = (hakedisler||[]).reduce((s,r) => s + parseFloat(r.net_hakedis||0), 0);
+        const taseronEl = document.getElementById('kpi-taseron-hakedis');
+        if (taseronEl) taseronEl.textContent = '₺' + totalHakedis.toLocaleString('tr-TR', {minimumFractionDigits:0});
+
+        // Activity Feed
+        await window.fetchSonAktiviteler();
+
+    } catch(e) { console.error('[fetchDashboardData extra]', e); }
+};
+
+window.fetchSonAktiviteler = async function() {
+    const tbody = document.getElementById('son-islemler-tbody');
+    if (!tbody) return;
+    try {
+        const conn = window.checkSupabaseConnection();
+        if (!conn.ok) return;
+
+        const typeColors = {
+            'Yakıt': 'bg-blue-500/10 text-blue-400',
+            'Bakım': 'bg-orange-500/10 text-orange-400',
+            'Maaş': 'bg-yellow-500/10 text-yellow-400',
+            'Cari Fatura': 'bg-red-500/10 text-red-400',
+            'Poliçe': 'bg-pink-500/10 text-pink-400'
+        };
+
+        const [yakitRes, bakimRes, maasRes, fatRes, policeRes] = await Promise.all([
+            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', {ascending:false}).limit(30),
+            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka)').order('islem_tarihi', {ascending:false}).limit(30),
+            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('created_at', {ascending:false}).limit(30),
+            window.supabaseClient.from('cari_faturalar').select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)').order('fatura_tarihi', {ascending:false}).limit(30),
+            window.supabaseClient.from('arac_policeler').select('baslangic_tarihi, toplam_tutar, police_turu, araclar(plaka)').order('created_at', {ascending:false}).limit(20),
+        ]);
+
+        const activities = [];
+        (yakitRes.data||[]).forEach(r => activities.push({tarih:r.tarih, tur:'Yakıt', detay:`${r.araclar?.plaka||'-'} - Yakıt`, tutar:r.toplam_tutar}));
+        (bakimRes.data||[]).forEach(r => activities.push({tarih:r.islem_tarihi, tur:'Bakım', detay:`${r.araclar?.plaka||'-'} - ${(r.aciklama||'').substring(0,30)}`, tutar:r.toplam_tutar}));
+        (maasRes.data||[]).forEach(r => activities.push({tarih:r.donem+'-01', tur:'Maaş', detay:`${r.soforler?.ad_soyad||'-'} Maaş`, tutar:r.net_maas}));
+        (fatRes.data||[]).forEach(r => activities.push({tarih:r.fatura_tarihi, tur:'Cari Fatura', detay:`${r.cariler?.unvan||'-'} - ${(r.aciklama||'').substring(0,25)}`, tutar:r.toplam_tutar}));
+        (policeRes.data||[]).forEach(r => activities.push({tarih:r.baslangic_tarihi, tur:'Poliçe', detay:`${r.araclar?.plaka||'-'} ${r.police_turu}`, tutar:r.toplam_tutar}));
+
+        activities.sort((a,b) => new Date(b.tarih) - new Date(a.tarih));
+        const top = activities.slice(0, 50);
+
+        if (top.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-gray-500 italic">Henüz kayıt yok.</td></tr>';
+            return;
+        }
+
+        const fmt = (n) => n != null ? '₺' + parseFloat(n).toLocaleString('tr-TR', {minimumFractionDigits:2}) : '-';
+        tbody.innerHTML = top.map(a => {
+            const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400';
+            return `<tr class="hover:bg-white/5 transition-colors border-b border-white/5">
+                <td class="py-3 px-2 text-xs text-gray-500 whitespace-nowrap">${a.tarih||'-'}</td>
+                <td class="py-3 px-2"><span class="px-2 py-0.5 ${colorClass} text-[10px] uppercase font-bold rounded whitespace-nowrap">${a.tur}</span></td>
+                <td class="py-3 px-2 text-xs text-gray-300 truncate max-w-xs" title="${a.detay}">${a.detay}</td>
+                <td class="py-3 px-2 text-xs font-bold text-right text-white whitespace-nowrap">${fmt(a.tutar)}</td>
+            </tr>`;
+        }).join('');
+    } catch(e) { console.error('[fetchSonAktiviteler]', e); }
+};
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
 
 
@@ -7561,6 +8007,112 @@ window.handleRaporPrint = function(tab) {
 // DASHBOARD DATA LOADING
 // ============================================
 
+<<<<<<< HEAD
+=======
+window.fetchDashboard = async function() {
+
+  
+  // Connection check
+  const conn = window.checkSupabaseConnection();
+  if (!conn.ok) {
+    console.error('[Dashboard] Connection failed:', conn.msg);
+    if (window.showGlobalError) {
+      window.showGlobalError('dashboard-container', conn.msg);
+    }
+    return;
+  }
+
+  try {
+    // Parallel queries with Promise.allSettled (graceful degradation)
+    const [
+      araclarResult,
+      soforlerResult,
+      musterilerResult,
+      evraklarResult,
+      ciroResult,
+      yakitResult
+    ] = await Promise.allSettled([
+      window.supabaseClient.from('araclar').select('id, mulkiyet_durumu', { count: 'exact', head: true }),
+      window.supabaseClient.from('soforler').select('id', { count: 'exact', head: true }),
+      window.supabaseClient.from('musteriler').select('id', { count: 'exact', head: true }),
+      window.supabaseClient.from('arac_evrak')
+        .select('id')
+        .gte('bitis_tarihi', new Date().toISOString().split('T')[0])
+        .lte('bitis_tarihi', new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0])
+        .select('*', { count: 'exact', head: true }),
+      window.supabaseClient.from('musteri_servis_puantaj')
+        .select('gunluk_ucret')
+        .gte('tarih', `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`),
+      window.supabaseClient.from('yakit_kayit')
+        .select('toplam_tutar')
+        .gte('tarih', `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`)
+    ]);
+
+    // Extract data (handle errors gracefully)
+    const araclar = araclarResult.status === 'fulfilled' ? araclarResult.value : { count: 0 };
+    const soforler = soforlerResult.status === 'fulfilled' ? soforlerResult.value : { count: 0 };
+    const musteriler = musterilerResult.status === 'fulfilled' ? musterilerResult.value : { count: 0 };
+    const evraklar = evraklarResult.status === 'fulfilled' ? evraklarResult.value : { count: 0 };
+    const ciroData = ciroResult.status === 'fulfilled' ? ciroResult.value.data : [];
+    const yakitData = yakitResult.status === 'fulfilled' ? yakitResult.value.data : [];
+
+    // Log any failed queries
+    [araclarResult, soforlerResult, musterilerResult, evraklarResult, ciroResult, yakitResult].forEach((result, idx) => {
+      if (result.status === 'rejected') {
+        console.warn(`[Dashboard] Query ${idx} failed:`, result.reason);
+      }
+    });
+
+    // Calculate stats
+    const stats = {
+      arac: araclar.count || 0,
+      sofor: soforler.count || 0,
+      evrak: evraklar.count || 0,
+      musteri: musteriler.count || 0,
+      ciro: Array.isArray(ciroData) ? ciroData.reduce((sum, r) => sum + (parseFloat(r.gunluk_ucret) || 0), 0) : 0,
+      gider: Array.isArray(yakitData) ? yakitData.reduce((sum, r) => sum + (parseFloat(r.toplam_tutar) || 0), 0) : 0,
+    };
+
+
+
+    // Update DOM (XSS safe - textContent only)
+    const updates = {
+      'stat-arac-count': stats.arac,
+      'stat-sofor-count': stats.sofor,
+      'stat-evrak-count': stats.evrak,
+      'stat-musteri-count': stats.musteri,
+      'stat-ciro': `${stats.ciro.toLocaleString('tr-TR')} ₺`,
+      'stat-gider': `${stats.gider.toLocaleString('tr-TR')} ₺`,
+    };
+
+    let updatedCount = 0;
+    for (let [id, value] of Object.entries(updates)) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = value;
+        updatedCount++;
+      } else {
+        console.warn(`[Dashboard] Element not found: #${id}`);
+      }
+    }
+
+
+
+    // Update chart if Chart.js available
+    if (window.Chart && typeof window.updateCiroGiderChart === 'function') {
+      window.updateCiroGiderChart(stats.ciro, stats.gider);
+    }
+
+  } catch (error) {
+    console.error('[Dashboard] ❌ Fatal error:', error);
+    if (window.Toast && window.Toast.error) {
+      window.Toast.error(`Dashboard yüklenemedi: ${error.message}`);
+    } else {
+      alert(`Dashboard hatası: ${error.message}`);
+    }
+  }
+};
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
 
 // Güvenli başlatma fonksiyonu: Sadece başarılı giriş sonrası çağrılır
 window.initApp = function() {
@@ -7922,6 +8474,7 @@ window.checkVadeAlarmlari = async function() {
     } catch(err) { console.error("Vade Alarm:", err); }
 };
 
+<<<<<<< HEAD
 
 
 
@@ -8236,3 +8789,13 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
 
 // Ortak Referans (HTML'deki çağırmalar için)
 window.fetchDashboard = window.fetchDashboardData;
+=======
+if(typeof window._origDdash === 'undefined') {
+    window._origDdash = window.fetchDashboardData;
+    window.fetchDashboardData = async function() {
+        if(typeof window._origDdash === "function") await window._origDdash();
+        if(typeof window.checkVadeAlarmlari === "function") await window.checkVadeAlarmlari();
+    };
+}
+
+>>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
