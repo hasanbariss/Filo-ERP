@@ -219,21 +219,12 @@ window.dikkanImportConfirm = async function() {
                 cikis_8:     row.cikis_8,
                 giris_2030:  row.giris_2030,
                 mesai:       row.mesai,
-<<<<<<< HEAD
-                vardiya:     0,
-                bolge:       'İzmir'
-=======
                 vardiya:     0
->>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
             };
 
             const { error: upsertErr } = await window.supabaseClient
                 .from('musteri_servis_puantaj')
-<<<<<<< HEAD
-                .upsert(payload, { onConflict: 'musteri_id, arac_id, tarih, bolge' });
-=======
                 .upsert(payload, { onConflict: 'musteri_id, arac_id, tarih' });
->>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
             
             if (upsertErr) {
                 console.error("Puantaj upsert hatası:", upsertErr);
@@ -254,12 +245,7 @@ window.dikkanImportConfirm = async function() {
                 const atamaPayload = {
                     musteri_id: row.musteriId,
                     arac_id:    row.aracId,
-<<<<<<< HEAD
-                    tarife_turu: 'Tek',
-                    bolge:      'İzmir'
-=======
                     tarife_turu: 'Tek' 
->>>>>>> 39d85aa478fda49bacb609387fb0eea0e992b34f
                 };
                 const { error: atamaErr } = await window.supabaseClient
                     .from('musteri_arac_tanimlari')
