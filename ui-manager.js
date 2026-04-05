@@ -2794,6 +2794,8 @@ window.printCariKart = function(plaka, month) {
         yakitHtml += '</tbody></table>';
     }
 
+    const sahipBilgisi = overlay.querySelector('#modal-sahip-bilgisi')?.innerText || '';
+
     const win = window.open('', '', 'height=800,width=900');
     win.document.write(`
         <html>
@@ -2861,7 +2863,7 @@ window.printCariKart = function(plaka, month) {
                 <div class="header">
                     <div class="header-left">
                         <h1>Cari Kart: ${plaka}</h1>
-                        <p>${month} Dönemi Hakediş Detayları</p>
+                        <p>${month} Dönemi Hakediş Detayları ${sahipBilgisi ? `| ${sahipBilgisi}` : ''}</p>
                     </div>
                     <div class="logo-text">IDEOL TURİZM</div>
                 </div>

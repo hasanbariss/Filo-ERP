@@ -483,12 +483,23 @@ window.saveExcelGrid = async function () {
             if (!item.vardiya && !item.tek && !item.cikis_8 && !item.giris_2030 && !item.mesai && item.id) {
                 deleteIds.push(item.id);
             } else { 
+                // ⭐ bolge kesinlikle null olmamalı — unique constraint bolge sütununu da içeriyor
+                if (!item.bolge) {
+                    const aracInfo = isolatedAraclar.find(a => a.id === item.arac_id);
+                    item.bolge = aracInfo ? aracInfo.bolge : 'İzmir';
+                }
                 if (!item.id) delete item.id; 
                 upsertArray.push(item); 
             }
         });
         
-        if (upsertArray.length > 0) { const { error: ue } = await window.supabaseClient.from('musteri_servis_puantaj').upsert(upsertArray); if (ue) throw ue; }
+        // ⭐ onConflict: DB'nin gerçek unique constraint'ini kullan (bolge dahil)
+        if (upsertArray.length > 0) { 
+            const { error: ue } = await window.supabaseClient
+                .from('musteri_servis_puantaj')
+                .upsert(upsertArray, { onConflict: 'musteri_id,arac_id,tarih,bolge' }); 
+            if (ue) throw ue; 
+        }
         if (deleteIds.length > 0) { const { error: de } = await window.supabaseClient.from('musteri_servis_puantaj').delete().in('id', deleteIds); if (de) throw de; }
         
         alert(`Mükemmel! Kaydedildi.`); window.location.reload();

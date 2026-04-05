@@ -2446,6 +2446,13 @@ async function fetchTaseronFinans() {
             .select('id, ad');
         const musteriAdMap = {};
         musteriListesi?.forEach(m => musteriAdMap[m.id] = m.ad || '-');
+
+        // Şoförleri Çek (Özmal araçlar için kullanılacak)
+        const { data: soforler } = await window.supabaseClient
+            .from('soforler')
+            .select('id, ad_soyad');
+        const soforMap = {};
+        soforler?.forEach(s => soforMap[s.id] = s.ad_soyad || 'Bilinmiyor');
             
         // Paginated Yakitlar Fetch
         let yakitlar = [];
@@ -2464,12 +2471,52 @@ async function fetchTaseronFinans() {
             yFrom += yStep;
         }
 
-        const { data: araclar } = await window.supabaseClient
-            .from('araclar')
-            .select('id, plaka, mulkiyet_durumu');
+        // Paginated Araclar Fetch (Büyük filolarda 'Bilinmiyor' hatası almamak için)
+        let araclar = [];
+        let aFrom = 0;
+        const aStep = 1000;
+        while (true) {
+            const { data: aBatch, error: aErr } = await window.supabaseClient
+                .from('araclar')
+                .select('id, plaka, mulkiyet_durumu, sofor_id, firma_adi')
+                .range(aFrom, aFrom + aStep - 1);
+            
+            if (aErr) {
+                console.error("Araclar fetch error:", aErr);
+                break;
+            }
+            if (!aBatch || aBatch.length === 0) break;
+            
+            araclar = araclar.concat(aBatch);
+            if (aBatch.length < aStep) break;
+            aFrom += aStep;
+        }
 
         const aracMap = {};
         araclar?.forEach(a => aracMap[a.id] = a);
+
+        // Yardımcı fonksiyon: Summary objesini başlat
+        const initSummaryRow = (aId) => {
+            const arac = aracMap[aId];
+            const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
+            
+            let sahip_bilgisi = '';
+            if (mulkiyet === 'ÖZMAL') {
+                sahip_bilgisi = soforMap[arac?.sofor_id] ? `Şoför: ${soforMap[arac.sofor_id]}` : 'Atanmış Şoför Yok';
+            } else if (mulkiyet === 'TAŞERON') {
+                sahip_bilgisi = arac?.firma_adi || 'Firma Bilinmiyor';
+            } else {
+                sahip_bilgisi = arac?.firma_adi || '';
+            }
+
+            return { 
+                arac_id: aId, 
+                plaka: arac?.plaka || 'Bilinmiyor', 
+                sahip_bilgisi: sahip_bilgisi, 
+                vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, 
+                brut: 0, yakit: 0, musteriDetay: {} 
+            };
+        };
 
         // 3. Aggregate Data per Vehicle
         const summary = {};
@@ -2477,13 +2524,14 @@ async function fetchTaseronFinans() {
         if (puantajData) {
             puantajData.forEach(p => {
                 const aId = p.arac_id;
-                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const arac = aracMap[aId];
+                const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
                 const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
                 
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = initSummaryRow(aId);
                 }
                 const parseSafe = (val) => {
                     const str = String(val || '').trim();
@@ -2505,8 +2553,11 @@ async function fetchTaseronFinans() {
                     summary[aId].giris_2030 = (summary[aId].giris_2030 || 0) + g2;
                     summary[aId].mesai    = (summary[aId].mesai    || 0) + m;
 
-                    // ⭐ Key = musteri_id + bolge → İzmir ve Manisa ayrı panel
-                    const bolge   = p.bolge || 'Manisa';
+                    // ⭐ Dikkan fabrikası için bölgeyi daima 'İzmir' olarak normalize et
+                    // DB'de 'Manisa' veya NULL olarak kayıtlı olsa bile Dikkan = İzmir
+                    const musteriAdi = (musteriAdMap[mId] || '').toUpperCase();
+                    const isDikkanMusteri = musteriAdi.includes('DİKKAN') || musteriAdi.includes('DIKKAN');
+                    const bolge   = isDikkanMusteri ? 'İzmir' : (p.bolge || 'Manisa');
                     const detayKey = `${mId}|||${bolge}`;
                     const isIzmir  = bolge === 'İzmir';
                     const bolgeBadge = `<span style="font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:6px;${
@@ -2551,13 +2602,14 @@ async function fetchTaseronFinans() {
         if (yakitlar) {
             yakitlar.forEach(y => {
                 const aId = y.arac_id;
-                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const arac = aracMap[aId];
+                const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
                 const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
                 
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = initSummaryRow(aId);
                 }
                 summary[aId].yakit += parseFloat(y.toplam_tutar) || 0;
             });
@@ -2609,7 +2661,10 @@ async function fetchTaseronFinans() {
             tr.className = "hover:bg-gray-50 transition-colors cursor-pointer group border-b border-gray-100";
             tr.onclick = () => window.openCariHakedisDetay(row.arac_id);
             tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div></td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div>
+                    <div class="text-[10px] text-gray-500 mt-0.5 font-medium truncate max-w-[150px]" title="${row.sahip_bilgisi || ''}">${row.sahip_bilgisi || ''}</div>
+                </td>
                 <td class="px-6 py-4 whitespace-nowrap text-center">
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${row.vardiya} V</span>
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${row.tek} T</span>
@@ -2977,7 +3032,11 @@ window.openCariHakedisDetay = async function(arac_id) {
                 <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-orange-500/10 to-transparent">
                     <div>
                         <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i> Cari Kart: <span class="text-orange-400">${data.plaka}</span></h2>
-                        <p class="text-xs text-gray-400 mt-1">${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-xs text-gray-400">${month} Dönemi Hakediş Detayları</p>
+                            <span class="text-gray-600">|</span>
+                            <p class="text-xs font-bold text-orange-400/80 uppercase tracking-wider" id="modal-sahip-bilgisi">${data.sahip_bilgisi || ''}</p>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
                         <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
@@ -3157,6 +3216,19 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                     .or(orFilter)
                     .order('donem', { ascending: false, nullsFirst: false });
                 existingList = d1;
+
+                // ⭐ rowBolge ile kayıt bulunamazsa → bolge fark etmeksizin ara
+                // (Dikkan'ın musteri_arac_tanimlari'nda Manisa/NULL bolge kaydı olabilir)
+                if (!existingList || existingList.length === 0) {
+                    const { data: d1b } = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .select('id, donem, bolge')
+                        .eq('arac_id', arac_id)
+                        .eq('musteri_id', musteri_id)
+                        .or(orFilter)
+                        .order('donem', { ascending: false, nullsFirst: false });
+                    existingList = d1b;
+                }
             } catch(_) {
                 // bolge kolonu henüz yoksa bolgesiz sorgula
                 const { data: d2 } = await window.supabaseClient
@@ -3175,15 +3247,26 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
 
             if (existing) {
                 // ID uzerinden direkt guncelle - en dolu payload'dan basla
+                // ⭐ bolge'yi de rowBolge olarak set et (Dikkan için Manisa→İzmir güncellemesi)
                 let saved = false;
                 for (const payload of payloads) {
-                    const { error: updErr } = await window.supabaseClient
+                    const updatePayload = { ...payload, bolge: rowBolge };
+                    let { error: updErr } = await window.supabaseClient
                         .from('musteri_arac_tanimlari')
-                        .update(payload)
+                        .update(updatePayload)
                         .eq('id', existing.id);
-                    if (!updErr) { saved = true; break; }        // basarili
-                    if (!isColErr(updErr)) throw updErr;         // beklenmedik hata
-                    // kolon hatasi → bir alt payload dene
+                    if (!updErr) { saved = true; break; }
+                    // bolge kolonu güncelleme hatası → bolge'siz dene
+                    if (isColErr(updErr)) {
+                        const { error: updErr2 } = await window.supabaseClient
+                            .from('musteri_arac_tanimlari')
+                            .update(payload)
+                            .eq('id', existing.id);
+                        if (!updErr2) { saved = true; break; }
+                        if (!isColErr(updErr2)) throw updErr2;
+                    } else {
+                        throw updErr;
+                    }
                 }
                 if (!saved) throw new Error('Fiyatlar kaydedilemedi.');
             } else {
@@ -3195,7 +3278,6 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                         .from('musteri_arac_tanimlari')
                         .insert([{ arac_id, musteri_id, bolge: rowBolge, donem: taseronAy || null, ...payload }]);
                     if (!insErr) { saved = true; break; }
-                    if (insErr.message?.includes('duplicate')) { saved = true; break; }
                     if (isColErr(insErr)) {
                         // bolge kolonu yoksa bolgesiz dene
                         const { error: insErr2 } = await window.supabaseClient
