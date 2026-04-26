@@ -510,42 +510,57 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
         const conn = window.checkSupabaseConnection ? window.checkSupabaseConnection() : { ok: !!window.supabaseClient };
         if (!conn.ok) return;
 
-        const plakaMap = {};
-        araclarDB.forEach(a => { plakaMap[a.id] = a.plaka; });
+        tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center"><div class="flex items-center justify-center gap-2 text-gray-600"><div class="w-4 h-4 border-2 border-gray-700 border-t-orange-500 rounded-full animate-spin"></div><span class="text-xs font-bold uppercase tracking-widest">Aktiviteler yükleniyor...</span></div></td></tr>';
 
         const typeColors = {
-            'Yakıt':      'bg-blue-500/10 text-blue-400 border-blue-500/20',
-            'Bakım':      'bg-orange-500/10 text-orange-400 border-orange-500/20',
-            'Maaş':       'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-            'Cari Fatura':'bg-red-500/10 text-red-400 border-red-500/20',
-            'Poliçe':     'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            'Yakıt':       'bg-blue-500/10 text-blue-400 border-blue-500/20',
+            'Bakım':       'bg-orange-500/10 text-orange-400 border-orange-500/20',
+            'Maaş':        'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+            'Cari Fatura': 'bg-red-500/10 text-red-400 border-red-500/20',
+            'Poliçe':      'bg-rose-500/10 text-rose-400 border-rose-500/20'
+        };
+        const typeIcons = {
+            'Yakıt': '⛽', 'Bakım': '🔧', 'Maaş': '💵', 'Cari Fatura': '🧾', 'Poliçe': '🛡️'
         };
 
         const [yakitRes, bakimRes, maasRes, fatRes, policeRes] = await Promise.allSettled([
-            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, arac_id').order('tarih',{ascending:false}).limit(20),
-            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, arac_id').order('islem_tarihi',{ascending:false}).limit(20),
-            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').limit(20),
-            window.supabaseClient.from('cari_faturalar').select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)').order('fatura_tarihi',{ascending:false}).limit(20),
-            window.supabaseClient.from('arac_policeler').select('baslangic_tarihi, toplam_tutar, police_turu, arac_id').order('baslangic_tarihi',{ascending:false}).limit(20)
+            window.supabaseClient.from('yakit_takip')
+                .select('tarih, toplam_tutar, araclar(plaka)')
+                .order('tarih', {ascending:false}).limit(25),
+            window.supabaseClient.from('arac_bakimlari')
+                .select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka)')
+                .order('islem_tarihi', {ascending:false}).limit(25),
+            window.supabaseClient.from('sofor_maas_bordro')
+                .select('donem, net_maas, soforler(ad_soyad)')
+                .order('created_at', {ascending:false}).limit(20),
+            window.supabaseClient.from('cari_faturalar')
+                .select('fatura_tarihi, toplam_tutar, aciklama, cariler(unvan)')
+                .order('fatura_tarihi', {ascending:false}).limit(20),
+            window.supabaseClient.from('arac_policeler')
+                .select('baslangic_tarihi, toplam_tutar, police_turu, araclar(plaka)')
+                .order('created_at', {ascending:false}).limit(20)
         ]);
 
-        const getD = (r) => (r.status==='fulfilled' && r.value?.data) ? r.value.data : [];
+        const getD = (r) => (r.status === 'fulfilled' && r.value?.data) ? r.value.data : [];
         const activities = [];
 
         getD(yakitRes).forEach(r => {
-            activities.push({ tarih:r.tarih, tur:'Yakıt', detay:`${plakaMap[r.arac_id]||'Bilinmeyen'} — Yakıt Alımı`, tutar:r.toplam_tutar });
+            const plaka = r.araclar?.plaka || '—';
+            activities.push({ tarih: r.tarih, tur: 'Yakıt', detay: `${plaka} — Yakıt Alımı`, tutar: r.toplam_tutar });
         });
         getD(bakimRes).forEach(r => {
-            activities.push({ tarih:r.islem_tarihi, tur:'Bakım', detay:`${plakaMap[r.arac_id]||'Bilinmeyen'} — ${(r.aciklama||'Bakım/Servis').substring(0,40)}`, tutar:r.toplam_tutar });
+            const plaka = r.araclar?.plaka || '—';
+            activities.push({ tarih: r.islem_tarihi, tur: 'Bakım', detay: `${plaka} — ${(r.aciklama||'Bakım/Servis').substring(0,40)}`, tutar: r.toplam_tutar });
         });
         getD(maasRes).forEach(r => {
-            activities.push({ tarih: r.donem ? r.donem+'-05' : null, tur:'Maaş', detay:`${r.soforler?.ad_soyad||'Personel'} — Maaş Tahakkuku`, tutar:r.net_maas });
+            activities.push({ tarih: r.donem ? r.donem + '-05' : null, tur: 'Maaş', detay: `${r.soforler?.ad_soyad||'Personel'} — Maaş Tahakkuku`, tutar: r.net_maas });
         });
         getD(fatRes).forEach(r => {
-            activities.push({ tarih:r.fatura_tarihi, tur:'Cari Fatura', detay:`${r.cariler?.unvan||'Cari'} — ${(r.aciklama||'').substring(0,30)}`, tutar:r.toplam_tutar });
+            activities.push({ tarih: r.fatura_tarihi, tur: 'Cari Fatura', detay: `${r.cariler?.unvan||'Cari'} — ${(r.aciklama||'').substring(0,30)}`, tutar: r.toplam_tutar });
         });
         getD(policeRes).forEach(r => {
-            activities.push({ tarih:r.baslangic_tarihi, tur:'Poliçe', detay:`${plakaMap[r.arac_id]||'Bilinmeyen'} — ${r.police_turu||'Sigorta'}`, tutar:r.toplam_tutar });
+            const plaka = r.araclar?.plaka || '—';
+            activities.push({ tarih: r.baslangic_tarihi, tur: 'Poliçe', detay: `${plaka} — ${r.police_turu||'Sigorta'}`, tutar: r.toplam_tutar });
         });
 
         activities.sort((a, b) => {
@@ -563,13 +578,14 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
 
         tbody.innerHTML = top.map(a => {
             const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
+            const icon = typeIcons[a.tur] || '•';
             const dateStr = a.tarih ? new Date(a.tarih).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
             return `<tr class="hover:bg-white/[0.03] transition-all group border-b border-white/5">
                 <td class="py-3.5 px-3 whitespace-nowrap">
                     <span class="text-xs font-mono text-gray-500">${dateStr}</span>
                 </td>
                 <td class="py-3.5 px-3">
-                    <span class="px-2.5 py-1 border ${colorClass} text-[9px] uppercase font-bold rounded-md whitespace-nowrap tracking-widest">${a.tur}</span>
+                    <span class="px-2.5 py-1 border ${colorClass} text-[9px] uppercase font-bold rounded-md whitespace-nowrap tracking-widest">${icon} ${a.tur}</span>
                 </td>
                 <td class="py-3.5 px-3 text-xs font-medium text-gray-300 max-w-[260px] truncate group-hover:text-white transition-colors" title="${a.detay}">${a.detay}</td>
                 <td class="py-3.5 px-3 text-sm font-black text-right text-white tabular-nums whitespace-nowrap">${_fmtFull(a.tutar)}</td>
@@ -578,7 +594,7 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
 
     } catch(e) {
         console.error('[fetchSonAktiviteler]', e);
-        tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-red-500 italic">Aktiviteler yüklenirken hata oluştu.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-xs text-red-500 italic">Aktiviteler yüklenirken hata oluştu: ' + e.message + '</td></tr>';
     }
 };
 
