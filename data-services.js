@@ -1112,9 +1112,14 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
 
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
-    // Verinin yükleniyor olduğunu göster (filtre değişikliğinde ekran temizlensin)
-    tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
-    if(window.lucide) window.lucide.createIcons();
+    // Banner-only modda tablo yeniden render etme (tarih girişi odak kaybetmesin)
+    const bannerOnly = window._cizelgeBannerOnly === true;
+    window._cizelgeBannerOnly = false;
+
+    if (!bannerOnly) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
+        if(window.lucide) window.lucide.createIcons();
+    }
 
     try {
         let query = window.supabaseClient
@@ -1138,36 +1143,79 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         }
 
         const today = new Date();
-        
+        today.setHours(0,0,0,0);
+
+        const getColorClass = (dateValue) => {
+            if (!dateValue) return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30';
+            const dateObj = new Date(dateValue);
+            const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0)   return 'bg-red-500/20 text-red-500 border border-red-500/30';
+            if (diffDays <= 30) return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+            return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        };
+
         // Helper to format date relative state
         const getDateRenderer = (dateValue, fieldName, aracId) => {
-            let cl = 'bg-orange-500/10 text-orange-400 border border-orange-500/20'; // ? empty state or warning
-            
-            if (dateValue) {
-                const dateObj = new Date(dateValue);
-                const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) {
-                    cl = 'bg-red-500/20 text-red-500 border border-red-500/30'; // Süresi dolmuş
-                } else if (diffDays <= 30) {
-                    cl = 'bg-orange-500/20 text-orange-400 border border-orange-500/30'; // Yaklaşıyor
-                } else {
-                    cl = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'; // Geçerli/Güvenli
-                }
-            } else {
-                cl = 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'; // Belirtilmemiş
-            }
-
+            const cl = getColorClass(dateValue);
+            // data-arac / data-field kullanarak in-place renk güncellemesi yapalım
             return `
-                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20">
-                    <input type="date" 
-                        value="${dateValue || ''}" 
-                        onchange="updateCizelgeDate('${aracId}', '${fieldName}', this.value)"
-                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer placeholder-white/20"
-                        style="color: inherit;"
+                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20 cizelge-date-cell" data-arac="${aracId}" data-field="${fieldName}">
+                    <input type="date"
+                        value="${dateValue || ''}"
+                        onchange="window.updateCizelgeDateInPlace(this, '${aracId}', '${fieldName}')"
+                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer"
+                        style="color:inherit;"
                     />
                 </div>
             `;
         };
+
+        // ---- Uyarı Banner'ı ----
+        const WARN_DAYS = 30;
+        const fieldLabels = { sigorta_bitis: 'Trafik Sig.', koltuk_bitis: 'Koltuk Sig.', kasko_bitis: 'Kasko', vize_bitis: 'Vize' };
+        const warnings = [];
+        (data || []).forEach(a => {
+            Object.keys(fieldLabels).forEach(f => {
+                if (!a[f]) return;
+                const d = new Date(a[f]);
+                const diff = Math.ceil((d - today) / 86400000);
+                if (diff < 0) {
+                    warnings.push({ plaka: a.plaka, label: fieldLabels[f], diff, cls: 'bg-red-500/15 border-red-500/40 text-red-400', icon: 'alert-octagon', text: `Süresi doldu (${Math.abs(diff)} gün önce)` });
+                } else if (diff <= WARN_DAYS) {
+                    warnings.push({ plaka: a.plaka, label: fieldLabels[f], diff, cls: 'bg-orange-500/15 border-orange-500/40 text-orange-400', icon: 'alert-triangle', text: `${diff} gün kaldı` });
+                }
+            });
+        });
+        warnings.sort((a, b) => a.diff - b.diff);
+
+        let bannerEl = document.getElementById('cizelge-uyari-banner');
+        if (!bannerEl) {
+            bannerEl = document.createElement('div');
+            bannerEl.id = 'cizelge-uyari-banner';
+            bannerEl.className = 'mb-4';
+            tbody.closest('table').parentElement.before(bannerEl);
+        }
+        if (warnings.length === 0) {
+            bannerEl.innerHTML = '<div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-emerald-400 text-xs font-bold"><i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i> Tüm araçların belgeleri güncel — yaklaşan bitiş tarihi yok.</div>';
+        } else {
+            bannerEl.innerHTML = `
+            <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 py-2.5 border-b border-orange-500/20 bg-orange-500/10">
+                    <i data-lucide="bell-ring" class="w-4 h-4 text-orange-400 flex-shrink-0"></i>
+                    <span class="text-xs font-black text-orange-400 uppercase tracking-widest">Dikkat — ${warnings.length} yaklaşan/geçmiş evrak</span>
+                </div>
+                <div class="flex flex-wrap gap-2 p-3">
+                    ${warnings.map(w => `
+                        <div class="flex items-center gap-1.5 ${w.cls} border rounded-lg px-2.5 py-1.5 text-[10px] font-bold">
+                            <i data-lucide="${w.icon}" class="w-3 h-3 flex-shrink-0"></i>
+                            <span class="text-white font-black">${w.plaka}</span>
+                            <span class="opacity-70">${w.label}:</span>
+                            <span>${w.text}</span>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+        }
+        if (window.lucide) window.lucide.createIcons({ el: bannerEl });
 
         const cizelgeSort = document.getElementById('cizelge-sort')?.value || 'varsayilan';
         if (cizelgeSort !== 'varsayilan') {
@@ -1229,8 +1277,13 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
             `;
         });
 
-        tbody.innerHTML = rows.join('');
-        if (window.lucide) window.lucide.createIcons();
+        if (!bannerOnly) {
+            tbody.innerHTML = rows.join('');
+            if (window.lucide) window.lucide.createIcons();
+        } else {
+            // Sadece uyarı bannerı güncellendi, tablo DOM'una dokunmadık
+            if (window.lucide) window.lucide.createIcons({ el: document.getElementById('cizelge-uyari-banner') });
+        }
 
     } catch (e) {
         console.error("[fetchOzmalCizelge] Error:", e);
@@ -1238,28 +1291,51 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
     }
 };
 
-window.updateCizelgeDate = async function(aracId, fieldName, newDate) {
+// Tablo yeniden render etmeden sadece o hücrenin rengini günceller
+window.updateCizelgeDateInPlace = async function(inputEl, aracId, fieldName) {
     if (!aracId) return;
+    const newDate = inputEl.value;
+    const cell = inputEl.closest('.cizelge-date-cell');
     const payload = {};
     payload[fieldName] = newDate || null;
+
+    // Optimistic UI — rengi hemen güncelle
+    if (cell) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const allCls = ['bg-red-500/20','text-red-500','border-red-500/30','bg-orange-500/20','text-orange-400','border-orange-500/30','bg-emerald-500/20','text-emerald-400','border-emerald-500/30','bg-yellow-500/10','text-yellow-500','border-yellow-500/30'];
+        allCls.forEach(c => cell.classList.remove(c));
+        if (!newDate) {
+            cell.classList.add('bg-yellow-500/10','text-yellow-500','border-yellow-500/30');
+        } else {
+            const diff = Math.ceil((new Date(newDate) - today) / 86400000);
+            if (diff < 0)        cell.classList.add('bg-red-500/20','text-red-500','border-red-500/30');
+            else if (diff <= 30) cell.classList.add('bg-orange-500/20','text-orange-400','border-orange-500/30');
+            else                 cell.classList.add('bg-emerald-500/20','text-emerald-400','border-emerald-500/30');
+        }
+        inputEl.style.color = 'inherit';
+    }
 
     try {
         const { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', aracId);
         if (error) throw error;
-        
-        if (typeof showToast === 'function') showToast('Tarih başarıyla güncellendi!', 'success');
-        
-        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge();
-        if (typeof fetchAraclar === 'function') fetchAraclar();
-        // Dashboard'da Evrak Bitişleri var, oranında tazelenmesi için:
-        if (typeof fetchDashboardData === 'function') setTimeout(fetchDashboardData, 500);
-
+        if (typeof showToast === 'function') showToast('Tarih güncellendi!', 'success');
+        // Sadece uyarı banner'ını yenile, tablo DOM'una dokunma
+        if (typeof window.fetchOzmalCizelge === 'function') {
+            window._cizelgeBannerOnly = true;
+            window.fetchOzmalCizelge();
+        }
+        if (typeof fetchDashboardData === 'function') setTimeout(fetchDashboardData, 800);
     } catch (e) {
-        console.error("updateCizelgeDate Error:", e);
+        console.error('updateCizelgeDateInPlace Error:', e);
         if (typeof showToast === 'function') showToast('Tarih güncellenirken hata oluştu!', 'error');
-        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(); // revert
+        // Hatada eski rengi geri al — tüm tabloyu yenile
+        window._cizelgeBannerOnly = false;
+        if (typeof window.fetchOzmalCizelge === 'function') window.fetchOzmalCizelge();
     }
 };
+
+// Eski fonksiyonu da koru (geriye uyumluluk)
+window.updateCizelgeDate = window.updateCizelgeDateInPlace;
 
 /* === 4. SUPABASE VERİ ÇEKME (READ / SELECT) İŞLEMLERİ === */
 window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi') {
