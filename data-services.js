@@ -1499,7 +1499,51 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     .single();
 
                 if (error || !p) {
-                    alert(`${tur} kaydı bulunamadı.`);
+                    // Veritabanında (arac_policeler) detaylı poliçe kaydı yoksa sadece aracın kendi tarihini göster
+                    let bitisSutun = tur.toLowerCase().includes('kasko') ? 'kasko_bitis' : 
+                                    (tur.toLowerCase().includes('koltuk') ? 'koltuk_bitis' : 
+                                    (tur.toLowerCase().includes('vize') ? 'vize_bitis' : 'sigorta_bitis'));
+                    
+                    const { data: aracData } = await window.supabaseClient.from('araclar').select(bitisSutun).eq('id', aracId).single();
+                    let bitisTarihi = aracData ? aracData[bitisSutun] : null;
+
+                    if (!bitisTarihi) {
+                        alert(`${tur} kaydı bulunamadı.`);
+                        return;
+                    }
+                    
+                    let fallbackContent = `
+                        <div class="text-left space-y-3 p-2">
+                            <div class="flex justify-between border-b pb-2">
+                                <span class="text-xs text-gray-400 uppercase font-bold">Poliçe / Evrak Türü</span>
+                                <span class="text-sm font-bold text-primary">${tur}</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-2">
+                                <span class="text-xs text-gray-400 uppercase font-bold">Geçerlilik Bitiş</span>
+                                <span class="text-sm font-bold text-danger">${window.formatDate ? window.formatDate(bitisTarihi) : bitisTarihi}</span>
+                            </div>
+                            <div class="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200 text-[11px] text-yellow-700">
+                                <b>Bilgi:</b> Bu araç için yalnızca son geçerlilik tarihi girilmiştir. (Sistemde detaylı poliçe/ödeme kaydı veya doküman eşleşmesi bulunmamaktadır.)
+                            </div>
+                        </div>
+                    `;
+
+                    const detailModal = document.createElement('div');
+                    detailModal.id = "policy-detail-overlay";
+                    detailModal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4";
+                    detailModal.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
+                            <div class="bg-primary px-4 py-3 flex justify-between items-center">
+                                <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} Özet Bilgisi</h3>
+                                <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">✕</button>
+                            </div>
+                            <div class="p-4 font-sans">${fallbackContent}</div>
+                            <div class="bg-gray-50 px-4 py-3 text-right">
+                                <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase">Kapat</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(detailModal);
                     return;
                 }
 
