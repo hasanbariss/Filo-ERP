@@ -1456,6 +1456,85 @@ window.openModal = function (title, id = null, extra = null) {
                 }, 100);
             }
         }, 50);
+    } else if (title === 'Araç Bakım Geçmişi') {
+        content = `
+            <p class="text-sm text-gray-400 mb-6">Araca ait geçmiş bakım, onarım ve yedek parça kayıtları aşağıda listelenmektedir.</p>
+            <div id="arac-bakim-gecmisi-container" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                <div class="flex justify-center py-10 opacity-50">
+                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                </div>
+            </div>
+        `;
+        setTimeout(async () => {
+            const container = document.getElementById('arac-bakim-gecmisi-container');
+            if (!container) return;
+            try {
+                const { data, error } = await window.supabaseClient
+                    .from('arac_bakimlari')
+                    .select('*, cariler(unvan)')
+                    .eq('arac_id', id)
+                    .order('islem_tarihi', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    container.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-10 opacity-40">
+                            <i data-lucide="history" class="w-12 h-12 mb-4"></i>
+                            <span class="text-sm font-bold uppercase tracking-widest text-center">Bakım Kaydı Bulunamadı</span>
+                        </div>
+                    `;
+                    if (window.lucide) window.lucide.createIcons();
+                    return;
+                }
+
+                container.innerHTML = data.map(b => {
+                    const cariIsim = b.cariler?.unvan ? \`<span class="text-[10px] text-gray-500 uppercase tracking-widest"><i data-lucide="building" class="w-3 h-3 inline-block mr-1"></i>\${b.cariler.unvan}</span>\` : '';
+                    const tutarHtml = b.toplam_tutar > 0 ? \`<span class="text-sm font-black text-orange-400">\${b.toplam_tutar.toLocaleString('tr-TR', {style:'currency', currency:'TRY'})}</span>\` : '';
+                    
+                    let icon = 'wrench';
+                    let iconColor = 'text-blue-400';
+                    let bgColor = 'bg-blue-500/10';
+                    
+                    if (b.islem_turu === 'Yağ Bakımı') {
+                        icon = 'droplet';
+                        iconColor = 'text-orange-400';
+                        bgColor = 'bg-orange-500/10';
+                    } else if (b.islem_turu === 'Yedek Parça') {
+                        icon = 'settings';
+                        iconColor = 'text-purple-400';
+                        bgColor = 'bg-purple-500/10';
+                    } else if (b.islem_turu === 'Hasar Onarım') {
+                        icon = 'alert-triangle';
+                        iconColor = 'text-red-400';
+                        bgColor = 'bg-red-500/10';
+                    }
+
+                    return \`
+                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all flex gap-4 items-start">
+                            <div class="p-3 \${bgColor} \${iconColor} rounded-lg flex-shrink-0">
+                                <i data-lucide="\${icon}" class="w-5 h-5"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h4 class="text-sm font-bold text-white truncate">\${b.islem_turu}</h4>
+                                    <span class="text-[10px] font-bold text-gray-400 bg-black/30 px-2 py-1 rounded border border-white/5">\${new Date(b.islem_tarihi).toLocaleDateString('tr-TR')}</span>
+                                </div>
+                                <p class="text-xs text-gray-300 mb-2 leading-relaxed">\${b.aciklama || 'Açıklama yok'}</p>
+                                <div class="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
+                                    \${cariIsim}
+                                    \${tutarHtml}
+                                </div>
+                            </div>
+                        </div>
+                    \`;
+                }).join('');
+                if (window.lucide) window.lucide.createIcons();
+
+            } catch (err) {
+                container.innerHTML = \`<div class="p-4 bg-red-500/10 text-red-500 text-sm rounded-xl">Hata: \${err.message}</div>\`;
+            }
+        }, 50);
     } else if (title === 'Yeni Poliçe Kaydı') {
         content = `
                     <p class="text-sm text-gray-400 mb-8">Trafik sigortası, kasko ve diğer poliçe girişlerini yaparak risk yönetimi sağlayın.</p>
