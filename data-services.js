@@ -6759,8 +6759,8 @@ window.fetchCariDetails = async function (cariId) {
         entries.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
         // --- 8.B. POLİÇE ID'LERİNİ DİNAMİK ÇÖZÜMLEME (Plate/Acente Translation) ---
-        const policyIdsInList = entries.filter(e => e.desc && /poliçe id: /i.test(e.desc)).map(e => {
-            const match = e.desc.match(/poliçe id: ([a-f0-9-]{36})/i);
+        const policyIdsInList = entries.filter(e => e.desc && /POLİÇE ID: /i.test(e.desc)).map(e => {
+            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
             return match ? match[1] : null;
         }).filter(id => id);
 
@@ -6785,12 +6785,12 @@ window.fetchCariDetails = async function (cariId) {
 
                     // Listeyi güncelle
                     entries.forEach(e => {
-                        if (e.desc && /poliçe id: /i.test(e.desc)) {
-                            const match = e.desc.match(/poliçe id: ([a-f0-9-]{36})/i);
+                        if (e.desc && /POLİÇE ID: /i.test(e.desc)) {
+                            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
                             if (match && infoMap[match[1]]) {
                                 const i = infoMap[match[1]];
                                 // Tüm ID varyasyonlarını temizle (Regex ile)
-                                e.desc = e.desc.replace(/\[?poliçe id: [a-f0-9-]{36}\]?/gi, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`);
+                                e.desc = e.desc.replace(/\[?POLİÇE ID: [a-f0-9-]{36}\]?/gi, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`);
                             }
                         }
                     });
@@ -7101,8 +7101,8 @@ window.fetchKrediKartiDetails = async function (kartId) {
         });
 
         // 4. Detaylı Bilgileri Çözümle (Poliçe ID -> Plaka/Acente)
-        const policyIdsInList = islemler.filter(i => i.aciklama && /poliçe id: /i.test(i.aciklama)).map(i => {
-            const match = i.aciklama.match(/poliçe id: ([a-f0-9-]{36})/i);
+        const policyIdsInList = islemler.filter(i => i.aciklama && /POLİÇE ID: /i.test(i.aciklama)).map(i => {
+            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
             return match ? match[1] : null;
         }).filter(id => id);
 
@@ -7124,11 +7124,11 @@ window.fetchKrediKartiDetails = async function (kartId) {
                     });
 
                     islemler.forEach(i => {
-                        if (i.aciklama && /poliçe id: /i.test(i.aciklama)) {
-                            const match = i.aciklama.match(/poliçe id: ([a-f0-9-]{36})/i);
+                        if (i.aciklama && /POLİÇE ID: /i.test(i.aciklama)) {
+                            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
                             if (match && infoMap[match[1]]) {
                                 const info = infoMap[match[1]];
-                                i.aciklama = i.aciklama.replace(/\[?poliçe id: [a-f0-9-]{36}\]?/gi, `${info.plaka} - ${info.acente} - ${info.taksit} Taksit`);
+                                i.aciklama = i.aciklama.replace(/\[?POLİÇE ID: [a-f0-9-]{36}\]?/gi, ` - ${info.plaka} - ${info.acente}`);
                             }
                         }
                     });
