@@ -6969,9 +6969,9 @@ window.fetchKrediKartlari = async function () {
                     
                     // Önce aynı unvanda bir cari var mı bak
                     const { data: existingCari } = await window.supabaseClient.from('cariler')
-                        .select('id').eq('unvan', cariUnvan).maybeSingle();
+                        .select('id').eq('unvan', cariUnvan).limit(1);
                     
-                    let targetCariId = existingCari?.id;
+                    let targetCariId = existingCari && existingCari.length > 0 ? existingCari[0].id : null;
 
                     if (!targetCariId) {
                         const { data: newCari, error: cariErr } = await window.supabaseClient.from('cariler').insert([{
@@ -7029,7 +7029,7 @@ window.fetchKrediKartlari = async function () {
             const cariIdStr = k.cari_id ? `'${k.cari_id}'` : 'null';
 
             tr.innerHTML = `
-                <td class="px-6 py-4 cursor-pointer" onclick="if(${cariIdStr} !== 'null' && ${cariIdStr} !== null) window.openCariDetail(${cariIdStr})">
+                <td class="px-6 py-4 cursor-pointer" onclick="window.openCariDetail(${cariIdStr})">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <i data-lucide="credit-card" class="w-5 h-5 text-orange-500"></i>
