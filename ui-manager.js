@@ -1207,7 +1207,18 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
     } else if (title === 'Araç Evrak Güncelle') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Aracın kritik evrak (vize, sigorta, kasko) tarihlerini ve belgelerini güncelleyin.</p>
+                    <p class="text-sm text-gray-400 mb-6">Aracın kritik evrak (vize, sigorta, kasko) tarihlerini ve belgelerini güncelleyin.</p>
+                    
+                    <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-between gap-4">
+                        <div class="text-xs text-blue-400">
+                            <span class="font-bold block text-sm text-blue-300 mb-1">Poliçeyi Cariye İşlemek İster misin?</span>
+                            Poliçeyi detaylı olarak (tutar, cari/acente, kredi kartı) işlemek için detaylı kayıt oluşturabilirsin.
+                        </div>
+                        <button type="button" onclick="const aId=document.getElementById('evrak-arac-id').value; document.getElementById('crud-modal').classList.add('hidden'); setTimeout(()=>window.openModal('Yeni Poliçe Kaydı', aId), 50);" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-lg shadow-blue-500/20">
+                            DETAYLI POLİÇE EKLE
+                        </button>
+                    </div>
+
                     <input type="hidden" id="evrak-arac-id" value="">
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4 border-b border-white/5 pb-4">
