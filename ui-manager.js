@@ -1,4 +1,4 @@
-function setGpsUrl(url) {
+﻿function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
 function loadGpsFrame() {
@@ -2719,247 +2719,160 @@ window.printCariKart = function(plaka, month) {
     const overlay = document.getElementById('cari-kart-modal-overlay');
     if (!overlay) return;
 
-    // We collect the clean data to print
+    const fmt = v => String.fromCharCode(8378) + Number(v).toLocaleString('tr-TR', {minimumFractionDigits:2});
+
     const rows = overlay.querySelectorAll('.musteri-calc-row');
     let detailRowsHtml = '';
-    
-    rows.forEach(row => {
-        const titleEl = row.querySelector('.font-black.text-white');
-        const title = titleEl ? titleEl.innerText.trim() : 'Fabrika';
-        
-        // Vardiya adet bilgisi (.text-orange-400 span)
-        const vdAdetEl = row.querySelector('.text-orange-400');
-        const vdAdet = parseInt(vdAdetEl ? vdAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
-        
-        // Tek Sefer adet bilgisi (.text-blue-400 span)
-        const tkAdetEl = row.querySelector('.text-blue-400');
-        const tkAdet = parseInt(tkAdetEl ? tkAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+    let grandBrut = 0, grandKdv = 0, grandTev = 0;
 
-        // 8 Çıkışı adet bilgisi (.text-amber-300 span)
-        const c8AdetEl = row.querySelector('.text-amber-300');
-        const c8Adet = parseInt(c8AdetEl ? c8AdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+    rows.forEach(function(row) {
+        var titleEl = row.querySelector('.font-black.text-white');
+        var fabrika = titleEl ? titleEl.innerText.trim() : 'Fabrika';
 
-        // 20:30 Girişi adet bilgisi (.text-purple-300 span)
-        const g2AdetEl = row.querySelector('.text-purple-300');
-        const g2Adet = parseInt(g2AdetEl ? g2AdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+        var kdvOran = parseFloat(row.querySelector('.calc-kdv-oran') && row.querySelector('.calc-kdv-oran').value) || 0;
+        var tevOran = parseFloat(row.querySelector('.calc-tev-oran') && row.querySelector('.calc-tev-oran').value) || 0;
 
-        // Mesai adet bilgisi (.text-emerald-400 span)
-        const mAdetEl = row.querySelector('.text-emerald-400');
-        const mAdet = parseInt(mAdetEl ? mAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
-        
-        const vdFiyat = row.querySelector('.calc-vardiya-fiyat')?.value || '0';
-        const tkFiyat = row.querySelector('.calc-tek-fiyat')?.value || '0';
-        const c8Fiyat = row.querySelector('.calc-cikis8-fiyat')?.value || '0';
-        const g2Fiyat = row.querySelector('.calc-giris2030-fiyat')?.value || '0';
-        const mFiyat  = row.querySelector('.calc-mesai-fiyat')?.value || '0';
-        const kdvOran = row.querySelector('.calc-kdv-oran')?.value || '0';
-        const tevOran = row.querySelector('.calc-tev-oran')?.value || '0';
-        
-        const rowBrut = row.querySelector('.row-toplam')?.innerText || '₺0,00';
-        const rowKdv  = row.querySelector('.row-kdv-tutar')?.innerText || '+₺0,00';
-        const rowTev  = row.querySelector('.row-tev-tutar')?.innerText || '-₺0,00';
+        function getAdet(sel) {
+            var el = row.querySelector(sel);
+            return parseInt((el ? el.innerText : '0').replace(/[^0-9]/g,'')) || 0;
+        }
+        function getFiyat(sel) {
+            var el = row.querySelector(sel);
+            return parseFloat(el ? el.value : '0') || 0;
+        }
 
-        // Dikkan'a özgü ek satırlar — yalnızca adedi 0'dan büyükse göster
-        const dikkanRows = [
-            { label: '8 Çıkışı',   adet: c8Adet, fiyat: c8Fiyat, badgeClass: 'c8' },
-            { label: '20:30 Giriş', adet: g2Adet, fiyat: g2Fiyat, badgeClass: 'g2' },
-            { label: 'Mesai',      adet: mAdet,  fiyat: mFiyat,  badgeClass: 'ms' },
-        ].filter(d => d.adet > 0);
+        var services = [
+            { label: 'Vardiya',       adet: getAdet('.text-orange-400'),  fiyat: getFiyat('.calc-vardiya-fiyat'),   color: '#ea580c' },
+            { label: 'Tek Sefer',     adet: getAdet('.text-blue-400'),    fiyat: getFiyat('.calc-tek-fiyat'),       color: '#0284c7' },
+            { label: '8 Cikisi',      adet: getAdet('.text-amber-300'),   fiyat: getFiyat('.calc-cikis8-fiyat'),    color: '#d97706' },
+            { label: '20-30 Giris',   adet: getAdet('.text-purple-300'),  fiyat: getFiyat('.calc-giris2030-fiyat'), color: '#7c3aed' },
+            { label: 'Mesai',         adet: getAdet('.text-emerald-400'), fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#16a34a' }
+        ].filter(function(s){ return s.adet > 0; });
 
-        detailRowsHtml += `
-            <tr class="main-row">
-                <td class="client-cell" rowspan="${1 + dikkanRows.length}">
-                    <span class="client-name">${title}</span>
-                </td>
-                <td class="text-center detail-cell">
-                    <span class="count-badge vd">${vdAdet}</span> <span class="price-val">× ₺${vdFiyat}</span>
-                </td>
-                <td class="text-center detail-cell">
-                    <span class="count-badge tk">${tkAdet}</span> <span class="price-val">× ₺${tkFiyat}</span>
-                </td>
-                <td class="text-right brut-cell" rowspan="${1 + dikkanRows.length}">${rowBrut}</td>
-                <td class="text-right tax-cell" rowspan="${1 + dikkanRows.length}">
-                    <div class="tax-pct">%${kdvOran} KDV</div>
-                    <div class="tax-val pos">${rowKdv}</div>
-                </td>
-                <td class="text-right tax-cell" rowspan="${1 + dikkanRows.length}">
-                    <div class="tax-pct">%${tevOran} TEV</div>
-                    <div class="tax-val neg">${rowTev}</div>
-                </td>
-            </tr>
-        `;
+        if (services.length === 0) return;
 
-        // Her bir Dikkan-özel servis için ek satır
-        dikkanRows.forEach(d => {
-            detailRowsHtml += `
-            <tr class="dikkan-extra-row">
-                <td class="text-center detail-cell">
-                    <span class="count-badge ${d.badgeClass}">${d.adet}</span>
-                    <span class="extra-label">${d.label}</span>
-                    <span class="price-val">× ₺${d.fiyat}</span>
-                </td>
-                <td></td>
-            </tr>
-            `;
+        detailRowsHtml += '<tr class="factory-header"><td colspan="7">' + fabrika + ' <small style="font-weight:500;color:#94a3b8">KDV %' + kdvOran + ' / TEV %' + tevOran + '</small></td></tr>';
+
+        services.forEach(function(s) {
+            var toplam   = s.adet * s.fiyat;
+            var kdvTutar = toplam * (kdvOran / 100);
+            var tevTutar = toplam * (tevOran / 100);
+            var netSatir = toplam + kdvTutar - tevTutar;
+            grandBrut += toplam;
+            grandKdv  += kdvTutar;
+            grandTev  += tevTutar;
+            detailRowsHtml += '<tr class="svc-row">'
+                + '<td class="svc-label"><span class="svc-dot" style="background:' + s.color + '"></span>' + s.label + '</td>'
+                + '<td class="text-center mono">' + s.adet + '</td>'
+                + '<td class="text-right mono">' + fmt(s.fiyat) + '</td>'
+                + '<td class="text-right mono fw">' + fmt(toplam) + '</td>'
+                + '<td class="text-right mono kdv-col">+' + fmt(kdvTutar) + '</td>'
+                + '<td class="text-right mono tev-col">-' + fmt(tevTutar) + '</td>'
+                + '<td class="text-right mono net-col">' + fmt(netSatir) + '</td>'
+                + '</tr>';
         });
     });
 
-    const netTotal = overlay.querySelector('#modal-net-total')?.innerText || '₺0,00';
-    const brutTotal = overlay.querySelector('#modal-brut-total')?.innerText || '₺0,00';
-    const kdvTotal = overlay.querySelector('#modal-kdv-total')?.innerText || '+₺0,00';
-    const tevTotal = overlay.querySelector('#modal-tev-total')?.innerText || '-₺0,00';
-    const yakitTotalVal = overlay.querySelector('#modal-yakit-total')?.innerText || '-₺0,00';
-    
-    let yakitHtml = '<p class="empty-yakit">Hiç yakıt alımı bulunmuyor.</p>';
-    const yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
+    var yakitVal = parseFloat((overlay.querySelector('#modal-yakit-total') || {getAttribute:function(){return'0';}}).getAttribute('data-val')) || 0;
+    var netTop = grandBrut + grandKdv - grandTev - yakitVal;
+
+    detailRowsHtml += '<tr class="grand-total">'
+        + '<td colspan="3"><strong>GENEL TOPLAM</strong></td>'
+        + '<td class="text-right mono">' + fmt(grandBrut) + '</td>'
+        + '<td class="text-right mono kdv-col">+' + fmt(grandKdv) + '</td>'
+        + '<td class="text-right mono tev-col">-' + fmt(grandTev) + '</td>'
+        + '<td class="text-right mono">' + fmt(grandBrut + grandKdv - grandTev) + '</td>'
+        + '</tr>';
+
+    var yakitHtml = '<p class="empty-yakit">Hic yakit alimi bulunmuyor.</p>';
+    var yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
     if (yakitDivs.length > 0) {
-        yakitHtml = `
-            <table class="yakit-table">
-                <tbody>
-        `;
-        yakitDivs.forEach(yd => {
-            const tarih = yd.querySelector('.text-xs.font-bold')?.innerText || '';
-            const desc = yd.querySelector('.text-\\[10px\\].text-gray-400') ? yd.querySelector('.text-\\[10px\\].text-gray-400').innerText : '';
-            const val = yd.querySelector('.text-sm.font-black.text-orange-400')?.innerText || '';
-            yakitHtml += `
-                <tr>
-                    <td class="y-date">${tarih}</td>
-                    <td class="y-desc">${desc}</td>
-                    <td class="text-right y-val">${val}</td>
-                </tr>
-            `;
+        yakitHtml = '<table class="yakit-table"><tbody>';
+        yakitDivs.forEach(function(yd) {
+            var tarih = (yd.querySelector('.text-xs.font-bold') || {innerText:''}).innerText;
+            var desc  = (yd.querySelectorAll('div')[1] || {innerText:''}).innerText;
+            var val   = (yd.querySelector('.text-sm.font-black.text-orange-400') || {innerText:''}).innerText;
+            yakitHtml += '<tr><td class="y-date">' + tarih + '</td><td class="y-desc">' + desc + '</td><td class="text-right y-val">' + val + '</td></tr>';
         });
         yakitHtml += '</tbody></table>';
     }
 
-    const sahipBilgisi = overlay.querySelector('#modal-sahip-bilgisi')?.innerText || '';
-
-    const win = window.open('', '', 'height=800,width=900');
-    win.document.write(`
-        <html>
-            <head>
-                <title>Cari Hesap Dökümü - ${plaka}</title>
-                <link rel="preconnect" href="https://fonts.googleapis.com">
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Inter', system-ui, sans-serif; padding: 30px 40px; color: #1e293b; background: #fff; line-height: 1.4; font-size: 11px; }
-                    @page { size: portrait; margin: 0; }
-                    
-                    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-                    .header-left h1 { font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
-                    .header-left p { color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px; }
-                    .logo-text { font-size: 16px; font-weight: 900; color: #ea580c; font-style: italic; }
-                    
-                    .section-title { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
-                    
-                    .master-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    .master-table th { background: #f8fafc; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 9px; padding: 8px 12px; text-align: left; border-bottom: 1px solid #f1f5f9; }
-                    .master-table td { padding: 8px 12px; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
-                    
-                    .client-cell { width: 22%; }
-                    .client-name { font-weight: 700; color: #334155; font-size: 11px; }
-                    
-                    .detail-cell { width: 18%; }
-                    .count-badge { display: inline-block; padding: 1px 5px; border-radius: 4px; font-weight: 800; font-size: 10px; }
-                    .count-badge.vd { background: #fff7ed; color: #ea580c; }
-                    .count-badge.tk { background: #f0f9ff; color: #0284c7; }
-                    .count-badge.c8 { background: #fffbeb; color: #d97706; }
-                    .count-badge.g2 { background: #faf5ff; color: #7c3aed; }
-                    .count-badge.ms { background: #f0fdf4; color: #16a34a; }
-                    .price-val { color: #94a3b8; font-size: 10px; font-weight: 500; }
-                    .extra-label { font-size: 9px; font-weight: 700; color: #64748b; margin: 0 3px; text-transform: uppercase; }
-                    .dikkan-extra-row td { border-bottom: 1px solid #f8fafc; padding: 4px 12px; background: #fafafa; }
-                    .main-row td { border-top: 1px solid #e2e8f0; }
-                    
-                    .brut-cell { font-weight: 800; color: #1e293b; font-size: 12px; width: 15%; }
-                    
-                    .tax-cell { width: 13%; }
-                    .tax-pct { font-size: 8px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 1px; }
-                    .tax-val { font-weight: 600; font-size: 10px; }
-                    .tax-val.pos { color: #16a34a; }
-                    .tax-val.neg { color: #dc2626; }
-                    
-                    .yakit-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-                    .yakit-table td { padding: 4px 0; border-bottom: 1px solid #f8fafc; font-size: 10px; }
-                    .y-date { color: #64748b; font-weight: 600; width: 60px; }
-                    .y-desc { color: #94a3b8; }
-                    .y-val { color: #ea580c; font-weight: 700; }
-                    .empty-yakit { color: #cbd5e1; font-size: 10px; font-style: italic; }
-                    
-                    .footer-grid { display: grid; grid-template-columns: 1fr 280px; gap: 40px; margin-top: 15px; }
-                    
-                    .summary-card { background: #f8fafc; border: 1px solid #f1f5f9; border-radius: 12px; padding: 18px; }
-                    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 11px; font-weight: 500; color: #64748b; }
-                    .summary-row b { color: #1e293b; font-weight: 700; }
-                    .net-box { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
-                    .net-label { font-size: 12px; font-weight: 800; color: #0f172a; }
-                    .net-value { font-size: 20px; font-weight: 900; color: #16a34a; letter-spacing: -0.5px; }
-                    
-                    .doc-footer { margin-top: 50px; padding-top: 15px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; color: #cbd5e1; font-size: 9px; font-weight: 600; }
-                    
-                    .text-right { text-align: right; }
-                    .text-center { text-align: center; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div class="header-left">
-                        <h1>Cari Kart: ${plaka}</h1>
-                        <p>${month} Dönemi Hakediş Detayları ${sahipBilgisi ? `| ${sahipBilgisi}` : ''}</p>
-                    </div>
-                    <div class="logo-text">IDEOL TURİZM</div>
-                </div>
-                
-                <div class="section">
-                    <span class="section-title">Hizmet Dökümü</span>
-                    <table class="master-table">
-                        <thead>
-                            <tr>
-                                <th>Fabrika</th>
-                                <th class="text-center">Vardiya / Hizmet</th>
-                                <th class="text-center">Tek Sefer</th>
-                                <th class="text-right">Brüt Toplam</th>
-                                <th class="text-right">KDV</th>
-                                <th class="text-right">TEV</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${detailRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="footer-grid">
-                    <div>
-                        <span class="section-title">Yakıt Kesintileri</span>
-                        ${yakitHtml}
-                    </div>
-                    
-                    <div class="summary-card">
-                        <div class="summary-row"><span>Brüt Hakediş</span> <b>${brutTotal}</b></div>
-                        <div class="summary-row"><span>KDV Toplamı</span> <b style="color:#16a34a">${kdvTotal}</b></div>
-                        <div class="summary-row"><span>Stopaj/TEV Kes.</span> <b style="color:#dc2626">${tevTotal}</b></div>
-                        <div class="summary-row"><span>Yakıt Kesintisi</span> <b style="color:#ea580c">${yakitTotalVal}</b></div>
-                        
-                        <div class="net-box">
-                            <span class="net-label">NET HAKEDİŞ</span>
-                            <span class="net-value">${netTotal}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="doc-footer">
-                    <span>${new Date().toLocaleString('tr-TR')}</span>
-                    <span>IDEOL Filo Yönetim | www.ideoltur.com</span>
-                </div>
-            </body>
-        </html>
-    `);
+    var sahipBilgisi = (overlay.querySelector('#modal-sahip-bilgisi') || {innerText:''}).innerText;
+    var win = window.open('', '', 'height=850,width=960');
+    win.document.write('<!DOCTYPE html><html><head>'
++ '<meta charset="UTF-8">'
++ '<title>Cari Hesap - ' + plaka + '</title>'
++ '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
++ '<style>'
++ '*{margin:0;padding:0;box-sizing:border-box}'
++ 'body{font-family:Inter,sans-serif;padding:28px 36px;color:#1e293b;background:#fff;font-size:11px;line-height:1.5}'
++ '@page{size:portrait;margin:0}'
++ '.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:2px solid #f1f5f9;padding-bottom:14px}'
++ '.hdr h1{font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.5px}'
++ '.hdr p{color:#64748b;font-size:10px;font-weight:500;margin-top:2px}'
++ '.logo{font-size:15px;font-weight:900;color:#ea580c;font-style:italic}'
++ '.sec-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:block}'
++ '.tbl{width:100%;border-collapse:collapse;margin-bottom:18px}'
++ '.tbl th{background:#f8fafc;color:#64748b;font-weight:700;text-transform:uppercase;font-size:8.5px;padding:7px 9px;border-bottom:2px solid #e2e8f0}'
++ '.tbl th.tr{text-align:right}.tbl th.tc{text-align:center}'
++ '.tbl td{padding:6px 9px;vertical-align:middle}'
++ '.factory-header td{background:#f8fafc;font-size:10px;font-weight:800;color:#0f172a;padding:8px 9px;border-top:2px solid #e2e8f0;border-bottom:1px solid #e2e8f0}'
++ '.svc-row td{border-bottom:1px solid #f8fafc}'
++ '.grand-total td{border-top:2px solid #1e293b;border-bottom:2px solid #1e293b;background:#0f172a;color:#fff;font-weight:800;padding:9px;font-size:11.5px}'
++ '.grand-total .kdv-col{color:#86efac}'
++ '.grand-total .tev-col{color:#fca5a5}'
++ '.svc-label{display:flex;align-items:center;gap:5px;font-weight:600;color:#334155}'
++ '.svc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}'
++ '.mono{font-variant-numeric:tabular-nums}'
++ '.fw{font-weight:800;color:#0f172a}'
++ '.kdv-col{color:#16a34a;font-weight:600}'
++ '.tev-col{color:#dc2626;font-weight:600}'
++ '.net-col{font-weight:700;color:#0f172a}'
++ '.text-right{text-align:right}.text-center{text-align:center}'
++ '.fg{display:grid;grid-template-columns:1fr 258px;gap:28px;margin-top:14px}'
++ '.scard{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:15px}'
++ '.sr{display:flex;justify-content:space-between;margin-bottom:7px;font-size:10.5px;font-weight:500;color:#64748b}'
++ '.sr b{color:#1e293b;font-weight:700}'
++ '.nb{margin-top:10px;padding-top:10px;border-top:2px dashed #e2e8f0;display:flex;justify-content:space-between;align-items:center}'
++ '.nl{font-size:11px;font-weight:800;color:#0f172a}'
++ '.nv{font-size:19px;font-weight:900;letter-spacing:-.5px}'
++ '.yt{width:100%;border-collapse:collapse;margin-top:4px}'
++ '.yt td{padding:4px 0;border-bottom:1px solid #f8fafc;font-size:10px}'
++ '.y-date{color:#64748b;font-weight:600;width:68px}'
++ '.y-desc{color:#94a3b8}'
++ '.y-val{color:#ea580c;font-weight:700;text-align:right}'
++ '.empty-yakit{color:#cbd5e1;font-size:10px;font-style:italic}'
++ '.doc-ftr{margin-top:36px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;color:#cbd5e1;font-size:9px;font-weight:600}'
++ '</style></head><body>'
++ '<div class="hdr"><div><h1>Cari Kart: ' + plaka + '</h1><p>' + month + ' Donemi Hakedis Detaylari' + (sahipBilgisi ? ' | ' + sahipBilgisi : '') + '</p></div><div class="logo">IDEOL TURIZM</div></div>'
++ '<span class="sec-lbl">Hizmet Dokumu</span>'
++ '<table class="tbl">'
++ '<thead><tr>'
++ '<th style="width:17%">Hizmet Turu</th>'
++ '<th class="tc" style="width:8%">Adet</th>'
++ '<th class="tr" style="width:15%">Birim Fiyat</th>'
++ '<th class="tr" style="width:15%">Ara Toplam</th>'
++ '<th class="tr" style="width:13%">+ KDV</th>'
++ '<th class="tr" style="width:13%">- TEV</th>'
++ '<th class="tr" style="width:19%">Net (KDV-TEV)</th>'
++ '</tr></thead>'
++ '<tbody>' + detailRowsHtml + '</tbody>'
++ '</table>'
++ '<div class="fg">'
++ '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + '</div>'
++ '<div class="scard">'
++ '<div class="sr"><span>Brut Hakedis</span><b>' + fmt(grandBrut) + '</b></div>'
++ '<div class="sr"><span style="color:#16a34a">+ KDV Toplami</span><b style="color:#16a34a">+' + fmt(grandKdv) + '</b></div>'
++ '<div class="sr"><span style="color:#dc2626">- TEV (Stopaj)</span><b style="color:#dc2626">-' + fmt(grandTev) + '</b></div>'
++ '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
++ '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
++ '</div></div>'
++ '<div class="doc-ftr"><span>' + new Date().toLocaleString('tr-TR') + '</span><span>IDEOL Filo Yonetim | www.ideoltur.com</span></div>'
++ '</body></html>');
     win.document.close();
-    win.setTimeout(() => { win.print(); win.close(); }, 700);
+    win.setTimeout(function(){ win.print(); win.close(); }, 700);
 };
+
 
 
 /* === 9. HARİTA & ROTA MANTIĞI === */
