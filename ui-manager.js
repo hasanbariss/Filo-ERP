@@ -1489,8 +1489,8 @@ window.openModal = function (title, id = null, extra = null) {
                 }
 
                 container.innerHTML = data.map(b => {
-                    const cariIsim = b.cariler?.unvan ? \`<span class="text-[10px] text-gray-500 uppercase tracking-widest"><i data-lucide="building" class="w-3 h-3 inline-block mr-1"></i>\${b.cariler.unvan}</span>\` : '';
-                    const tutarHtml = b.toplam_tutar > 0 ? \`<span class="text-sm font-black text-orange-400">\${b.toplam_tutar.toLocaleString('tr-TR', {style:'currency', currency:'TRY'})}</span>\` : '';
+                    const cariIsim = b.cariler?.unvan ? `<span class="text-[10px] text-gray-500 uppercase tracking-widest"><i data-lucide="building" class="w-3 h-3 inline-block mr-1"></i>${b.cariler.unvan}</span>` : '';
+                    const tutarHtml = b.toplam_tutar > 0 ? `<span class="text-sm font-black text-orange-400">${b.toplam_tutar.toLocaleString('tr-TR', {style:'currency', currency:'TRY'})}</span>` : '';
                     
                     let icon = 'wrench';
                     let iconColor = 'text-blue-400';
@@ -1510,29 +1510,29 @@ window.openModal = function (title, id = null, extra = null) {
                         bgColor = 'bg-red-500/10';
                     }
 
-                    return \`
+                    return `
                         <div class="p-4 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all flex gap-4 items-start">
-                            <div class="p-3 \${bgColor} \${iconColor} rounded-lg flex-shrink-0">
-                                <i data-lucide="\${icon}" class="w-5 h-5"></i>
+                            <div class="p-3 ${bgColor} ${iconColor} rounded-lg flex-shrink-0">
+                                <i data-lucide="${icon}" class="w-5 h-5"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="flex justify-between items-start mb-1">
-                                    <h4 class="text-sm font-bold text-white truncate">\${b.islem_turu}</h4>
-                                    <span class="text-[10px] font-bold text-gray-400 bg-black/30 px-2 py-1 rounded border border-white/5">\${new Date(b.islem_tarihi).toLocaleDateString('tr-TR')}</span>
+                                    <h4 class="text-sm font-bold text-white truncate">${b.islem_turu}</h4>
+                                    <span class="text-[10px] font-bold text-gray-400 bg-black/30 px-2 py-1 rounded border border-white/5">${new Date(b.islem_tarihi).toLocaleDateString('tr-TR')}</span>
                                 </div>
-                                <p class="text-xs text-gray-300 mb-2 leading-relaxed">\${b.aciklama || 'Açıklama yok'}</p>
+                                <p class="text-xs text-gray-300 mb-2 leading-relaxed">${b.aciklama || 'Açıklama yok'}</p>
                                 <div class="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
-                                    \${cariIsim}
-                                    \${tutarHtml}
+                                    ${cariIsim}
+                                    ${tutarHtml}
                                 </div>
                             </div>
                         </div>
-                    \`;
+                    `;
                 }).join('');
                 if (window.lucide) window.lucide.createIcons();
 
             } catch (err) {
-                container.innerHTML = \`<div class="p-4 bg-red-500/10 text-red-500 text-sm rounded-xl">Hata: \${err.message}</div>\`;
+                container.innerHTML = `<div class="p-4 bg-red-500/10 text-red-500 text-sm rounded-xl">Hata: ${err.message}</div>`;
             }
         }, 50);
     } else if (title === 'Yeni Poliçe Kaydı') {
