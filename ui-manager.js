@@ -2727,24 +2727,48 @@ window.printCariKart = function(plaka, month) {
         const titleEl = row.querySelector('.font-black.text-white');
         const title = titleEl ? titleEl.innerText.trim() : 'Fabrika';
         
+        // Vardiya adet bilgisi (.text-orange-400 span)
         const vdAdetEl = row.querySelector('.text-orange-400');
-        const vdAdet = vdAdetEl ? vdAdetEl.innerText.replace(' Sefer', '').trim() : '0';
+        const vdAdet = parseInt(vdAdetEl ? vdAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
         
+        // Tek Sefer adet bilgisi (.text-blue-400 span)
         const tkAdetEl = row.querySelector('.text-blue-400');
-        const tkAdet = tkAdetEl ? tkAdetEl.innerText.replace(' Sefer', '').trim() : '0';
+        const tkAdet = parseInt(tkAdetEl ? tkAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+
+        // 8 Çıkışı adet bilgisi (.text-amber-300 span)
+        const c8AdetEl = row.querySelector('.text-amber-300');
+        const c8Adet = parseInt(c8AdetEl ? c8AdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+
+        // 20:30 Girişi adet bilgisi (.text-purple-300 span)
+        const g2AdetEl = row.querySelector('.text-purple-300');
+        const g2Adet = parseInt(g2AdetEl ? g2AdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
+
+        // Mesai adet bilgisi (.text-emerald-400 span)
+        const mAdetEl = row.querySelector('.text-emerald-400');
+        const mAdet = parseInt(mAdetEl ? mAdetEl.innerText.replace(' Sefer', '').trim() : '0') || 0;
         
         const vdFiyat = row.querySelector('.calc-vardiya-fiyat')?.value || '0';
         const tkFiyat = row.querySelector('.calc-tek-fiyat')?.value || '0';
+        const c8Fiyat = row.querySelector('.calc-cikis8-fiyat')?.value || '0';
+        const g2Fiyat = row.querySelector('.calc-giris2030-fiyat')?.value || '0';
+        const mFiyat  = row.querySelector('.calc-mesai-fiyat')?.value || '0';
         const kdvOran = row.querySelector('.calc-kdv-oran')?.value || '0';
         const tevOran = row.querySelector('.calc-tev-oran')?.value || '0';
         
         const rowBrut = row.querySelector('.row-toplam')?.innerText || '₺0,00';
-        const rowKdv = row.querySelector('.row-kdv-tutar')?.innerText || '+₺0,00';
-        const rowTev = row.querySelector('.row-tev-tutar')?.innerText || '-₺0,00';
+        const rowKdv  = row.querySelector('.row-kdv-tutar')?.innerText || '+₺0,00';
+        const rowTev  = row.querySelector('.row-tev-tutar')?.innerText || '-₺0,00';
+
+        // Dikkan'a özgü ek satırlar — yalnızca adedi 0'dan büyükse göster
+        const dikkanRows = [
+            { label: '8 Çıkışı',   adet: c8Adet, fiyat: c8Fiyat, badgeClass: 'c8' },
+            { label: '20:30 Giriş', adet: g2Adet, fiyat: g2Fiyat, badgeClass: 'g2' },
+            { label: 'Mesai',      adet: mAdet,  fiyat: mFiyat,  badgeClass: 'ms' },
+        ].filter(d => d.adet > 0);
 
         detailRowsHtml += `
-            <tr>
-                <td class="client-cell">
+            <tr class="main-row">
+                <td class="client-cell" rowspan="${1 + dikkanRows.length}">
                     <span class="client-name">${title}</span>
                 </td>
                 <td class="text-center detail-cell">
@@ -2753,17 +2777,31 @@ window.printCariKart = function(plaka, month) {
                 <td class="text-center detail-cell">
                     <span class="count-badge tk">${tkAdet}</span> <span class="price-val">× ₺${tkFiyat}</span>
                 </td>
-                <td class="text-right brut-cell">${rowBrut}</td>
-                <td class="text-right tax-cell">
+                <td class="text-right brut-cell" rowspan="${1 + dikkanRows.length}">${rowBrut}</td>
+                <td class="text-right tax-cell" rowspan="${1 + dikkanRows.length}">
                     <div class="tax-pct">%${kdvOran} KDV</div>
                     <div class="tax-val pos">${rowKdv}</div>
                 </td>
-                <td class="text-right tax-cell">
+                <td class="text-right tax-cell" rowspan="${1 + dikkanRows.length}">
                     <div class="tax-pct">%${tevOran} TEV</div>
                     <div class="tax-val neg">${rowTev}</div>
                 </td>
             </tr>
         `;
+
+        // Her bir Dikkan-özel servis için ek satır
+        dikkanRows.forEach(d => {
+            detailRowsHtml += `
+            <tr class="dikkan-extra-row">
+                <td class="text-center detail-cell">
+                    <span class="count-badge ${d.badgeClass}">${d.adet}</span>
+                    <span class="extra-label">${d.label}</span>
+                    <span class="price-val">× ₺${d.fiyat}</span>
+                </td>
+                <td></td>
+            </tr>
+            `;
+        });
     });
 
     const netTotal = overlay.querySelector('#modal-net-total')?.innerText || '₺0,00';
@@ -2827,7 +2865,13 @@ window.printCariKart = function(plaka, month) {
                     .count-badge { display: inline-block; padding: 1px 5px; border-radius: 4px; font-weight: 800; font-size: 10px; }
                     .count-badge.vd { background: #fff7ed; color: #ea580c; }
                     .count-badge.tk { background: #f0f9ff; color: #0284c7; }
+                    .count-badge.c8 { background: #fffbeb; color: #d97706; }
+                    .count-badge.g2 { background: #faf5ff; color: #7c3aed; }
+                    .count-badge.ms { background: #f0fdf4; color: #16a34a; }
                     .price-val { color: #94a3b8; font-size: 10px; font-weight: 500; }
+                    .extra-label { font-size: 9px; font-weight: 700; color: #64748b; margin: 0 3px; text-transform: uppercase; }
+                    .dikkan-extra-row td { border-bottom: 1px solid #f8fafc; padding: 4px 12px; background: #fafafa; }
+                    .main-row td { border-top: 1px solid #e2e8f0; }
                     
                     .brut-cell { font-weight: 800; color: #1e293b; font-size: 12px; width: 15%; }
                     
@@ -2874,7 +2918,7 @@ window.printCariKart = function(plaka, month) {
                         <thead>
                             <tr>
                                 <th>Fabrika</th>
-                                <th class="text-center">Vardiya</th>
+                                <th class="text-center">Vardiya / Hizmet</th>
                                 <th class="text-center">Tek Sefer</th>
                                 <th class="text-right">Brüt Toplam</th>
                                 <th class="text-right">KDV</th>
