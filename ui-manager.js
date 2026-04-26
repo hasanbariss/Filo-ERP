@@ -1214,7 +1214,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <span class="font-bold block text-sm text-blue-300 mb-1">Poliçeyi Cariye İşlemek İster misin?</span>
                             Poliçeyi detaylı olarak (tutar, cari/acente, kredi kartı) işlemek için detaylı kayıt oluşturabilirsin.
                         </div>
-                        <button type="button" onclick="const aId=document.getElementById('evrak-arac-id').value; document.getElementById('crud-modal').classList.add('hidden'); setTimeout(()=>window.openModal('Yeni Poliçe Kaydı', aId), 50);" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-lg shadow-blue-500/20">
+                        <button type="button" onclick="const aId=document.getElementById('evrak-arac-id').value; window.openModal('Yeni Poliçe Kaydı', aId);" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all shadow-lg shadow-blue-500/20">
                             DETAYLI POLİÇE EKLE
                         </button>
                     </div>
