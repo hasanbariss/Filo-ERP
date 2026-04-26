@@ -212,7 +212,7 @@ window.fetchDashboardData = async function () {
         const police30 = policelerEnriched.filter(p => p.bitis_tarihi >= todayStr && p.bitis_tarihi <= future30Str);
         try { _renderOdemelerWidget(police30); } catch(e) { console.error('Ödemeler widget:', e); }
 
-        try { _renderYagBakimWidget(araclar); } catch(e) { console.error('Yağ widget:', e); }
+        try { _renderYagBakimWidget(araclar, bakimlar); } catch(e) { console.error('Yağ widget:', e); }
 
         // ── Aktivite feed ─────────────────────────────────────
         await window.fetchSonAktiviteler(araclar);
@@ -486,18 +486,44 @@ function _renderOdemelerWidget(policeler) {
 // ════════════════════════════════════════════════════════════════
 // YAĞ BAKIMI WIDGET
 // ════════════════════════════════════════════════════════════════
-function _renderYagBakimWidget(araclar) {
+function _renderYagBakimWidget(araclar, bakimlar = []) {
     const el = document.getElementById('yag-bakim-list');
     if (!el) return;
 
+    const today = new Date();
+
     const items = araclar
-        .filter(a => a.guncel_km > 0 && a.son_yag_km > 0 && (a.guncel_km - a.son_yag_km) > 5000)
         .map(a => {
-            const usage = a.guncel_km - a.son_yag_km;
-            const pct   = Math.min(100, Math.max(0, (usage / 10000) * 100));
-            return { plaka: a.plaka, usage, pct };
+            let usage = 0;
+            if (a.guncel_km > 0 && a.son_yag_km > 0) {
+                usage = a.guncel_km - a.son_yag_km;
+            }
+            
+            // Araca ait en son 'Yağ Bakımı' kaydını bul
+            const lastOil = bakimlar
+                .filter(b => b.arac_id === a.id && b.islem_turu === 'Yağ Bakımı')
+                .sort((x, y) => new Date(y.islem_tarihi) - new Date(x.islem_tarihi))[0];
+            
+            let daysSince = 0;
+            if (lastOil) {
+                daysSince = Math.floor((today - new Date(lastOil.islem_tarihi)) / (1000 * 60 * 60 * 24));
+            }
+
+            return { plaka: a.plaka, usage, daysSince, lastOilDate: lastOil?.islem_tarihi };
         })
-        .sort((a, b) => b.usage - a.usage);
+        // Ya 5000 KM'yi geçmiş olacak ya da son bakımdan bu yana 60 gün (2 Ay) geçmiş olacak
+        .filter(i => i.usage > 5000 || i.daysSince >= 60)
+        .map(i => {
+            // KM bazlı yüzde
+            let pct = Math.min(100, Math.max(0, (i.usage / 10000) * 100));
+            // Zaman bazlı skor (60 gün ve üstü ise %100 kritik)
+            let timeScore = i.daysSince >= 60 ? 100 : 0;
+            
+            i.score = Math.max(pct, timeScore);
+            i.pct = pct;
+            return i;
+        })
+        .sort((a, b) => b.score - a.score);
 
     if (items.length === 0) {
         el.innerHTML = `<div class="flex flex-col items-center justify-center py-10 opacity-40">
@@ -509,11 +535,25 @@ function _renderYagBakimWidget(araclar) {
     }
 
     el.innerHTML = items.slice(0, 8).map(i => {
-        const isCritical = i.usage >= 9500;
-        const isWarning  = i.usage >= 8000;
-        const barColor   = isCritical ? 'bg-red-500' : isWarning ? 'bg-orange-500' : 'bg-emerald-500';
-        const textColor  = isCritical ? 'text-red-400' : isWarning ? 'text-orange-400' : 'text-emerald-400';
-        const statusLabel = isCritical ? 'KRİTİK' : isWarning ? 'UYARI' : 'TAKİP ET';
+        const isTimeCritical = i.daysSince >= 60;
+        const isKmCritical = i.usage >= 9500;
+        const isKmWarning  = i.usage >= 8000;
+        
+        let barColor = 'bg-emerald-500';
+        let textColor = 'text-emerald-400';
+        let statusLabel = 'TAKİP ET';
+
+        if (isTimeCritical || isKmCritical) {
+            barColor = 'bg-red-500';
+            textColor = 'text-red-400';
+            statusLabel = isTimeCritical ? 'ZAMANI GEÇTİ' : 'KRİTİK';
+        } else if (isKmWarning) {
+            barColor = 'bg-orange-500';
+            textColor = 'text-orange-400';
+            statusLabel = 'UYARI';
+        }
+
+        let timeText = i.daysSince > 0 ? ` <span class="text-[8px] text-gray-500 block leading-tight">(${i.daysSince} gün geçti)</span>` : '';
 
         return `<div class="p-3 bg-white/[0.02] border border-white/5 rounded-xl mb-2 hover:bg-white/5 transition-all">
             <div class="flex justify-between items-center mb-1.5">
@@ -522,13 +562,13 @@ function _renderYagBakimWidget(araclar) {
             </div>
             <div class="flex items-center gap-2 mb-1">
                 <div class="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
-                    <div class="${barColor} h-full rounded-full transition-all duration-1000" style="width:${i.pct}%"></div>
+                    <div class="${barColor} h-full rounded-full transition-all duration-1000" style="width:${Math.max(i.pct, isTimeCritical ? 100 : 0)}%"></div>
                 </div>
                 <span class="text-[9px] font-black ${textColor} tabular-nums w-10 text-right">%${Math.round(i.pct)}</span>
             </div>
-            <div class="flex justify-between text-[9px] text-gray-600">
-                <span>Son yağ'dan: <span class="font-bold text-gray-400">${i.usage.toLocaleString('tr-TR')} km</span></span>
-                <span>Hedef: <span class="font-bold">10.000 km</span></span>
+            <div class="flex justify-between items-center text-[9px] text-gray-600">
+                <span>Son yağ'dan: <span class="font-bold text-gray-400">${i.usage.toLocaleString('tr-TR')} km</span>${timeText}</span>
+                <span class="text-right">Hedef: <span class="font-bold">10.000 km<br><span class="text-[8px] font-normal">veya 2 Ay</span></span></span>
             </div>
         </div>`;
     }).join('');

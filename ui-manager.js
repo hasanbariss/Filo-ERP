@@ -1,4 +1,4 @@
-﻿function setGpsUrl(url) {
+function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
 function loadGpsFrame() {
@@ -1386,6 +1386,7 @@ window.openModal = function (title, id = null, extra = null) {
                                     <option value="Bakım/İşçilik">Bakım / İşçilik</option>
                                     <option value="Yedek Parça">Yedek Parça</option>
                                     <option value="Hasar Onarım">Hasar Onarım</option>
+                                    <option value="Yağ Bakımı">Yağ Bakımı</option>
                                 </select>
                             </div>
                             <div>
@@ -2489,6 +2490,12 @@ window.handleOdemeTurChange = function (tur) {
 
 window.handleBakimTurChange = function (tur) {
     const container = document.getElementById('bakim-dinamik-alanlar');
+    const descInput = document.getElementById('bakim-aciklama');
+    
+    if (tur === 'Yağ Bakımı' && descInput) {
+        if (!descInput.value) descInput.value = 'Periyodik Yağ Bakımı';
+    }
+
     if (!container) return;
 
     container.innerHTML = '';

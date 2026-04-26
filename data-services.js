@@ -527,6 +527,9 @@ window.saveDataAndClose = async function (event) {
                     if (!aData || bakim_km > (aData.guncel_km || 0)) {
                         await window.supabaseClient.from('araclar').update({ guncel_km: bakim_km }).eq('id', arac_id);
                     }
+                    if (islem_turu === 'Yağ Bakımı') {
+                        await window.supabaseClient.from('araclar').update({ son_yag_km: bakim_km }).eq('id', arac_id);
+                    }
                 } catch(err) { console.error('KM update error:', err); }
             }
 
