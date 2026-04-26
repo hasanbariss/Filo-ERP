@@ -347,14 +347,12 @@ window.saveDataAndClose = async function (event) {
             };
             let { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
 
-            if (error && error.message && (error.message.includes('could not identify column') || error.message.includes('does not exist'))) {
+            if (error && error.message && (error.message.toLowerCase().includes('could not find') || error.message.toLowerCase().includes('does not exist') || error.message.toLowerCase().includes('could not identify column'))) {
                 delete payload.koltuk_bitis;
                 delete payload.koltuk_dosya_url;
                 const fallbackRes = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
                 error = fallbackRes.error;
-                if (!error && window.Toast) {
-                    window.Toast.info("Koltuk Poliçesi sütunları Supabase'de yok. Diğer evraklar başarıyla kaydedildi.");
-                }
+                // Removed window.Toast.info to allow silent syncing without warning the user
             }
 
             if (error) throw error;
@@ -619,7 +617,16 @@ window.saveDataAndClose = async function (event) {
 
             if (Object.keys(updatePayload).length > 0) {
                 const { error: updError } = await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
-                if (updError) console.error("Araç tarih güncelleme hatası:", updError);
+                if (updError) {
+                    if (updError.message && updError.message.toLowerCase().includes('could not find') && updatePayload.koltuk_bitis) {
+                        delete updatePayload.koltuk_bitis;
+                        if (Object.keys(updatePayload).length > 0) {
+                            await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
+                        }
+                    } else {
+                        console.error("Araç tarih güncelleme hatası:", updError);
+                    }
+                }
             }
 
             // --- 4. ÖDEME KAYITLARI (Entegre Detaylar) ---
@@ -5769,8 +5776,15 @@ window.teklifSec = async function (id) {
 
             const { data: aracRes, error: updError } = await window.supabaseClient.from('araclar').update(updateData).eq('id', row.arac_id).select();
             if (updError) {
-                console.error("[TEKLİFSEC] Araç tarih güncelleme hatası:", updError);
-                if (typeof showToast === 'function') showToast('⚠️ Poliçe kesildi ancak araç tarihleri güncellenemedi: ' + updError.message, 'warning');
+                if (updError.message && updError.message.toLowerCase().includes('could not find') && updateData.koltuk_bitis) {
+                    delete updateData.koltuk_bitis;
+                    if (Object.keys(updateData).length > 0) {
+                        await window.supabaseClient.from('araclar').update(updateData).eq('id', row.arac_id);
+                    }
+                } else {
+                    console.error("[TEKLİFSEC] Araç tarih güncelleme hatası:", updError);
+                    if (typeof showToast === 'function') showToast('⚠️ Poliçe kesildi ancak araç tarihleri güncellenemedi: ' + updError.message, 'warning');
+                }
             } else {
 
             }
