@@ -67,20 +67,20 @@ window.fetchDashboardData = async function () {
             resPoliceler90, resYakitlar, resBakimlar,
             resHakedisTaseron, resHakedisServis
         ] = await Promise.allSettled([
-            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sigorta_bitis, kasko_bitis, vize_bitis, koltuk_bitis, guncel_km, son_yag_km'),
+            window.supabaseClient.from('araclar').select('*'),
             window.supabaseClient.from('soforler').select('id', { count:'exact', head:true }),
             window.supabaseClient.from('cariler').select('id', { count:'exact', head:true }),
             window.supabaseClient.from('musteriler').select('id', { count:'exact', head:true }),
             // Poliçe tablosu: geçmiş 90 + gelecek 90 gün
             window.supabaseClient.from('arac_policeler')
-                .select('id, bitis_tarihi, baslangic_tarihi, police_turu, toplam_tutar, taksit_sayisi, arac_id, cariler(unvan)')
+                .select('*, cariler(unvan)')
                 .gte('bitis_tarihi', past90Str)
                 .lte('bitis_tarihi', future90Str)
                 .order('bitis_tarihi', { ascending: true }),
-            window.supabaseClient.from('yakit_takip').select('toplam_tutar, tarih').gte('tarih', monthStart).lte('tarih', monthEnd),
-            window.supabaseClient.from('arac_bakimlari').select('toplam_tutar, islem_tarihi').gte('islem_tarihi', monthStart).lte('islem_tarihi', monthEnd),
-            window.supabaseClient.from('taseron_hakedis').select('net_hakedis, sefer_tarihi').gte('sefer_tarihi', monthStart).lte('sefer_tarihi', monthEnd),
-            window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret, tarih').gte('tarih', monthStart).lte('tarih', monthEnd)
+            window.supabaseClient.from('yakit_takip').select('*'),
+            window.supabaseClient.from('arac_bakimlari').select('*'),
+            window.supabaseClient.from('taseron_hakedis').select('*'),
+            window.supabaseClient.from('musteri_servis_puantaj').select('*')
         ]);
 
         const ext = (r) => (r.status==='fulfilled' && r.value?.data) ? r.value.data : [];
@@ -127,7 +127,8 @@ window.fetchDashboardData = async function () {
         // Finansal KPIs
         const sumYakit = yakitlar.reduce((s, y) => s + (y.toplam_tutar || 0), 0);
         const sumBakim = bakimlar.reduce((s, b) => s + (b.toplam_tutar || 0), 0);
-        const sumHakedisTaseron = hakedisTaseron.reduce((s, h) => s + (h.net_hakedis || 0), 0);
+        // Taseron Hakedis uses net_hakedis or anlasilan_tutar
+        const sumHakedisTaseron = hakedisTaseron.reduce((s, h) => s + (h.net_hakedis || h.anlasilan_tutar || 0), 0);
         const sumCiro = sumHakedisTaseron + hakedisServis.reduce((s, h) => s + (h.gunluk_ucret || 0), 0);
         setEl('kpi-ciro', _fmt(sumCiro));
         setEl('kpi-gider', _fmt(sumYakit + sumBakim));
@@ -160,12 +161,46 @@ window.fetchDashboardData = async function () {
         araclar.forEach(a => { plakaMap[a.id] = a.plaka; });
 
         // Poliçelere plaka ekle
-        const policelerEnriched = policeler90.map(p => ({
+        let policelerEnriched = policeler90.map(p => ({
             ...p,
             plaka: plakaMap[p.arac_id] || '—',
             firma: p.cariler?.unvan || '—',
             days: _daysDiff(p.bitis_tarihi)
         }));
+
+        // ── Özmal Çizelge'deki Bitişleri "Biten Poliçeler"e Ekle ──
+        araclar.forEach(a => {
+            const addPseudoPolicy = (dateValue, typeName) => {
+                if (!dateValue) return;
+                const days = _daysDiff(dateValue);
+                // 90 günden az kalmışsa listeye dahil et
+                if (days <= 90) {
+                    policelerEnriched.push({
+                        id: 'pseudo_' + a.id + '_' + typeName,
+                        bitis_tarihi: dateValue,
+                        baslangic_tarihi: null,
+                        police_turu: typeName,
+                        toplam_tutar: null,
+                        taksit_sayisi: 1,
+                        arac_id: a.id,
+                        plaka: a.plaka,
+                        firma: 'Sistem Kaydı',
+                        days: days
+                    });
+                }
+            };
+            addPseudoPolicy(a.sigorta_bitis, 'Trafik Sigortası');
+            addPseudoPolicy(a.kasko_bitis, 'Kasko');
+            addPseudoPolicy(a.vize_bitis, 'Muayene Vizesi');
+            addPseudoPolicy(a.koltuk_bitis, 'Koltuk Sigortası');
+        });
+
+        // Tarihe göre sırala
+        policelerEnriched.sort((a, b) => {
+            if (a.days === null) return 1;
+            if (b.days === null) return -1;
+            return a.days - b.days;
+        });
 
         // Cache'e yaz ve tabloyu render et
         window._dashboardPolicelerCache = policelerEnriched;
@@ -282,9 +317,11 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
         }
 
         const policeAdi = p.police_turu || '—';
-        const policeIcon = policeAdi.toLowerCase().includes('kasko') ? '🛡️' :
-                           policeAdi.toLowerCase().includes('trafik') || policeAdi.toLowerCase().includes('zorunlu') ? '🚗' :
-                           policeAdi.toLowerCase().includes('koltuk') ? '💺' : '📋';
+        const pLower = policeAdi.toLowerCase();
+        const policeIcon = pLower.includes('kasko') ? '🛡️' :
+                           (pLower.includes('trafik') || pLower.includes('zorunlu')) ? '🚗' :
+                           pLower.includes('koltuk') ? '💺' :
+                           pLower.includes('vize') ? '📋' : '📑';
 
         return `<tr class="hover:bg-white/[0.03] transition-all border-b border-white/5 ${rowClass} group">
             <td class="py-3.5 px-3 whitespace-nowrap">${statusBadge}</td>
@@ -315,10 +352,10 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
                   `<span class="text-xs font-black ${days <= 7 ? 'text-red-400' : days <= 30 ? 'text-amber-400' : 'text-emerald-400'} font-mono">${days} gün</span>`}
             </td>
             <td class="py-3.5 px-3 text-right whitespace-nowrap">
-                <span class="text-sm font-black text-white tabular-nums">${_fmt(p.toplam_tutar)}</span>
+                <span class="text-sm font-black text-white tabular-nums">${p.toplam_tutar !== null ? _fmt(p.toplam_tutar) : '—'}</span>
             </td>
             <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                <span class="text-[10px] font-bold ${p.taksit_sayisi > 1 ? 'text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md' : 'text-gray-600'}">${p.taksit_sayisi > 1 ? p.taksit_sayisi + ' Taksit' : 'Peşin'}</span>
+                <span class="text-[10px] font-bold ${p.taksit_sayisi > 1 ? 'text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md' : 'text-gray-600'}">${p.taksit_sayisi > 1 ? p.taksit_sayisi + ' Taksit' : (p.toplam_tutar !== null ? 'Peşin' : '—')}</span>
             </td>
         </tr>`;
     }).join('');
