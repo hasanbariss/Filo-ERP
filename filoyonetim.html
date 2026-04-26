@@ -828,17 +828,37 @@
                                     <p class="text-sm text-gray-500">Araçların sigorta, kasko, koltuk ve vize bitiş tarihlerini yönetin.</p>
                                 </div>
                                 <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                                    <select id="cizelge-sort" onchange="if(window.fetchOzmalCizelge) window.fetchOzmalCizelge(window.currentOzmalFilter)" class="bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-[11px] font-bold text-gray-400 outline-none focus:border-orange-500 cursor-pointer transition-all">
-                                        <option value="varsayilan">Sıralama: Alfabetik</option>
-                                        <option value="yaklasan_genel">En Yakın Bitiş (Genel)</option>
-                                        <option value="trafik_yakin">Trafik (Yakın &gt; Uzak)</option>
-                                        <option value="trafik_uzak">Trafik (Uzak &gt; Yakın)</option>
-                                        <option value="koltuk_yakin">Koltuk (Yakın &gt; Uzak)</option>
-                                        <option value="koltuk_uzak">Koltuk (Uzak &gt; Yakın)</option>
-                                        <option value="kasko_yakin">Kasko (Yakın &gt; Uzak)</option>
-                                        <option value="kasko_uzak">Kasko (Uzak &gt; Yakın)</option>
-                                        <option value="vize_yakin">Vize (Yakın &gt; Uzak)</option>
-                                        <option value="vize_uzak">Vize (Uzak &gt; Yakın)</option>
+                                    <!-- Sıralama Butonları -->
+                                    <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
+                                        <span class="text-[9px] text-gray-600 font-black uppercase tracking-widest px-1">Sırala:</span>
+                                        <button id="sort-btn-alfa" onclick="window.setCizelgeSort('varsayilan', this)"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all" title="Alfabetik">
+                                            A–Z
+                                        </button>
+                                        <button id="sort-btn-yaklasan" onclick="window.setCizelgeSort('yaklasan_genel', this)"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="En yakın bitiş tarihi önce">
+                                            ⚠ En Yakın
+                                        </button>
+                                        <button id="sort-btn-trafik" onclick="window.setCizelgeSort('trafik_yakin', this)"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Trafik sigortası bitiş">
+                                            Trafik
+                                        </button>
+                                        <button id="sort-btn-kasko" onclick="window.setCizelgeSort('kasko_yakin', this)"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Kasko bitiş">
+                                            Kasko
+                                        </button>
+                                        <button id="sort-btn-vize" onclick="window.setCizelgeSort('vize_yakin', this)"
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Vize bitiş">
+                                            Vize
+                                        </button>
+                                    </div>
+                                    <!-- Gizli select (JS mantığı hâlâ bunu okur) -->
+                                    <select id="cizelge-sort" class="hidden">
+                                        <option value="varsayilan">Alfabetik</option>
+                                        <option value="yaklasan_genel">En Yakın Bitiş</option>
+                                        <option value="trafik_yakin">Trafik</option>
+                                        <option value="kasko_yakin">Kasko</option>
+                                        <option value="vize_yakin">Vize</option>
                                     </select>
                                     <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
                                         <button id="filter-cizelge-hepsi" onclick="window.filterOzmalCizelge('hepsi')"

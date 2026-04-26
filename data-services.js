@@ -1106,6 +1106,28 @@ window.filterOzmalCizelge = function(sirketName) {
     if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(window.currentOzmalFilter);
 };
 
+window.setCizelgeSort = function(value, btnEl) {
+    // Gizli select'i güncelle (fetchOzmalCizelge bu değeri okur)
+    const sel = document.getElementById('cizelge-sort');
+    if (sel) sel.value = value;
+
+    // Tüm sort butonlarını pasife al
+    ['sort-btn-alfa','sort-btn-yaklasan','sort-btn-trafik','sort-btn-kasko','sort-btn-vize'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) {
+            b.classList.remove('bg-orange-500','text-white');
+            b.classList.add('text-gray-400','hover:bg-white/10');
+        }
+    });
+    // Tıklanan butonu aktif yap
+    if (btnEl) {
+        btnEl.classList.add('bg-orange-500','text-white');
+        btnEl.classList.remove('text-gray-400','hover:bg-white/10');
+    }
+    // Tabloyu yenile
+    if (typeof window.fetchOzmalCizelge === 'function') window.fetchOzmalCizelge(window.currentOzmalFilter);
+};
+
 window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilter) {
     const tbody = document.getElementById('cizelge-tbody');
     if (!tbody) return;
