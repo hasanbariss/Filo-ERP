@@ -813,9 +813,9 @@ async function _renderMainChart() {
 // ════════════════════════════════════════════════════════════════
 // TAŞERON HAKEDİŞ DETAY RAPORU (EXCEL MODAL)
 // ════════════════════════════════════════════════════════════════
-window.openDetayliTaseronRaporu = function() {
-    const data = window._taseronCariData;
-    const ay = window._taseronCariAy || new Date().toISOString().slice(0,7);
+window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
+    const data = dataOverride || window._taseronCariData;
+    const ay = ayOverride || window._taseronCariAy || new Date().toISOString().slice(0,7);
     const ayText = new Date(ay + '-01').toLocaleDateString('tr-TR', {month:'long', year:'numeric'}).toUpperCase();
 
     if (!data || Object.keys(data).length === 0) {
@@ -828,7 +828,21 @@ window.openDetayliTaseronRaporu = function() {
     const title = document.getElementById('rapor-detay-baslik');
     if (!modal || !container) return;
 
+    window._taseronCariAy = ay;
+    window._taseronRawData = data;
+
+    const saveKey = 'taseron_rapor_html_v2_' + ay;
+    const savedHtml = localStorage.getItem(saveKey);
+
+    if (savedHtml) {
+        modal.classList.remove('hidden');
+        container.innerHTML = savedHtml;
+        title.innerText = `TAŞERON HAKEDİŞ DETAY TABLOSU - ${ayText}`;
+        return;
+    }
+
     title.innerText = `TAŞERON HAKEDİŞ DETAY TABLOSU - ${ayText}`;
+    modal.classList.remove('hidden');
 
     // Gruplar
     const gruplar = {
@@ -871,22 +885,22 @@ window.openDetayliTaseronRaporu = function() {
 
     const colGroupHTML = `
         <colgroup>
-            <col style="width:30px">
-            <col style="width:90px">
-            <col style="width:80px">
-            <col style="width:auto">
-            <col style="width:90px">
-            <col style="width:80px">
-            <col style="width:80px">
-            <col style="width:100px">
-            <col style="width:80px">
-            <col style="width:80px">
-            <col style="width:80px">
-            <col style="width:40px">
-            <col style="width:90px">
-            <col style="width:100px">
-            <col style="width:150px">
-            <col class="print:hidden" style="width:30px">
+            <col style="width:2%">   <!-- NO -->
+            <col style="width:7%">   <!-- PLAKA -->
+            <col style="width:6%">   <!-- TARİH -->
+            <col style="width:14%">  <!-- İSİM -->
+            <col style="width:8%">   <!-- HAKEDİŞ -->
+            <col style="width:7%">   <!-- KDV -->
+            <col style="width:7%">   <!-- TEV -->
+            <col style="width:8%">   <!-- TOPLAM -->
+            <col style="width:7%">   <!-- MAZOT -->
+            <col style="width:6%">   <!-- AVANS -->
+            <col style="width:6%">   <!-- MAZOT FARKI -->
+            <col style="width:3%">   <!-- GİB -->
+            <col style="width:8%">   <!-- TOPLAM KES -->
+            <col style="width:8%">   <!-- G.TOPLAM -->
+            <col style="width:auto"> <!-- AÇIKLAMA (kalan boşluk) -->
+            <col class="print:hidden" style="width:2%">
         </colgroup>
     `;
 
@@ -1086,7 +1100,7 @@ window.kaydetTaseronRapor = function() {
     
     // Geçici olarak sil butonlarını gizliyoruz veya içerik kaydedildiğinde kalsınlar (onlar zaten print:hidden)
     const container = document.getElementById('rapor-tables-container');
-    localStorage.setItem('taseron_rapor_html_' + ay, container.innerHTML);
+    localStorage.setItem('taseron_rapor_html_v2_' + ay, container.innerHTML);
     alert('Yaptığınız değişiklikler bu ay (' + ay + ') için tarayıcıya kaydedildi.');
 };
 
@@ -1095,7 +1109,7 @@ window.sifirlaTaseronRapor = function() {
     if (!ay) return;
     if (!confirm('Tüm manuel değişiklikleriniz silinecek ve veriler veritabanından baştan çekilecek. Emin misiniz?')) return;
     
-    localStorage.removeItem('taseron_rapor_html_' + ay);
+    localStorage.removeItem('taseron_rapor_html_v2_' + ay);
     // Yeniden oluştur
     if (window._taseronRawData) {
         document.getElementById('rapor-tables-container').innerHTML = '<div class="text-center py-12 text-gray-400 italic">Yükleniyor...</div>';
