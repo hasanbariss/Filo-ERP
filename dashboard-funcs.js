@@ -869,6 +869,27 @@ window.openDetayliTaseronRaporu = function() {
     let html = '';
     const _f = (v) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
 
+    const colGroupHTML = `
+        <colgroup>
+            <col style="width:30px">
+            <col style="width:90px">
+            <col style="width:80px">
+            <col style="width:auto">
+            <col style="width:90px">
+            <col style="width:80px">
+            <col style="width:80px">
+            <col style="width:100px">
+            <col style="width:80px">
+            <col style="width:80px">
+            <col style="width:80px">
+            <col style="width:40px">
+            <col style="width:90px">
+            <col style="width:100px">
+            <col style="width:150px">
+            <col class="print:hidden" style="width:30px">
+        </colgroup>
+    `;
+
     let grandHakedis=0, grandKdv=0, grandTev=0, grandToplam=0, grandYakit=0, grandAvans=0, grandYakitFark=0, grandKesinti=0, grandGenel=0;
 
     Object.keys(gruplar).forEach(key => {
@@ -911,7 +932,7 @@ window.openDetayliTaseronRaporu = function() {
                     <td class="money" contenteditable="true">${yakit>0 ? _f(yakit)+' ₺' : '-'}</td>
                     <td class="money" contenteditable="true">${avans>0 ? _f(avans)+' ₺' : '-'}</td>
                     <td class="money" contenteditable="true">${yakitFarki>0 ? _f(yakitFarki)+' ₺' : '-'}</td>
-                    <td class="center" contenteditable="true">${gb>0 ? gb : '-'}</td>
+                    <td class="center" contenteditable="true"></td>
                     <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
                     <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">${_f(genelToplam)} ₺</td>
                     <td contenteditable="true"></td>
@@ -932,7 +953,8 @@ window.openDetayliTaseronRaporu = function() {
                     Yeni Satır Ekle
                 </button>
             </div>
-            <table class="excel-rapor-table">
+            <table class="excel-rapor-table" style="table-layout:fixed; width:100%;">
+                ${colGroupHTML}
                 <thead>
                     <tr>
                         <th colspan="4" style="background:#fff; border-bottom:none;"></th>
@@ -942,22 +964,22 @@ window.openDetayliTaseronRaporu = function() {
                         <th class="print:hidden border-none" style="background:#fff;"></th>
                     </tr>
                     <tr>
-                        <th width="30">NO</th>
-                        <th width="90">PLAKA</th>
-                        <th width="80">ÖDEME TARİHİ</th>
+                        <th>NO</th>
+                        <th>PLAKA</th>
+                        <th>ÖDEME TARİHİ</th>
                         <th>ADI SOYADI</th>
-                        <th width="100">HAKEDİŞ TUTARI</th>
-                        <th width="90">% 20 KDV</th>
-                        <th width="90">5/10 TEV</th>
-                        <th width="100" style="background:#fde68a;">TOPLAM</th>
-                        <th width="90">MAZOT</th>
-                        <th width="80">AVANS</th>
-                        <th width="80">MAZOT FARKI</th>
-                        <th width="40">G/B</th>
-                        <th width="100" style="background:#fde68a;">TOPLAM KES.</th>
-                        <th width="110" style="background:#bbf7d0;">G.TOPLAM</th>
+                        <th>HAKEDİŞ TUTARI</th>
+                        <th>% 20 KDV</th>
+                        <th>5/10 TEV</th>
+                        <th style="background:#fde68a;">TOPLAM</th>
+                        <th>MAZOT</th>
+                        <th>AVANS</th>
+                        <th>MAZOT FARKI</th>
+                        <th>GİB</th>
+                        <th style="background:#fde68a;">TOPLAM KES.</th>
+                        <th style="background:#bbf7d0;">G.TOPLAM</th>
                         <th>AÇIKLAMA</th>
-                        <th class="print:hidden w-8"></th>
+                        <th class="print:hidden"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -989,7 +1011,8 @@ window.openDetayliTaseronRaporu = function() {
 
     // GENEL TOPLAM
     html += `
-        <table class="excel-rapor-table" style="margin-top:40px; border:2px solid #000;">
+        <table class="excel-rapor-table" style="margin-top:40px; border:2px solid #000; table-layout:fixed; width:100%;">
+            ${colGroupHTML}
             <tfoot class="excel-rapor-footer">
                 <tr>
                     <td colspan="4" style="text-align:right; font-weight:black; font-size:14px; background:#e2e8f0;" contenteditable="true">GENEL TOPLAM (TÜM BÖLGELER)</td>
@@ -1044,7 +1067,7 @@ window.addTaseronRaporRow = function(btn, ayText) {
         <td class="money" contenteditable="true">-</td>
         <td class="money" contenteditable="true">-</td>
         <td class="money" contenteditable="true">-</td>
-        <td class="center" contenteditable="true">-</td>
+        <td class="center" contenteditable="true"></td>
         <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">-</td>
         <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">0,00 ₺</td>
         <td contenteditable="true"></td>
@@ -1055,4 +1078,30 @@ window.addTaseronRaporRow = function(btn, ayText) {
         </td>
     `;
     tbody.appendChild(tr);
+};
+
+window.kaydetTaseronRapor = function() {
+    const ay = window._taseronCariAy;
+    if (!ay) return;
+    
+    // Geçici olarak sil butonlarını gizliyoruz veya içerik kaydedildiğinde kalsınlar (onlar zaten print:hidden)
+    const container = document.getElementById('rapor-tables-container');
+    localStorage.setItem('taseron_rapor_html_' + ay, container.innerHTML);
+    alert('Yaptığınız değişiklikler bu ay (' + ay + ') için tarayıcıya kaydedildi.');
+};
+
+window.sifirlaTaseronRapor = function() {
+    const ay = window._taseronCariAy;
+    if (!ay) return;
+    if (!confirm('Tüm manuel değişiklikleriniz silinecek ve veriler veritabanından baştan çekilecek. Emin misiniz?')) return;
+    
+    localStorage.removeItem('taseron_rapor_html_' + ay);
+    // Yeniden oluştur
+    if (window._taseronRawData) {
+        document.getElementById('rapor-tables-container').innerHTML = '<div class="text-center py-12 text-gray-400 italic">Yükleniyor...</div>';
+        setTimeout(() => {
+            // LocalStorage silindikten sonra openDetayliTaseronRaporu çağırıldığında temiz veri çizecek
+            window.openDetayliTaseronRaporu(window._taseronRawData, ay);
+        }, 100);
+    }
 };

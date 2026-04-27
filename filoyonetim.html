@@ -3023,6 +3023,12 @@ window.addEventListener('DOMContentLoaded', function() {
                         <p class="text-sm text-gray-500 font-medium mt-1">İzmir, Manisa ve Dikkan bölgeleri gruplu detaylı finansal rapor.</p>
                     </div>
                     <div class="flex items-center gap-3">
+                        <button onclick="window.sifirlaTaseronRapor()" class="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-sm font-bold transition-all flex items-center gap-2" title="Manuel değişiklikleri sıfırla ve veritabanından yeniden yükle">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="window.kaydetTaseronRapor()" class="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i> Kaydet
+                        </button>
                         <button onclick="window.printRapor('.rapor-print-container')" class="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
                             <i data-lucide="printer" class="w-4 h-4"></i> Raporu Yazdır
                         </button>
