@@ -630,6 +630,21 @@ button:active {
         overflow-x: auto !important;
         max-width: 100vw;
     }
+
+    /* Cari detail modal mobilde tam ekran scroll */
+    #cari-detail-modal > div:last-child {
+        align-items: flex-start !important;
+        padding: 0.5rem !important;
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+
+    #cari-detail-modal .relative.bg-\[#0d0f11\] {
+        max-height: 92vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
 }
 
 @keyframes slideUpActionSheet {
