@@ -1123,7 +1123,14 @@ window.printRapor = function(selector) {
                 </style>
             </head>
             <body>
-                <div style="position: absolute; top: 12px; right: 20px; font-weight: 900; font-size: 18px; color: #1e293b; letter-spacing: 3px; font-style: italic;">IDEOL</div>
+                <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+                    <div style="text-align: right;">
+                        <div style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 900; font-size: 24px; letter-spacing: 4px;">
+                            <span style="color: #0f172a;">IDE</span><span style="color: #2563eb;">OL</span>
+                        </div>
+                        <div style="font-size: 6.5px; color: #64748b; font-weight: 700; letter-spacing: 1px; margin-top: 2px;">FİLO YÖNETİM SİSTEMLERİ</div>
+                    </div>
+                </div>
                 ${el.innerHTML}
             </body>
         </html>
