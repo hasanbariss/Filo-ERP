@@ -834,7 +834,7 @@ window.openDetayliTaseronRaporu = function() {
     const gruplar = {
         izmir: { isim: `TAŞERON İZMİR ${ayText} HAKEDİŞ`, rows: [] },
         manisa: { isim: `TAŞERON MANİSA ${ayText} HAKEDİŞ`, rows: [] },
-        dikkan: { isim: `KALIPÇI MANİSA TAŞERON (DİKKAN) ${ayText} HAKEDİŞ`, rows: [] }
+        dikkan: { isim: `DİKKAN ${ayText} TAŞERON HAKEDİŞ`, rows: [] }
     };
 
     // Veriyi Ayrıştır
@@ -898,7 +898,7 @@ window.openDetayliTaseronRaporu = function() {
             sumKesinti += kesintiToplam; sumGenel += genelToplam;
 
             tbodyStr += `
-                <tr>
+                <tr class="group">
                     <td class="center" contenteditable="true">${idx+1}</td>
                     <td style="font-weight:bold; white-space:nowrap;" contenteditable="true">${arac.plaka}</td>
                     <td class="center" style="font-size:9px;" contenteditable="true">${ayText}</td>
@@ -914,12 +914,23 @@ window.openDetayliTaseronRaporu = function() {
                     <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
                     <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">${_f(genelToplam)} ₺</td>
                     <td contenteditable="true"></td>
+                    <td class="print:hidden p-0 text-center opacity-0 group-hover:opacity-100 transition-opacity w-8">
+                        <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-400 p-1" title="Satırı Sil">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
 
         html += `
-            <div class="excel-rapor-header">${grup.isim}</div>
+            <div class="flex items-center justify-between mb-2">
+                <div class="excel-rapor-header" style="margin:0;">${grup.isim}</div>
+                <button onclick="window.addTaseronRaporRow(this, '${ayText}')" class="print:hidden text-[11px] bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    Yeni Satır Ekle
+                </button>
+            </div>
             <table class="excel-rapor-table">
                 <thead>
                     <tr>
@@ -927,6 +938,7 @@ window.openDetayliTaseronRaporu = function() {
                         <th colspan="4" style="background:#fef3c7;">GELİR KISMI</th>
                         <th colspan="5" style="background:#f3f4f6;">GİDER KISMI</th>
                         <th colspan="2" style="background:#fff; border-bottom:none;"></th>
+                        <th class="print:hidden border-none" style="background:#fff;"></th>
                     </tr>
                     <tr>
                         <th width="30">NO</th>
@@ -944,6 +956,7 @@ window.openDetayliTaseronRaporu = function() {
                         <th width="100" style="background:#fde68a;">TOPLAM KES.</th>
                         <th width="110" style="background:#bbf7d0;">G.TOPLAM</th>
                         <th>AÇIKLAMA</th>
+                        <th class="print:hidden w-8"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -963,6 +976,7 @@ window.openDetayliTaseronRaporu = function() {
                         <td class="money" style="background:#fef3c7;" contenteditable="true">${sumKesinti>0 ? _f(sumKesinti)+' ₺' : '-'}</td>
                         <td class="money" style="color:#15803d; background:#dcfce3;" contenteditable="true">${_f(sumGenel)} ₺</td>
                         <td contenteditable="true"></td>
+                        <td class="print:hidden"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -989,6 +1003,7 @@ window.openDetayliTaseronRaporu = function() {
                     <td class="money" style="font-size:13px; background:#fef3c7;" contenteditable="true">${_f(grandKesinti)} ₺</td>
                     <td class="money" style="font-size:14px; font-weight:black; color:#15803d; background:#dcfce3;" contenteditable="true">${_f(grandGenel)} ₺</td>
                     <td style="background:#e2e8f0;" contenteditable="true"></td>
+                    <td class="print:hidden border-none" style="background:#fff;"></td>
                 </tr>
             </tfoot>
         </table>
@@ -1005,4 +1020,38 @@ window.printRapor = function(selector) {
     document.title = "Taseron_Hakedis_Raporu_" + (window._taseronCariAy || 'Donem');
     window.print();
     document.title = oldTitle;
+};
+
+window.addTaseronRaporRow = function(btn, ayText) {
+    const table = btn.closest('.flex').nextElementSibling;
+    if (!table || table.tagName !== 'TABLE') return;
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+
+    const rowCount = tbody.querySelectorAll('tr').length + 1;
+    const tr = document.createElement('tr');
+    tr.className = 'group';
+    tr.innerHTML = `
+        <td class="center" contenteditable="true">${rowCount}</td>
+        <td style="font-weight:bold; white-space:nowrap;" contenteditable="true"></td>
+        <td class="center" style="font-size:9px;" contenteditable="true">${ayText || ''}</td>
+        <td contenteditable="true"></td>
+        <td class="money" contenteditable="true">0,00 ₺</td>
+        <td class="money" contenteditable="true">0,00 ₺</td>
+        <td class="money" contenteditable="true">0,00 ₺</td>
+        <td class="money" style="font-weight:bold; background:#fffbe8;" contenteditable="true">0,00 ₺</td>
+        <td class="money" contenteditable="true">-</td>
+        <td class="money" contenteditable="true">-</td>
+        <td class="money" contenteditable="true">-</td>
+        <td class="center" contenteditable="true">-</td>
+        <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">-</td>
+        <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">0,00 ₺</td>
+        <td contenteditable="true"></td>
+        <td class="print:hidden p-0 text-center opacity-0 group-hover:opacity-100 transition-opacity w-8">
+            <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-400 p-1" title="Satırı Sil">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(tr);
 };
