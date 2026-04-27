@@ -578,25 +578,39 @@ button:active {
     }
 
     /* Nested Tabs yatay kaydırılabilir (swipeable) PWA hissi */
-    .flex-wrap[id$="-nav"], .flex-wrap[id*="tabs"] {
+    [id$="-nav"], [id*="tabs"] {
         flex-wrap: nowrap !important;
-        overflow-x: auto;
+        overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none; /* Firefox */
         padding-bottom: 4px;
+        justify-content: flex-start !important;
         -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
         mask-image: linear-gradient(to right, black 90%, transparent 100%);
     }
     
-    .flex-wrap[id$="-nav"]::-webkit-scrollbar, .flex-wrap[id*="tabs"]::-webkit-scrollbar {
+    [id$="-nav"]::-webkit-scrollbar, [id*="tabs"]::-webkit-scrollbar {
         display: none; /* Chrome/Safari */
     }
 
-    .flex-wrap[id$="-nav"] button, .flex-wrap[id*="tabs"] button {
+    [id$="-nav"] button, [id*="tabs"] button {
         flex-shrink: 0;
         white-space: nowrap;
         padding-left: 1rem;
         padding-right: 1rem;
+    }
+
+    /* Finans ve diger form filtreleri mobilde tam sigsin */
+    .flex.gap-2.items-center {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .flex.gap-2.items-center > input,
+    .flex.gap-2.items-center > select,
+    .flex.gap-2.items-center > button {
+        flex: 1 1 auto;
+        min-width: 120px;
     }
 
     /* Touch target büyüklükleri ve pürüzsüz form hatları (iOS Standardı) */
