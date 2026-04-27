@@ -809,3 +809,193 @@ async function _renderMainChart() {
         console.error('[mainChart]', e);
     }
 }
+
+// ════════════════════════════════════════════════════════════════
+// TAŞERON HAKEDİŞ DETAY RAPORU (EXCEL MODAL)
+// ════════════════════════════════════════════════════════════════
+window.openDetayliTaseronRaporu = function() {
+    const data = window._taseronCariData;
+    const ay = window._taseronCariAy || new Date().toISOString().slice(0,7);
+    const ayText = new Date(ay + '-01').toLocaleDateString('tr-TR', {month:'long', year:'numeric'}).toUpperCase();
+
+    if (!data || Object.keys(data).length === 0) {
+        if (window.Toast) window.Toast.error("Lütfen önce bir dönem seçin veya verilerin yüklenmesini bekleyin.");
+        return;
+    }
+
+    const modal = document.getElementById('modal-taseron-detay-rapor');
+    const container = document.getElementById('rapor-tables-container');
+    const title = document.getElementById('rapor-detay-baslik');
+    if (!modal || !container) return;
+
+    title.innerText = `TAŞERON HAKEDİŞ DETAY TABLOSU - ${ayText}`;
+
+    // Gruplar
+    const gruplar = {
+        izmir: { isim: `TAŞERON İZMİR ${ayText} HAKEDİŞ`, rows: [] },
+        manisa: { isim: `TAŞERON MANİSA ${ayText} HAKEDİŞ`, rows: [] },
+        dikkan: { isim: `KALIPÇI MANİSA TAŞERON ${ayText} HAKEDİŞ`, rows: [] }
+    };
+
+    // Veriyi Ayrıştır
+    Object.values(data).forEach(arac => {
+        if (arac.brut <= 0 && arac.vardiya <= 0 && arac.tek <= 0 && arac.yakit <= 0) return;
+
+        let dict = { izmir: 0, manisa: 0, dikkan: 0 };
+        
+        Object.values(arac.musteriDetay).forEach(md => {
+            const b = (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat) + ((md.cikis_8||0)*(md.cikis_8_fiyat||0)) + ((md.giris_2030||0)*(md.giris_2030_fiyat||0)) + ((md.mesai||0)*(md.mesai_fiyat||0));
+            const m = md.musteri_ad.toUpperCase();
+            if (m.includes('DİKKAN') || m.includes('DIKKAN')) dict.dikkan += b;
+            else if (md.bolge === 'İzmir' || m.includes('İZMİR')) dict.izmir += b;
+            else dict.manisa += b;
+        });
+
+        let target = 'manisa';
+        if (dict.dikkan >= dict.izmir && dict.dikkan >= dict.manisa && dict.dikkan > 0) target = 'dikkan';
+        else if (dict.izmir >= dict.dikkan && dict.izmir >= dict.manisa && dict.izmir > 0) target = 'izmir';
+
+        gruplar[target].rows.push(arac);
+    });
+
+    let html = '';
+    const _f = (v) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+
+    let grandHakedis=0, grandKdv=0, grandTev=0, grandToplam=0, grandYakit=0, grandAvans=0, grandYakitFark=0, grandKesinti=0, grandGenel=0;
+
+    Object.keys(gruplar).forEach(key => {
+        const grup = gruplar[key];
+        if (grup.rows.length === 0) return;
+
+        let sumHakedis=0, sumKdv=0, sumTev=0, sumToplam=0, sumYakit=0, sumAvans=0, sumYakitFark=0, sumKesinti=0, sumGenel=0;
+
+        let tbodyStr = '';
+        grup.rows.sort((a,b) => a.plaka.localeCompare(b.plaka)).forEach((arac, idx) => {
+            const hakedis = arac.brut || 0;
+            const kdv = hakedis * 0.20;
+            const tev = kdv / 2;
+            const toplam = hakedis + kdv - tev;
+            const yakit = arac.yakit || 0;
+            const avans = 0; // İleride entegre edilecek
+            const yakitFarki = 0; // İleride entegre edilecek
+            const kesintiToplam = yakit + avans + yakitFarki;
+            const genelToplam = toplam - kesintiToplam;
+            const gb = (arac.vardiya||0) + (arac.tek||0) + (arac.mesai||0); // Gün/Bölge
+            
+            // Sahip bilgisinden sadece ismi al
+            let isim = arac.sahip_bilgisi || '';
+            if (isim.includes(':')) isim = isim.split(':')[1].trim();
+
+            sumHakedis += hakedis; sumKdv += kdv; sumTev += tev; sumToplam += toplam;
+            sumYakit += yakit; sumAvans += avans; sumYakitFark += yakitFarki;
+            sumKesinti += kesintiToplam; sumGenel += genelToplam;
+
+            tbodyStr += `
+                <tr>
+                    <td class="center">${idx+1}</td>
+                    <td style="font-weight:bold; white-space:nowrap;">${arac.plaka}</td>
+                    <td class="center" style="font-size:9px;">Ay Sonu</td>
+                    <td>${isim.substring(0,30)}</td>
+                    <td class="money">${_f(hakedis)} ₺</td>
+                    <td class="money">${_f(kdv)} ₺</td>
+                    <td class="money">${_f(tev)} ₺</td>
+                    <td class="money" style="font-weight:bold; background:#fffbe8;">${_f(toplam)} ₺</td>
+                    <td class="money">${yakit>0 ? _f(yakit)+' ₺' : '-'}</td>
+                    <td class="money">${avans>0 ? _f(avans)+' ₺' : '-'}</td>
+                    <td class="money">${yakitFarki>0 ? _f(yakitFarki)+' ₺' : '-'}</td>
+                    <td class="center">${gb>0 ? gb : '-'}</td>
+                    <td class="money" style="color:#d97706; background:#fffbe8;">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
+                    <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;">${_f(genelToplam)} ₺</td>
+                    <td></td>
+                </tr>
+            `;
+        });
+
+        html += `
+            <div class="excel-rapor-header">${grup.isim}</div>
+            <table class="excel-rapor-table">
+                <thead>
+                    <tr>
+                        <th colspan="4" style="background:#fff; border-bottom:none;"></th>
+                        <th colspan="4" style="background:#fef3c7;">GELİR KISMI</th>
+                        <th colspan="5" style="background:#f3f4f6;">GİDER KISMI</th>
+                        <th colspan="2" style="background:#fff; border-bottom:none;"></th>
+                    </tr>
+                    <tr>
+                        <th width="30">NO</th>
+                        <th width="90">PLAKA</th>
+                        <th width="80">ÖDEME TARİHİ</th>
+                        <th>ADI SOYADI</th>
+                        <th width="100">HAKEDİŞ TUTARI</th>
+                        <th width="90">% 20 KDV</th>
+                        <th width="90">5/10 TEV</th>
+                        <th width="100" style="background:#fde68a;">TOPLAM</th>
+                        <th width="90">MAZOT</th>
+                        <th width="80">AVANS</th>
+                        <th width="80">MAZOT FARKI</th>
+                        <th width="40">G/B</th>
+                        <th width="100" style="background:#fde68a;">TOPLAM KES.</th>
+                        <th width="110" style="background:#bbf7d0;">G.TOPLAM</th>
+                        <th>AÇIKLAMA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${tbodyStr}
+                </tbody>
+                <tfoot class="excel-rapor-footer">
+                    <tr>
+                        <td colspan="4" style="text-align:right; font-style:italic;">${grup.isim} ARA TOPLAMLAR</td>
+                        <td class="money">${_f(sumHakedis)} ₺</td>
+                        <td class="money">${_f(sumKdv)} ₺</td>
+                        <td class="money">${_f(sumTev)} ₺</td>
+                        <td class="money" style="background:#fef3c7;">${_f(sumToplam)} ₺</td>
+                        <td class="money">${sumYakit>0 ? _f(sumYakit)+' ₺' : '-'}</td>
+                        <td class="money">${sumAvans>0 ? _f(sumAvans)+' ₺' : '-'}</td>
+                        <td class="money">${sumYakitFark>0 ? _f(sumYakitFark)+' ₺' : '-'}</td>
+                        <td></td>
+                        <td class="money" style="background:#fef3c7;">${sumKesinti>0 ? _f(sumKesinti)+' ₺' : '-'}</td>
+                        <td class="money" style="color:#15803d; background:#dcfce3;">${_f(sumGenel)} ₺</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+
+        grandHakedis+=sumHakedis; grandKdv+=sumKdv; grandTev+=sumTev; grandToplam+=sumToplam;
+        grandYakit+=sumYakit; grandAvans+=sumAvans; grandYakitFark+=sumYakitFark; grandKesinti+=sumKesinti; grandGenel+=sumGenel;
+    });
+
+    // GENEL TOPLAM
+    html += `
+        <table class="excel-rapor-table" style="margin-top:40px; border:2px solid #000;">
+            <tfoot class="excel-rapor-footer">
+                <tr>
+                    <td colspan="4" style="text-align:right; font-weight:black; font-size:14px; background:#e2e8f0;">GENEL TOPLAM (TÜM BÖLGELER)</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandHakedis)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandKdv)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandTev)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#fef3c7;">${_f(grandToplam)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandYakit)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandAvans)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandYakitFark)} ₺</td>
+                    <td style="background:#e2e8f0;"></td>
+                    <td class="money" style="font-size:13px; background:#fef3c7;">${_f(grandKesinti)} ₺</td>
+                    <td class="money" style="font-size:14px; font-weight:black; color:#15803d; background:#dcfce3;">${_f(grandGenel)} ₺</td>
+                    <td style="background:#e2e8f0;"></td>
+                </tr>
+            </tfoot>
+        </table>
+    `;
+
+    container.innerHTML = html;
+    modal.classList.remove('hidden');
+};
+
+window.printRapor = function(selector) {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    const oldTitle = document.title;
+    document.title = "Taseron_Hakedis_Raporu_" + (window._taseronCariAy || 'Donem');
+    window.print();
+    document.title = oldTitle;
+};

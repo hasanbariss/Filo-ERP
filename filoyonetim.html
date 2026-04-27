@@ -1675,6 +1675,10 @@
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
                                 <input type="month" id="filter-cari-hakedis-ay" onchange="fetchTaseronFinans()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
+                                <button onclick="window.openDetayliTaseronRaporu()"
+                                    class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                                    <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor (Excel Formu)
+                                </button>
                                 <button onclick="window.print()"
                                     class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
                                     <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
@@ -3006,6 +3010,59 @@ window.addEventListener('DOMContentLoaded', function() {
             });
         }
     </script>
+    <!-- TAŞERON HAKEDİŞ DETAYLI EXCEL RAPORU MODALI -->
+    <div id="modal-taseron-detay-rapor" class="fixed inset-0 z-50 hidden bg-[#0d0f11]/90 backdrop-blur-md overflow-y-auto w-full">
+        <div class="min-h-screen px-4 text-center">
+            <span class="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
+            <div class="inline-block w-full max-w-[95vw] p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#111418] shadow-2xl rounded-2xl border border-white/10 relative">
+                
+                <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+                    <div>
+                        <h2 class="text-2xl font-black text-white" id="rapor-detay-baslik">Taşeron Hakediş Detay Tablosu</h2>
+                        <p class="text-sm text-gray-500 font-medium mt-1">İzmir, Manisa ve Dikkan bölgeleri gruplu detaylı finansal rapor.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="window.printRapor('.rapor-print-container')" class="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-sm font-bold transition-all flex items-center gap-2">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Raporu Yazdır
+                        </button>
+                        <button onclick="closeModal('modal-taseron-detay-rapor')" class="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                            <i data-lucide="x" class="w-6 h-6"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="rapor-print-container bg-white p-4 rounded-xl overflow-x-auto text-black print:bg-transparent print:p-0">
+                    <!-- Dinamik olarak JS ile doldurulacak -->
+                    <div id="rapor-tables-container" class="space-y-12">
+                        <div class="text-center py-12 text-gray-400 italic">Yükleniyor...</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- END MODAL -->
+
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            .rapor-print-container, .rapor-print-container * { visibility: visible; color: black !important; }
+            .rapor-print-container { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+            .excel-rapor-table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-size: 10px !important; }
+            .excel-rapor-table th, .excel-rapor-table td { border: 1px solid #000; padding: 4px; }
+            .excel-rapor-table th { background-color: #f3f4f6 !important; font-weight: bold; text-align: center; }
+            .excel-rapor-table td.money { text-align: right; white-space: nowrap; }
+            .excel-rapor-header { font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
+        }
+        .excel-rapor-table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 11px; color: #111; }
+        .excel-rapor-table th, .excel-rapor-table td { border: 1px solid #ccc; padding: 6px 8px; }
+        .excel-rapor-table th { background-color: #f0f0f0; font-weight: 900; text-align: center; }
+        .excel-rapor-table tbody tr:hover { background-color: #f9f9f9; }
+        .excel-rapor-table td.money { text-align: right; white-space: nowrap; font-family: monospace; font-size: 12px; }
+        .excel-rapor-table td.center { text-align: center; }
+        .excel-rapor-header { text-align: center; font-size: 16px; font-weight: 900; margin-bottom: 8px; text-transform: uppercase; color: #000; }
+        .excel-rapor-footer td { font-weight: 900; background-color: #e5e7eb; border-top: 2px solid #000; }
+    </style>
 </body>
 
 </html>
