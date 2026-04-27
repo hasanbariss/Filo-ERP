@@ -1062,16 +1062,62 @@ window.printRapor = function(selector) {
             <head>
                 <title>Taseron_Hakedis_Raporu_${window._taseronCariAy || 'Donem'}</title>
                 <style>
-                    @page { size: A4 landscape; margin: 10mm; }
-                    body { font-family: Arial, sans-serif; padding: 0; font-size: 9px; color: #000; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-                    th, td { border: 1px solid #000; padding: 3px 2px; word-wrap: break-word; overflow: hidden; }
-                    th { background-color: #e5e7eb !important; font-weight: bold; text-align: center; font-size: 9px; }
-                    .money { text-align: right; white-space: nowrap; font-size: 9px; }
+                    @page { size: A4 landscape; margin: 8mm; }
+                    body { 
+                        font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif; 
+                        padding: 0; 
+                        font-size: 7.5px; 
+                        color: #1f2937; 
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+                    table { 
+                        width: 100%; 
+                        border-collapse: collapse; 
+                        margin-bottom: 15px; 
+                        table-layout: fixed; 
+                    }
+                    th, td { 
+                        border: 0.5px solid #d1d5db; 
+                        padding: 2.5px 2px; 
+                        word-wrap: break-word; 
+                        overflow: hidden; 
+                        vertical-align: middle;
+                        line-height: 1.1;
+                    }
+                    th { 
+                        background-color: #f3f4f6 !important; 
+                        font-weight: 700; 
+                        text-align: center; 
+                        font-size: 7px; 
+                        color: #374151;
+                        letter-spacing: 0.2px;
+                    }
+                    .money { 
+                        text-align: right; 
+                        white-space: nowrap; 
+                        font-size: 7.5px;
+                        font-weight: 600;
+                        font-variant-numeric: tabular-nums;
+                        letter-spacing: -0.2px;
+                    }
                     .center { text-align: center; }
-                    .excel-rapor-header { font-weight: 900; text-align: center; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+                    .excel-rapor-header { 
+                        font-weight: 800; 
+                        text-align: left; 
+                        font-size: 11px; 
+                        margin-bottom: 6px; 
+                        text-transform: uppercase; 
+                        letter-spacing: 0.5px; 
+                        color: #111827;
+                        border-bottom: 1.5px solid #111827;
+                        padding-bottom: 2px;
+                    }
                     .print\\:hidden { display: none !important; }
                     button { display: none !important; }
+                    /* Özel arkaplanları biraz daha modern yapalım */
+                    td[style*="background:#fffbe8"] { background-color: #fefce8 !important; }
+                    td[style*="background:#f0fdf4"] { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; }
                 </style>
             </head>
             <body>
