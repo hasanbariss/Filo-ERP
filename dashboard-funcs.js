@@ -27,6 +27,8 @@ function _fmtDate(str) {
 
 // ─── Global: Poliçe verisi cache ─────────────────────────────
 window._dashboardPolicelerCache = [];
+// ─── Evrak toast sadece bir kez gösterilsin ───────────────────
+window._evrakToastShown = false;
 
 // ════════════════════════════════════════════════════════════════
 // ANA VERİ ÇEKME FONKSİYONU
@@ -120,7 +122,8 @@ window.fetchDashboardData = async function () {
         });
         setEl('kpi-evrak', kritikEvrak);
 
-        if (kritikEvrak > 0 && window.Toast) {
+        if (kritikEvrak > 0 && window.Toast && !window._evrakToastShown) {
+            window._evrakToastShown = true;
             setTimeout(() => window.Toast.warning(`⚠️ ${kritikEvrak} aracın evrakı 30 gün içinde dolacak!`), 2000);
         }
 
