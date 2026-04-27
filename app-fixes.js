@@ -168,7 +168,11 @@ function initMobileSidebar() {
     // Close on nav click on mobile
     document.querySelectorAll('#main-nav-buttons .nav-link').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (window.innerWidth <= 768) window.closeMobileSidebar();
+            if (window.innerWidth <= 768) {
+                // Debounce'u sifirla ki menu tiklamalari engellenmesi
+                window._lastSidebarToggle = 0;
+                window.closeMobileSidebar();
+            }
         });
     });
 }

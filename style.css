@@ -170,6 +170,10 @@ button:active, .dashboard-card:active, .nav-item:active {
     transition: var(--transition-base);
     display: flex;
     flex-direction: column;
+    /* Mobil: sidebar içeriği kaydırılabilir */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .nav-link {
@@ -610,10 +614,21 @@ button:active {
         font-size: 16px;
     }
 
-    /* Kart iceriklerinde tablo tasmalarini engellemek */
+    /* Kart iceriklerinde tablo tasmalarini engellemek - ama ic scroll çalışsın */
     .dashboard-card {
         max-width: 100vw;
-        overflow: hidden;
+        overflow: visible;
+    }
+
+    /* Modal backdrop tam ekran kapsasın */
+    .fixed.inset-0 {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Finans ve geniş tablolar yatay scroll yapsın */
+    .dashboard-card > .overflow-x-auto {
+        overflow-x: auto !important;
+        max-width: 100vw;
     }
 }
 
