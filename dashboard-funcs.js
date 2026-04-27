@@ -1062,13 +1062,14 @@ window.printRapor = function(selector) {
             <head>
                 <title>Taseron_Hakedis_Raporu_${window._taseronCariAy || 'Donem'}</title>
                 <style>
-                    body { font-family: Arial, sans-serif; padding: 20px; font-size: 11px; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
-                    th, td { border: 1px solid #000; padding: 4px; word-wrap: break-word; }
-                    th { background-color: #f3f4f6 !important; font-weight: bold; text-align: center; }
-                    .money { text-align: right; white-space: nowrap; }
+                    @page { size: A4 landscape; margin: 10mm; }
+                    body { font-family: Arial, sans-serif; padding: 0; font-size: 9px; color: #000; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
+                    th, td { border: 1px solid #000; padding: 3px 2px; word-wrap: break-word; overflow: hidden; }
+                    th { background-color: #e5e7eb !important; font-weight: bold; text-align: center; font-size: 9px; }
+                    .money { text-align: right; white-space: nowrap; font-size: 9px; }
                     .center { text-align: center; }
-                    .excel-rapor-header { font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
+                    .excel-rapor-header { font-weight: 900; text-align: center; font-size: 14px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
                     .print\\:hidden { display: none !important; }
                     button { display: none !important; }
                 </style>
