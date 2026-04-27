@@ -834,7 +834,7 @@ window.openDetayliTaseronRaporu = function() {
     const gruplar = {
         izmir: { isim: `TAŞERON İZMİR ${ayText} HAKEDİŞ`, rows: [] },
         manisa: { isim: `TAŞERON MANİSA ${ayText} HAKEDİŞ`, rows: [] },
-        dikkan: { isim: `KALIPÇI MANİSA TAŞERON ${ayText} HAKEDİŞ`, rows: [] }
+        dikkan: { isim: `KALIPÇI MANİSA TAŞERON (DİKKAN) ${ayText} HAKEDİŞ`, rows: [] }
     };
 
     // Veriyi Ayrıştır
@@ -899,21 +899,21 @@ window.openDetayliTaseronRaporu = function() {
 
             tbodyStr += `
                 <tr>
-                    <td class="center">${idx+1}</td>
-                    <td style="font-weight:bold; white-space:nowrap;">${arac.plaka}</td>
-                    <td class="center" style="font-size:9px;">Ay Sonu</td>
-                    <td>${isim.substring(0,30)}</td>
-                    <td class="money">${_f(hakedis)} ₺</td>
-                    <td class="money">${_f(kdv)} ₺</td>
-                    <td class="money">${_f(tev)} ₺</td>
-                    <td class="money" style="font-weight:bold; background:#fffbe8;">${_f(toplam)} ₺</td>
-                    <td class="money">${yakit>0 ? _f(yakit)+' ₺' : '-'}</td>
-                    <td class="money">${avans>0 ? _f(avans)+' ₺' : '-'}</td>
-                    <td class="money">${yakitFarki>0 ? _f(yakitFarki)+' ₺' : '-'}</td>
-                    <td class="center">${gb>0 ? gb : '-'}</td>
-                    <td class="money" style="color:#d97706; background:#fffbe8;">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
-                    <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;">${_f(genelToplam)} ₺</td>
-                    <td></td>
+                    <td class="center" contenteditable="true">${idx+1}</td>
+                    <td style="font-weight:bold; white-space:nowrap;" contenteditable="true">${arac.plaka}</td>
+                    <td class="center" style="font-size:9px;" contenteditable="true">${ayText}</td>
+                    <td contenteditable="true">${isim.substring(0,30)}</td>
+                    <td class="money" contenteditable="true">${_f(hakedis)} ₺</td>
+                    <td class="money" contenteditable="true">${_f(kdv)} ₺</td>
+                    <td class="money" contenteditable="true">${_f(tev)} ₺</td>
+                    <td class="money" style="font-weight:bold; background:#fffbe8;" contenteditable="true">${_f(toplam)} ₺</td>
+                    <td class="money" contenteditable="true">${yakit>0 ? _f(yakit)+' ₺' : '-'}</td>
+                    <td class="money" contenteditable="true">${avans>0 ? _f(avans)+' ₺' : '-'}</td>
+                    <td class="money" contenteditable="true">${yakitFarki>0 ? _f(yakitFarki)+' ₺' : '-'}</td>
+                    <td class="center" contenteditable="true">${gb>0 ? gb : '-'}</td>
+                    <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
+                    <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">${_f(genelToplam)} ₺</td>
+                    <td contenteditable="true"></td>
                 </tr>
             `;
         });
@@ -951,18 +951,18 @@ window.openDetayliTaseronRaporu = function() {
                 </tbody>
                 <tfoot class="excel-rapor-footer">
                     <tr>
-                        <td colspan="4" style="text-align:right; font-style:italic;">${grup.isim} ARA TOPLAMLAR</td>
-                        <td class="money">${_f(sumHakedis)} ₺</td>
-                        <td class="money">${_f(sumKdv)} ₺</td>
-                        <td class="money">${_f(sumTev)} ₺</td>
-                        <td class="money" style="background:#fef3c7;">${_f(sumToplam)} ₺</td>
-                        <td class="money">${sumYakit>0 ? _f(sumYakit)+' ₺' : '-'}</td>
-                        <td class="money">${sumAvans>0 ? _f(sumAvans)+' ₺' : '-'}</td>
-                        <td class="money">${sumYakitFark>0 ? _f(sumYakitFark)+' ₺' : '-'}</td>
-                        <td></td>
-                        <td class="money" style="background:#fef3c7;">${sumKesinti>0 ? _f(sumKesinti)+' ₺' : '-'}</td>
-                        <td class="money" style="color:#15803d; background:#dcfce3;">${_f(sumGenel)} ₺</td>
-                        <td></td>
+                        <td colspan="4" style="text-align:right; font-style:italic;" contenteditable="true">${grup.isim} ARA TOPLAMLAR</td>
+                        <td class="money" contenteditable="true">${_f(sumHakedis)} ₺</td>
+                        <td class="money" contenteditable="true">${_f(sumKdv)} ₺</td>
+                        <td class="money" contenteditable="true">${_f(sumTev)} ₺</td>
+                        <td class="money" style="background:#fef3c7;" contenteditable="true">${_f(sumToplam)} ₺</td>
+                        <td class="money" contenteditable="true">${sumYakit>0 ? _f(sumYakit)+' ₺' : '-'}</td>
+                        <td class="money" contenteditable="true">${sumAvans>0 ? _f(sumAvans)+' ₺' : '-'}</td>
+                        <td class="money" contenteditable="true">${sumYakitFark>0 ? _f(sumYakitFark)+' ₺' : '-'}</td>
+                        <td contenteditable="true"></td>
+                        <td class="money" style="background:#fef3c7;" contenteditable="true">${sumKesinti>0 ? _f(sumKesinti)+' ₺' : '-'}</td>
+                        <td class="money" style="color:#15803d; background:#dcfce3;" contenteditable="true">${_f(sumGenel)} ₺</td>
+                        <td contenteditable="true"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -977,18 +977,18 @@ window.openDetayliTaseronRaporu = function() {
         <table class="excel-rapor-table" style="margin-top:40px; border:2px solid #000;">
             <tfoot class="excel-rapor-footer">
                 <tr>
-                    <td colspan="4" style="text-align:right; font-weight:black; font-size:14px; background:#e2e8f0;">GENEL TOPLAM (TÜM BÖLGELER)</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandHakedis)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandKdv)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandTev)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#fef3c7;">${_f(grandToplam)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandYakit)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandAvans)} ₺</td>
-                    <td class="money" style="font-size:13px; background:#e2e8f0;">${_f(grandYakitFark)} ₺</td>
-                    <td style="background:#e2e8f0;"></td>
-                    <td class="money" style="font-size:13px; background:#fef3c7;">${_f(grandKesinti)} ₺</td>
-                    <td class="money" style="font-size:14px; font-weight:black; color:#15803d; background:#dcfce3;">${_f(grandGenel)} ₺</td>
-                    <td style="background:#e2e8f0;"></td>
+                    <td colspan="4" style="text-align:right; font-weight:black; font-size:14px; background:#e2e8f0;" contenteditable="true">GENEL TOPLAM (TÜM BÖLGELER)</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandHakedis)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandKdv)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandTev)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#fef3c7;" contenteditable="true">${_f(grandToplam)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandYakit)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandAvans)} ₺</td>
+                    <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandYakitFark)} ₺</td>
+                    <td style="background:#e2e8f0;" contenteditable="true"></td>
+                    <td class="money" style="font-size:13px; background:#fef3c7;" contenteditable="true">${_f(grandKesinti)} ₺</td>
+                    <td class="money" style="font-size:14px; font-weight:black; color:#15803d; background:#dcfce3;" contenteditable="true">${_f(grandGenel)} ₺</td>
+                    <td style="background:#e2e8f0;" contenteditable="true"></td>
                 </tr>
             </tfoot>
         </table>
