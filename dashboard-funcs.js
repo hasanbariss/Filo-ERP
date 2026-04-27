@@ -886,20 +886,20 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
     const colGroupHTML = `
         <colgroup>
             <col style="width:2%">   <!-- NO -->
-            <col style="width:7%">   <!-- PLAKA -->
-            <col style="width:6%">   <!-- TARİH -->
-            <col style="width:14%">  <!-- İSİM -->
-            <col style="width:8%">   <!-- HAKEDİŞ -->
-            <col style="width:7%">   <!-- KDV -->
-            <col style="width:7%">   <!-- TEV -->
-            <col style="width:8%">   <!-- TOPLAM -->
-            <col style="width:7%">   <!-- MAZOT -->
-            <col style="width:6%">   <!-- AVANS -->
-            <col style="width:6%">   <!-- MAZOT FARKI -->
+            <col style="width:6%">   <!-- PLAKA -->
+            <col style="width:5%">   <!-- TARİH -->
+            <col style="width:12%">  <!-- İSİM -->
+            <col style="width:7%">   <!-- HAKEDİŞ -->
+            <col style="width:6%">   <!-- KDV -->
+            <col style="width:5%">   <!-- TEV -->
+            <col style="width:7%">   <!-- TOPLAM -->
+            <col style="width:6%">   <!-- MAZOT -->
+            <col style="width:5%">   <!-- AVANS -->
+            <col style="width:5%">   <!-- MAZOT FARKI -->
             <col style="width:3%">   <!-- GİB -->
-            <col style="width:8%">   <!-- TOPLAM KES -->
+            <col style="width:7%">   <!-- TOPLAM KES -->
             <col style="width:8%">   <!-- G.TOPLAM -->
-            <col style="width:auto"> <!-- AÇIKLAMA (kalan boşluk) -->
+            <col style="width:14%">  <!-- AÇIKLAMA -->
             <col class="print:hidden" style="width:2%">
         </colgroup>
     `;
@@ -1054,10 +1054,38 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
 window.printRapor = function(selector) {
     const el = document.querySelector(selector);
     if (!el) return;
-    const oldTitle = document.title;
-    document.title = "Taseron_Hakedis_Raporu_" + (window._taseronCariAy || 'Donem');
-    window.print();
-    document.title = oldTitle;
+    
+    // Açık olan modal'ı direkt yazdırmak yerine temiz bir pencere açıyoruz
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Taseron_Hakedis_Raporu_${window._taseronCariAy || 'Donem'}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; padding: 20px; font-size: 11px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; table-layout: fixed; }
+                    th, td { border: 1px solid #000; padding: 4px; word-wrap: break-word; }
+                    th { background-color: #f3f4f6 !important; font-weight: bold; text-align: center; }
+                    .money { text-align: right; white-space: nowrap; }
+                    .center { text-align: center; }
+                    .excel-rapor-header { font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 10px; text-transform: uppercase; }
+                    .print\\:hidden { display: none !important; }
+                    button { display: none !important; }
+                </style>
+            </head>
+            <body>
+                ${el.innerHTML}
+            </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Resim/CSS yüklenmesi için ufak gecikme
+    setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+    }, 250);
 };
 
 window.addTaseronRaporRow = function(btn, ayText) {
