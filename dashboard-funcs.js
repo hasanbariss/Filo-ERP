@@ -839,21 +839,28 @@ window.openDetayliTaseronRaporu = function() {
 
     // Veriyi Ayrıştır
     Object.values(data).forEach(arac => {
+        if (arac.mulkiyet_durumu === 'ÖZMAL') return; // Özmal araçları dahil etme
         if (arac.brut <= 0 && arac.vardiya <= 0 && arac.tek <= 0 && arac.yakit <= 0) return;
 
-        let dict = { izmir: 0, manisa: 0, dikkan: 0 };
+        let isIzmir = false;
+        let isManisa = false;
+        let isDikkan = false;
         
         Object.values(arac.musteriDetay).forEach(md => {
-            const b = (md.vardiya * md.vardiya_fiyat) + (md.tek * md.tek_fiyat) + ((md.cikis_8||0)*(md.cikis_8_fiyat||0)) + ((md.giris_2030||0)*(md.giris_2030_fiyat||0)) + ((md.mesai||0)*(md.mesai_fiyat||0));
             const m = md.musteri_ad.toUpperCase();
-            if (m.includes('DİKKAN') || m.includes('DIKKAN')) dict.dikkan += b;
-            else if (md.bolge === 'İzmir' || m.includes('İZMİR')) dict.izmir += b;
-            else dict.manisa += b;
+            if (m.includes('DİKKAN') || m.includes('DIKKAN')) isDikkan = true;
+            else if (md.bolge === 'İzmir' || m.includes('İZMİR')) isIzmir = true;
+            else isManisa = true;
         });
 
-        let target = 'manisa';
-        if (dict.dikkan >= dict.izmir && dict.dikkan >= dict.manisa && dict.dikkan > 0) target = 'dikkan';
-        else if (dict.izmir >= dict.dikkan && dict.izmir >= dict.manisa && dict.izmir > 0) target = 'izmir';
+        let target = 'manisa'; // Varsayılan veya bilinmeyen
+        if (isDikkan) {
+            target = 'dikkan';
+        } else if (isManisa) {
+            target = 'manisa'; // İzmir ve Manisa varsa Manisa'ya girer. Sadece Manisa varsa Manisa'ya girer.
+        } else if (isIzmir) {
+            target = 'izmir';  // Sadece İzmir varsa İzmir'e girer.
+        }
 
         gruplar[target].rows.push(arac);
     });

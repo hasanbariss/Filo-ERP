@@ -2666,6 +2666,7 @@ async function fetchTaseronFinans() {
             return { 
                 arac_id: aId, 
                 plaka: arac?.plaka || 'Bilinmiyor', 
+                mulkiyet_durumu: mulkiyet,
                 sahip_bilgisi: sahip_bilgisi, 
                 vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, 
                 brut: 0, yakit: 0, musteriDetay: {} 
