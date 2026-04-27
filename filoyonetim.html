@@ -2935,6 +2935,21 @@ window.addEventListener('DOMContentLoaded', function() {
     <script src="whatsapp-reporter.js" defer></script>
     <!-- Hidden Print Section -->
     <div id="print-section"></div>
+
+    <!-- === PWA SERVICE WORKER KAYDI === -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function (reg) {
+                        console.log('[PWA] ✅ Service Worker kayıtlı. Scope:', reg.scope);
+                    })
+                    .catch(function (err) {
+                        console.warn('[PWA] ⚠️ Service Worker kayıt hatası:', err);
+                    });
+            });
+        }
+    </script>
 </body>
 
 </html>
