@@ -834,6 +834,7 @@ window.openDetayliTaseronRaporu = function() {
     const gruplar = {
         izmir: { isim: `TAŞERON İZMİR ${ayText} HAKEDİŞ`, rows: [] },
         manisa: { isim: `TAŞERON MANİSA ${ayText} HAKEDİŞ`, rows: [] },
+        izmir_manisa: { isim: `TAŞERON İZMİR VE MANİSA ${ayText} HAKEDİŞ`, rows: [] },
         dikkan: { isim: `DİKKAN ${ayText} TAŞERON HAKEDİŞ`, rows: [] }
     };
 
@@ -847,19 +848,22 @@ window.openDetayliTaseronRaporu = function() {
         let isDikkan = false;
         
         Object.values(arac.musteriDetay).forEach(md => {
-            const m = md.musteri_ad.toUpperCase();
+            const m = md.musteri_ad.toLocaleUpperCase('tr-TR');
             if (m.includes('DİKKAN') || m.includes('DIKKAN')) isDikkan = true;
-            else if (md.bolge === 'İzmir' || m.includes('İZMİR')) isIzmir = true;
-            else isManisa = true;
+            else if (md.bolge === 'Manisa' || m.includes('MANİSA') || m.includes('MANISA')) isManisa = true;
+            else if (md.bolge === 'İzmir' || m.includes('İZMİR') || m.includes('IZMIR')) isIzmir = true;
+            else isManisa = true; // varsayılan
         });
 
         let target = 'manisa'; // Varsayılan veya bilinmeyen
         if (isDikkan) {
             target = 'dikkan';
+        } else if (isIzmir && isManisa) {
+            target = 'izmir_manisa'; // Hem izmir hem manisa içerenler
         } else if (isManisa) {
-            target = 'manisa'; // İzmir ve Manisa varsa Manisa'ya girer. Sadece Manisa varsa Manisa'ya girer.
+            target = 'manisa'; 
         } else if (isIzmir) {
-            target = 'izmir';  // Sadece İzmir varsa İzmir'e girer.
+            target = 'izmir';  
         }
 
         gruplar[target].rows.push(arac);
