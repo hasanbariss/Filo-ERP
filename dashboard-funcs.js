@@ -1123,6 +1123,7 @@ window.printRapor = function(selector) {
                 </style>
             </head>
             <body>
+                <div style="position: absolute; top: 12px; right: 20px; font-weight: 900; font-size: 18px; color: #1e293b; letter-spacing: 3px; font-style: italic;">IDEOL</div>
                 ${el.innerHTML}
             </body>
         </html>
