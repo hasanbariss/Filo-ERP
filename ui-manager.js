@@ -3415,13 +3415,13 @@ function parseCellValue(str) {
     
     // 1. Para birimi veya Noktalı/Virgüllü sayı kontrolü (örn: 1.500,00 ₺ -> 1500.00)
     // TL, ₺, USD gibi sembolleri at
-    const currencyMatch = str.match(/^[d.,-]+s*(₺|TL|USD|EUR)?$/);
+    const currencyMatch = str.match(/^[\d\.\,\-]+\s*(\u20BA|TL|USD|EUR)?$/);
     if (currencyMatch || str.includes('₺')) {
-        let clean = str.replace(/[₺a-zA-Zs]/g, ''); // Harfleri, boşlukları ve ₺ at
+        let clean = str.replace(/[\u20BAa-zA-Z\s]/g, ''); // Harfleri, boşlukları ve ₺ at
         // Eğer format 1.500,00 ise:
         if (clean.includes(',') && clean.includes('.')) {
             // Noktaları (binlik ayracı) sil, virgülü noktaya çevir
-            clean = clean.replace(/./g, '').replace(',', '.');
+            clean = clean.replace(/\./g, '').replace(',', '.');
         } else if (clean.includes(',')) {
             // Sadece virgül varsa ondalık olabilir (1500,00 -> 1500.00)
             clean = clean.replace(',', '.');
@@ -3431,13 +3431,13 @@ function parseCellValue(str) {
     }
 
     // 2. Basit Sayı kontrolü
-    if (/^d+$/.test(str)) {
+    if (/^\d+$/.test(str)) {
         return parseInt(str, 10);
     }
 
     // 3. Tarih kontrolü (GG.AA.YYYY veya YYYY-AA-GG)
     // 30.03.2024 -> 2024-03-30
-    if (/^d{2}.d{2}.d{4}$/.test(str)) {
+    if (/^\d{2}\.\d{2}\.\d{4}$/.test(str)) {
         const parts = str.split('.');
         const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
         if (!isNaN(dateObj.getTime())) return dateObj.getTime();
@@ -3481,9 +3481,9 @@ window.printOzmalCizelge = function() {
             th { background-color: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 9px; }
             tr:nth-child(even) { background-color: #f8fafc; }
             .date-cell { text-align: center; font-weight: 600; }
-            .expired { color: #dc2626; font-weight: bold; }
-            .soon { color: #ea580c; font-weight: bold; }
-            .ok { color: #16a34a; }
+            .expired { color: #000; font-weight: 900; background-color: #e2e8f0; border: 2px solid #000 !important; }
+            .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
+            .ok { color: #475569; }
             @media print {
                 body { margin: 0; padding: 10mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 @page { size: A4 landscape; margin: 0; }
@@ -3530,11 +3530,12 @@ window.printOzmalCizelge = function() {
         
         const diff = Math.ceil((d - today) / 86400000);
         let cls = 'ok';
-        if (diff < 0) cls = 'expired';
-        else if (diff <= 30) cls = 'soon';
+        let marker = '';
+        if (diff < 0) { cls = 'expired'; marker = '<br><span style="font-size:8px;">[SÜRESİ DOLDU]</span>'; }
+        else if (diff <= 30) { cls = 'soon'; marker = '<br><span style="font-size:8px;">[YAKLAŞTI]</span>'; }
         
         return { 
-            text: d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+            text: d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + marker,
             class: cls 
         };
     };
