@@ -4644,6 +4644,10 @@ async function fetchYakitlar() {
 
         // GRUPLAMA MANTIĞI
         const groups = {};
+        let grandLitre = 0;
+        let grandTutar = 0;
+        let islemSayisi = filteredData.length;
+
         filteredData.forEach(y => {
             const plaka = y.araclar ? y.araclar.plaka : 'BİLİNMİYOR';
             if (!groups[plaka]) {
@@ -4652,6 +4656,9 @@ async function fetchYakitlar() {
             groups[plaka].items.push(y);
             groups[plaka].totalLitre += (y.litre || 0);
             groups[plaka].totalTutar += (y.toplam_tutar || 0);
+            
+            grandLitre += (y.litre || 0);
+            grandTutar += (y.toplam_tutar || 0);
         });
 
         // SIRALAMA: Plaka ismine göre
