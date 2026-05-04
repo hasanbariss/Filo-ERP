@@ -321,6 +321,36 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
     if (window.lucide) window.lucide.createIcons();
 
     if (modulePrefix === 'finans') {
+        const k1t = document.getElementById('fin-kpi1-title');
+        const k1d = document.getElementById('fin-kpi1-desc');
+        const k1i = document.getElementById('fin-kpi1-icon');
+        const k2t = document.getElementById('fin-kpi2-title');
+        const k2d = document.getElementById('fin-kpi2-desc');
+        const k2i = document.getElementById('fin-kpi2-icon');
+        const k3t = document.getElementById('fin-kpi3-title');
+        const k3d = document.getElementById('fin-kpi3-desc');
+        const k3i = document.getElementById('fin-kpi3-icon');
+
+        if (k1t) {
+            if (tabName === 'taseron-finans' || tabName === 'taseron-rapor') {
+                k1t.innerText = 'Brüt Hakediş'; k1d.innerText = 'Toplam Kazanç'; if(k1i) k1i.setAttribute('data-lucide', 'trending-up');
+                k2t.innerText = 'Yakıt Kesintisi'; k2d.innerText = 'Mazot Mahsubu'; if(k2i) k2i.setAttribute('data-lucide', 'fuel');
+                k3t.innerText = 'Net Hakediş'; k3d.innerText = 'Ödenmesi Gereken'; if(k3i) k3i.setAttribute('data-lucide', 'banknote');
+            } else if (tabName === 'yakit') {
+                k1t.innerText = 'Yakıt Alımı'; k1d.innerText = 'İşlem Sayısı'; if(k1i) k1i.setAttribute('data-lucide', 'hash');
+                k2t.innerText = 'Toplam Litre'; k2d.innerText = 'Aylık Tüketim'; if(k2i) k2i.setAttribute('data-lucide', 'droplet');
+                k3t.innerText = 'Toplam Tutar'; k3d.innerText = 'Yakıt Maliyeti'; if(k3i) k3i.setAttribute('data-lucide', 'credit-card');
+            } else if (tabName === 'aylik-odeme') {
+                k1t.innerText = 'Toplam Hakediş'; k1d.innerText = 'Net Maaşlar'; if(k1i) k1i.setAttribute('data-lucide', 'wallet');
+                k2t.innerText = 'Kesintiler'; k2d.innerText = 'Avans & Ceza'; if(k2i) k2i.setAttribute('data-lucide', 'scissors');
+                k3t.innerText = 'Ödenecek Tutar'; k3d.innerText = 'Personele Ödeme'; if(k3i) k3i.setAttribute('data-lucide', 'check-circle');
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = '...';
+        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = '...';
+        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = '...';
         if (tabName === 'sofor-puantaj') fetchSoforMaasBordro();
         else if (tabName === 'sofor-finans') fetchSoforFinans();
         else if (tabName === 'sofor-maas') fetchSoforMaaslar();

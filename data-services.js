@@ -3021,6 +3021,13 @@ async function fetchTaseronAylikRapor() {
             document.getElementById('total-taseron-net').textContent = '₺' + gtNet.toLocaleString('tr-TR');
         }
 
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(gtBrut);
+        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(gtYakit);
+        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(gtNet);
+        if (window.lucide) window.lucide.createIcons();
+
     } catch (e) {
         console.error("fetchTaseronAylikRapor error:", e);
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-8">Hata: ${e.message}</td></tr>`;
@@ -4711,6 +4718,12 @@ async function fetchYakitlar() {
         });
 
         if (window.lucide) window.lucide.createIcons();
+
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const el1 = document.getElementById('fin-kpi-brut'); if (el1) el1.textContent = islemSayisi.toString();
+        const el2 = document.getElementById('fin-kpi-yakit'); if (el2) el2.textContent = Number(grandLitre).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' LT';
+        const el3 = document.getElementById('fin-kpi-net'); if (el3) el3.textContent = fmt(grandTutar);
 
         // Reset Master Checkbox and Delete Button
         const master = document.getElementById('yakit-master-checkbox');
@@ -7757,6 +7770,13 @@ window.fetchAylikOdemeOzeti = async function () {
             const totalEl = document.getElementById('total-aylik-odeme');
             if (totalEl) totalEl.textContent = '₺' + grandTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         }
+
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const el1 = document.getElementById('fin-kpi-brut'); if (el1) el1.textContent = fmt(grandTotal);
+        const el2 = document.getElementById('fin-kpi-yakit'); if (el2) el2.textContent = "₺0";
+        const el3 = document.getElementById('fin-kpi-net'); if (el3) el3.textContent = fmt(grandTotal);
+
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) { console.error(e); }
