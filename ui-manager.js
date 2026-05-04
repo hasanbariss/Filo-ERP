@@ -3450,3 +3450,144 @@ function parseCellValue(str) {
     // 4. Standart metin
     return str.toLowerCase();
 }
+
+/* === 6. Özmal Çizelge Yazdırma Fonksiyonu === */
+window.printOzmalCizelge = function() {
+    const tbody = document.getElementById('cizelge-tbody');
+    if (!tbody || tbody.querySelectorAll('tr').length === 0) {
+        alert("Yazdırılacak veri bulunamadı.");
+        return;
+    }
+    
+    const firstTd = tbody.querySelector('td');
+    if (firstTd && firstTd.colSpan >= 7) {
+        alert("Tablo boş veya henüz yükleniyor.");
+        return;
+    }
+
+    const rows = tbody.querySelectorAll('tr');
+    let printHtml = `
+    <html>
+    <head>
+        <title>Özmal Çizelge Raporu</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px; margin: 20px; color: #333; background: #fff; }
+            .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid #ea580c; padding-bottom: 10px; }
+            .title { font-size: 18px; font-weight: bold; color: #111; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+            .subtitle { font-size: 10px; color: #666; margin-top: 4px; }
+            .logo { max-height: 40px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+            th, td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
+            th { background-color: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 9px; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .date-cell { text-align: center; font-weight: 600; }
+            .expired { color: #dc2626; font-weight: bold; }
+            .soon { color: #ea580c; font-weight: bold; }
+            .ok { color: #16a34a; }
+            @media print {
+                body { margin: 0; padding: 10mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                @page { size: A4 landscape; margin: 0; }
+                .no-print { display: none !important; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+            <button onclick="window.print()" style="padding: 8px 20px; background: #ea580c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);">Yazdır</button>
+        </div>
+        <div class="header">
+            <div>
+                <h1 class="title">Özmal Araç Evrak Çizelgesi</h1>
+                <div class="subtitle">Çıktı Tarihi: ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
+            </div>
+            <div>
+                <h2 style="margin:0; font-size: 16px; font-weight: 900; color: #111; letter-spacing: -0.5px;">IDEOL <span style="color:#ea580c;">FILO</span></h2>
+            </div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 30px; text-align: center;">Sıra</th>
+                    <th>Hesap Adı</th>
+                    <th>Plaka</th>
+                    <th>Marka / Model</th>
+                    <th class="date-cell">Trafik Sigortası</th>
+                    <th class="date-cell">Koltuk Sigortası</th>
+                    <th class="date-cell">Kasko</th>
+                    <th class="date-cell">Vize Tarihi</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    const formatDateStr = (dateString) => {
+        if (!dateString) return { text: '-', class: '' };
+        const d = new Date(dateString);
+        if (isNaN(d.getTime())) return { text: '-', class: '' };
+        
+        const diff = Math.ceil((d - today) / 86400000);
+        let cls = 'ok';
+        if (diff < 0) cls = 'expired';
+        else if (diff <= 30) cls = 'soon';
+        
+        return { 
+            text: d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+            class: cls 
+        };
+    };
+
+    let count = 1;
+    rows.forEach(row => {
+        const tds = row.querySelectorAll('td');
+        if (tds.length < 7) return;
+
+        const sirket = tds[0].innerText.trim();
+        const plaka = tds[1].innerText.trim();
+        const marka = tds[2].innerText.trim();
+        
+        const getInputValue = (td) => {
+            const input = td.querySelector('input[type="date"]');
+            return input ? input.value : null;
+        };
+
+        const trafik = formatDateStr(getInputValue(tds[3]));
+        const koltuk = formatDateStr(getInputValue(tds[4]));
+        const kasko = formatDateStr(getInputValue(tds[5]));
+        const vize = formatDateStr(getInputValue(tds[6]));
+
+        printHtml += \`
+            <tr>
+                <td style="text-align: center; color: #94a3b8; font-size: 9px;">\${count++}</td>
+                <td><strong>\${sirket}</strong></td>
+                <td style="font-size: 11px; font-weight: 900;">\${plaka}</td>
+                <td style="color: #64748b;">\${marka}</td>
+                <td class="date-cell \${trafik.class}">\${trafik.text}</td>
+                <td class="date-cell \${koltuk.class}">\${koltuk.text}</td>
+                <td class="date-cell \${kasko.class}">\${kasko.text}</td>
+                <td class="date-cell \${vize.class}">\${vize.text}</td>
+            </tr>
+        \`;
+    });
+
+    printHtml += \`
+            </tbody>
+        </table>
+        <div style="margin-top: 20px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+            Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam \${count - 1} kayıt listelenmiştir.
+        </div>
+    </body>
+    </html>
+    \`;
+
+    const printWin = window.open('', '', 'width=1100,height=800');
+    printWin.document.open();
+    printWin.document.write(printHtml);
+    printWin.document.close();
+    
+    setTimeout(() => {
+        printWin.focus();
+    }, 500);
+};

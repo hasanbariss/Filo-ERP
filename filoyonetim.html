@@ -919,6 +919,10 @@
                                         <button id="filter-cizelge-mk" onclick="window.filterOzmalCizelge('M.K.')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">M.K.</button>
                                     </div>
+                                    <button onclick="if(window.printOzmalCizelge) window.printOzmalCizelge()"
+                                        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+                                        <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
+                                    </button>
                                     <button onclick="if(window.fetchOzmalCizelge) window.fetchOzmalCizelge()"
                                         class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
                                         <i data-lucide="refresh-cw" class="w-4 h-4"></i> Yenile
