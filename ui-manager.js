@@ -3415,13 +3415,13 @@ function parseCellValue(str) {
     
     // 1. Para birimi veya Noktalı/Virgüllü sayı kontrolü (örn: 1.500,00 ₺ -> 1500.00)
     // TL, ₺, USD gibi sembolleri at
-    const currencyMatch = str.match(/^[\d\.\,\-]+\s*(₺|TL|USD|EUR)?$/);
+    const currencyMatch = str.match(/^[d.,-]+s*(₺|TL|USD|EUR)?$/);
     if (currencyMatch || str.includes('₺')) {
-        let clean = str.replace(/[₺a-zA-Z\s]/g, ''); // Harfleri, boşlukları ve ₺ at
+        let clean = str.replace(/[₺a-zA-Zs]/g, ''); // Harfleri, boşlukları ve ₺ at
         // Eğer format 1.500,00 ise:
         if (clean.includes(',') && clean.includes('.')) {
             // Noktaları (binlik ayracı) sil, virgülü noktaya çevir
-            clean = clean.replace(/\./g, '').replace(',', '.');
+            clean = clean.replace(/./g, '').replace(',', '.');
         } else if (clean.includes(',')) {
             // Sadece virgül varsa ondalık olabilir (1500,00 -> 1500.00)
             clean = clean.replace(',', '.');
@@ -3431,13 +3431,13 @@ function parseCellValue(str) {
     }
 
     // 2. Basit Sayı kontrolü
-    if (/^\d+$/.test(str)) {
+    if (/^d+$/.test(str)) {
         return parseInt(str, 10);
     }
 
     // 3. Tarih kontrolü (GG.AA.YYYY veya YYYY-AA-GG)
     // 30.03.2024 -> 2024-03-30
-    if (/^\d{2}\.\d{2}\.\d{4}$/.test(str)) {
+    if (/^d{2}.d{2}.d{4}$/.test(str)) {
         const parts = str.split('.');
         const dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
         if (!isNaN(dateObj.getTime())) return dateObj.getTime();
@@ -3558,29 +3558,29 @@ window.printOzmalCizelge = function() {
         const kasko = formatDateStr(getInputValue(tds[5]));
         const vize = formatDateStr(getInputValue(tds[6]));
 
-        printHtml += \`
+        printHtml += `
             <tr>
-                <td style="text-align: center; color: #94a3b8; font-size: 9px;">\${count++}</td>
-                <td><strong>\${sirket}</strong></td>
-                <td style="font-size: 11px; font-weight: 900;">\${plaka}</td>
-                <td style="color: #64748b;">\${marka}</td>
-                <td class="date-cell \${trafik.class}">\${trafik.text}</td>
-                <td class="date-cell \${koltuk.class}">\${koltuk.text}</td>
-                <td class="date-cell \${kasko.class}">\${kasko.text}</td>
-                <td class="date-cell \${vize.class}">\${vize.text}</td>
+                <td style="text-align: center; color: #94a3b8; font-size: 9px;">${count++}</td>
+                <td><strong>${sirket}</strong></td>
+                <td style="font-size: 11px; font-weight: 900;">${plaka}</td>
+                <td style="color: #64748b;">${marka}</td>
+                <td class="date-cell ${trafik.class}">${trafik.text}</td>
+                <td class="date-cell ${koltuk.class}">${koltuk.text}</td>
+                <td class="date-cell ${kasko.class}">${kasko.text}</td>
+                <td class="date-cell ${vize.class}">${vize.text}</td>
             </tr>
-        \`;
+        `;
     });
 
-    printHtml += \`
+    printHtml += `
             </tbody>
         </table>
         <div style="margin-top: 20px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
-            Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam \${count - 1} kayıt listelenmiştir.
+            Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam ${count - 1} kayıt listelenmiştir.
         </div>
     </body>
     </html>
-    \`;
+    `;
 
     const printWin = window.open('', '', 'width=1100,height=800');
     printWin.document.open();
