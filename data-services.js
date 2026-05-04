@@ -2536,6 +2536,7 @@ async function fetchSoforFinans() {
 }
 
 async function fetchTaseronFinans() {
+    window.fetchTaseronFinans = fetchTaseronFinans;
     const tbody = document.getElementById('taseron-finans-tbody');
     if (!tbody) return;
     try {
