@@ -3057,6 +3057,29 @@ window.openCariHakedisDetay = async function(arac_id) {
             .lte('tarih', endDate)
             .order('tarih', {ascending: false});
 
+        // === ÖZMAL: Bakım ve Sigorta Giderlerini Çek ===
+        const isOzmal = (data.mulkiyet_durumu || '').toUpperCase() === 'ÖZMAL';
+        let otoBakimlar = [];
+        let otoPoliceler = [];
+        if (isOzmal) {
+            const [bakimRes, policeRes] = await Promise.all([
+                window.supabaseClient.from('arac_bakimlari')
+                    .select('id, islem_tarihi, islem_turu, aciklama, toplam_tutar')
+                    .eq('arac_id', arac_id)
+                    .gte('islem_tarihi', startDate)
+                    .lte('islem_tarihi', endDate)
+                    .order('islem_tarihi', { ascending: false }),
+                window.supabaseClient.from('arac_policeler')
+                    .select('id, baslangic_tarihi, bitis_tarihi, police_turu, toplam_tutar')
+                    .eq('arac_id', arac_id)
+                    .gte('baslangic_tarihi', startDate)
+                    .lte('baslangic_tarihi', endDate)
+                    .order('baslangic_tarihi', { ascending: false })
+            ]);
+            otoBakimlar  = bakimRes.data  || [];
+            otoPoliceler = policeRes.data || [];
+        }
+
         let factoriesHTML = '';
         const mIds = Object.keys(data.musteriDetay);
         if(mIds.length === 0) {
@@ -3193,7 +3216,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                             <p class="text-xs font-bold text-orange-400/80 uppercase tracking-wider" id="modal-sahip-bilgisi">${data.sahip_bilgisi || ''}</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3">
                         <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> Yazdır
                         </button>
@@ -3216,6 +3239,41 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="droplets" class="w-4 h-4 text-orange-400"></i> Yakıt Kesintileri</h3>
                         ${yakitHTML}
                     </div>
+
+                    <!-- ÖZMAL OTOMATİK GİDERLER BÖLÜMÜ -->
+                    ${isOzmal ? `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="wrench" class="w-4 h-4 text-amber-400"></i>
+                                Bakım & Sigorta Giderleri
+                                <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-[9px] font-black rounded border border-amber-500/30 uppercase tracking-wider">OTOMATİK</span>
+                            </h3>
+                        </div>
+                        <div id="auto-gider-container" class="space-y-2"></div>
+                    </div>
+                    ` : ''}
+
+                    <!-- MANUEL GELİR/GİDER BÖLÜMÜ -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="plus-minus" class="w-4 h-4 text-purple-400"></i> Manuel Gelir / Gider Kalemleri
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.addManuelKalem('gelir')" class="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30 rounded-lg text-[11px] font-bold transition-all">
+                                    <i data-lucide="plus" class="w-3 h-3"></i> Gelir Ekle
+                                </button>
+                                <button onclick="window.addManuelKalem('gider')" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all">
+                                    <i data-lucide="minus" class="w-3 h-3"></i> Gider Ekle
+                                </button>
+                            </div>
+                        </div>
+                        <div id="manuel-kalemler-container" class="space-y-2 min-h-[40px]">
+                            <p class="text-xs text-gray-600 italic text-center py-3" id="manuel-bos-mesaj">Henüz manuel kalem eklenmedi. Gelir veya gider eklemek için yukarıdaki butonları kullanın.</p>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
@@ -3232,9 +3290,21 @@ window.openCariHakedisDetay = async function(arac_id) {
                             <span class="text-sm text-yellow-400 font-bold">- Toplam TEV (Stopaj)</span>
                             <span class="text-base text-yellow-300 font-black" id="modal-tev-total">-₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10">
+                        <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Yakıt Kesintisi</span>
                             <span class="text-base text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
+                        </div>
+                        <div class="flex justify-between items-center" id="modal-manuel-gelir-row" style="display:none!important">
+                            <span class="text-sm text-green-400 font-bold">+ Manuel Gelirler</span>
+                            <span class="text-base text-green-300 font-black" id="modal-manuel-gelir">+₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-manuel-gider-row" style="display:none!important">
+                            <span class="text-sm text-red-400 font-bold">- Manuel Giderler</span>
+                            <span class="text-base text-red-300 font-black" id="modal-manuel-gider">-₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-auto-gider-row" style="display:none!important">
+                            <span class="text-sm text-amber-400 font-bold">- Bakım &amp; Sigorta</span>
+                            <span class="text-base text-amber-300 font-black" id="modal-auto-gider">-₺0,00</span>
                         </div>
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-xl text-white font-black uppercase tracking-widest">NET HAKEDİŞ</span>
@@ -3247,68 +3317,272 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         if(window.lucide) window.lucide.createIcons();
 
+        // === HESAPLAMA FONKSİYONU (önce tanımla) ===
         const calculateTotals = () => {
             let totalBrut = 0;
-            let totalKdv = 0;
-            let totalTev = 0;
+            let totalKdv  = 0;
+            let totalTev  = 0;
             const counts = data.musteriDetay;
-            
+
             overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
-                const mId = row.getAttribute('data-mid');
-                const vFiyat  = parseFloat(row.querySelector('.calc-vardiya-fiyat').value)   || 0;
-                const tFiyat  = parseFloat(row.querySelector('.calc-tek-fiyat').value)        || 0;
-                const c8Fiyat = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
-                const g2Fiyat = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
-                const mFiyat  = parseFloat(row.querySelector('.calc-mesai-fiyat').value)      || 0;
-                
-                const vCount  = counts[mId]?.vardiya    || 0;
-                const tCount  = counts[mId]?.tek        || 0;
-                const c8Count = counts[mId]?.cikis_8   || 0;
-                const g2Count = counts[mId]?.giris_2030 || 0;
-                const mCount  = counts[mId]?.mesai      || 0;
-                
+                const mId    = row.getAttribute('data-mid');
+                const vFiyat = parseFloat(row.querySelector('.calc-vardiya-fiyat').value)    || 0;
+                const tFiyat = parseFloat(row.querySelector('.calc-tek-fiyat').value)         || 0;
+                const c8Fiyat= parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
+                const g2Fiyat= parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
+                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat').value)       || 0;
+
+                const vCount = counts[mId]?.vardiya    || 0;
+                const tCount = counts[mId]?.tek        || 0;
+                const c8Count= counts[mId]?.cikis_8   || 0;
+                const g2Count= counts[mId]?.giris_2030 || 0;
+                const mCount = counts[mId]?.mesai      || 0;
+
                 const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
                 const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
-                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat) + (c8Count * c8Fiyat) + (g2Count * g2Fiyat) + (mCount * mFiyat);
+                const rowBrut = (vCount*vFiyat)+(tCount*tFiyat)+(c8Count*c8Fiyat)+(g2Count*g2Fiyat)+(mCount*mFiyat);
                 const rowKdv  = rowBrut * (kdvOran / 100);
                 const rowTev  = rowBrut * (tevOran / 100);
-                const rowTotal = rowBrut;
                 row.querySelector('.row-toplam').innerText = '₺' + rowBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 const kdvEl2 = row.querySelector('.row-kdv-tutar'); if(kdvEl2) kdvEl2.innerText = '+₺' + rowKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 const tevEl2 = row.querySelector('.row-tev-tutar'); if(tevEl2) tevEl2.innerText = '-₺' + rowTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 totalBrut += rowBrut;
-                totalKdv += rowKdv;
-                totalTev += rowTev;
+                totalKdv  += rowKdv;
+                totalTev  += rowTev;
             });
 
-            document.getElementById('modal-brut-total').innerText = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const kdvTotalEl = document.getElementById('modal-kdv-total'); if(kdvTotalEl) kdvTotalEl.innerText = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const tevTotalEl = document.getElementById('modal-tev-total'); if(tevTotalEl) tevTotalEl.innerText = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const yakit = parseFloat(document.getElementById('modal-yakit-total').getAttribute('data-val')) || 0;
-            const net = totalBrut + totalKdv - totalTev - yakit;
-            
+            // Manuel kalemler
+            let manuelGelir = 0;
+            let manuelGider = 0;
+            overlay.querySelectorAll('.manuel-kalem-row').forEach(row => {
+                const tip   = row.getAttribute('data-tip');
+                const tutar = parseFloat(row.querySelector('.manuel-tutar')?.value) || 0;
+                if (tip === 'gelir') manuelGelir += tutar;
+                else if (tip === 'gider') manuelGider += tutar;
+            });
+
+            // Otomatik bakım/sigorta giderleri (dismiss edilmemişler)
+            let autoGiderToplam = 0;
+            overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])').forEach(row => {
+                autoGiderToplam += parseFloat(row.getAttribute('data-tutar') || 0);
+            });
+
+            const gelirRow = document.getElementById('modal-manuel-gelir-row');
+            const giderRow = document.getElementById('modal-manuel-gider-row');
+            const gelirEl  = document.getElementById('modal-manuel-gelir');
+            const giderEl  = document.getElementById('modal-manuel-gider');
+            if (gelirRow) gelirRow.style.display = manuelGelir > 0 ? 'flex' : 'none';
+            if (giderRow) giderRow.style.display = manuelGider > 0 ? 'flex' : 'none';
+            if (gelirEl)  gelirEl.innerText  = '+₺' + manuelGelir.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            if (giderEl)  giderEl.innerText  = '-₺' + manuelGider.toLocaleString('tr-TR', {minimumFractionDigits:2});
+
+            // Auto gider satırı
+            const autoGiderRow = document.getElementById('modal-auto-gider-row');
+            const autoGiderEl  = document.getElementById('modal-auto-gider');
+            if (autoGiderRow) autoGiderRow.style.display = autoGiderToplam > 0 ? 'flex' : 'none';
+            if (autoGiderEl)  autoGiderEl.innerText = '-₺' + autoGiderToplam.toLocaleString('tr-TR', {minimumFractionDigits:2});
+
+            const brutEl  = document.getElementById('modal-brut-total');  if(brutEl)  brutEl.innerText  = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const kdvTEl  = document.getElementById('modal-kdv-total');   if(kdvTEl)  kdvTEl.innerText  = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const tevTEl  = document.getElementById('modal-tev-total');   if(tevTEl)  tevTEl.innerText  = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const yakit   = parseFloat(document.getElementById('modal-yakit-total')?.getAttribute('data-val')) || 0;
+            const net     = totalBrut + totalKdv - totalTev - yakit + manuelGelir - manuelGider - autoGiderToplam;
+
             const netEl = document.getElementById('modal-net-total');
-            netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            if(net < 0) {
-                netEl.classList.remove('text-green-400');
-                netEl.classList.add('text-red-500');
-            } else {
-                netEl.classList.remove('text-red-500');
-                netEl.classList.add('text-green-400');
+            if (netEl) {
+                netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                netEl.classList.toggle('text-green-400', net >= 0);
+                netEl.classList.toggle('text-red-500', net < 0);
             }
         };
 
-        calculateTotals();
+        // === MANUEL KALEM YARDIMCI FONKSİYONLARI ===
+        const STORAGE_KEY = `cari_manuel_${arac_id}_${month}`;
 
+        const loadFromStorage = () => {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+        };
+
+        const saveToStorage = () => {
+            const kalemler = [];
+            overlay.querySelectorAll('.manuel-kalem-row').forEach(row => {
+                kalemler.push({
+                    id:     row.getAttribute('data-kid'),
+                    tip:    row.getAttribute('data-tip'),
+                    baslik: row.querySelector('.manuel-baslik').value || '',
+                    tutar:  parseFloat(row.querySelector('.manuel-tutar').value) || 0
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(kalemler));
+            calculateTotals();
+        };
+
+        const renderKalemRow = (kalem) => {
+            const container = overlay.querySelector('#manuel-kalemler-container');
+            const bosMsg    = overlay.querySelector('#manuel-bos-mesaj');
+            if (bosMsg) bosMsg.remove();
+
+            const isGelir = kalem.tip === 'gelir';
+            const row = document.createElement('div');
+            row.className = 'manuel-kalem-row flex items-center gap-2 p-3 rounded-xl border transition-all ' +
+                (isGelir
+                    ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40'
+                    : 'bg-red-500/5   border-red-500/20   hover:border-red-500/40');
+            row.setAttribute('data-kid', kalem.id);
+            row.setAttribute('data-tip', kalem.tip);
+            row.innerHTML = `
+                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black ${isGelir ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                    ${isGelir ? '+' : '−'}
+                </div>
+                <input type="text"
+                    placeholder="${isGelir ? 'Gelir başlığı (örn: Ekstra Sefer)' : 'Gider başlığı (örn: Köprü Cezası)'}"
+                    class="manuel-baslik flex-1 bg-transparent text-white text-xs font-bold border-none outline-none placeholder-gray-600"
+                    value="${String(kalem.baslik || '').replace(/"/g, '&quot;')}"
+                />
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-xs font-bold">₺</span>
+                    <input type="number" step="0.01" min="0" placeholder="0,00"
+                        class="manuel-tutar w-28 bg-transparent text-xs font-black border-none outline-none text-right ${isGelir ? 'text-green-300' : 'text-red-300'}"
+                        value="${kalem.tutar || ''}"
+                    />
+                </div>
+                <button class="manuel-sil-btn flex-shrink-0 p-1.5 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-all" title="Kalemi Sil">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+            `;
+            row.querySelector('.manuel-baslik').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-tutar').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-sil-btn').addEventListener('click', () => {
+                row.style.transition = 'all 0.2s';
+                row.style.opacity    = '0';
+                row.style.transform  = 'translateX(10px)';
+                setTimeout(() => {
+                    row.remove();
+                    const c = overlay.querySelector('#manuel-kalemler-container');
+                    if (c && c.querySelectorAll('.manuel-kalem-row').length === 0) {
+                        const msg = document.createElement('p');
+                        msg.id        = 'manuel-bos-mesaj';
+                        msg.className = 'text-xs text-gray-600 italic text-center py-3';
+                        msg.textContent = 'Henüz manuel kalem eklenmedi. Gelir veya gider eklemek için yukarıdaki butonları kullanın.';
+                        c.appendChild(msg);
+                    }
+                    saveToStorage();
+                }, 200);
+            });
+            container.appendChild(row);
+        };
+
+        // Kayıtlı kalemleri yükle
+        loadFromStorage().forEach(k => renderKalemRow(k));
+
+        // === OTOMATİK BAKAM/SİGORTA GİDERLERİ ===
+        const AUTO_DISMISSED_KEY = `cari_auto_dismissed_${arac_id}_${month}`;
+        const loadDismissed = () => {
+            try { return new Set(JSON.parse(localStorage.getItem(AUTO_DISMISSED_KEY) || '[]')); } catch { return new Set(); }
+        };
+        const saveDismissed = (set) => {
+            localStorage.setItem(AUTO_DISMISSED_KEY, JSON.stringify([...set]));
+        };
+
+        const renderAutoGider = (item) => {
+            const container = overlay.querySelector('#auto-gider-container');
+            if (!container) return;
+            const dismissed = loadDismissed();
+            const row = document.createElement('div');
+            row.className = 'auto-gider-row flex items-center gap-2 p-3 rounded-xl border bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40 transition-all';
+            row.setAttribute('data-agid', item.id);
+            row.setAttribute('data-tutar', item.tutar || 0);
+            if (dismissed.has(item.id)) {
+                row.setAttribute('data-dismissed', 'true');
+                row.style.opacity = '0.35';
+            }
+            const isSimulation = !dismissed.has(item.id);
+            row.innerHTML = `
+                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black bg-amber-500/20 text-amber-400">−</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-bold text-amber-200 truncate">${item.baslik}</div>
+                    <div class="text-[10px] text-gray-500">${item.tarih} &nbsp;·&nbsp; <span class="uppercase tracking-wide">${item.tur}</span></div>
+                </div>
+                <div class="text-xs font-black text-amber-300 flex-shrink-0">-₺${(item.tutar||0).toLocaleString('tr-TR',{minimumFractionDigits:2})}</div>
+                <button class="auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${dismissed.has(item.id) ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}" title="${dismissed.has(item.id) ? 'Geri Ekle' : 'Gideri Kaldır'}">
+                    ${dismissed.has(item.id)
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+                    }
+                </button>
+            `;
+            row.querySelector('.auto-dismiss-btn').addEventListener('click', () => {
+                const d = loadDismissed();
+                if (d.has(item.id)) {
+                    d.delete(item.id);
+                    row.removeAttribute('data-dismissed');
+                    row.style.opacity = '1';
+                } else {
+                    d.add(item.id);
+                    row.setAttribute('data-dismissed', 'true');
+                    row.style.opacity = '0.35';
+                }
+                saveDismissed(d);
+                calculateTotals();
+                // Dismiss butonu ikonunu ve rengini güncelle
+                const newDismissed = d.has(item.id);
+                const btn = row.querySelector('.auto-dismiss-btn');
+                btn.className = `auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${newDismissed ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}`;
+                btn.title = newDismissed ? 'Geri Ekle' : 'Gideri Kaldır';
+                btn.innerHTML = newDismissed
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+            });
+            container.appendChild(row);
+        };
+
+        if (isOzmal) {
+            const autoGiderContainer = overlay.querySelector('#auto-gider-container');
+            if (otoBakimlar.length === 0 && otoPoliceler.length === 0) {
+                if (autoGiderContainer) autoGiderContainer.innerHTML = '<p class="text-xs text-gray-600 italic text-center py-2">Bu ay için bakım/sigorta kaydı bulunmuyor.</p>';
+            } else {
+                otoBakimlar.forEach(b => renderAutoGider({
+                    id:     'bakim_' + b.id,
+                    baslik: (b.islem_turu || 'Bakım') + (b.aciklama ? ` — ${b.aciklama}` : ''),
+                    tarih:  b.islem_tarihi,
+                    tur:    'bakım/tamir',
+                    tutar:  b.toplam_tutar || 0
+                }));
+                otoPoliceler.forEach(p => renderAutoGider({
+                    id:     'police_' + p.id,
+                    baslik: (p.police_turu || 'Sigorta') + ' Poliçesi',
+                    tarih:  p.baslangic_tarihi,
+                    tur:    'sigorta',
+                    tutar:  p.toplam_tutar || 0
+                }));
+            }
+        }
+
+
+        // Global: buton onclick'ten çağrılır
+        window.addManuelKalem = (tip) => {
+            const kalem = { id: Date.now().toString(), tip, baslik: '', tutar: 0 };
+            renderKalemRow(kalem);
+            saveToStorage();
+            const allRows = overlay.querySelectorAll('.manuel-kalem-row');
+            const lastRow = allRows[allRows.length - 1];
+            if (lastRow) lastRow.querySelector('.manuel-baslik')?.focus();
+        };
+
+        // Fiyat inputlarına dinleyici ekle ve ilk hesaplamayı çalıştır
         overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
+        calculateTotals();
+
 
     } catch (e) {
         console.error(e);
         overlay.innerHTML = `<div class="bg-white p-6 rounded text-red-500 font-bold">Hata oluştu: ${e.message} <button class="ml-4 underline blur-none text-black" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>`;
     }
 };
+
+
 
 window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;

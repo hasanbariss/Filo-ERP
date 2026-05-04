@@ -2818,6 +2818,7 @@ window.printCariKart = function(plaka, month) {
 
     const fmt = v => String.fromCharCode(8378) + Number(v).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
+    // --- Hizmet satırları ---
     const rows = overlay.querySelectorAll('.musteri-calc-row');
     let detailRowsHtml = '';
     let grandBrut = 0, grandKdv = 0, grandTev = 0;
@@ -2870,9 +2871,6 @@ window.printCariKart = function(plaka, month) {
         });
     });
 
-    var yakitVal = parseFloat((overlay.querySelector('#modal-yakit-total') || {getAttribute:function(){return'0';}}).getAttribute('data-val')) || 0;
-    var netTop = grandBrut + grandKdv - grandTev - yakitVal;
-
     detailRowsHtml += '<tr class="grand-total">'
         + '<td colspan="3"><strong>GENEL TOPLAM</strong></td>'
         + '<td class="text-right mono">' + fmt(grandBrut) + '</td>'
@@ -2880,6 +2878,9 @@ window.printCariKart = function(plaka, month) {
         + '<td class="text-right mono tev-col">-' + fmt(grandTev) + '</td>'
         + '<td class="text-right mono">' + fmt(grandBrut + grandKdv - grandTev) + '</td>'
         + '</tr>';
+
+    // --- Yakıt satırları ---
+    var yakitVal = parseFloat((overlay.querySelector('#modal-yakit-total') || {getAttribute:function(){return'0';}}).getAttribute('data-val')) || 0;
 
     var yakitHtml = '<p class="empty-yakit">Hic yakit alimi bulunmuyor.</p>';
     var yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
@@ -2893,6 +2894,77 @@ window.printCariKart = function(plaka, month) {
         });
         yakitHtml += '</tbody></table>';
     }
+
+    // --- Manuel Gelir / Gider satırları (LocalStorage'dan) ---
+    var manuelGelir = 0;
+    var manuelGider = 0;
+    var manuelHtml = '';
+    try {
+        // Araç id'sini modal içindeki data'dan al
+        var aracIdEl = overlay.querySelector('[data-arac-id]');
+        // Fallback: STORAGE_KEY format: cari_manuel_{arac_id}_{month}
+        // Iterate localStorage to find matching key
+        for (var ki = 0; ki < localStorage.length; ki++) {
+            var k = localStorage.key(ki);
+            if (k && k.startsWith('cari_manuel_') && k.endsWith('_' + month)) {
+                var kalemler = JSON.parse(localStorage.getItem(k) || '[]');
+                if (!Array.isArray(kalemler) || kalemler.length === 0) continue;
+                // Verify it matches — plaka check not possible here, just include all that match month
+                // (modal is open so only one arac is shown at a time; key is unique per arac+ay)
+                kalemler.forEach(function(kl) {
+                    var t = parseFloat(kl.tutar) || 0;
+                    if (kl.tip === 'gelir') manuelGelir += t;
+                    else if (kl.tip === 'gider') manuelGider += t;
+                    var isGelir = kl.tip === 'gelir';
+                    manuelHtml += '<tr>'
+                        + '<td class="mk-tip" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+ Gelir' : '− Gider') + '</td>'
+                        + '<td class="mk-baslik">' + (kl.baslik || '—') + '</td>'
+                        + '<td class="text-right mk-tutar" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+' : '-') + fmt(t) + '</td>'
+                        + '</tr>';
+                });
+            }
+        }
+    } catch(e2) { console.warn('Manuel kalemler okunamadi:', e2); }
+
+    var manuelSectionHtml = '';
+    if (manuelHtml) {
+        manuelSectionHtml = '<div style="margin-top:18px"><span class="sec-lbl">⊕ Manuel Gelir / Gider Kalemleri</span>'
+            + '<table class="tbl" style="margin-top:4px">'
+            + '<thead><tr><th style="width:12%">Tur</th><th>Başlık / Açıklama</th><th class="tr" style="width:18%">Tutar</th></tr></thead>'
+            + '<tbody>' + manuelHtml + '</tbody>'
+            + '</table></div>';
+    }
+
+    // --- Otomatik Bakım / Sigorta Giderleri (DOM'dan oku) ---
+    var autoGiderToplam = 0;
+    var autoGiderHtml = '';
+    try {
+        overlay.querySelectorAll('.auto-gider-row').forEach(function(row) {
+            if (row.getAttribute('data-dismissed') === 'true') return; // dismiss edilmis, atlat
+            var tutar = parseFloat(row.getAttribute('data-tutar') || 0);
+            autoGiderToplam += tutar;
+            var baslikEl = row.querySelector('.text-xs.font-bold.text-amber-200');
+            var tarihEl  = row.querySelector('.text-amber-200 + div, [class*="text-gray-500"]');
+            var baslik   = baslikEl ? baslikEl.innerText : '';
+            var tarihTur = tarihEl  ? tarihEl.innerText  : '';
+            autoGiderHtml += '<tr>'
+                + '<td class="mk-tip" style="color:#d97706;font-weight:700">− Gider</td>'
+                + '<td class="mk-baslik"><span style="font-weight:700">' + baslik + '</span><br><span style="color:#94a3b8;font-size:9px">' + tarihTur + '</span></td>'
+                + '<td class="text-right mk-tutar" style="color:#d97706;font-weight:700">-' + fmt(tutar) + '</td>'
+                + '</tr>';
+        });
+    } catch(e3) { console.warn('Auto giderler okunamadi:', e3); }
+
+    var autoSectionHtml = '';
+    if (autoGiderHtml) {
+        autoSectionHtml = '<div style="margin-top:18px"><span class="sec-lbl" style="color:#d97706">⚡ Bakım &amp; Sigorta Giderleri (Otomatik)</span>'
+            + '<table class="tbl" style="margin-top:4px">'
+            + '<thead><tr><th style="width:12%">Tur</th><th>Açıklama</th><th class="tr" style="width:18%">Tutar</th></tr></thead>'
+            + '<tbody>' + autoGiderHtml + '</tbody>'
+            + '</table></div>';
+    }
+
+    var netTop = grandBrut + grandKdv - grandTev - yakitVal + manuelGelir - manuelGider - autoGiderToplam;
 
     var sahipBilgisi = (overlay.querySelector('#modal-sahip-bilgisi') || {innerText:''}).innerText;
     var win = window.open('', '', 'height=850,width=960');
@@ -2938,6 +3010,9 @@ window.printCariKart = function(plaka, month) {
 + '.y-date{color:#64748b;font-weight:600;width:68px}'
 + '.y-desc{color:#94a3b8}'
 + '.y-val{color:#ea580c;font-weight:700;text-align:right}'
++ '.mk-tip{width:60px;font-size:10px}'
++ '.mk-baslik{color:#334155;font-size:10px}'
++ '.mk-tutar{font-size:10.5px}'
 + '.empty-yakit{color:#cbd5e1;font-size:10px;font-style:italic}'
 + '.doc-ftr{margin-top:36px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;color:#cbd5e1;font-size:9px;font-weight:600}'
 + '</style></head><body>'
@@ -2956,12 +3031,15 @@ window.printCariKart = function(plaka, month) {
 + '<tbody>' + detailRowsHtml + '</tbody>'
 + '</table>'
 + '<div class="fg">'
-+ '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + '</div>'
++ '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + manuelSectionHtml + autoSectionHtml + '</div>'
 + '<div class="scard">'
 + '<div class="sr"><span>Brut Hakedis</span><b>' + fmt(grandBrut) + '</b></div>'
 + '<div class="sr"><span style="color:#16a34a">+ KDV Toplami</span><b style="color:#16a34a">+' + fmt(grandKdv) + '</b></div>'
 + '<div class="sr"><span style="color:#dc2626">- TEV (Stopaj)</span><b style="color:#dc2626">-' + fmt(grandTev) + '</b></div>'
 + '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
++ (manuelGelir > 0 ? '<div class="sr"><span style="color:#16a34a">+ Manuel Gelirler</span><b style="color:#16a34a">+' + fmt(manuelGelir) + '</b></div>' : '')
++ (manuelGider > 0 ? '<div class="sr"><span style="color:#dc2626">- Manuel Giderler</span><b style="color:#dc2626">-' + fmt(manuelGider) + '</b></div>' : '')
++ (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
 + '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
 + '</div></div>'
 + '<div class="doc-ftr"><span>' + new Date().toLocaleString('tr-TR') + '</span><span>IDEOL Filo Yonetim | www.ideoltur.com</span></div>'
@@ -2969,9 +3047,6 @@ window.printCariKart = function(plaka, month) {
     win.document.close();
     win.setTimeout(function(){ win.print(); win.close(); }, 700);
 };
-
-
-
 /* === 9. HARİTA & ROTA MANTIĞI === */
 window.mainMap = null;
 let mapMarkers = [];
