@@ -120,7 +120,11 @@ navButtons.forEach(btn => {
         }
 
         // Active tab stili resetlemeyi garantilemek için nav tetiklendiğinde ilgili modülün varsayılan tab'ini (varsa) active yapma
-        if (targetId === 'module-cari') {
+        if (targetMod) {
+            const activeTabBtn = targetMod.querySelector('.nav-tab-btn.bg-orange-500, .nav-tab-btn.bg-blue-500, #finans-tabs-nav button.bg-orange-500, #cari-tabs-nav button.bg-orange-500, #cari-tabs-nav button.bg-blue-500');
+            if (activeTabBtn && typeof activeTabBtn.click === 'function') {
+                activeTabBtn.click();
+            } else if (targetId === 'module-cari') {
             const cariNav = document.getElementById('cari-tabs-nav');
             if (cariNav) {
                 const firstBtn = cariNav.querySelector('button');
@@ -129,6 +133,7 @@ navButtons.forEach(btn => {
                     if (typeof switchTab === 'function') switchTab('cari', 'cariler', firstBtn);
                 }
             }
+        }
         }
     });
 });
@@ -2931,12 +2936,11 @@ window.printCariKart = function(plaka, month) {
     var manuelHtml = '';
     try {
         // Araç id'sini modal içindeki data'dan al
-        var aracIdEl = overlay.querySelector('[data-arac-id]');
-        // Fallback: STORAGE_KEY format: cari_manuel_{arac_id}_{month}
-        // Iterate localStorage to find matching key
+        var aracIdStr = overlay.getAttribute('data-arac-id');
+        var specificKeyPrefix = aracIdStr ? 'cari_manuel_' + aracIdStr + '_' : 'cari_manuel_';
         for (var ki = 0; ki < localStorage.length; ki++) {
             var k = localStorage.key(ki);
-            if (k && k.startsWith('cari_manuel_') && k.endsWith('_' + month)) {
+            if (k && k.startsWith(specificKeyPrefix) && k.endsWith('_' + month)) {
                 var kalemler = JSON.parse(localStorage.getItem(k) || '[]');
                 if (!Array.isArray(kalemler) || kalemler.length === 0) continue;
                 // Verify it matches — plaka check not possible here, just include all that match month

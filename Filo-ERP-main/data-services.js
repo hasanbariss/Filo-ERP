@@ -2465,7 +2465,7 @@ async function fetchTaseronFinans() {
 
         const { data: araclar } = await window.supabaseClient
             .from('araclar')
-            .select('id, plaka, mulkiyet_durumu');
+            .select('id, plaka, mulkiyet_durumu, firma_adi');
 
         const aracMap = {};
         araclar?.forEach(a => aracMap[a.id] = a);
@@ -2482,7 +2482,7 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', firma_adi: (aracMap[aId]?.firma_adi || '').trim() || null, vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 const vStr = String(p.vardiya || '').trim();
                 const tStr = String(p.tek || '').trim();
@@ -2533,6 +2533,12 @@ async function fetchTaseronFinans() {
                             summary[aId].musteriDetay[detayKey].mesai_fiyat      = parseFloat(tanim.mesai_fiyat)      || 0;
                             summary[aId].musteriDetay[detayKey].kdv_oran         = parseFloat(tanim.kdv_oran)         || 0;
                             summary[aId].musteriDetay[detayKey].tev_oran         = parseFloat(tanim.tev_oran)         || 0;
+                            // Override sayıları (manuel düzeltme)
+                            summary[aId].musteriDetay[detayKey].override_vardiya    = tanim.override_vardiya    ?? null;
+                            summary[aId].musteriDetay[detayKey].override_tek        = tanim.override_tek        ?? null;
+                            summary[aId].musteriDetay[detayKey].override_cikis_8   = tanim.override_cikis_8   ?? null;
+                            summary[aId].musteriDetay[detayKey].override_giris_2030 = tanim.override_giris_2030 ?? null;
+                            summary[aId].musteriDetay[detayKey].override_mesai      = tanim.override_mesai      ?? null;
                         }
                     }
                     summary[aId].musteriDetay[detayKey].vardiya    += v;
@@ -2553,7 +2559,7 @@ async function fetchTaseronFinans() {
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', firma_adi: (aracMap[aId]?.firma_adi || '').trim() || null, vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
                 }
                 summary[aId].yakit += parseFloat(y.toplam_tutar) || 0;
             });
@@ -2575,7 +2581,7 @@ async function fetchTaseronFinans() {
 
         const plakaFilter = document.getElementById('taseron-finans-search')?.value?.toUpperCase();
         if (plakaFilter) {
-            rows = rows.filter(r => r.plaka.toUpperCase().includes(plakaFilter));
+            rows = rows.filter(r => r.plaka.toUpperCase().includes(plakaFilter) || (r.firma_adi || '').toUpperCase().includes(plakaFilter));
         }
 
         tbody.innerHTML = '';
@@ -2591,31 +2597,60 @@ async function fetchTaseronFinans() {
         window._taseronCariData = summary;
         window._taseronCariAy = filterAy;
 
-        let totalVardiya=0, totalTek=0, totalBrut=0, totalYakit=0, totalNet=0;
-
+        // --- Firma adına göre grupla ---
+        const firmaGroups = {};
         rows.forEach(row => {
-            const net = row.brut - row.yakit;
-            totalVardiya += row.vardiya;
-            totalTek += row.tek;
-            totalBrut += row.brut;
-            totalYakit += row.yakit;
-            totalNet += net;
+            const key = row.firma_adi || row.plaka;
+            if (!firmaGroups[key]) {
+                firmaGroups[key] = { label: key, firma_adi: row.firma_adi || null, plakaList: [], vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0 };
+            }
+            firmaGroups[key].plakaList.push(row);
+            firmaGroups[key].vardiya += row.vardiya;
+            firmaGroups[key].tek     += row.tek;
+            firmaGroups[key].mesai   += (row.mesai || 0);
+            firmaGroups[key].brut    += row.brut;
+            firmaGroups[key].yakit   += row.yakit;
+        });
+        const groupedRows = Object.values(firmaGroups).sort((a,b) => a.label.localeCompare(b.label));
+
+        let totalVardiya=0, totalTek=0, totalMesai=0, totalBrut=0, totalYakit=0, totalNet=0;
+
+        groupedRows.forEach(group => {
+            const net = group.brut - group.yakit;
+            totalVardiya += group.vardiya;
+            totalTek     += group.tek;
+            totalMesai   += group.mesai;
+            totalBrut    += group.brut;
+            totalYakit   += group.yakit;
+            totalNet     += net;
+
+            const isSingle = group.plakaList.length === 1 && !group.firma_adi;
+
+            const plakaHTML = group.plakaList.map(r =>
+                `<span onclick="event.stopPropagation(); window.openCariHakedisDetay('${r.arac_id}')"
+                       class="inline-flex items-center px-2 py-0.5 bg-white/10 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-md text-[10px] font-black text-gray-300 hover:text-orange-300 cursor-pointer transition-all font-mono"
+                       title="${r.plaka} — Cari Kartı Aç">${r.plaka}</span>`
+            ).join('');
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors cursor-pointer group border-b border-gray-100";
-            tr.onclick = () => window.openCariHakedisDetay(row.arac_id);
+            tr.className = `hover:bg-gray-50/5 transition-colors border-b border-gray-100/10 group${isSingle ? ' cursor-pointer' : ''}`;
+            if (isSingle) tr.onclick = () => window.openCariHakedisDetay(group.plakaList[0].arac_id);
+
             tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap"><div class="text-sm font-bold text-primary group-hover:text-orange-500 transition-colors">${row.plaka}</div></td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${row.vardiya} V</span>
-                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${row.tek} T</span>
-                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${row.mesai || 0} M</span>
+                <td class="px-6 py-4">
+                    <div class="text-sm font-bold ${isSingle ? 'text-primary group-hover:text-orange-500' : 'text-white'} transition-colors leading-tight">${group.label}</div>
+                    ${!isSingle ? `<div class="flex flex-wrap gap-1 mt-1.5">${plakaHTML}</div>` : ''}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${row.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${row.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${group.vardiya} V</span>
+                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${group.tek} T</span>
+                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${group.mesai} M</span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
-                    Detay Gör &rarr;
+                    ${isSingle ? 'Detay Gör &rarr;' : `<span class="text-[10px] text-gray-600 font-bold">${group.plakaList.length} Araç</span>`}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -2625,7 +2660,7 @@ async function fetchTaseronFinans() {
         tfoot.className = "bg-white/5 border-t-2 border-gray-200 shadow-sm";
         tfoot.innerHTML = `
             <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary">GENEL TOPLAM</td>
-            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T - ${rows.reduce((s,r) => s+(r.mesai||0), 0)} M</td>
+            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T - ${totalMesai} M</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
@@ -2633,7 +2668,6 @@ async function fetchTaseronFinans() {
         `;
         tbody.appendChild(tfoot);
         
-        // Update global KPIs (only if specifically in hakedis view)
         const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
         const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(totalBrut);
         const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(totalYakit);
@@ -2851,8 +2885,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
-                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>Vardiya</span> <span class="text-orange-400">${md.vardiya} Sefer</span>
+                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span>Vardiya</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="1" class="calc-vardiya-count w-14 bg-white/10 text-orange-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-orange-500 transition-colors" value="${md.override_vardiya !== null && md.override_vardiya !== undefined ? md.override_vardiya : md.vardiya}" title="D\u00fczenlene bilir. Puantaj: ${md.vardiya}">
+                                            <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.vardiya}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2 relative">
                                     <span class="text-gray-400 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
@@ -2860,8 +2900,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
-                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>Tek Sefer</span> <span class="text-blue-400">${md.tek} Sefer</span>
+                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span>Tek Sefer</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="1" class="calc-tek-count w-14 bg-white/10 text-blue-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-blue-500 transition-colors" value="${md.override_tek !== null && md.override_tek !== undefined ? md.override_tek : md.tek}" title="D\u00fczenlene bilir. Puantaj: ${md.tek}">
+                                            <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.tek}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2 relative">
                                     <span class="text-gray-400 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
@@ -2870,8 +2916,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                             </div>
                             <!-- 8 Çıkışı Satırı (Dikkan Özel) -->
                             <div class="bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
-                                <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>8 Çıkışı</span> <span class="text-amber-300">${md.cikis_8 || 0} Sefer</span>
+                                <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span>8 Çıkışı</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="1" class="calc-cikis8-count w-14 bg-amber-500/10 text-amber-300 text-xs font-black border border-amber-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-amber-500 transition-colors" value="${md.override_cikis_8 !== null && md.override_cikis_8 !== undefined ? md.override_cikis_8 : (md.cikis_8 || 0)}" title="Puantaj: ${md.cikis_8 || 0}">
+                                            <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.cikis_8 || 0}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2 relative">
                                     <span class="text-amber-500/60 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
@@ -2880,8 +2932,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                             </div>
                             <!-- 20:30 Girişi Satırı (Dikkan Özel) -->
                             <div class="bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
-                                <div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>20:30 Giriş</span> <span class="text-purple-300">${md.giris_2030 || 0} Sefer</span>
+                                <div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span>20:30 Giriş</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="1" class="calc-giris2030-count w-14 bg-purple-500/10 text-purple-300 text-xs font-black border border-purple-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-purple-500 transition-colors" value="${md.override_giris_2030 !== null && md.override_giris_2030 !== undefined ? md.override_giris_2030 : (md.giris_2030 || 0)}" title="Puantaj: ${md.giris_2030 || 0}">
+                                            <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.giris_2030 || 0}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2 relative">
                                     <span class="text-purple-500/60 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
@@ -2890,8 +2948,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                             </div>
                             <!-- Mesai Row -->
                             <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
-                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2 flex justify-between">
-                                    <span>Mesai (Dikkan Özel)</span> <span class="text-emerald-400">${md.mesai || 0} Sefer</span>
+                                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
+                                    <div class="flex justify-between items-center">
+                                        <span>Mesai (Dikkan Özel)</span>
+                                        <div class="flex items-center gap-1">
+                                            <input type="number" min="0" step="1" class="calc-mesai-count w-14 bg-white/10 text-emerald-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-emerald-500 transition-colors" value="${md.override_mesai !== null && md.override_mesai !== undefined ? md.override_mesai : (md.mesai || 0)}" title="Puantaj: ${md.mesai || 0}">
+                                            <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.mesai || 0}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2 relative">
                                     <span class="text-gray-400 text-sm font-bold absolute left-2 pointer-events-none">₺</span>
@@ -3035,11 +3099,11 @@ window.openCariHakedisDetay = async function(arac_id) {
                 const g2Fiyat = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
                 const mFiyat  = parseFloat(row.querySelector('.calc-mesai-fiyat').value)      || 0;
                 
-                const vCount  = counts[mId]?.vardiya    || 0;
-                const tCount  = counts[mId]?.tek        || 0;
-                const c8Count = counts[mId]?.cikis_8   || 0;
-                const g2Count = counts[mId]?.giris_2030 || 0;
-                const mCount  = counts[mId]?.mesai      || 0;
+                const vCount  = parseFloat(row.querySelector('.calc-vardiya-count')?.value)  || 0;
+                const tCount  = parseFloat(row.querySelector('.calc-tek-count')?.value)       || 0;
+                const c8Count = parseFloat(row.querySelector('.calc-cikis8-count')?.value)    || 0;
+                const g2Count = parseFloat(row.querySelector('.calc-giris2030-count')?.value) || 0;
+                const mCount  = parseFloat(row.querySelector('.calc-mesai-count')?.value)     || 0;
                 
                 const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
                 const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
@@ -3074,7 +3138,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         calculateTotals();
 
-        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran').forEach(inp => {
+        overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran, .calc-vardiya-count, .calc-tek-count, .calc-cikis8-count, .calc-giris2030-count, .calc-mesai-count').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
 
@@ -3111,6 +3175,12 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             const mf   = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value)      || 0;
             const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value)     || 0;
             const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value)     || 0;
+            // Override sayıları
+            const ov  = parseFloat(row.querySelector('.calc-vardiya-count')?.value);
+            const ot  = parseFloat(row.querySelector('.calc-tek-count')?.value);
+            const oc8 = parseFloat(row.querySelector('.calc-cikis8-count')?.value);
+            const og2 = parseFloat(row.querySelector('.calc-giris2030-count')?.value);
+            const om  = parseFloat(row.querySelector('.calc-mesai-count')?.value);
 
             // Sutun hatasi kontrolcu (schema cache veya eksik kolon)
             const isColErr = (e) => e && e.message && (
@@ -3122,6 +3192,8 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             // Kademeli payload (bazi tablolarda kdv/tev veya dikkan alanlari olmayabilir)
             // 1. tam, 2. kdv/tev'siz, 3. sadece temel
             const payloads = [
+                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya',
+                  override_vardiya: isNaN(ov) ? null : ov, override_tek: isNaN(ot) ? null : ot, override_cikis_8: isNaN(oc8) ? null : oc8, override_giris_2030: isNaN(og2) ? null : og2, override_mesai: isNaN(om) ? null : om },
                 { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya' },
                 { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, tarife_turu: 'Vardiya' },
                 { tek_fiyat: tk, vardiya_fiyat: vd, mesai_fiyat: mf, tarife_turu: 'Vardiya' }
