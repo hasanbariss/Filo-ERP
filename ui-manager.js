@@ -3749,23 +3749,30 @@ window.printOzmalCizelge = function() {
     <head>
         <title>Özmal Çizelge Raporu</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 11px; margin: 20px; color: #333; background: #fff; }
-            .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid #ea580c; padding-bottom: 10px; }
-            .title { font-size: 18px; font-weight: bold; color: #111; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-            .subtitle { font-size: 10px; color: #666; margin-top: 4px; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 10px; margin: 20px; color: #333; background: #fff; }
+            .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px; border-bottom: 2px solid #ea580c; padding-bottom: 8px; }
+            .title { font-size: 16px; font-weight: bold; color: #111; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
+            .subtitle { font-size: 9px; color: #666; margin-top: 4px; }
             .logo { max-height: 40px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
-            th, td { border: 1px solid #e2e8f0; padding: 8px 10px; text-align: left; }
-            th { background-color: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 9px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 9px; }
+            th, td { border: 1px solid #e2e8f0; padding: 4px 6px; text-align: left; }
+            th { background-color: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 8px; }
             tr:nth-child(even) { background-color: #f8fafc; }
             .date-cell { text-align: center; font-weight: 600; }
             .expired { color: #000; font-weight: 900; background-color: #e2e8f0; border: 2px solid #000 !important; }
             .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
             .ok { color: #475569; }
             @media print {
-                body { margin: 0; padding: 10mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                @page { size: A4 landscape; margin: 0; }
+                body { margin: 0; padding: 5mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                @page { size: A4 landscape; margin: 5mm; }
                 .no-print { display: none !important; }
+                /* Tek sayfaya sığması için iyileştirmeler */
+                table { font-size: 8px; }
+                th, td { padding: 3px 4px; }
+                .title { font-size: 14px; }
+                .header { margin-bottom: 10px; padding-bottom: 5px; }
+                br { display: none; } /* [SÜRESİ DOLDU] yazısının alt satıra geçmesini engeller, daha az yer kaplar */
+                .expired span, .soon span { font-size: 7px !important; margin-left: 4px; }
             }
         </style>
     </head>
