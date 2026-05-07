@@ -3745,9 +3745,9 @@ window.printOzmalCizelge = function() {
 
     const rows = tbody.querySelectorAll('tr');
     
-    // Satır sayısına göre %100 dinamik zoom hesapla (ortalama 28 satır tam sığar kabul ediyoruz)
+    // Satır sayısına göre %100 dinamik zoom hesapla (ortalama 22 satır tam sığar kabul ediyoruz, 28'de taşıyordu)
     const rowCount = rows.length;
-    const dynamicZoom = rowCount > 0 ? Math.min(1.0, 28 / rowCount).toFixed(2) : 1.0;
+    const dynamicZoom = rowCount > 0 ? Math.min(1.0, 22 / rowCount).toFixed(2) : 1.0;
 
     let printHtml = `
     <html>
@@ -3770,18 +3770,18 @@ window.printOzmalCizelge = function() {
             
             .header { 
                 display: flex; justify-content: space-between; align-items: flex-end; 
-                margin-bottom: 8px; border-bottom: 4px solid #f97316; padding-bottom: 6px; 
+                margin-bottom: 4px; border-bottom: 4px solid #f97316; padding-bottom: 4px; 
             }
-            .title { font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
-            .subtitle { font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+            .title { font-size: 20px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+            .subtitle { font-size: 10px; color: #64748b; margin-top: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
             
             table { 
-                width: 100%; border-collapse: collapse; margin-top: 5px; 
+                width: 100%; border-collapse: collapse; margin-top: 2px; 
                 border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #e2e8f0; 
             }
             
             th, td { 
-                padding: 6px 8px; text-align: left; line-height: 1.2; 
+                padding: 4px 6px; text-align: left; line-height: 1.1; 
                 border-bottom: 1px solid #e2e8f0; 
             }
             tr:last-child td { border-bottom: none; }
@@ -3900,7 +3900,7 @@ window.printOzmalCizelge = function() {
     printHtml += `
             </tbody>
         </table>
-        <div style="margin-top: 20px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+        <div style="margin-top: 10px; font-size: 8px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
             Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam ${count - 1} kayıt listelenmiştir.
         </div>
         </div> <!-- end .print-container -->
