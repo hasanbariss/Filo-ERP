@@ -3744,6 +3744,15 @@ window.printOzmalCizelge = function() {
     }
 
     const rows = tbody.querySelectorAll('tr');
+    
+    // Satır sayısına göre dinamik zoom hesapla (ortalama 22 satır tam sığar kabul ediyoruz)
+    const rowCount = rows.length;
+    let dynamicZoom = 1.0;
+    if (rowCount > 22) {
+        dynamicZoom = (22 / rowCount).toFixed(2);
+        if (dynamicZoom < 0.60) dynamicZoom = 0.60; // Okunabilirlik için alt sınır
+    }
+
     let printHtml = `
     <html>
     <head>
@@ -3763,18 +3772,18 @@ window.printOzmalCizelge = function() {
             .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
             .ok { color: #475569; }
             @media print {
-                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.65; display: flex; justify-content: center; }
+                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: ${dynamicZoom}; display: flex; justify-content: center; }
                 .print-container { width: 100%; max-width: 297mm; margin: 0 auto; padding: 2mm; }
                 @page { size: A4 landscape; margin: 2mm; }
                 .no-print { display: none !important; }
-                /* Agresif tek sayfa sığdırma ve Tarih vurgusu */
-                table { font-size: 7px; line-height: 1; margin-top: 0; width: 100%; margin: 0 auto; letter-spacing: -0.3px; }
-                th, td { padding: 1px 2px; height: auto; }
-                .title { font-size: 13px; }
-                .header { margin-bottom: 5px; padding-bottom: 2px; }
+                
+                table { font-size: 9px; line-height: 1.2; margin-top: 0; width: 100%; margin: 0 auto; letter-spacing: -0.2px; }
+                th, td { padding: 3px 4px; height: auto; }
+                .title { font-size: 14px; }
+                .header { margin-bottom: 8px; padding-bottom: 4px; }
                 br { display: none; }
-                .date-cell { font-size: 11px; font-weight: 900; letter-spacing: 0; } /* Tarihler ekstra büyük */
-                .expired span, .soon span { font-size: 8px !important; margin-left: 2px; display: inline-block; font-weight: 900; }
+                .date-cell { font-size: 13px; font-weight: 900; letter-spacing: 0; } 
+                .expired span, .soon span { font-size: 9px !important; margin-left: 2px; display: inline-block; font-weight: 900; }
             }
         </style>
     </head>
