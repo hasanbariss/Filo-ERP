@@ -2565,7 +2565,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 const text = row.innerText.toLowerCase();
                 row.style.display = text.includes(term) ? '' : 'none';
             });
-        });
+        }, 300));
     }
 
     const monthInput = document.getElementById('excel-ay-sec');
