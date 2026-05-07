@@ -3745,9 +3745,9 @@ window.printOzmalCizelge = function() {
 
     const rows = tbody.querySelectorAll('tr');
     
-    // Satır sayısına göre %100 dinamik zoom hesapla (ortalama 26 satır tam sığar kabul ediyoruz)
+    // Satır sayısına göre %100 dinamik zoom hesapla (ortalama 28 satır tam sığar kabul ediyoruz)
     const rowCount = rows.length;
-    const dynamicZoom = rowCount > 0 ? Math.min(1.0, 26 / rowCount).toFixed(2) : 1.0;
+    const dynamicZoom = rowCount > 0 ? Math.min(1.0, 28 / rowCount).toFixed(2) : 1.0;
 
     let printHtml = `
     <html>
@@ -3755,26 +3755,61 @@ window.printOzmalCizelge = function() {
         <title>Özmal Çizelge Raporu</title>
         <style>
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-            body { font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; color: #1e293b; background: #fff; zoom: ${dynamicZoom}; }
-            @page { size: A4 landscape; margin: 2mm 5mm; }
-            .print-container { width: 100%; box-sizing: border-box; padding: 0; margin: 0 auto; }
-            .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px; border-bottom: 3px solid #ea580c; padding-bottom: 4px; }
-            .title { font-size: 18px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: 0.5px; }
-            .subtitle { font-size: 10px; color: #64748b; margin-top: 2px; font-weight: 600; }
-            table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; margin-top: 4px; font-size: 10px; }
-            th, td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 4px 6px; text-align: left; line-height: 1.1; }
-            th:last-child, td:last-child { border-right: none; }
+            
+            /* Tarayıcı kenar boşluklarını ve başlık/altbilgileri yoksaymak için SIFIR MARGIN */
+            @page { size: A4 landscape; margin: 0; }
+            
+            body { 
+                font-family: 'Inter', sans-serif; 
+                margin: 0; padding: 4mm 6mm; 
+                color: #0f172a; background: #fff; 
+                zoom: ${dynamicZoom}; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+            }
+            
+            .header { 
+                display: flex; justify-content: space-between; align-items: flex-end; 
+                margin-bottom: 8px; border-bottom: 4px solid #f97316; padding-bottom: 6px; 
+            }
+            .title { font-size: 22px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+            .subtitle { font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+            
+            table { 
+                width: 100%; border-collapse: collapse; margin-top: 5px; 
+                border-radius: 8px; overflow: hidden; box-shadow: 0 0 0 1px #e2e8f0; 
+            }
+            
+            th, td { 
+                padding: 6px 8px; text-align: left; line-height: 1.2; 
+                border-bottom: 1px solid #e2e8f0; 
+            }
             tr:last-child td { border-bottom: none; }
-            th { background: #f8fafc; color: #334155; font-weight: 900; text-transform: uppercase; font-size: 9px; letter-spacing: 0.5px; }
-            tr:nth-child(even) { background-color: #fcfcfc; }
-            .date-cell { text-align: center; font-weight: 900; font-size: 12px; color: #0f172a; }
-            .expired { background-color: #fee2e2 !important; color: #991b1b !important; }
-            .soon { background-color: #fef9c3 !important; color: #854d0e !important; }
-            .badge { display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 900; padding: 2px 4px; border-radius: 4px; margin-left: 4px; letter-spacing: 0; }
-            .badge-expired { background: #dc2626; color: white; }
-            .badge-soon { background: #ca8a04; color: white; }
+            
+            th { 
+                background: #f8fafc; color: #475569; font-weight: 900; 
+                text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; 
+                border-bottom: 2px solid #cbd5e1;
+            }
+            
+            tr:nth-child(even) { background-color: #f8fafc; }
+            tr:nth-child(odd) { background-color: #ffffff; }
+            
+            .date-cell { text-align: center; font-weight: 900; font-size: 13px; color: #0f172a; }
+            
+            /* Modern Badges */
+            .badge { 
+                display: inline-flex; align-items: center; justify-content: center; 
+                font-size: 10px; font-weight: 900; padding: 3px 6px; 
+                border-radius: 6px; margin-left: 6px; letter-spacing: 0.5px; 
+            }
+            .badge-expired { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+            .badge-soon { background: #fefce8; color: #a16207; border: 1px solid #fde047; }
+            
+            .expired-cell { background-color: #fef2f2 !important; }
+            .soon-cell { background-color: #fefce8 !important; }
+            
             @media print {
-                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 .no-print { display: none !important; }
             }
         </style>
@@ -3796,12 +3831,12 @@ window.printOzmalCizelge = function() {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 2%; text-align: center;">#</th>
+                    <th style="width: 3%; text-align: center;">#</th>
                     <th style="width: 14%;">🏢 Hesap Adı</th>
                     <th style="width: 8%;">🚗 Plaka</th>
-                    <th style="width: 12%;">🏷️ Marka / Model</th>
-                    <th class="date-cell" style="width: 16%;">🛡️ Trafik Sig.</th>
-                    <th class="date-cell" style="width: 16%;">💺 Koltuk Sig.</th>
+                    <th style="width: 11%;">🏷️ Marka / Model</th>
+                    <th class="date-cell" style="width: 16%;">🛡️ Trafik Sigortası</th>
+                    <th class="date-cell" style="width: 16%;">💺 Koltuk Sigortası</th>
                     <th class="date-cell" style="width: 16%;">🛡️ Kasko</th>
                     <th class="date-cell" style="width: 16%;">🔧 Vize Tarihi</th>
                 </tr>
@@ -3820,8 +3855,8 @@ window.printOzmalCizelge = function() {
         const diff = Math.ceil((d - today) / 86400000);
         let cls = 'ok';
         let marker = '';
-        if (diff < 0) { cls = 'expired'; marker = ' <span class="badge badge-expired">🚨 SÜRESİ DOLDU</span>'; }
-        else if (diff <= 30) { cls = 'soon'; marker = ' <span class="badge badge-soon">⚠️ YAKLAŞTI</span>'; }
+        if (diff < 0) { cls = 'expired-cell'; marker = ' <span class="badge badge-expired">🚨 SÜRESİ DOLDU</span>'; }
+        else if (diff <= 30) { cls = 'soon-cell'; marker = ' <span class="badge badge-soon">⚠️ YAKLAŞTI</span>'; }
         
         return { 
             text: d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + marker,
@@ -3850,10 +3885,10 @@ window.printOzmalCizelge = function() {
 
         printHtml += `
             <tr>
-                <td style="text-align: center; color: #94a3b8; font-weight: 800; font-size: 8px;">${count++}</td>
-                <td style="font-weight: 800; color: #1e293b;">${sirket}</td>
-                <td style="font-size: 11px; font-weight: 900; color: #ea580c; letter-spacing: -0.5px;">${plaka}</td>
-                <td style="color: #475569; font-weight: 600; font-size: 9px;">${marka}</td>
+                <td style="text-align: center; color: #94a3b8; font-weight: 900; font-size: 10px;">${count++}</td>
+                <td style="font-weight: 900; color: #1e293b; font-size: 12px; letter-spacing: -0.5px;">${sirket}</td>
+                <td style="font-size: 14px; font-weight: 900; color: #f97316; letter-spacing: -0.5px;">${plaka}</td>
+                <td style="color: #64748b; font-weight: 800; font-size: 11px;">${marka}</td>
                 <td class="date-cell ${trafik.class}">${trafik.text}</td>
                 <td class="date-cell ${koltuk.class}">${koltuk.text}</td>
                 <td class="date-cell ${kasko.class}">${kasko.text}</td>
