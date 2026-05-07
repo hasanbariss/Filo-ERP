@@ -3763,18 +3763,18 @@ window.printOzmalCizelge = function() {
             .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
             .ok { color: #475569; }
             @media print {
-                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.75; display: flex; justify-content: center; }
-                .print-container { width: 100%; max-width: 297mm; margin: 0 auto; padding: 5mm; }
-                @page { size: A4 landscape; margin: 5mm; }
+                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.65; display: flex; justify-content: center; }
+                .print-container { width: 100%; max-width: 297mm; margin: 0 auto; padding: 2mm; }
+                @page { size: A4 landscape; margin: 2mm; }
                 .no-print { display: none !important; }
                 /* Agresif tek sayfa sığdırma ve Tarih vurgusu */
-                table { font-size: 7px; line-height: 1.1; margin-top: 0; width: 100%; margin: 0 auto; }
-                th, td { padding: 2px 3px; height: auto; }
+                table { font-size: 7px; line-height: 1; margin-top: 0; width: 100%; margin: 0 auto; letter-spacing: -0.3px; }
+                th, td { padding: 1px 2px; height: auto; }
                 .title { font-size: 13px; }
                 .header { margin-bottom: 5px; padding-bottom: 2px; }
                 br { display: none; }
-                .date-cell { font-size: 9px; font-weight: 900; } /* Tarihler özellikle büyük */
-                .expired span, .soon span { font-size: 7px !important; margin-left: 2px; display: inline-block; font-weight: 900; }
+                .date-cell { font-size: 11px; font-weight: 900; letter-spacing: 0; } /* Tarihler ekstra büyük */
+                .expired span, .soon span { font-size: 8px !important; margin-left: 2px; display: inline-block; font-weight: 900; }
             }
         </style>
     </head>
@@ -3795,14 +3795,14 @@ window.printOzmalCizelge = function() {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 3%; text-align: center;">Sıra</th>
-                    <th style="width: 15%;">Hesap Adı</th>
-                    <th style="width: 8%;">Plaka</th>
-                    <th style="width: 14%;">Marka / Model</th>
-                    <th class="date-cell" style="width: 15%;">Trafik Sigortası</th>
-                    <th class="date-cell" style="width: 15%;">Koltuk Sigortası</th>
-                    <th class="date-cell" style="width: 15%;">Kasko</th>
-                    <th class="date-cell" style="width: 15%;">Vize Tarihi</th>
+                    <th style="width: 2%; text-align: center;">Sıra</th>
+                    <th style="width: 12%;">Hesap Adı</th>
+                    <th style="width: 6%;">Plaka</th>
+                    <th style="width: 10%;">Marka / Model</th>
+                    <th class="date-cell" style="width: 17.5%;">Trafik Sigortası</th>
+                    <th class="date-cell" style="width: 17.5%;">Koltuk Sigortası</th>
+                    <th class="date-cell" style="width: 17.5%;">Kasko</th>
+                    <th class="date-cell" style="width: 17.5%;">Vize Tarihi</th>
                 </tr>
             </thead>
             <tbody>
