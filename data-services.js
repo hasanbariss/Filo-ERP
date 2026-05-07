@@ -1,4 +1,4 @@
-// === GLOBAL BAĞLANTI KONTROLÜ ===
+﻿// === GLOBAL BAĞLANTI KONTROLÜ ===
 window.checkSupabaseConnection = function () {
     if (!window.supabaseUrl || window.supabaseUrl === 'YOUR_SUPABASE_URL') {
         return { ok: false, msg: "Supabase URL yapılandırılmamış (config.js)." };
@@ -577,6 +577,12 @@ window.saveDataAndClose = async function (event) {
             }
             if (typeof fetchBakimlar === 'function') fetchBakimlar();
             if (typeof fetchDashboardData === 'function') fetchDashboardData();
+        } else if (formTitle === 'Toplu Poliçe Kaydı') {
+            // Toplu kaydetme islemi ui-manager.js'teki saveTopluPolice fonksiyonuna delege edilir
+            if (typeof window.saveTopluPolice === 'function') {
+                await window.saveTopluPolice();
+            }
+            return; // saveTopluPolice kendi toast ve modal kapatma islemini yonetir
         } else if (formTitle === 'Yeni Poliçe Kaydı') {
             const arac_id = document.getElementById('police-arac').value;
             const cari_id = document.getElementById('police-cari').value || null;
@@ -4661,6 +4667,19 @@ window.fetchCariler = async function() {
             `;
             tbody.appendChild(tr);
         });
+        // Borclu cari sayisini hesapla
+        const borcluEl = document.getElementById('ozet-cari-borclu');
+        if (borcluEl) {
+            let borcluCount = 0;
+            carilerClean.forEach(c => {
+                const borFat = (faturalar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borPol = (policeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borBak = (bakimlar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borOd  = (odemeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.tutar) || 0), 0);
+                if ((borFat + borPol + borBak) - borOd > 0) borcluCount++;
+            });
+            borcluEl.textContent = borcluCount;
+        }
         if (window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[CARİFETCH] Error:', e);
@@ -5555,6 +5574,8 @@ async function fetchBakimlar() {
         });
         const ozet = document.getElementById('ozet-bakim');
         if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        const ozetAdet = document.getElementById('ozet-bakim-adet');
+        if (ozetAdet) ozetAdet.textContent = data.length;
         
         if (typeof window.makeTableSortable === 'function') {
             window.makeTableSortable(tbody.closest('table'));
@@ -5666,7 +5687,23 @@ async function fetchPoliceler() {
             tbody.appendChild(tr);
         });
         const ozet = document.getElementById('ozet-police');
-        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        const today = new Date();
+        const in30days = new Date(today); in30days.setDate(today.getDate() + 30);
+        const activePolice = filteredData.filter(p => new Date(p.bitis_tarihi) > today);
+        const expiringPolice = filteredData.filter(p => {
+            const d = new Date(p.bitis_tarihi);
+            return d > today && d <= in30days;
+        });
+        const activeTutar = activePolice.reduce((s, p) => s + (p.toplam_tutar || 0), 0);
+        if (ozet) ozet.textContent = activeTutar.toLocaleString('tr-TR') + " ₺";
+        const countEl = document.getElementById('ozet-police-count');
+        if (countEl) countEl.textContent = activePolice.length;
+        const expiringEl = document.getElementById('ozet-police-expiring');
+        const expiringCountEl = document.getElementById('ozet-police-expiring-count');
+        if (expiringEl && expiringCountEl) {
+            expiringCountEl.textContent = expiringPolice.length;
+            expiringEl.classList.toggle('hidden', expiringPolice.length === 0);
+        }
     } catch (e) { console.error(e); }
 }
 async function fetchFinansDashboard() {
@@ -7804,6 +7841,19 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
         if (tfootRow && tfootTotal) {
             tfootTotal.innerText = window.formatCurrency(currentMonthTotal);
             tfootRow.classList.remove('hidden');
+        }
+        // Borclu cari sayisini hesapla
+        const borcluEl = document.getElementById('ozet-cari-borclu');
+        if (borcluEl) {
+            let borcluCount = 0;
+            carilerClean.forEach(c => {
+                const borFat = (faturalar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borPol = (policeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borBak = (bakimlar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borOd  = (odemeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.tutar) || 0), 0);
+                if ((borFat + borPol + borBak) - borOd > 0) borcluCount++;
+            });
+            borcluEl.textContent = borcluCount;
         }
         if (window.lucide) window.lucide.createIcons();
     } catch (e) { console.error(e); }

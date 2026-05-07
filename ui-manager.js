@@ -1665,6 +1665,83 @@ window.openModal = function (title, id = null, extra = null) {
                 }, 100);
             }
         }, 50);
+    } else if (title === 'Toplu Poliçe Kaydı') {
+        content = `
+            <p class="text-sm text-gray-400 mb-4">Birden fazla araç için aynı anda farklı poliçe bilgileri girin. Her araç için ayrı acente, tür ve fiyat belirleyebilirsiniz.</p>
+            
+            <!-- Adım 1: Araç Seçimi -->
+            <div class="mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">1. Araçları Seçin</span>
+                    <div class="flex gap-2">
+                        <input type="text" id="toplu-police-arac-search" placeholder="Plaka ara..." oninput="window.filterTopluPoliceAraclar(this.value)"
+                            class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-purple-500 w-32">
+                        <button type="button" onclick="window.selectAllTopluAraclar(true)" class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 transition-all">Tümünü Seç</button>
+                        <button type="button" onclick="window.selectAllTopluAraclar(false)" class="px-3 py-1 text-[10px] font-bold rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 transition-all">Temizle</button>
+                    </div>
+                </div>
+                <div id="toplu-police-arac-list" class="grid grid-cols-4 gap-2 p-3 bg-white/5 rounded-xl border border-white/10 max-h-32 overflow-y-auto">
+                    <div class="text-xs text-gray-500 col-span-4 text-center py-2">Yükleniyor...</div>
+                </div>
+            </div>
+
+            <!-- Adım 2: Ortak Değerleri Uygula -->
+            <div class="mb-4 p-3 bg-purple-500/5 border border-purple-500/20 rounded-xl">
+                <div class="flex items-center gap-2 mb-3">
+                    <i data-lucide="copy" class="w-4 h-4 text-purple-400"></i>
+                    <span class="text-xs font-bold text-purple-300 uppercase tracking-widest">Seçililere Toplu Uygula (İsteğe Bağlı)</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Tür (Hepsine)</label>
+                        <select id="toplu-police-tur-common" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500">
+                            <option value="">— Seçin —</option>
+                            <option value="Trafik Sigortası">Trafik Sigortası</option>
+                            <option value="Kasko">Kasko</option>
+                            <option value="Koltuk Sigortası">Koltuk Ferdi Kaza</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Başlangıç (Hepsine)</label>
+                        <input type="date" id="toplu-police-baslangic-common" value="${new Date().toISOString().split('T')[0]}"
+                            class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Bitiş (Hepsine)</label>
+                        <input type="date" id="toplu-police-bitis-common"
+                            class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-purple-500">
+                    </div>
+                </div>
+                <button type="button" onclick="window.applyTopluPoliceCommon()" 
+                    class="w-full py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check-check" class="w-3.5 h-3.5"></i> Seçili Araçların Satırlarına Uygula
+                </button>
+            </div>
+
+            <!-- Adım 3: Araç Başına Detay Tablosu -->
+            <div>
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-2">2. Her Araç İçin Detayları Girin</span>
+                <div id="toplu-police-rows-container" class="space-y-0 rounded-xl overflow-hidden border border-white/10">
+                    <div class="text-xs text-gray-500 text-center py-4 bg-white/5">Yukarıdan araç seçin...</div>
+                </div>
+            </div>
+        `;
+        setTimeout(async () => {
+            if (window.lucide) window.lucide.createIcons();
+            // Araçları yükle
+            try {
+                const { data: araclar } = await window.supabaseClient.from('araclar').select('id, plaka').order('plaka');
+                window._topluPoliceAraclar = araclar || [];
+                window._topluPoliceCariList = [];
+                window._topluPoliceSelectedAracIds = new Set();
+
+                // Cari listesini de yükle (acente seçimi için)
+                const { data: carilerList } = await window.supabaseClient.from('cariler').select('id, unvan').order('unvan');
+                window._topluPoliceCariList = carilerList || [];
+
+                window.renderTopluPoliceAracList(araclar || []);
+            } catch(e) { console.error(e); }
+        }, 50);
     } else if (title === 'Poliçe Düzenle') {
         content = `
                     <p class="text-sm text-gray-400 mb-8">Poliçenizdeki bilgileri güncelleyin ve ödeme yaptığınız kredi kartını/notu belirtin.</p>
@@ -2803,6 +2880,203 @@ window.handleFinansTurChange = function (tur) {
         container.classList.add('hidden');
     }
 };
+/* === TOPLU POLİCE YARDIMCI FONKSİYONLARI === */
+
+window.renderTopluPoliceAracList = function(araclar) {
+    const container = document.getElementById('toplu-police-arac-list');
+    if (!container) return;
+    if (!araclar || araclar.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-500 col-span-4 text-center py-2">Araç bulunamadı.</div>';
+        return;
+    }
+    container.innerHTML = araclar.map(a => `
+        <label class="flex items-center gap-1.5 cursor-pointer bg-white/5 hover:bg-white/10 rounded-lg px-2 py-1.5 transition-all" data-plaka="${a.plaka}">
+            <input type="checkbox" data-arac-id="${a.id}" data-plaka="${a.plaka}"
+                onchange="window.toggleTopluPoliceArac('${a.id}', '${a.plaka}', this.checked)"
+                class="rounded border-white/20 bg-black/30 text-purple-500 w-3.5 h-3.5 focus:ring-purple-500">
+            <span class="text-xs font-bold text-white">${a.plaka}</span>
+        </label>
+    `).join('');
+};
+
+window.filterTopluPoliceAraclar = function(query) {
+    const q = (query || '').toLowerCase();
+    const labels = document.querySelectorAll('#toplu-police-arac-list label[data-plaka]');
+    labels.forEach(lbl => {
+        const plaka = (lbl.dataset.plaka || '').toLowerCase();
+        lbl.style.display = plaka.includes(q) ? '' : 'none';
+    });
+};
+
+window.selectAllTopluAraclar = function(select) {
+    const checkboxes = document.querySelectorAll('#toplu-police-arac-list input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        if (cb.style.display !== 'none' && cb.closest('label').style.display !== 'none') {
+            cb.checked = select;
+            const aracId = cb.dataset.aracId;
+            const plaka  = cb.dataset.plaka;
+            if (select) {
+                window._topluPoliceSelectedAracIds = window._topluPoliceSelectedAracIds || new Set();
+                window._topluPoliceSelectedAracIds.add(aracId);
+                window.addTopluPoliceRow(aracId, plaka);
+            } else {
+                if (window._topluPoliceSelectedAracIds) window._topluPoliceSelectedAracIds.delete(aracId);
+                window.removeTopluPoliceRow(aracId);
+            }
+        }
+    });
+};
+
+window.toggleTopluPoliceArac = function(aracId, plaka, checked) {
+    window._topluPoliceSelectedAracIds = window._topluPoliceSelectedAracIds || new Set();
+    if (checked) {
+        window._topluPoliceSelectedAracIds.add(aracId);
+        window.addTopluPoliceRow(aracId, plaka);
+    } else {
+        window._topluPoliceSelectedAracIds.delete(aracId);
+        window.removeTopluPoliceRow(aracId);
+    }
+};
+
+window.addTopluPoliceRow = function(aracId, plaka) {
+    const container = document.getElementById('toplu-police-rows-container');
+    if (!container) return;
+    if (container.querySelector('[data-row-arac-id="' + aracId + '"]')) return; // zaten var
+
+    // Boş durum mesajını kaldır
+    const emptyMsg = container.querySelector('.text-center.py-4');
+    if (emptyMsg) emptyMsg.remove();
+
+    const cariOptions = (window._topluPoliceCariList || []).map(c =>
+        `<option value="${c.id}">${c.unvan}</option>`
+    ).join('');
+
+    const today = new Date().toISOString().split('T')[0];
+    const nextYear = new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0];
+
+    const row = document.createElement('div');
+    row.setAttribute('data-row-arac-id', aracId);
+    row.className = 'grid grid-cols-6 gap-2 p-3 bg-white/5 border-b border-white/10 hover:bg-white/8 transition-all items-center';
+    row.innerHTML = `
+        <div class="font-bold text-sm text-white flex items-center gap-1">
+            <i data-lucide="truck" class="w-3 h-3 text-purple-400"></i>
+            ${plaka}
+        </div>
+        <select class="toplu-police-tur bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-purple-500" data-field="tur">
+            <option value="Trafik Sigortası">Trafik Sig.</option>
+            <option value="Kasko">Kasko</option>
+            <option value="Koltuk Sigortası">Koltuk F.K.</option>
+        </select>
+        <select class="toplu-police-cari bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:border-purple-500" data-field="cari_id">
+            <option value="">— Acente —</option>
+            ${cariOptions}
+        </select>
+        <div class="grid grid-rows-2 gap-1">
+            <input type="date" value="${today}" class="toplu-police-baslangic bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-[10px] focus:outline-none focus:border-purple-500" data-field="baslangic">
+            <input type="date" value="${nextYear}" class="toplu-police-bitis bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-[10px] focus:outline-none focus:border-purple-500" data-field="bitis">
+        </div>
+        <div class="grid grid-rows-2 gap-1">
+            <input type="number" step="0.01" placeholder="Tutar ₺" class="toplu-police-tutar bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-[10px] focus:outline-none focus:border-purple-500" data-field="tutar">
+            <input type="number" value="1" min="1" placeholder="Taksit" class="toplu-police-taksit bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white text-[10px] focus:outline-none focus:border-purple-500" data-field="taksit">
+        </div>
+        <button type="button" onclick="window.toggleTopluPoliceArac('${aracId}', '${plaka}', false); document.querySelector('#toplu-police-arac-list input[data-arac-id=\\'${aracId}\\']').checked=false;"
+            class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all flex items-center justify-center">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+    `;
+    container.appendChild(row);
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.removeTopluPoliceRow = function(aracId) {
+    const container = document.getElementById('toplu-police-rows-container');
+    if (!container) return;
+    const row = container.querySelector('[data-row-arac-id="' + aracId + '"]');
+    if (row) row.remove();
+    if (container.children.length === 0) {
+        container.innerHTML = '<div class="text-xs text-gray-500 text-center py-4 bg-white/5">Yukarıdan araç seçin...</div>';
+    }
+};
+
+window.applyTopluPoliceCommon = function() {
+    const tur = document.getElementById('toplu-police-tur-common')?.value;
+    const bas = document.getElementById('toplu-police-baslangic-common')?.value;
+    const bit = document.getElementById('toplu-police-bitis-common')?.value;
+
+    const rows = document.querySelectorAll('#toplu-police-rows-container [data-row-arac-id]');
+    rows.forEach(row => {
+        if (tur) { const el = row.querySelector('.toplu-police-tur'); if (el) el.value = tur; }
+        if (bas) { const el = row.querySelector('.toplu-police-baslangic'); if (el) el.value = bas; }
+        if (bit) { const el = row.querySelector('.toplu-police-bitis'); if (el) el.value = bit; }
+    });
+};
+
+window.saveTopluPolice = async function() {
+    const rows = document.querySelectorAll('#toplu-police-rows-container [data-row-arac-id]');
+    if (rows.length === 0) {
+        alert('Lütfen en az bir araç seçin.');
+        return;
+    }
+
+    const insertList = [];
+    const aracUpdates = [];
+    let hasError = false;
+
+    rows.forEach(row => {
+        const aracId   = row.dataset.rowAracId;
+        const tur      = row.querySelector('.toplu-police-tur')?.value || 'Trafik Sigortası';
+        const cariId   = row.querySelector('.toplu-police-cari')?.value || null;
+        const bas      = row.querySelector('.toplu-police-baslangic')?.value || null;
+        const bit      = row.querySelector('.toplu-police-bitis')?.value || null;
+        const tutar    = parseFloat(row.querySelector('.toplu-police-tutar')?.value) || 0;
+        const taksit   = parseInt(row.querySelector('.toplu-police-taksit')?.value) || 1;
+        const plaka    = row.querySelector('div.font-bold')?.textContent?.trim() || '';
+
+        if (!bit) { alert(plaka + ' için bitiş tarihi zorunludur.'); hasError = true; return; }
+
+        insertList.push({ arac_id: aracId, cari_id: cariId || null, police_turu: tur, baslangic_tarihi: bas, bitis_tarihi: bit, toplam_tutar: tutar, taksit_sayisi: taksit });
+
+        // Araç tarih güncelleme için not et
+        const pType = tur.toLowerCase();
+        const upd = {};
+        if (pType.includes('kasko')) upd.kasko_bitis = bit;
+        else if (pType.includes('trafik') || pType.includes('sigort')) upd.sigorta_bitis = bit;
+        else if (pType.includes('koltuk')) upd.koltuk_bitis = bit;
+        if (Object.keys(upd).length) aracUpdates.push({ arac_id: aracId, payload: upd });
+    });
+
+    if (hasError || insertList.length === 0) return;
+
+    const btn = document.getElementById('modal-save-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Kaydediliyor...'; }
+
+    try {
+        const { error } = await window.supabaseClient.from('arac_policeler').insert(insertList);
+        if (error) throw error;
+
+        // Araç bitiş tarihlerini güncelle
+        await Promise.all(aracUpdates.map(u =>
+            window.supabaseClient.from('araclar').update(u.payload).eq('id', u.arac_id)
+        ));
+
+        closeModal();
+        if (typeof fetchPoliceler === 'function') fetchPoliceler();
+        if (typeof fetchAraclar === 'function') fetchAraclar();
+        if (typeof fetchTaksitler === 'function') fetchTaksitler();
+
+        // Başarı bildirimi
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-6 right-6 z-[9999] bg-green-500 text-white px-6 py-3 rounded-xl font-bold shadow-xl shadow-green-500/30 text-sm flex items-center gap-2';
+        toast.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> ${insertList.length} araç için poliçe kaydedildi!`;
+        document.body.appendChild(toast);
+        if (window.lucide) window.lucide.createIcons();
+        setTimeout(() => toast.remove(), 4000);
+    } catch(e) {
+        alert('Hata: ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'Kaydet'; }
+    }
+};
+
 /* === PRINT FUNCTIONS === */
 window.printTaseronRapor = function () {
     const month = document.getElementById('filter-taseron-rapor-ay')?.value || '';
