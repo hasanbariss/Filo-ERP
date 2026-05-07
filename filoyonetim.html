@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 
 <head>
@@ -91,6 +91,11 @@
 
     <!-- === DOMPurify (XSS KorumasÄ±) === -->
     <style>
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
         /* Modern Report Print Styles */
         @media print {
             body * { visibility: hidden !important; }
@@ -365,112 +370,215 @@
                     </div>
                 </div>
 
-                <!-- KPI KARTLARI -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-                    <!-- 1. Filo & Operasyon -->
-                    <div class="dashboard-card border border-white/5 bg-gradient-to-br from-blue-500/5 to-transparent relative overflow-hidden cursor-pointer hover:border-blue-500/20 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                        <div class="flex items-center gap-3 mb-5 relative z-10">
-                            <div class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl shadow-inner shadow-blue-500/30"><i data-lucide="truck" class="w-5 h-5"></i></div>
-                            <h3 class="text-sm font-bold text-gray-200">Filo Operasyonu</h3>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 relative z-10">
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Toplam Araç</p>
-                                <p class="text-2xl font-black text-blue-400" id="kpi-arac">—</p>
-                            </div>
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Aktif Şoför</p>
-                                <p class="text-2xl font-black text-blue-400" id="kpi-sofor">—</p>
+                <!-- YENİ MODERN DASHBOARD - 1. SATIR: KPI KARTLARI -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- Kart 1: Filo Durumu -->
+                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-blue-500/30 transition-all shadow-lg relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <div class="flex items-end gap-2 mb-1">
+                                    <span class="text-4xl font-black text-white" id="kpi-arac-main">0</span>
+                                </div>
+                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Toplam Filo Sayısı</h3>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- 2. İş Ağı & Müşteriler -->
-                    <div class="dashboard-card border border-white/5 bg-gradient-to-br from-orange-500/5 to-transparent relative overflow-hidden cursor-pointer hover:border-orange-500/20 transition-all" onclick="document.querySelector('[data-target=module-musteri]').click()">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                        <div class="flex items-center gap-3 mb-5 relative z-10">
-                            <div class="p-2.5 bg-orange-500/20 text-orange-400 rounded-xl shadow-inner shadow-orange-500/30"><i data-lucide="building-2" class="w-5 h-5"></i></div>
-                            <h3 class="text-sm font-bold text-gray-200">İş Ağı & Cariler</h3>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 relative z-10">
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Fabrikalar</p>
-                                <p class="text-2xl font-black text-orange-400" id="kpi-musteri">—</p>
+                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
+                            <div class="w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
+                                <i data-lucide="truck" class="w-6 h-6"></i>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/5">
-                                <p class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Aktif Cari</p>
-                                <p class="text-2xl font-black text-orange-400" id="kpi-cari">—</p>
+                            <div class="flex-1 space-y-2">
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-bold text-gray-300">Özmal</span></div><span class="text-sm font-black text-white" id="kpi-arac-ozmal">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-500"></div><span class="text-xs font-bold text-gray-300">Taşeron</span></div><span class="text-sm font-black text-white" id="kpi-arac-taseron">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-bold text-gray-300">Kiralık</span></div><span class="text-sm font-black text-white" id="kpi-arac-kiralik">0</span></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- 3. Finansal Özet -->
-                    <div class="dashboard-card border border-white/5 bg-gradient-to-br from-emerald-500/5 to-transparent relative overflow-hidden cursor-pointer hover:border-emerald-500/20 transition-all" onclick="document.querySelector('[data-target=module-finans]').click()">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                        <div class="flex items-center gap-3 mb-4 relative z-10">
-                            <div class="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-xl shadow-inner shadow-emerald-500/30"><i data-lucide="wallet" class="w-5 h-5"></i></div>
-                            <h3 class="text-sm font-bold text-gray-200">Finansal Özet (Genel)</h3>
+                    
+                    <!-- Kart 2: Yaklaşan Poliçeler -->
+                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-red-500/30 transition-all shadow-lg relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <div class="flex items-end gap-2 mb-1">
+                                    <span class="text-4xl font-black text-white" id="kpi-police-main">0</span>
+                                    <span class="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md mb-1 border border-red-500/20">30 GÜN</span>
+                                </div>
+                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Yaklaşan Poliçeler</h3>
+                            </div>
                         </div>
-                        <div class="space-y-2.5 relative z-10">
-                            <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                                <p class="text-xs font-bold text-gray-400">Tahmini Ciro</p>
-                                <p class="text-sm font-black text-emerald-400" id="kpi-ciro">—</p>
+                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
+                            <div class="w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
+                                <i data-lucide="shield-alert" class="w-6 h-6"></i>
                             </div>
-                            <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                                <p class="text-xs font-bold text-gray-400">Genel Giderler</p>
-                                <p class="text-sm font-black text-pink-400" id="kpi-gider">—</p>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <p class="text-xs font-bold text-gray-400">Taşeron Hakediş</p>
-                                <p class="text-sm font-black text-indigo-400" id="kpi-taseron-hakedis">—</p>
+                            <div class="flex-1 space-y-2">
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-400"></div><span class="text-xs font-bold text-gray-300">Trafik</span></div><span class="text-sm font-black text-white" id="kpi-police-trafik">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400"></div><span class="text-xs font-bold text-gray-300">Kasko</span></div><span class="text-sm font-black text-white" id="kpi-police-kasko">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-pink-400"></div><span class="text-xs font-bold text-gray-300">Koltuk</span></div><span class="text-sm font-black text-white" id="kpi-police-koltuk">0</span></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- 4. Risk ve Uyarılar -->
-                    <div class="dashboard-card border border-white/5 bg-gradient-to-br from-red-500/5 to-transparent relative overflow-hidden cursor-pointer hover:border-red-500/20 transition-all" onclick="document.querySelector('[data-target=module-filo]').click()">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
-                        <div class="flex items-center gap-3 mb-4 relative z-10">
-                            <div class="p-2.5 bg-red-500/20 text-red-400 rounded-xl shadow-inner shadow-red-500/30"><i data-lucide="shield-alert" class="w-5 h-5"></i></div>
-                            <h3 class="text-sm font-bold text-gray-200">Risk & Uyarılar</h3>
-                        </div>
-                        <div class="flex items-center justify-between bg-red-500/10 p-4 rounded-xl relative z-10 mb-3 border border-red-500/20">
-                            <div class="flex items-center gap-3">
-                                <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]"></div>
-                                <p class="text-xs font-bold text-gray-200 uppercase tracking-widest">Yaklaşan Evrak</p>
+                
+                    <!-- Kart 3: Vize & Bakım -->
+                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-yellow-500/30 transition-all shadow-lg relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <div class="flex items-end gap-2 mb-1">
+                                    <span class="text-4xl font-black text-white" id="kpi-bakim-main">0</span>
+                                    <span class="text-[10px] font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md mb-1 border border-orange-500/20">ACİL</span>
+                                </div>
+                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Yaklaşan Vize & Bakım</h3>
                             </div>
-                            <p class="text-2xl font-black text-red-400" id="kpi-evrak">—</p>
                         </div>
-                        <p class="text-[10px] text-gray-500 relative z-10 font-medium">* Son 30 gün içinde süresi dolacak poliçe, vize veya diğer evrak sayısı.</p>
+                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
+                            <div class="w-14 h-14 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
+                                <i data-lucide="wrench" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-400"></div><span class="text-xs font-bold text-gray-300">Vize</span></div><span class="text-sm font-black text-white" id="kpi-bakim-vize">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-400"></div><span class="text-xs font-bold text-gray-300">Yağ (KM)</span></div><span class="text-sm font-black text-white" id="kpi-bakim-yag">0</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-400"></div><span class="text-xs font-bold text-gray-300">Süresi Geçen</span></div><span class="text-sm font-black text-white" id="kpi-bakim-gecmis">0</span></div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Kart 4: Finansal Performans -->
+                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-500/30 transition-all shadow-lg relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div>
+                                <div class="flex items-end gap-2 mb-1">
+                                    <span class="text-2xl font-black text-white" id="kpi-finans-main">0 ₺</span>
+                                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md mb-1 border border-emerald-500/20">AYLIK</span>
+                                </div>
+                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Aylık Toplam Ciro</h3>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
+                            <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
+                                <i data-lucide="wallet" class="w-6 h-6"></i>
+                            </div>
+                            <div class="flex-1 space-y-2">
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400"></div><span class="text-[11px] font-bold text-gray-300">Servis Geliri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-gelir">0 ₺</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-400"></div><span class="text-[11px] font-bold text-gray-300">Yakıt Gideri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-yakit">0 ₺</span></div>
+                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-400"></div><span class="text-[11px] font-bold text-gray-300">Bakım Gideri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-bakim">0 ₺</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- HIZLI İŞLEMLER + EXCEL -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div class="dashboard-card">
-                        <div class="flex items-center gap-2 mb-4"><i data-lucide="zap" class="w-4 h-4 text-orange-500"></i><h3 class="font-bold text-sm">Hızlı İşlemler</h3></div>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button onclick="openModal('Yeni Araç Ekle')" class="flex flex-col items-center gap-2 p-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 rounded-xl transition-all group"><div class="p-2 bg-blue-500/20 rounded-lg text-blue-400 group-hover:scale-110 transition-transform"><i data-lucide="truck" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest text-center">Araç Ekle</span></button>
-                            <button onclick="openModal('Yeni Şoför Ekle')" class="flex flex-col items-center gap-2 p-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-xl transition-all group"><div class="p-2 bg-emerald-500/20 rounded-lg text-emerald-400 group-hover:scale-110 transition-transform"><i data-lucide="user-plus" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest text-center">Şoför Ekle</span></button>
-                            <button onclick="openModal('Yeni Yakıt Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-xl transition-all group"><div class="p-2 bg-orange-500/20 rounded-lg text-orange-400 group-hover:scale-110 transition-transform"><i data-lucide="fuel" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-orange-400 uppercase tracking-widest text-center">Yakıt Gir</span></button>
-                            <button onclick="openModal('Yeni Bakım/Parça Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20 rounded-xl transition-all group"><div class="p-2 bg-yellow-500/20 rounded-lg text-yellow-400 group-hover:scale-110 transition-transform"><i data-lucide="wrench" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-yellow-400 uppercase tracking-widest text-center">Bakım Ekle</span></button>
-                            <button onclick="openModal('Yeni Müşteri Ekle')" class="flex flex-col items-center gap-2 p-3 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 rounded-xl transition-all group"><div class="p-2 bg-purple-500/20 rounded-lg text-purple-400 group-hover:scale-110 transition-transform"><i data-lucide="building-2" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-purple-400 uppercase tracking-widest text-center">Fabrika Ekle</span></button>
-                            <button onclick="openModal('Yeni Poliçe Kaydı')" class="flex flex-col items-center gap-2 p-3 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 rounded-xl transition-all group"><div class="p-2 bg-pink-500/20 rounded-lg text-pink-400 group-hover:scale-110 transition-transform"><i data-lucide="shield" class="w-4 h-4"></i></div><span class="text-[10px] font-bold text-pink-400 uppercase tracking-widest text-center">Poliçe Ekle</span></button>
+                <!-- 2. SATIR: GRAFİK VE LİSTELER -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                    <!-- Sol Panel: Filo Durumu Donut Chart -->
+                    <div class="lg:col-span-5 bg-[#1a1d24] border border-white/10 rounded-2xl p-6 relative flex flex-col">
+                        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                            <div>
+                                <h3 class="text-lg font-black text-white">Filo Durumu</h3>
+                                <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">Sahiplik Dağılımı</p>
+                            </div>
+                            <div class="p-2 bg-white/5 rounded-lg text-gray-400"><i data-lucide="pie-chart" class="w-4 h-4"></i></div>
+                        </div>
+                        
+                        <div class="relative h-64 flex items-center justify-center flex-1">
+                            <canvas id="fleetDonutChart"></canvas>
+                            <!-- Center Text -->
+                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                <span class="text-4xl font-black text-white" id="donut-total">0</span>
+                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Araç</span>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-center items-center gap-6 mt-6 border-t border-white/5 pt-4">
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#f97316]"></div><span class="text-xs font-bold text-gray-300">Özmal (<span id="fleet-ozmal-count">0</span>)</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#3b82f6]"></div><span class="text-xs font-bold text-gray-300">Taşeron (<span id="fleet-taseron-count">0</span>)</span></div>
+                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#a855f7]"></div><span class="text-xs font-bold text-gray-300">Kiralık (<span id="fleet-kiralik-count">0</span>)</span></div>
                         </div>
                     </div>
-                    <div class="dashboard-card">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2"><i data-lucide="file-up" class="w-4 h-4 text-emerald-500"></i><h3 class="font-bold text-sm">Günlük Excel Import</h3></div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tarih | Plaka | Fabrika | Giriş | Çıkış</span>
-                        </div>
-                        <div class="mb-4 p-4 bg-white/3 border border-white/8 rounded-xl flex items-center gap-4">
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                <div class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                                <label for="import-bolge-select" class="text-xs font-black text-white uppercase tracking-widest">Bölge Seçiniz</label>
-                                <span class="text-red-400 text-xs font-bold">(Zorunlu)</span>
+
+                    <!-- Sağ Panel: Personel Durumu ve Aktiviteler -->
+                    <div class="lg:col-span-7 bg-[#1a1d24] border border-white/10 rounded-2xl p-6 flex flex-col gap-6">
+                        
+                        <!-- Üst: Personel / İşlemler -->
+                        <div>
+                            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                                <div>
+                                    <h3 class="text-lg font-black text-white">Kayıtlı Profil Özeti</h3>
+                                    <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">Güncel Veri Tabanı İstatistikleri</p>
+                                </div>
+                                <div class="text-right flex items-center gap-3">
+                                    <div class="text-right">
+                                        <span class="text-3xl font-black text-white" id="kpi-personel-main">0</span>
+                                        <div class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mt-1">Toplam Profil</div>
+                                    </div>
+                                </div>
                             </div>
-                            <select id="import-bolge-select" class="flex-1 bg-[#0d0f11] border-2 border-orange-500/50 text-white font-bold text-sm rounded-xl px-4 py-2.5 outline-none focus:border-orange-500 cursor-pointer transition-all hover:border-orange-400">
+                            
+                            <div class="space-y-6">
+                                <!-- Bar 1 -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg"><i data-lucide="users" class="w-4 h-4"></i></div>
+                                            <div><p class="text-sm font-bold text-white leading-none">Sürücüler / Şoförler</p><p class="text-[10px] text-gray-500 mt-0.5">Araç kullanan personel</p></div>
+                                        </div>
+                                        <span class="text-sm font-black text-white" id="bar-sofor-count">0</span>
+                                    </div>
+                                    <div class="w-full bg-[#0d0f11] h-2 rounded-full overflow-hidden border border-white/5"><div class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 0%" id="bar-sofor-width"></div></div>
+                                </div>
+                                <!-- Bar 2 -->
+                                <div>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <div class="flex items-center gap-3">
+                                            <div class="p-1.5 bg-yellow-500/20 text-yellow-400 rounded-lg"><i data-lucide="building-2" class="w-4 h-4"></i></div>
+                                            <div><p class="text-sm font-bold text-white leading-none">Müşteri / Cari Firmalar</p><p class="text-[10px] text-gray-500 mt-0.5">Fabrika ve taşeronlar</p></div>
+                                        </div>
+                                        <span class="text-sm font-black text-white" id="bar-cari-count">0</span>
+                                    </div>
+                                    <div class="w-full bg-[#0d0f11] h-2 rounded-full overflow-hidden border border-white/5"><div class="bg-yellow-500 h-full rounded-full transition-all duration-1000" style="width: 0%" id="bar-cari-width"></div></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <button onclick="openModal('Yeni Yakıt Kaydı')" class="flex-1 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="fuel" class="w-4 h-4"></i> Yakıt Gir</button>
+                                <button onclick="openModal('Yeni Bakım/Parça Kaydı')" class="flex-1 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="wrench" class="w-4 h-4"></i> Bakım Gir</button>
+                                <button onclick="openModal('Yeni Poliçe Kaydı')" class="flex-1 py-2.5 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 text-pink-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> Poliçe Ekle</button>
+                            </div>
+                        </div>
+
+                        <!-- Alt: Son Aktiviteler -->
+                        <div class="flex-1 flex flex-col border-t border-white/5 pt-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
+                                <button onclick="window.fetchDashboardData()" class="text-[10px] text-gray-400 hover:text-white transition-colors"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                            </div>
+                            <div class="flex-1 bg-[#0d0f11] border border-white/5 rounded-xl p-3 overflow-y-auto" style="max-height: 220px;">
+                                <table class="w-full text-left border-collapse">
+                                    <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
+                                        <tr><td class="text-xs text-gray-500 text-center py-4">Yükleniyor...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. SATIR: EXCEL IMPORT VE DETAYLI POLİÇELER -->
+                <div class="grid grid-cols-1 gap-6 mb-8">
+                    
+                    <!-- Excel Import -->
+                    <div class="bg-[#1a1d24] border border-emerald-500/20 rounded-2xl p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2"><i data-lucide="file-up" class="w-5 h-5 text-emerald-500"></i><h3 class="font-bold text-base text-white">Günlük Excel Import (Puantaj)</h3></div>
+                            <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest hidden sm:block">Tarih | Plaka | Fabrika | Giriş | Çıkış</span>
+                        </div>
+                        <div class="mb-4 p-4 bg-[#0d0f11] border border-white/5 rounded-xl flex items-center gap-4">
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+                                <label for="import-bolge-select" class="text-xs font-black text-white uppercase tracking-widest">Bölge Seçiniz</label>
+                                <span class="text-red-400 text-[10px] font-bold">(Zorunlu)</span>
+                            </div>
+                            <select id="import-bolge-select" class="flex-1 bg-[#1a1d24] border-2 border-orange-500/50 text-white font-bold text-sm rounded-xl px-4 py-2.5 outline-none focus:border-orange-500 cursor-pointer transition-all hover:border-orange-400">
                                 <option value="" disabled selected>-- Lütfen bir bölge seçin --</option>
                                 <option value="İzmir">🔵 İzmir Servisleri</option>
                                 <option value="Manisa">🟠 Manisa Servisleri</option>
@@ -478,9 +586,9 @@
                             <div id="import-bolge-badge" class="hidden px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest"></div>
                         </div>
                         <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display:none" onchange="window.handleImportFile(this.files[0])">
-                        <div class="import-drop-area" ondrop="window.handleImportDrop(event)" ondragover="window.handleImportDragOver(event)" ondragleave="window.handleImportDragLeave()" onclick="window.checkBolgeAndOpenFile()">
-                            <div class="import-drop-icon"><i data-lucide="upload-cloud" class="w-8 h-8"></i></div>
-                            <p class="text-sm font-bold mt-2">Excel'i sürükle &amp; bırak</p>
+                        <div class="import-drop-area border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all cursor-pointer" ondrop="window.handleImportDrop(event)" ondragover="window.handleImportDragOver(event)" ondragleave="window.handleImportDragLeave()" onclick="window.checkBolgeAndOpenFile()">
+                            <div class="flex justify-center mb-3"><div class="p-3 bg-emerald-500/20 rounded-full text-emerald-400"><i data-lucide="upload-cloud" class="w-8 h-8"></i></div></div>
+                            <p class="text-sm font-bold text-white mt-2">Excel'i sürükle &amp; bırak</p>
                             <p class="text-xs text-gray-500 mt-1">veya tıkla &amp; seç (.xlsx / .xls)</p>
                         </div>
                         <div class="mt-4 text-center">
@@ -489,166 +597,57 @@
                             </a>
                         </div>
                     </div>
-                </div>
 
-                <!-- GRAFİKLER -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <!-- Grafik 1: Finansal Performans (6 Aylık) -->
-                    <div class="dashboard-card lg:col-span-2 border border-white/5 bg-gradient-to-b from-[#111418] to-transparent relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 relative z-10 gap-4">
-                            <div>
-                                <h3 class="font-bold text-lg text-gray-200 tracking-tight">Aylık Finansal Trend</h3>
-                                <p class="text-xs text-gray-500 mt-1 font-medium">Son 6 aylık Ciro ve Gider Karşılaştırması</p>
+                    <!-- Biten & Yaklaşan Poliçeler Tablosu (Kullanıcı Önceliği) -->
+                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center"><i data-lucide="shield-x" class="w-5 h-5 text-rose-400"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-base text-white">Biten &amp; Yaklaşan Poliçeler</h3>
+                                    <p class="text-[10px] text-gray-500 mt-0.5">Geçmiş bitişler ve önümüzdeki 90 gün içinde dolacak sigortalar</p>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-4 text-[11px] font-black tracking-widest bg-white/5 px-4 py-2 rounded-xl border border-white/10 uppercase">
-                                <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span><span class="text-gray-300">Ciro</span></span>
-                                <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]"></span><span class="text-gray-300">Gider</span></span>
-                            </div>
-                        </div>
-                        <div class="h-[300px] w-full relative z-10">
-                            <canvas id="mainChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Grafik 2: Gider Dağılımı -->
-                    <div class="dashboard-card border border-white/5 bg-gradient-to-b from-[#111418] to-transparent relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
-                        <div class="flex justify-between items-start mb-6 relative z-10">
-                            <div>
-                                <h3 class="font-bold text-lg text-gray-200 tracking-tight">Gider & Maliyet Analizi</h3>
-                                <p class="text-xs text-gray-500 mt-1 font-medium" id="expense-month-label">Bu ayki toplam gider dağılımı</p>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div id="police-ozet-badges" class="flex items-center gap-2"></div>
+                                <select id="police-filtre" onchange="window.filterPoliceDashboard(this.value)" class="bg-white/5 border border-white/10 text-white text-[10px] font-bold rounded-lg px-3 py-2 outline-none cursor-pointer hover:border-white/25 transition-all uppercase tracking-wide">
+                                    <option value="tumu">Tüm Kayıtlar</option>
+                                    <option value="gecmis">Geçmiş (Biten)</option>
+                                    <option value="kritik">Kritik (0–7 Gün)</option>
+                                    <option value="yaklasan">Yaklaşan (8–30 Gün)</option>
+                                    <option value="normal">Normal (31–90 Gün)</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="h-[220px] w-full relative z-10 mb-6 mt-2">
-                            <canvas id="expenseDonutChart"></canvas>
-                            <!-- Merkez Yazı -->
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>Özmal</span><span class="font-bold" id="fleet-ozmal-count">—</span></div>
-                            <div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>Taşeron</span><span class="font-bold" id="fleet-taseron-count">—</span></div>
-                            <div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>Kiralık</span><span class="font-bold" id="fleet-kiralik-count">—</span></div>
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="text-[9px] text-gray-500 uppercase tracking-widest border-b border-white/5">
+                                        <th class="pb-3 px-3 font-bold">Durum</th>
+                                        <th class="pb-3 px-3 font-bold">Plaka</th>
+                                        <th class="pb-3 px-3 font-bold">Poliçe Türü</th>
+                                        <th class="pb-3 px-3 font-bold">Sigorta Firması</th>
+                                        <th class="pb-3 px-3 font-bold">Başlangıç</th>
+                                        <th class="pb-3 px-3 font-bold">Bitiş Tarihi</th>
+                                        <th class="pb-3 px-3 font-bold text-center">Kalan Süre</th>
+                                        <th class="pb-3 px-3 font-bold text-right">Prim Tutarı</th>
+                                        <th class="pb-3 px-3 font-bold text-center">Taksit</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="police-dashboard-tbody" class="divide-y divide-white/5">
+                                    <tr><td colspan="9" class="py-14 text-center">
+                                        <div class="flex flex-col items-center gap-3 text-gray-600">
+                                            <div class="w-8 h-8 border-2 border-gray-700 border-t-rose-500 rounded-full animate-spin"></div>
+                                            <span class="text-xs font-bold uppercase tracking-widest">Poliçeler yükleniyor...</span>
+                                        </div>
+                                    </td></tr>
+                                </tbody>
+                            </table>
                         </div>
-                    </div>
-                </div>
-                </div>
-
-                <!-- BİTEN POLİÇELER DETAYLI TABLO -->
-                <div class="dashboard-card mb-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center"><i data-lucide="shield-x" class="w-5 h-5 text-rose-400"></i></div>
-                            <div>
-                                <h3 class="font-bold text-base text-white">Biten &amp; Yaklaşan Poliçeler</h3>
-                                <p class="text-[10px] text-gray-500 mt-0.5">Geçmiş bitişler ve önümüzdeki 90 gün içinde dolacak sigortalar</p>
-                            </div>
+                        <div id="police-dashboard-footer" class="hidden mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
+                            <span class="text-[10px] text-gray-500" id="police-gosterilen-sayi"></span>
+                            <button onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="text-[10px] text-rose-400 hover:text-rose-300 font-bold transition-colors">Tümünü Göster →</button>
                         </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <div id="police-ozet-badges" class="flex items-center gap-2"></div>
-                            <select id="police-filtre" onchange="window.filterPoliceDashboard(this.value)" class="bg-white/5 border border-white/10 text-white text-[10px] font-bold rounded-lg px-3 py-2 outline-none cursor-pointer hover:border-white/25 transition-all uppercase tracking-wide">
-                                <option value="tumu">Tüm Kayıtlar</option>
-                                <option value="gecmis">Geçmiş (Biten)</option>
-                                <option value="kritik">Kritik (0–7 Gün)</option>
-                                <option value="yaklasan">Yaklaşan (8–30 Gün)</option>
-                                <option value="normal">Normal (31–90 Gün)</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="text-[9px] text-gray-500 uppercase tracking-widest border-b border-white/5">
-                                    <th class="pb-3 px-3 font-bold">Durum</th>
-                                    <th class="pb-3 px-3 font-bold">Plaka</th>
-                                    <th class="pb-3 px-3 font-bold">Poliçe Türü</th>
-                                    <th class="pb-3 px-3 font-bold">Sigorta Firması</th>
-                                    <th class="pb-3 px-3 font-bold">Başlangıç</th>
-                                    <th class="pb-3 px-3 font-bold">Bitiş Tarihi</th>
-                                    <th class="pb-3 px-3 font-bold text-center">Kalan Süre</th>
-                                    <th class="pb-3 px-3 font-bold text-right">Prim Tutarı</th>
-                                    <th class="pb-3 px-3 font-bold text-center">Taksit</th>
-                                </tr>
-                            </thead>
-                            <tbody id="police-dashboard-tbody" class="divide-y divide-white/5">
-                                <tr><td colspan="9" class="py-14 text-center">
-                                    <div class="flex flex-col items-center gap-3 text-gray-600">
-                                        <div class="w-8 h-8 border-2 border-gray-700 border-t-rose-500 rounded-full animate-spin"></div>
-                                        <span class="text-xs font-bold uppercase tracking-widest">Poliçeler yükleniyor...</span>
-                                    </div>
-                                </td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div id="police-dashboard-footer" class="hidden mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-                        <span class="text-[10px] text-gray-500" id="police-gosterilen-sayi"></span>
-                        <button onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="text-[10px] text-rose-400 hover:text-rose-300 font-bold transition-colors">Tümünü Göster →</button>
-                    </div>
-                </div>
-
-                <!-- 3 WIDGET SATIRI -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="dashboard-card flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="file-clock" class="w-4 h-4 text-orange-500"></i> Evrak Bitişleri</h3>
-                            <span class="text-[9px] font-black bg-orange-500/10 text-orange-400 px-2.5 py-1 rounded-lg border border-orange-500/20 uppercase tracking-widest">30 GÜN</span>
-                        </div>
-                        <div id="evrak-bitis-list" class="flex-1 overflow-y-auto max-h-72 space-y-1 custom-scrollbar pr-1">
-                            <div class="flex flex-col items-center justify-center py-10 text-gray-600 gap-2">
-                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Yükleniyor...</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dashboard-card flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="credit-card" class="w-4 h-4 text-blue-500"></i> Yaklaşan Ödemeler</h3>
-                            <span class="text-[9px] font-black bg-blue-500/10 text-blue-400 px-2.5 py-1 rounded-lg border border-blue-500/20 uppercase tracking-widest">30 GÜN</span>
-                        </div>
-                        <div id="upcoming-payments-list" class="flex-1 overflow-y-auto max-h-72 space-y-1 custom-scrollbar pr-1">
-                            <div class="flex flex-col items-center justify-center py-10 text-gray-600 gap-2">
-                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Yükleniyor...</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="dashboard-card flex flex-col">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="droplet" class="w-4 h-4 text-emerald-500"></i> Yağ Bakımı</h3>
-                            <span class="text-[9px] font-black bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-lg border border-emerald-500/20 uppercase tracking-widest">10.000 KM</span>
-                        </div>
-                        <div id="yag-bakim-list" class="flex-1 overflow-y-auto max-h-72 space-y-1 custom-scrollbar pr-1">
-                            <div class="flex flex-col items-center justify-center py-10 text-gray-600 gap-2">
-                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Yükleniyor...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SON AKTİVİTELER -->
-                <div class="dashboard-card">
-                    <div class="flex items-center justify-between mb-5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center"><i data-lucide="activity" class="w-5 h-5 text-emerald-400"></i></div>
-                            <div><h3 class="font-bold text-sm text-white">Son Sistemsel Aktiviteler</h3><p class="text-[10px] text-gray-500 mt-0.5">En son 50 finansal işlem</p></div>
-                        </div>
-                        <button onclick="window.fetchDashboardData()" class="text-[10px] bg-white/5 hover:bg-white/10 text-gray-400 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 font-bold border border-white/5">
-                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Yenile
-                        </button>
-                    </div>
-                    <div class="overflow-x-auto overflow-y-auto max-h-[450px] custom-scrollbar">
-                        <table class="w-full text-left">
-                            <thead class="sticky top-0 z-10 bg-[#0f172a]">
-                                <tr class="text-[10px] text-gray-400 uppercase tracking-widest border-b border-white/5 bg-[#0f172a]">
-                                    <th class="pb-3 px-2">Tarih</th>
-                                    <th class="pb-3 px-2">Tür</th>
-                                    <th class="pb-3 px-2">İşlem Detayı</th>
-                                    <th class="pb-3 px-2 text-right">Tutar</th>
-                                </tr>
-                            </thead>
-                            <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
-                                <tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic">Aktiviteler yükleniyor...</td></tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>

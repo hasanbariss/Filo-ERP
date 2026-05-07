@@ -1,3 +1,12 @@
+// === GENEL YARDIMCI FONKSIYONLAR ===
+window.debounce = function(func, wait = 300) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+};
+
 function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
@@ -76,11 +85,11 @@ navButtons.forEach(btn => {
         // Modülleri Gizle ve Hedefi Göster
         modules.forEach(mod => {
             mod.classList.add('hidden');
-            mod.classList.remove('block');
+            mod.classList.remove('block', 'animate-blur-in', 'animate-fade-in-up');
         });
         const targetMod = document.getElementById(targetId);
         if (targetMod) {
-            targetMod.classList.add('block');
+            targetMod.classList.add('block', 'animate-blur-in');
             targetMod.classList.remove('hidden');
         }
 
@@ -2546,7 +2555,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     const searchInput = document.getElementById('top-search');
     if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
+        searchInput.addEventListener('input', window.debounce((e) => {
             const term = e.target.value.toLowerCase();
             const activeModule = document.querySelector('.main-module.block');
             if (!activeModule) return;

@@ -101,45 +101,103 @@ window.fetchDashboardData = async function () {
 
         const setEl = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
 
-        // ── KPIs ────────────────────────────────────────────
-        setEl('kpi-arac', araclar.length);
-        setEl('kpi-sofor', soforCount);
-        setEl('kpi-cari', cariCount);
-        setEl('kpi-musteri', musteriCount);
+        // ── KPIs (Yeni Modern Arayüz) ────────────────────────────────────────────
+        const ozmal = araclar.filter(a => (a.mulkiyet_durumu || '').toUpperCase().trim() === 'ÖZMAL').length;
+        const taseron = araclar.filter(a => (a.mulkiyet_durumu || '').toUpperCase().trim() === 'TAŞERON').length;
+        const kiralik = araclar.length - ozmal - taseron;
 
-        // Evrak risk sayısı (30 gün içinde)
-        const future30 = new Date(today.getTime() + 30 * 864e5);
-        future30.setHours(0,0,0,0);
-        let kritikEvrak = 0;
+        let policeTrafik = 0, policeKasko = 0, policeKoltuk = 0;
+        let vizeYaklasan = 0, yagYaklasan = 0, suresiGecen = 0;
+        let expiring15Days = 0;
+        const future15Str = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
         araclar.forEach(a => {
-            const fields = ['sigorta_bitis','kasko_bitis','vize_bitis','koltuk_bitis'];
-            const hasRisk = fields.some(f => {
-                if (!a[f]) return false;
-                const d = new Date(a[f]); d.setHours(0,0,0,0);
-                return d <= future30 && d >= today;
-            });
-            if (hasRisk) kritikEvrak++;
+            let is15 = false;
+            if (a.sigorta_bitis && a.sigorta_bitis <= future30Str) { policeTrafik++; if (a.sigorta_bitis <= future15Str) is15 = true; if (a.sigorta_bitis < todayStr) suresiGecen++; }
+            if (a.kasko_bitis && a.kasko_bitis <= future30Str) { policeKasko++; if (a.kasko_bitis <= future15Str) is15 = true; if (a.kasko_bitis < todayStr) suresiGecen++; }
+            if (a.koltuk_bitis && a.koltuk_bitis <= future30Str) { policeKoltuk++; if (a.koltuk_bitis <= future15Str) is15 = true; if (a.koltuk_bitis < todayStr) suresiGecen++; }
+            if (a.vize_bitis && a.vize_bitis <= future30Str) { vizeYaklasan++; if (a.vize_bitis <= future15Str) is15 = true; if (a.vize_bitis < todayStr) suresiGecen++; }
+            
+            const kalanYag = 10000 - ((a.guncel_km || 0) - (a.son_yag_km || 0));
+            if (kalanYag <= 1000) { yagYaklasan++; if (kalanYag <= 500) is15 = true; if (kalanYag < 0) suresiGecen++; }
+            if (is15) expiring15Days++;
         });
-        setEl('kpi-evrak', kritikEvrak);
 
-        if (kritikEvrak > 0 && window.Toast && !window._evrakToastShown) {
+        if (expiring15Days > 0 && window.Toast && !window._evrakToastShown) {
             window._evrakToastShown = true;
-            setTimeout(() => window.Toast.warning(`⚠️ ${kritikEvrak} aracın evrakı 30 gün içinde dolacak!`), 2000);
+            setTimeout(() => window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş!`), 2000);
         }
 
-        // Finansal KPIs
         const sumYakit = yakitlar.reduce((s, y) => s + (y.toplam_tutar || 0), 0);
         const sumBakim = bakimlar.reduce((s, b) => s + (b.toplam_tutar || 0), 0);
-        // Taseron Hakedis uses net_hakedis or anlasilan_tutar
         const sumHakedisTaseron = hakedisTaseron.reduce((s, h) => s + (h.net_hakedis || h.anlasilan_tutar || 0), 0);
-        const sumCiro = sumHakedisTaseron + hakedisServis.reduce((s, h) => s + (h.gunluk_ucret || 0), 0);
-        setEl('kpi-ciro', _fmt(sumCiro));
-        setEl('kpi-gider', _fmt(sumYakit + sumBakim));
-        setEl('kpi-taseron-hakedis', _fmt(sumHakedisTaseron));
+        const ozmalAraçIds = araclar.filter(a => (a.mulkiyet_durumu || '').toUpperCase().trim() === 'ÖZMAL').map(a => a.id);
+        
+        // Özmal Araçların Cari Kartları (taseron_hakedis tablosundaki kayıtları)
+        const ozmalHakedisGeliri = hakedisTaseron
+            .filter(h => ozmalAraçIds.includes(h.arac_id))
+            .reduce((s, h) => s + (h.net_hakedis || h.anlasilan_tutar || 0), 0);
+            
+        // Özmal Araçların Servis Puantajları (musteri_servis_puantaj tablosundaki kayıtları)
+        const ozmalPuantajGeliri = hakedisServis
+            .filter(h => ozmalAraçIds.includes(h.arac_id))
+            .reduce((s, h) => s + (h.gunluk_ucret || 0), 0);
+            
+        const ozmalServisGeliri = ozmalHakedisGeliri + ozmalPuantajGeliri;
+        
+        // Toplam Ciro (Sadece Özmal Geliri olarak kabul ediliyor)
+        const sumCiro = ozmalServisGeliri;
 
-        // ── Donut Chart ──────────────────────────────────────
-        // Removed generic Araç Dağılımı.
-        // Yeni "Gider Dağılımı" grafiği _renderMainChart() içerisinde hesaplanıp çizilmektedir.
+        setEl('kpi-arac-main', araclar.length);
+        setEl('kpi-arac-ozmal', ozmal);
+        setEl('kpi-arac-taseron', taseron);
+        setEl('kpi-arac-kiralik', kiralik);
+
+        setEl('kpi-police-main', policeTrafik + policeKasko + policeKoltuk);
+        setEl('kpi-police-trafik', policeTrafik);
+        setEl('kpi-police-kasko', policeKasko);
+        setEl('kpi-police-koltuk', policeKoltuk);
+
+        setEl('kpi-bakim-main', vizeYaklasan + yagYaklasan);
+        setEl('kpi-bakim-vize', vizeYaklasan);
+        setEl('kpi-bakim-yag', yagYaklasan);
+        setEl('kpi-bakim-gecmis', suresiGecen);
+
+        setEl('kpi-finans-main', _fmt(sumCiro));
+        setEl('kpi-finans-gelir', _fmt(ozmalServisGeliri));
+        setEl('kpi-finans-yakit', _fmt(sumYakit));
+        setEl('kpi-finans-bakim', _fmt(sumBakim));
+        
+        const totalProfil = soforCount + cariCount;
+        setEl('kpi-personel-main', totalProfil);
+        setEl('bar-sofor-count', soforCount);
+        setEl('bar-cari-count', cariCount);
+        
+        const soforPct = totalProfil > 0 ? (soforCount / totalProfil) * 100 : 0;
+        const cariPct = totalProfil > 0 ? (cariCount / totalProfil) * 100 : 0;
+        const soforBar = document.getElementById('bar-sofor-width');
+        if (soforBar) soforBar.style.width = soforPct + '%';
+        const cariBar = document.getElementById('bar-cari-width');
+        if (cariBar) cariBar.style.width = cariPct + '%';
+
+        setEl('fleet-ozmal-count', ozmal);
+        setEl('fleet-taseron-count', taseron);
+        setEl('fleet-kiralik-count', kiralik);
+        setEl('donut-total', araclar.length);
+
+        const donutCanvas = document.getElementById('fleetDonutChart');
+        if (donutCanvas && window.Chart) {
+            const existingDonut = Chart.getChart(donutCanvas);
+            if (existingDonut) existingDonut.destroy();
+            window._fleetDonutChart = new Chart(donutCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Özmal', 'Taşeron', 'Kiralık'],
+                    datasets: [{ data: [ozmal, taseron, kiralik], backgroundColor: ['#f97316', '#3b82f6', '#a855f7'], borderWidth: 0, cutout: '78%' }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
 
         // ── Poliçe lookup tablosu (plaka map) ──────────────
         const plakaMap = {};
