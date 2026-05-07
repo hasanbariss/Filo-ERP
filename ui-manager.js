@@ -3754,32 +3754,35 @@ window.printOzmalCizelge = function() {
             .title { font-size: 16px; font-weight: bold; color: #111; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
             .subtitle { font-size: 9px; color: #666; margin-top: 4px; }
             .logo { max-height: 40px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 9px; }
+            table { width: 95%; margin: 5px auto; border-collapse: collapse; font-size: 9px; }
             th, td { border: 1px solid #e2e8f0; padding: 4px 6px; text-align: left; }
             th { background-color: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 8px; }
             tr:nth-child(even) { background-color: #f8fafc; }
-            .date-cell { text-align: center; font-weight: 600; }
+            .date-cell { text-align: center; font-weight: 700; }
             .expired { color: #000; font-weight: 900; background-color: #e2e8f0; border: 2px solid #000 !important; }
             .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
             .ok { color: #475569; }
             @media print {
-                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.75; }
+                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.75; display: flex; justify-content: center; }
+                .print-container { width: 100%; max-width: 297mm; margin: 0 auto; padding: 5mm; }
                 @page { size: A4 landscape; margin: 5mm; }
                 .no-print { display: none !important; }
-                /* Agresif tek sayfa sığdırma */
-                table { font-size: 8px; line-height: 1; margin-top: 0; }
+                /* Agresif tek sayfa sığdırma ve Tarih vurgusu */
+                table { font-size: 7px; line-height: 1.1; margin-top: 0; width: 100%; margin: 0 auto; }
                 th, td { padding: 2px 3px; height: auto; }
                 .title { font-size: 13px; }
                 .header { margin-bottom: 5px; padding-bottom: 2px; }
                 br { display: none; }
-                .expired span, .soon span { font-size: 6px !important; margin-left: 2px; display: inline-block; }
+                .date-cell { font-size: 9px; font-weight: 900; } /* Tarihler özellikle büyük */
+                .expired span, .soon span { font-size: 7px !important; margin-left: 2px; display: inline-block; font-weight: 900; }
             }
         </style>
     </head>
     <body>
-        <div class="no-print" style="margin-bottom: 15px; text-align: right;">
-            <button onclick="window.print()" style="padding: 8px 20px; background: #ea580c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);">Yazdır</button>
-        </div>
+        <div class="print-container">
+            <div class="no-print" style="margin-bottom: 15px; text-align: right;">
+                <button onclick="window.print()" style="padding: 8px 20px; background: #ea580c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);">Yazdır</button>
+            </div>
         <div class="header">
             <div>
                 <h1 class="title">Özmal Araç Evrak Çizelgesi</h1>
@@ -3792,14 +3795,14 @@ window.printOzmalCizelge = function() {
         <table>
             <thead>
                 <tr>
-                    <th style="width: 30px; text-align: center;">Sıra</th>
-                    <th>Hesap Adı</th>
-                    <th>Plaka</th>
-                    <th>Marka / Model</th>
-                    <th class="date-cell">Trafik Sigortası</th>
-                    <th class="date-cell">Koltuk Sigortası</th>
-                    <th class="date-cell">Kasko</th>
-                    <th class="date-cell">Vize Tarihi</th>
+                    <th style="width: 3%; text-align: center;">Sıra</th>
+                    <th style="width: 15%;">Hesap Adı</th>
+                    <th style="width: 8%;">Plaka</th>
+                    <th style="width: 14%;">Marka / Model</th>
+                    <th class="date-cell" style="width: 15%;">Trafik Sigortası</th>
+                    <th class="date-cell" style="width: 15%;">Koltuk Sigortası</th>
+                    <th class="date-cell" style="width: 15%;">Kasko</th>
+                    <th class="date-cell" style="width: 15%;">Vize Tarihi</th>
                 </tr>
             </thead>
             <tbody>
@@ -3864,6 +3867,7 @@ window.printOzmalCizelge = function() {
         <div style="margin-top: 20px; font-size: 9px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
             Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam ${count - 1} kayıt listelenmiştir.
         </div>
+        </div> <!-- end .print-container -->
     </body>
     </html>
     `;
