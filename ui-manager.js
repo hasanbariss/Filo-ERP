@@ -3763,16 +3763,16 @@ window.printOzmalCizelge = function() {
             .soon { color: #111; font-weight: 800; background-color: #f1f5f9; border: 1px dashed #475569 !important; }
             .ok { color: #475569; }
             @media print {
-                body { margin: 0; padding: 5mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                body { margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; zoom: 0.75; }
                 @page { size: A4 landscape; margin: 5mm; }
                 .no-print { display: none !important; }
-                /* Tek sayfaya sığması için iyileştirmeler */
-                table { font-size: 8px; }
-                th, td { padding: 3px 4px; }
-                .title { font-size: 14px; }
-                .header { margin-bottom: 10px; padding-bottom: 5px; }
-                br { display: none; } /* [SÜRESİ DOLDU] yazısının alt satıra geçmesini engeller, daha az yer kaplar */
-                .expired span, .soon span { font-size: 7px !important; margin-left: 4px; }
+                /* Agresif tek sayfa sığdırma */
+                table { font-size: 8px; line-height: 1; margin-top: 0; }
+                th, td { padding: 2px 3px; height: auto; }
+                .title { font-size: 13px; }
+                .header { margin-bottom: 5px; padding-bottom: 2px; }
+                br { display: none; }
+                .expired span, .soon span { font-size: 6px !important; margin-left: 2px; display: inline-block; }
             }
         </style>
     </head>
