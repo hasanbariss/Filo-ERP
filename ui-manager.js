@@ -2867,7 +2867,7 @@ window.printCariKart = function(plaka, month) {
 
         function getAdet(sel) {
             var el = row.querySelector(sel);
-            return parseInt((el ? el.innerText : '0').replace(/[^0-9]/g,'')) || 0;
+            return parseInt(el ? el.value : '0') || 0;
         }
         function getFiyat(sel) {
             var el = row.querySelector(sel);
@@ -2875,11 +2875,11 @@ window.printCariKart = function(plaka, month) {
         }
 
         var services = [
-            { label: 'Vardiya',       adet: getAdet('.text-orange-400'),  fiyat: getFiyat('.calc-vardiya-fiyat'),   color: '#ea580c' },
-            { label: 'Tek Sefer',     adet: getAdet('.text-blue-400'),    fiyat: getFiyat('.calc-tek-fiyat'),       color: '#0284c7' },
-            { label: '8 Cikisi',      adet: getAdet('.text-amber-300'),   fiyat: getFiyat('.calc-cikis8-fiyat'),    color: '#d97706' },
-            { label: '20-30 Giris',   adet: getAdet('.text-purple-300'),  fiyat: getFiyat('.calc-giris2030-fiyat'), color: '#7c3aed' },
-            { label: 'Mesai',         adet: getAdet('.text-emerald-400'), fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#16a34a' }
+            { label: 'Vardiya',       adet: getAdet('.calc-vardiya-count'),   fiyat: getFiyat('.calc-vardiya-fiyat'),   color: '#ea580c' },
+            { label: 'Tek Sefer',     adet: getAdet('.calc-tek-count'),        fiyat: getFiyat('.calc-tek-fiyat'),       color: '#0284c7' },
+            { label: '8 Cikisi',      adet: getAdet('.calc-cikis8-count'),     fiyat: getFiyat('.calc-cikis8-fiyat'),    color: '#d97706' },
+            { label: '20-30 Giris',   adet: getAdet('.calc-giris2030-count'),  fiyat: getFiyat('.calc-giris2030-fiyat'), color: '#7c3aed' },
+            { label: 'Mesai',         adet: getAdet('.calc-mesai-count'),      fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#16a34a' }
         ].filter(function(s){ return s.adet > 0; });
 
         if (services.length === 0) return;
