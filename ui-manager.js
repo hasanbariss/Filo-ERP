@@ -116,6 +116,8 @@ navButtons.forEach(btn => {
             if (typeof fetchTakvim === 'function') fetchTakvim();
         } else if (targetId === 'module-teklifler') {
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
+        } else if (targetId === 'module-yakit-km') {
+            if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
         } else if (targetId === 'module-personel') {
             const ayEl = document.getElementById('personel-ay');
             if (ayEl && !ayEl.value) {
@@ -695,6 +697,16 @@ const modalTitle = document.getElementById('modal-title');
 window.openModal = function (title, id = null, extra = null) {
     modalTitle.textContent = title;
     const dynamicBody = document.getElementById('modal-dynamic-body');
+    const btnSaveContinue = document.getElementById('btn-save-continue');
+    
+    if (btnSaveContinue) {
+        if (title === 'Yeni Yakıt/KM Fişi') {
+            btnSaveContinue.classList.remove('hidden');
+        } else {
+            btnSaveContinue.classList.add('hidden');
+        }
+    }
+    
     let content = '';
 
     if (title === 'Yeni Araç Ekle') {
@@ -1390,6 +1402,42 @@ window.openModal = function (title, id = null, extra = null) {
                     </div>
                 `;
         setTimeout(() => loadSelectOptions('yakit-arac', 'araclar', 'id', 'plaka'), 50);
+    } else if (title === 'Yeni Yakıt/KM Fişi') {
+        content = `
+            <p class="text-sm text-gray-400 mb-6">Finansal raporlara dahil olmayan, tamamen KM ve lokal yakıt takibi için olan formdur.</p>
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçimi *</label>
+                        <select id="manuel-yakit-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium appearance-none">
+                            <option value="">-- Araç Seçin --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarih *</label>
+                        <input type="date" id="manuel-yakit-tarih" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Adı</label>
+                        <input type="text" id="manuel-yakit-sofor" placeholder="İsteğe bağlı" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (TL)</label>
+                        <input type="number" id="manuel-yakit-tutar" step="0.01" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Güncel Kilometre (KM) *</label>
+                    <input type="number" id="manuel-yakit-km" placeholder="Araç ekranındaki KM'yi yazın" class="w-full bg-emerald-500/10 border-2 border-emerald-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-black text-lg">
+                    <p class="text-[10px] text-gray-500 mt-2">NOT: Bu değer aracın ana "Güncel KM" değerini değiştirecektir, böylece yağ bakımı takip edilebilir.</p>
+                </div>
+            </div>
+        `;
+        setTimeout(() => loadSelectOptions('manuel-yakit-arac', 'araclar', 'id', 'plaka'), 50);
     } else if (title === 'Yeni Cari Hesap') {
         content = `
                     <p class="text-sm text-gray-400 mb-8">Tedarikçi, servis veya acente bilgilerinizi sisteme kaydederek ödeme takibini başlatın.</p>
@@ -1441,7 +1489,7 @@ window.openModal = function (title, id = null, extra = null) {
                                     <option value="Bakım/İşçilik">Bakım / İşçilik</option>
                                     <option value="Yedek Parça">Yedek Parça</option>
                                     <option value="Hasar Onarım">Hasar Onarım</option>
-                                    <option value="Yağ Bakımı">Yağ Bakımı</option>
+                                    <option value="Yağ Değişimi">Yağ Değişimi</option>
                                 </select>
                             </div>
                             <div>

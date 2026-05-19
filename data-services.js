@@ -60,7 +60,7 @@ window.uploadDosya = async function (file, folder = 'common') {
     return publicUrl;
 };
 
-window.saveDataAndClose = async function (event) {
+window.saveDataAndClose = async function (event, keepOpen = false) {
     const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
 
@@ -439,6 +439,75 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchYakitlar === 'function') fetchYakitlar();
             if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
             if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+        } else if (formTitle === 'Yeni Yakıt/KM Fişi') {
+            const arac_id = document.getElementById('manuel-yakit-arac').value;
+            const tarih = document.getElementById('manuel-yakit-tarih').value;
+            const sofor_adi = document.getElementById('manuel-yakit-sofor').value;
+            const tutar = parseFloat(document.getElementById('manuel-yakit-tutar').value) || 0;
+            const kilometre = parseInt(document.getElementById('manuel-yakit-km').value);
+
+            if (!arac_id || !tarih || isNaN(kilometre)) {
+                throw new Error("Lütfen Araç, Tarih ve KM alanlarını eksiksiz doldurun.");
+            }
+
+            // Önce aracın bir önceki KM kaydını bulalım (farkı hesaplamak için)
+            let fark_km = 0;
+            try {
+                const { data: lastRecord } = await window.supabaseClient
+                    .from('manuel_yakit_fisleri')
+                    .select('kilometre')
+                    .eq('arac_id', arac_id)
+                    .order('kilometre', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (lastRecord && lastRecord.kilometre) {
+                    fark_km = kilometre - lastRecord.kilometre;
+                    if (fark_km < 0) fark_km = 0; // Yanlış giriş ihtimaline karşı
+                }
+            } catch (err) {
+                // Kayıt yoksa hata verir, fark 0 kalır. Normal durum.
+            }
+
+            // Yeni kaydı oluştur
+            const insertData = { arac_id, tarih, sofor_adi, tutar, kilometre, fark_km };
+            const { error } = await window.supabaseClient.from('manuel_yakit_fisleri').insert([insertData]);
+            
+            if (error) {
+                if (error.message && error.message.includes('relation "public.manuel_yakit_fisleri" does not exist')) {
+                    throw new Error("Veritabanında 'manuel_yakit_fisleri' tablosu bulunamadı. Lütfen size iletilen SQL komutunu Supabase'de çalıştırın.");
+                }
+                throw error;
+            }
+
+            // Aracın güncel KM değerini ana tabloda güncelle
+            try {
+                const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', arac_id).single();
+                if (!arac || kilometre > (arac.guncel_km || 0)) {
+                    await window.supabaseClient.from('araclar').update({ guncel_km: kilometre }).eq('id', arac_id);
+                    if (typeof fetchAraclar === 'function') fetchAraclar();
+                    if (typeof fetchDashboardData === 'function') fetchDashboardData();
+                }
+            } catch(e) { console.warn("KM Guncelleme hatasi:", e); }
+
+            if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+            
+            if (keepOpen) {
+                // Sadece formu temizle, modalı açık bırak
+                document.getElementById('manuel-yakit-tarih').value = new Date().toISOString().split('T')[0];
+                document.getElementById('manuel-yakit-tutar').value = '';
+                document.getElementById('manuel-yakit-km').value = '';
+                
+                // Submit butonunu tekrar aktif et
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+                
+                if (typeof showToast === 'function') showToast("Kayıt eklendi. Yeni fiş girebilirsiniz.", 'success');
+                
+                return; // closeModal()'a gitmesini engelle
+            }
         } else if (formTitle === 'Yeni Cari Hesap') {
             let unvan = document.getElementById('cari-unvan').value;
             const tur = document.getElementById('cari-tur').value;
@@ -525,7 +594,7 @@ window.saveDataAndClose = async function (event) {
                     if (!aData || bakim_km > (aData.guncel_km || 0)) {
                         await window.supabaseClient.from('araclar').update({ guncel_km: bakim_km }).eq('id', arac_id);
                     }
-                    if (islem_turu === 'Yağ Bakımı') {
+                    if (islem_turu === 'Yağ Değişimi') {
                         await window.supabaseClient.from('araclar').update({ son_yag_km: bakim_km }).eq('id', arac_id);
                     }
                 } catch(err) { console.error('KM update error:', err); }
@@ -8947,4 +9016,305 @@ window.transferYakit = async function(yakitIds, currentAracId) {
             if(typeof window.openCariHakedisDetay === 'function') window.openCariHakedisDetay(currentAracId);
         }
     };
+};
+
+/* === YAKIT & KM TAKIP (MANUEL) === */
+window.allYakitKmRecords = []; // Arama için tutuyoruz
+
+window.fetchManuelYakitFisleri = async function() {
+    const container = document.getElementById('yakit-km-container');
+    if (!container) return;
+
+    container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 shadow-2xl">Kayıtlar yükleniyor...</div>';
+
+    try {
+        const { data: fisler, error } = await window.supabaseClient
+            .from('manuel_yakit_fisleri')
+            .select('*, araclar(plaka)')
+            .order('tarih', { ascending: false })
+            .order('olusturulma_tarihi', { ascending: false })
+            .limit(200);
+
+        if (error) {
+            if (error.message && error.message.includes('relation "public.manuel_yakit_fisleri" does not exist')) {
+                container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-amber-500 font-bold shadow-2xl">Lütfen "manuel_yakit_fisleri" tablosunu SQL Editor ile oluşturun. İlgili SQL betiği ana dizindedir.</div>';
+                return;
+            }
+            throw error;
+        }
+
+        window.allYakitKmRecords = fisler || [];
+        renderYakitKmTable(window.allYakitKmRecords);
+
+    } catch (err) {
+        console.error("fetchManuelYakitFisleri hatası:", err);
+        container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-red-500 shadow-2xl">Veriler yüklenirken hata oluştu.</div>';
+    }
+};
+
+function renderYakitKmTable(records) {
+    const container = document.getElementById('yakit-km-container');
+    if (!container) return;
+
+    if (!records || records.length === 0) {
+        container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 italic shadow-2xl">Henüz yakıt / KM kaydı bulunmamaktadır.</div>';
+        return;
+    }
+
+    // Plakaya göre grupla
+    const grouped = {};
+    records.forEach(r => {
+        const plaka = r.araclar?.plaka || 'Bilinmiyor';
+        if (!grouped[plaka]) {
+            grouped[plaka] = { plaka, total_km: 0, total_tutar: 0, items: [] };
+        }
+        grouped[plaka].items.push(r);
+        grouped[plaka].total_km += (parseInt(r.fark_km) || 0);
+        grouped[plaka].total_tutar += (parseFloat(r.tutar) || 0);
+    });
+
+    // Grupları HTML'e çevir
+    let html = '';
+    Object.values(grouped).sort((a, b) => b.total_km - a.total_km).forEach(group => {
+        
+        let tableRows = '';
+        group.items.forEach(r => {
+            const tarih = r.tarih ? r.tarih.split('-').reverse().join('.') : '-';
+            const sofor = r.sofor_adi || '-';
+            const km = r.kilometre ? r.kilometre.toLocaleString('tr-TR') : '0';
+            const fark = r.fark_km ? r.fark_km.toLocaleString('tr-TR') : '0';
+            const tutar = r.tutar ? Number(r.tutar).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) : '0,00';
+            
+            tableRows += `
+                <tr class="hover:bg-white/5 transition-colors group/row">
+                    <td class="p-3 text-xs text-gray-300 font-medium">${tarih}</td>
+                    <td class="p-3 text-xs text-gray-400">${sofor}</td>
+                    <td class="p-3 text-xs font-black text-emerald-400 text-center">${km}</td>
+                    <td class="p-3 text-xs font-bold text-orange-400 text-center">+${fark} KM</td>
+                    <td class="p-3 text-xs font-black text-white text-right">₺${tutar}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="window.deleteManuelYakitFisi('${r.id}')" class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors" title="Sil">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+            <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative mb-6">
+                <!-- Header -->
+                <div class="bg-[#1a1f26] px-6 py-4 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
+                            <i data-lucide="truck" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-wide">${group.plaka}</h3>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">${group.items.length} Kayıt</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Toplam Menzil</p>
+                            <p class="text-lg font-black text-orange-500">+${group.total_km.toLocaleString('tr-TR')} KM</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Toplam Tutar</p>
+                            <p class="text-lg font-black text-white">₺${group.total_tutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <button onclick="window.printManuelYakitRaporu('${group.plaka}')" class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 transition-all" title="Bu araca özel rapor yazdır">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Rapor
+                        </button>
+                    </div>
+                </div>
+                <!-- Table -->
+                <div class="overflow-x-auto w-full custom-scrollbar">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] text-gray-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
+                                <th class="p-3 font-bold">Tarih</th>
+                                <th class="p-3 font-bold">Şoför</th>
+                                <th class="p-3 font-bold text-center">Girilen KM</th>
+                                <th class="p-3 font-bold text-center">Fark (Menzil)</th>
+                                <th class="p-3 font-bold text-right">Tutar (TL)</th>
+                                <th class="p-3 font-bold text-right w-16">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    if (window.lucide) window.lucide.createIcons();
+}
+
+window.filterYakitKm = function() {
+    const searchInput = document.getElementById('yakit-km-search');
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    const monthInput = document.getElementById('filter-yakit-km-ay');
+    const monthQuery = monthInput ? monthInput.value : ''; // format: YYYY-MM
+
+    let filtered = window.allYakitKmRecords;
+
+    if (query) {
+        filtered = filtered.filter(r => {
+            const plaka = (r.araclar?.plaka || '').toLowerCase();
+            const sofor = (r.sofor_adi || '').toLowerCase();
+            return plaka.includes(query) || sofor.includes(query);
+        });
+    }
+
+    if (monthQuery) {
+        filtered = filtered.filter(r => {
+            return r.tarih && r.tarih.startsWith(monthQuery);
+        });
+    }
+
+    renderYakitKmTable(filtered);
+};
+
+window.deleteManuelYakitFisi = async function(id) {
+    if (!confirm('Bu kayıt silinecek. Onaylıyor musunuz?')) return;
+    try {
+        const { error } = await window.supabaseClient.from('manuel_yakit_fisleri').delete().eq('id', id);
+        if (error) throw error;
+        if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+    } catch (err) {
+        console.error("deleteManuelYakitFisi error:", err);
+        alert("Silinirken hata oluştu.");
+    }
+};
+
+window.printManuelYakitRaporu = function(specificPlaka = null) {
+    let recordsToPrint = window.allYakitKmRecords;
+    if (!recordsToPrint || recordsToPrint.length === 0) {
+        alert("Yazdırılacak veri bulunamadı. Lütfen önce tabloyu yükleyin.");
+        return;
+    }
+
+    if (specificPlaka) {
+        recordsToPrint = recordsToPrint.filter(r => (r.araclar?.plaka || 'Bilinmeyen Araç') === specificPlaka);
+        if (recordsToPrint.length === 0) {
+            alert("Bu plakaya ait yazdırılacak kayıt bulunamadı.");
+            return;
+        }
+    }
+
+    // Plakaya göre grupla ve topla
+    const grouped = {};
+    let grandTotalKm = 0;
+    let grandTotalTutar = 0;
+
+    recordsToPrint.forEach(r => {
+        const plaka = r.araclar?.plaka || 'Bilinmeyen Araç';
+        if (!grouped[plaka]) {
+            grouped[plaka] = { plaka, total_km: 0, total_tutar: 0, count: 0 };
+        }
+        const fark = parseInt(r.fark_km) || 0;
+        const tutar = parseFloat(r.tutar) || 0;
+        
+        grouped[plaka].total_km += fark;
+        grouped[plaka].total_tutar += tutar;
+        grouped[plaka].count += 1;
+
+        grandTotalKm += fark;
+        grandTotalTutar += tutar;
+    });
+
+    const sortedGroups = Object.values(grouped).sort((a, b) => b.total_km - a.total_km);
+
+    let rowsHtml = '';
+    sortedGroups.forEach(g => {
+        rowsHtml += `
+            <tr>
+                <td>${g.plaka}</td>
+                <td class="text-center">${g.count} Adet</td>
+                <td class="text-center font-bold text-orange-600">${g.total_km.toLocaleString('tr-TR')} KM</td>
+                <td class="text-right font-black">${g.total_tutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</td>
+            </tr>
+        `;
+    });
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Yakıt & KM Takip Raporu</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
+                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.5rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    .header-title h1 { margin: 0; font-size: 1.8rem; color: #111; text-transform: uppercase; }
+                    .header-title p { margin: 5px 0 0; color: #555; font-size: 14px; font-weight: bold; }
+                    
+                    .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+                    .summary-item { text-align: center; flex: 1; }
+                    .summary-item p { margin: 0 0 5px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+                    .summary-item h3 { margin: 0; font-size: 20px; color: #0f172a; }
+                    .summary-item-border { border-right: 1px solid #e2e8f0; }
+                    .text-orange-600 { color: #ea580c; }
+                    
+                    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
+                    th { background: #f1f5f9; color: #475569; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 11px; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .font-bold { font-weight: bold; }
+                    .font-black { font-weight: 900; }
+                    
+                    .footer { text-align: center; font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 50px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class="header-container">
+                    <div class="header-title">
+                        <h1>YAKIT & KM TAKİP ÖZETİ</h1>
+                        <p>Plaka Bazlı Toplam Harcama ve Menzil Raporu</p>
+                    </div>
+                    <div class="ideol-logo">IDEOL TURİZM</div>
+                </div>
+                
+                <div class="summary-box">
+                    <div class="summary-item summary-item-border">
+                        <p>Toplam Kayıt</p>
+                        <h3>${window.allYakitKmRecords.length} Adet</h3>
+                    </div>
+                    <div class="summary-item summary-item-border">
+                        <p>Toplam Yapılan Yol</p>
+                        <h3 class="text-orange-600">${grandTotalKm.toLocaleString('tr-TR')} KM</h3>
+                    </div>
+                    <div class="summary-item">
+                        <p>Toplam Yakıt Tutarı</p>
+                        <h3>${grandTotalTutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</h3>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Araç Plakası</th>
+                            <th class="text-center">Kayıt Sayısı</th>
+                            <th class="text-center">Toplam Yapılan Yol (Menzil)</th>
+                            <th class="text-right">Toplam Harcama (TL)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+                
+                <div class="footer">Bu rapor IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
 };

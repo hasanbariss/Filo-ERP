@@ -248,6 +248,9 @@
             <button data-target="module-finans" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="banknote"></i> Taşeron Hakediş
             </button>
+            <button data-target="module-yakit-km" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
+                <i data-lucide="fuel"></i> Yakıt & KM Takip
+            </button>
             <button data-target="module-raporlar" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="bar-chart-3"></i> Raporlar
             </button>
@@ -657,6 +660,39 @@
             </div>
 
             <div id="main-content-area" class="space-y-8">
+
+                <!-- YAKIT & KM TAKİP MODÜLÜ (LOKAL/HARİCİ) -->
+                <div id="module-yakit-km" class="main-module hidden stagger-in">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div>
+                            <h2 class="text-3xl font-black tracking-tight text-white mb-1">Yakıt & KM Takip</h2>
+                            <p class="text-sm font-medium text-gray-400">Filo araçlarının güncel kilometrelerini ve fişlerini buradan takip edin (Finansal tarafa işlemez).</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="month" id="filter-yakit-km-ay" onchange="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 transition-all shadow-xl">
+                            <div class="relative w-full max-w-xs md:w-64">
+                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
+                                <input type="text" id="yakit-km-search" placeholder="Plaka veya Şoför Ara..." oninput="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-emerald-500 transition-all shadow-xl w-full">
+                            </div>
+                            <button onclick="if(window.fetchManuelYakitFisleri) window.fetchManuelYakitFisleri()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold transition-all shadow-xl shadow-black/20">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="if(window.printManuelYakitRaporu) window.printManuelYakitRaporu()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                                <i data-lucide="printer" class="w-4 h-4"></i> Rapor Al
+                            </button>
+                            <button onclick="openModal('Yeni Yakıt/KM Fişi')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Fiş Ekle
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Araç bazlı gruplanmış listelerin ekleneceği ana kapsayıcı -->
+                    <div id="yakit-km-container" class="space-y-6">
+                        <div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 shadow-2xl">
+                            Veriler yükleniyor veya kayıt yok...
+                        </div>
+                    </div>
+                </div>
 
                 <!-- 1. FİLO VE KADRO BİRLEŞİK MODÜLÜ -->
                 <div id="module-filo" class="main-module hidden stagger-in">
@@ -2749,6 +2785,8 @@
                     <div class="bg-white/5 px-6 py-4 flex justify-end gap-3 border-t border-white/5">
                         <button type="button" onclick="closeModal()"
                             class="px-5 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 text-sm font-bold transition-all">İptal</button>
+                        <button type="button" id="btn-save-continue" onclick="saveDataAndClose(event, true)"
+                            class="hidden px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all">Kaydet & Yeni Ekle</button>
                         <button type="button" onclick="saveDataAndClose(event)"
                             class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">Kaydet</button>
                     </div>
