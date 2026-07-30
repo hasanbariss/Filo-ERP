@@ -1608,3 +1608,242 @@ textarea {
         padding: 1.25rem;
     }
 }
+
+/* =====================================================
+   APP-WIDE SOFT DARK SURFACE
+   Dashboard, lists, reports, forms and menus use the
+   same deep green-charcoal language as the login screen.
+   ===================================================== */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body,
+.dark main {
+    color: #edf3ed;
+    background:
+        radial-gradient(circle at 92% -8%, rgba(75, 134, 103, 0.13), transparent 31rem),
+        radial-gradient(circle at 32% 105%, rgba(192, 143, 76, 0.055), transparent 28rem),
+        #16211d;
+}
+
+.dark .sidebar {
+    background:
+        linear-gradient(180deg, rgba(25, 39, 33, 0.99), rgba(18, 30, 25, 0.99)),
+        #17231e;
+    border-right-color: rgba(217, 236, 220, 0.1);
+    box-shadow: 18px 0 44px rgba(0, 0, 0, 0.18);
+}
+
+.dark #main-nav-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.28rem;
+}
+
+.dark .sidebar .nav-link {
+    min-height: 44px;
+    padding: 0.74rem 0.82rem;
+    color: #b9cbc0 !important;
+    border: 1px solid transparent;
+    border-radius: 13px;
+}
+
+.dark .sidebar .nav-link:hover {
+    color: #f0f5ef !important;
+    background: rgba(113, 169, 134, 0.1);
+    border-color: rgba(138, 193, 156, 0.12);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+}
+
+.dark .sidebar .nav-link.active {
+    color: #f4f8f2 !important;
+    background: linear-gradient(90deg, rgba(56, 128, 94, 0.42), rgba(50, 104, 78, 0.17));
+    border-color: rgba(133, 194, 153, 0.2);
+    box-shadow: inset 3px 0 0 #80bd95, 0 9px 20px rgba(0, 0, 0, 0.12);
+}
+
+.dark .sidebar .nav-link.active svg {
+    stroke: #95cfa7;
+}
+
+.dark .sidebar .text-gray-500 {
+    color: #8fa598 !important;
+}
+
+.dark .top-bar {
+    padding-bottom: 1.35rem;
+    border-bottom: 1px solid rgba(220, 236, 222, 0.08);
+}
+
+.dark .top-bar h1,
+.dark #page-title {
+    color: #f4f8f2;
+    letter-spacing: -0.035em;
+}
+
+.dark .dashboard-card,
+.dark .modal-content,
+.dark .import-modal-content {
+    background:
+        linear-gradient(145deg, rgba(31, 46, 39, 0.98), rgba(23, 35, 30, 0.98));
+    border-color: rgba(220, 239, 223, 0.1);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.17);
+}
+
+.dark .dashboard-card:hover {
+    border-color: rgba(127, 191, 149, 0.3);
+    box-shadow: 0 20px 42px rgba(0, 0, 0, 0.22);
+}
+
+/* Tailwind's old light utility classes are still present in some screens. */
+.dark .bg-white,
+.dark .bg-gray-50,
+.dark .bg-gray-100,
+.dark .bg-gray-200,
+.dark .bg-slate-50,
+.dark .bg-slate-100,
+.dark .bg-slate-200 {
+    background-color: #1c2a24 !important;
+}
+
+.dark .bg-\[\#0a0a0b\],
+.dark .bg-\[\#0d0f11\],
+.dark .bg-\[\#0f1113\],
+.dark .bg-\[\#111418\] {
+    background-color: #13201b !important;
+}
+
+.dark .bg-\[\#1a1c1e\],
+.dark .bg-\[\#1a1d24\] {
+    background-color: #1d2b25 !important;
+}
+
+.dark .text-black,
+.dark .text-gray-900,
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 {
+    color: #edf4ed !important;
+}
+
+.dark .text-gray-600,
+.dark .text-slate-600 {
+    color: #a8bbae !important;
+}
+
+.dark .text-gray-500,
+.dark .text-slate-500 {
+    color: #aebfb3 !important;
+}
+
+.dark .text-gray-400,
+.dark .text-slate-400 {
+    color: #c5d2c8 !important;
+}
+
+.dark .text-gray-300,
+.dark .text-slate-300 {
+    color: #dbe5dc !important;
+}
+
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 {
+    border-color: rgba(216, 235, 220, 0.12) !important;
+}
+
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
+.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgba(216, 235, 220, 0.09) !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+    background-color: #14211c;
+    color: #edf4ed;
+    border-color: rgba(213, 233, 217, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]):focus,
+.dark select:focus,
+.dark textarea:focus {
+    border-color: #70ae88;
+    box-shadow: 0 0 0 4px rgba(112, 174, 136, 0.13);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #81958a;
+    opacity: 1;
+}
+
+.dark input[type="checkbox"],
+.dark input[type="radio"] {
+    accent-color: #76b38e;
+}
+
+.dark select option {
+    background: #1a2922;
+    color: #edf4ed;
+}
+
+.dark table {
+    color: #dbe6dd;
+}
+
+.dark table thead,
+.dark table thead tr,
+.dark .premium-table th {
+    color: #a9bcaf;
+    background-color: rgba(9, 19, 15, 0.24);
+}
+
+.dark table tbody tr {
+    border-color: rgba(220, 237, 222, 0.07);
+}
+
+.dark table tbody tr:hover,
+.dark .premium-table tr:hover td {
+    background-color: rgba(99, 157, 120, 0.085);
+}
+
+.dark .rapor-print-container {
+    background: #1a2922 !important;
+    color: #edf4ed !important;
+    border: 1px solid rgba(216, 235, 220, 0.11);
+}
+
+.dark .rapor-print-container .text-black {
+    color: #edf4ed !important;
+}
+
+.dark .bg-black\/20,
+.dark .bg-black\/30,
+.dark .bg-black\/40 {
+    background-color: rgba(5, 13, 9, 0.42) !important;
+}
+
+.dark .shadow-xl,
+.dark .shadow-2xl,
+.dark .shadow-lg {
+    --tw-shadow-color: rgba(0, 0, 0, 0.22);
+}
+
+@media print {
+    .dark .rapor-print-container,
+    .dark .rapor-print-container .text-black {
+        background: #fff !important;
+        color: #000 !important;
+    }
+}
