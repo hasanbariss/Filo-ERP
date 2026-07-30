@@ -2592,13 +2592,14 @@ function applyTheme(isDark) {
 window.toggleDarkMode = function () {
     const isDark = !document.documentElement.classList.contains('dark');
     localStorage.setItem('ideol-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('ideol-theme-v2', isDark ? 'dark' : 'light');
     applyTheme(isDark);
 };
 
 window.addEventListener('DOMContentLoaded', () => {
     // Tema tercihi
-    const saved = localStorage.getItem('ideol-theme');
-    const prefDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const saved = localStorage.getItem('ideol-theme-v2');
+    const prefDark = saved ? saved === 'dark' : true;
     applyTheme(prefDark);
 
     const searchInput = document.getElementById('top-search');

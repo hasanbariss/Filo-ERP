@@ -29,17 +29,17 @@
 
 .dark {
     /* Core Dashboard Colors - Dark Mode */
-    --bg-main: 156 20% 7%;
-    --bg-sidebar: 155 19% 10%;
-    --bg-card: 155 17% 12%;
-    --bg-card-hover: 156 15% 16%;
+    --bg-main: 156 17% 10%;
+    --bg-sidebar: 155 17% 12%;
+    --bg-card: 155 15% 15%;
+    --bg-card-hover: 156 14% 19%;
 
-    --text-primary: 43 32% 96%;
-    --text-secondary: 148 12% 68%;
-    --text-dim: 150 9% 48%;
+    --text-primary: 43 25% 95%;
+    --text-secondary: 148 14% 76%;
+    --text-dim: 150 10% 58%;
 
-    --border-dim: 155 13% 20%;
-    --border-strong: 154 13% 27%;
+    --border-dim: 155 12% 25%;
+    --border-strong: 154 13% 33%;
 }
 
 /* Base Reset & Typography */
@@ -1409,12 +1409,14 @@ textarea {
     display: grid;
     place-items: center;
     padding: clamp(2rem, 5vw, 4.5rem);
-    background: linear-gradient(145deg, rgba(249, 248, 241, 0.99), rgba(240, 239, 230, 0.98));
+    background:
+        radial-gradient(circle at 92% 5%, rgba(111, 167, 136, 0.12), transparent 18rem),
+        linear-gradient(145deg, #1d2924, #15201c);
 }
 
 .auth-login-card {
     width: min(100%, 22rem);
-    color: #203129;
+    color: #edf1e8;
 }
 
 .auth-mobile-brand {
@@ -1422,7 +1424,7 @@ textarea {
 }
 
 .auth-login-card .auth-kicker {
-    color: #668173;
+    color: #a5bcad;
 }
 
 .auth-login-card h2 {
@@ -1433,7 +1435,7 @@ textarea {
 
 .auth-login-subtitle {
     margin: 0.9rem 0 2rem;
-    color: #718078;
+    color: #b1c0b6;
     font-size: 0.9rem;
     line-height: 1.55;
 }
@@ -1457,7 +1459,7 @@ textarea {
 .auth-field label {
     display: block;
     margin-bottom: 0.52rem;
-    color: #53655b;
+    color: #c1d0c6;
     font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -1468,24 +1470,42 @@ textarea {
     width: 100%;
     min-height: 50px;
     padding: 0 0.95rem;
-    border: 1px solid #d8ddd4;
+    border: 1px solid rgba(217, 231, 219, 0.17);
     border-radius: 13px;
     outline: none;
-    background: rgba(255, 255, 255, 0.75);
-    color: #203129;
+    background: rgba(7, 15, 12, 0.26);
+    color: #f3f6ef;
     font: 500 0.92rem 'Inter', sans-serif;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
 .auth-input::placeholder {
-    color: #a7b0a9;
+    color: #8ea096;
 }
 
 .auth-input:focus {
-    border-color: #5a9679;
-    background: #fff;
-    box-shadow: 0 0 0 4px rgba(90, 150, 121, 0.12);
+    border-color: #78ae8f;
+    background: rgba(5, 13, 10, 0.4);
+    box-shadow: 0 0 0 4px rgba(120, 174, 143, 0.15);
+}
+
+.auth-remember {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-top: 1.25rem;
+    color: #b4c3b8;
+    font-size: 0.79rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-remember input {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    accent-color: #74ad8c;
 }
 
 .auth-submit {
@@ -1530,14 +1550,14 @@ textarea {
 
 .auth-help {
     margin: 1.2rem 0 0;
-    color: #89948d;
+    color: #9caca1;
     font-size: 0.72rem;
     line-height: 1.5;
     text-align: center;
 }
 
 .auth-help span {
-    color: #567362;
+    color: #c2d3c6;
     font-weight: 700;
 }
 
@@ -1567,7 +1587,7 @@ textarea {
         align-items: center;
         gap: 0.65rem;
         margin-bottom: 2.5rem;
-        color: #254e3e;
+        color: #edf3eb;
         font-family: 'Outfit', sans-serif;
         font-size: 1.25rem;
         font-weight: 800;

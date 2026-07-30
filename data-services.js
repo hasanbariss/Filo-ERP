@@ -6158,6 +6158,13 @@ window.doLogin = async function () {
             return;
         }
 
+        const autoLogin = document.getElementById('auth-auto-login');
+        if (autoLogin && autoLogin.checked) {
+            localStorage.setItem('ideol-auto-login', '1');
+        } else {
+            localStorage.removeItem('ideol-auto-login');
+        }
+
         // Başarılı giriş
         document.getElementById('auth-overlay').style.display = 'none';
         setLoginButton(false);
@@ -6185,6 +6192,7 @@ window.doLogin = async function () {
 };
 
 window.doLogout = async function () {
+    localStorage.removeItem('ideol-auto-login');
     if (window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
         await window.supabaseClient.auth.signOut();
     }

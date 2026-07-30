@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -211,6 +211,11 @@
                             <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" autocomplete="current-password">
                         </div>
                     </div>
+
+                    <label class="auth-remember" for="auth-auto-login">
+                        <input type="checkbox" id="auth-auto-login">
+                        <span>Bu cihazda otomatik giriş yap</span>
+                    </label>
 
                     <button onclick="doLogin()" id="auth-login-btn" class="auth-submit">
                         Güvenli giriş yap
@@ -2893,6 +2898,9 @@
                 var ov = document.getElementById('auth-overlay');
                 if (ov) ov.style.display = 'flex';
             }
+            function _isAutoLoginEnabled() {
+                return localStorage.getItem('ideol-auto-login') === '1';
+            }
             // window.doLogin ve window.doLogout data-services.js içerisinde tanımlandığı için buradan kaldırıldı.
             document.addEventListener('DOMContentLoaded', function () {
                 var p = document.getElementById('auth-password');
@@ -2904,12 +2912,13 @@
                     if (window.supabaseClient && window.supabaseClient.auth) {
                         clearInterval(checkAuthInterval);
                         
-                        // Check existing session explicitly on load
+                        // Otomatik giriş özellikle seçilmediyse her açılışta giriş ekranını göster.
                         window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
-                            if (session) {
+                            if (session && _isAutoLoginEnabled()) {
                                 _hideAuthOverlay(session.user);
                                 if (typeof window.initApp === 'function') window.initApp();
                             } else {
+                                if (session) window.supabaseClient.auth.signOut();
                                 _showAuthOverlay();
                             }
                         });
