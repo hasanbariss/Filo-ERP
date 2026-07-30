@@ -675,6 +675,7 @@
 
             if (typeof window.refreshAllModules === 'function') window.refreshAllModules();
             if (typeof window.fetchMusteriler    === 'function') window.fetchMusteriler();
+            if (typeof window.fetchImportCalendar === 'function') window.fetchImportCalendar();
 
         } catch (err) {
             console.error('[import] Genel hata:', err);

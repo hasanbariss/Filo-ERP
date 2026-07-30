@@ -401,6 +401,7 @@
             closeModal();
             notify(`Aktarım tamamlandı: ${inserted} yeni, ${updated} güncellenen Manisa puantaj kaydı.${assigned ? ` ${assigned} araç fabrika ile eşleştirildi.` : ''}`, 'success');
             if (typeof window.refreshAllModules === 'function') window.refreshAllModules();
+            if (typeof window.fetchImportCalendar === 'function') window.fetchImportCalendar();
         } catch (error) {
             console.error('[Manisa Fabrika Import]', error);
             notify(error.message || 'Puantaj aktarımı tamamlanamadı.', 'error');

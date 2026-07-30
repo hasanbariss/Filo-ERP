@@ -260,6 +260,11 @@ window.fetchDashboardData = async function () {
         // ── Aktivite feed ─────────────────────────────────────
         await window.fetchSonAktiviteler(araclar);
 
+        // ── Aylık puantaj import takvimi ──────────────────────
+        if (typeof window.fetchImportCalendar === 'function') {
+            await window.fetchImportCalendar();
+        }
+
         // ── Ciro/Gider grafiği ────────────────────────────────
         await _renderMainChart();
 

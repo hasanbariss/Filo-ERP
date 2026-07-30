@@ -248,6 +248,7 @@
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto pr-2" id="main-nav-buttons">
+            <p class="nav-section-label" aria-hidden="true">Operasyon</p>
             <button data-target="module-dashboard" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all active">
                 <i data-lucide="layout-dashboard"></i> Genel Bakış
             </button>
@@ -260,6 +261,7 @@
             <button data-target="module-gps" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="map-pin"></i> Canlı Takip
             </button>
+            <p class="nav-section-label" aria-hidden="true">Yönetim</p>
             <button data-target="module-personel" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="user-cog"></i> Personel
             </button>
@@ -269,6 +271,7 @@
             <button data-target="module-cari" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="building-2"></i> Cariler
             </button>
+            <p class="nav-section-label" aria-hidden="true">Finans &amp; Analiz</p>
             <button data-target="module-finans" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="banknote"></i> Taşeron Hakediş
             </button>
@@ -592,6 +595,46 @@
 
                 <!-- 3. SATIR: EXCEL IMPORT VE DETAYLI POLİÇELER -->
                 <div class="grid grid-cols-1 gap-6 mb-8">
+
+                    <!-- Aylık Puantaj Import Takvimi -->
+                    <section class="import-calendar-card dashboard-card p-0 overflow-hidden" aria-labelledby="import-calendar-title">
+                        <div class="import-calendar-head">
+                            <div class="flex items-start gap-3">
+                                <div class="import-calendar-icon"><i data-lucide="calendar-check-2" class="w-5 h-5"></i></div>
+                                <div>
+                                    <p class="import-calendar-kicker">Puantaj Kontrol Merkezi</p>
+                                    <h3 id="import-calendar-title">Aylık Import Takvimi</h3>
+                                    <p class="import-calendar-description">Son üç ayda aktif olan fabrikaların seçili aydaki kayıtlarını tek ekranda takip edin.</p>
+                                </div>
+                            </div>
+                            <div class="import-calendar-controls">
+                                <input type="month" id="import-calendar-month" aria-label="Takvim ayı" onchange="window.fetchImportCalendar()">
+                                <select id="import-calendar-region" aria-label="Takvim bölgesi" onchange="window.fetchImportCalendar()">
+                                    <option value="Tümü">Tüm Bölgeler</option>
+                                    <option value="Manisa">Manisa</option>
+                                    <option value="İzmir">İzmir</option>
+                                </select>
+                                <button type="button" class="import-calendar-refresh" onclick="window.fetchImportCalendar()" title="Takvimi yenile">
+                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Yenile</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="import-calendar-stats" aria-live="polite">
+                            <div><span>Fabrika</span><strong id="import-calendar-factory-count">–</strong></div>
+                            <div><span>İşlenen gün</span><strong id="import-calendar-complete-count">–</strong></div>
+                            <div><span>Kontrol bekleyen</span><strong id="import-calendar-missing-count">–</strong></div>
+                            <div><span>Son import</span><strong id="import-calendar-last-import">–</strong></div>
+                        </div>
+                        <div class="import-calendar-legend">
+                            <span><i class="is-complete"></i> İşlendi</span>
+                            <span><i class="is-missing"></i> Kontrol edin</span>
+                            <span><i class="is-weekend"></i> Hafta sonu</span>
+                            <span><i class="is-future"></i> Gelecek gün</span>
+                        </div>
+                        <div id="import-calendar-list" class="import-calendar-list" aria-live="polite">
+                            <div class="import-calendar-loading"><i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Takvim hazırlanıyor...</div>
+                        </div>
+                    </section>
                     
                     <!-- Excel Import -->
                     <div class="bg-[#1a1d24] border border-emerald-500/20 rounded-2xl p-6">
@@ -3056,6 +3099,7 @@
 <script defer src="is-emirleri.js"></script>
 <script defer src="manisa-fabrika-import.js"></script>
 <script defer src="dikkan-import.js"></script>
+<script defer src="import-calendar.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
 <script defer src="dashboard-funcs.js"></script>

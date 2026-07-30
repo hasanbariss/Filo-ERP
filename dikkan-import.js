@@ -270,6 +270,7 @@ window.dikkanImportConfirm = async function() {
         
         window.closeImportModal();
         if(window.fetchMusteriler) window.fetchMusteriler();
+        if(window.fetchImportCalendar) window.fetchImportCalendar();
 
     } catch (e) {
         alert("BEKLENMEDİK HATA: " + e.message);
