@@ -118,6 +118,8 @@ navButtons.forEach(btn => {
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
         } else if (targetId === 'module-yakit-km') {
             if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+        } else if (targetId === 'module-operasyon-merkezi') {
+            if (typeof window.renderOperasyonMerkezi === 'function') window.renderOperasyonMerkezi();
         } else if (targetId === 'module-personel') {
             const ayEl = document.getElementById('personel-ay');
             if (ayEl && !ayEl.value) {

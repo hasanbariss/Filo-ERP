@@ -266,6 +266,10 @@ window.fetchDashboardData = async function () {
         }
 
         // ── Ciro/Gider grafiği ────────────────────────────────
+        if (typeof window.renderBugunYapilacaklar === 'function') {
+            await window.renderBugunYapilacaklar();
+        }
+
         await _renderMainChart();
 
     } catch(e) {

@@ -114,6 +114,13 @@
         setText('import-calendar-complete-count', String(allStats.completed));
         setText('import-calendar-missing-count', String(allStats.missing));
         setText('import-calendar-last-import', formatDate(allStats.lastImport));
+        window.importCalendarSummary = {
+            month: `${bounds.year}-${String(bounds.monthIndex + 1).padStart(2, '0')}`,
+            factories: items.length,
+            complete: allStats.completed,
+            missing: allStats.missing,
+            lastImport: allStats.lastImport,
+        };
 
         if (!items.length) {
             const area = selectedRegion === 'Tümü' ? 'seçilen dönemde' : `${selectedRegion} bölgesinde`;

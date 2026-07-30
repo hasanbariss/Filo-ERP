@@ -278,6 +278,9 @@
             <button data-target="module-yakit-km" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="fuel"></i> Yakıt & KM Takip
             </button>
+            <button data-target="module-operasyon-merkezi" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
+                <i data-lucide="layout-panel-top"></i> Operasyon Merkezi
+            </button>
             <button data-target="module-raporlar" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="bar-chart-3"></i> Raporlar
             </button>
@@ -499,6 +502,20 @@
                 </div>
 
                 <!-- 2. SATIR: GRAFİK VE LİSTELER -->
+                <section class="today-tasks-card dashboard-card mb-8" aria-labelledby="today-tasks-title">
+                    <div class="today-tasks-head">
+                        <div>
+                            <p class="today-tasks-kicker">OPERASYON TAKİBİ</p>
+                            <h3 id="today-tasks-title"><i data-lucide="list-todo" class="w-5 h-5"></i> Bugün yapılacaklar</h3>
+                            <p>Öncelikli puantaj, evrak ve iş emri kontrolleri.</p>
+                        </div>
+                        <button type="button" onclick="window.renderBugunYapilacaklar && window.renderBugunYapilacaklar()" title="Listeyi yenile"><i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Yenile</span></button>
+                    </div>
+                    <div id="today-tasks-list" class="today-tasks-list" aria-live="polite">
+                        <div class="today-tasks-loading"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Bugünün kontrol listesi hazırlanıyor...</div>
+                    </div>
+                </section>
+
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
                     <!-- Sol Panel: Filo Durumu Donut Chart -->
                     <div class="lg:col-span-5 bg-[#1a1d24] border border-white/10 rounded-2xl p-6 relative flex flex-col">
@@ -727,6 +744,8 @@
             </div>
 
             <div id="main-content-area" class="space-y-8">
+
+                <div id="module-operasyon-merkezi" class="main-module hidden stagger-in"></div>
 
                 <!-- YAKIT & KM TAKİP MODÜLÜ (LOKAL/HARİCİ) -->
                 <div id="module-yakit-km" class="main-module hidden stagger-in">
@@ -2986,9 +3005,9 @@
         <i data-lucide="layout-dashboard"></i>
         <span>�zet</span>
     </button>
-    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-puantaj]').click();">
-        <i data-lucide="calendar-clock"></i>
-        <span>Puantaj</span>
+    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-operasyon-merkezi]').click(); if(window.openOperasyonTab) window.openOperasyonTab('quick');">
+        <i data-lucide="smartphone"></i>
+        <span>Hızlı Giriş</span>
     </button>
     <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-cari]').click();">
         <i data-lucide="wallet"></i>
@@ -3100,6 +3119,7 @@
 <script defer src="manisa-fabrika-import.js"></script>
 <script defer src="dikkan-import.js"></script>
 <script defer src="import-calendar.js"></script>
+<script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
 <script defer src="dashboard-funcs.js"></script>

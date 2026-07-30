@@ -487,6 +487,7 @@ function initQuickSearch() {
         { mod: 'module-musteri', label: 'Müşteri', icon: 'users', keywords: ['musteri', 'fabrika', 'portfoy'] },
         { mod: 'module-cari', label: 'Cari', icon: 'building-2', keywords: ['cari', 'fatura', 'borc', 'odeme'] },
         { mod: 'module-finans', label: 'Finans', icon: 'banknote', keywords: ['finans', 'yakit', 'taseron', 'aylik'] },
+        { mod: 'module-operasyon-merkezi', label: 'Operasyon Merkezi', icon: 'layout-panel-top', keywords: ['operasyon', 'karlilik', 'arac dosyasi', 'sofor performans', 'yedekleme', 'hizli giris'] },
         { mod: 'module-personel', label: 'Personel', icon: 'user-cog', keywords: ['personel', 'maas', 'puantaj', 'avans', 'sofor', 'bordro', 'kesinti'] },
         { mod: 'module-raporlar', label: 'Raporlar', icon: 'bar-chart-3', keywords: ['rapor', 'analiz', 'pdf', 'excel', 'gelir', 'gider'] },
         { mod: 'module-teklifler', label: 'Teklifler', icon: 'file-text', keywords: ['teklif', 'sigorta', 'kasko', 'karsilastirma'] },
