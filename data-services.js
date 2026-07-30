@@ -6120,13 +6120,19 @@ window.doLogin = async function () {
         return;
     }
 
-    btn.textContent = 'Giriş yapılıyor...';
+    const setLoginButton = (loading) => {
+        btn.innerHTML = loading
+            ? 'Giriş yapılıyor... <span aria-hidden="true">…</span>'
+            : 'Güvenli giriş yap <span aria-hidden="true">→</span>';
+    };
+
+    setLoginButton(true);
     btn.disabled = true;
     errBox.classList.add('hidden');
 
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') {
         document.getElementById('auth-overlay').style.display = 'none';
-        btn.textContent = 'Giriş Yap';
+        setLoginButton(false);
         btn.disabled = false;
         if (typeof window.initApp === 'function') window.initApp();
         return;
@@ -6134,7 +6140,7 @@ window.doLogin = async function () {
 
     // 10 sn timeout — fetch takılırsa butonu kurtarır
     const timeout = setTimeout(() => {
-        btn.textContent = 'Giriş Yap';
+        setLoginButton(false);
         btn.disabled = false;
         errBox.textContent = '⏱ Bağlantı zaman aşımı. İnternet bağlantınızı kontrol edin.';
         errBox.classList.remove('hidden');
@@ -6147,14 +6153,14 @@ window.doLogin = async function () {
         if (error) {
             errBox.textContent = 'Giriş başarısız: ' + (error.message || 'Hatalı e-posta veya şifre.');
             errBox.classList.remove('hidden');
-            btn.textContent = 'Giriş Yap';
+            setLoginButton(false);
             btn.disabled = false;
             return;
         }
 
         // Başarılı giriş
         document.getElementById('auth-overlay').style.display = 'none';
-        btn.textContent = 'Giriş Yap';
+        setLoginButton(false);
         btn.disabled = false;
 
         const user = data.user;
@@ -6169,7 +6175,7 @@ window.doLogin = async function () {
 
     } catch (err) {
         clearTimeout(timeout);
-        btn.textContent = 'Giriş Yap';
+        setLoginButton(false);
         btn.disabled = false;
         const msg = err?.message || String(err);
         errBox.textContent = '❌ Hata: ' + msg;

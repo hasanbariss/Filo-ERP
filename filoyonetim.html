@@ -149,14 +149,15 @@
     <div id="sidebar-overlay" onclick="window.closeMobileSidebar()"></div>
 
     <!-- === AUTH OVERLAY === -->
-    <div id="auth-overlay" class="fixed inset-0 z-[10000] flex items-center justify-center bg-[#0d0f11]"
-        style="backdrop-filter:blur(20px)">
-        <div class="w-full max-w-sm px-4">
-            <!-- Logo -->
-            <div class="flex items-center gap-3 justify-center mb-10">
-                <div style="width:40px;height:40px;flex-shrink:0">
-                    <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
-                        <rect width="34" height="34" rx="9" fill="hsl(var(--accent-orange))" />
+    <div id="auth-overlay" class="auth-overlay fixed inset-0 z-[10000] flex items-center justify-center">
+        <div class="auth-orb auth-orb-one" aria-hidden="true"></div>
+        <div class="auth-orb auth-orb-two" aria-hidden="true"></div>
+        <div class="auth-shell">
+            <section class="auth-story" aria-label="IDEOL Filo Yönetimi">
+                <div class="auth-story-grid" aria-hidden="true"></div>
+                <div class="auth-brand-mark">
+                    <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <rect width="34" height="34" rx="9" fill="currentColor" />
                         <g stroke="white" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="6" y="13" width="14" height="9" rx="1.5" stroke-width="1.6" fill="none" />
                             <path d="M20 17 L27 17 L27 22 L20 22" stroke-width="1.6" fill="none" />
@@ -165,44 +166,59 @@
                         </g>
                     </svg>
                 </div>
-                <div class="flex flex-col leading-none">
-                    <span class="brand-font font-extrabold text-2xl tracking-tighter text-white">IDEOL</span>
-                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Filo Yönetimi</span>
+                <div class="auth-story-copy">
+                    <p class="auth-kicker">IDEOL Filo Yönetimi</p>
+                    <h1>Operasyonun<br><em>ritmini</em> yönetin.</h1>
+                    <p class="auth-story-text">Filo, puantaj ve finans süreçlerinizi tek bir sakin ve güvenilir çalışma alanında yönetin.</p>
                 </div>
-            </div>
-
-            <div class="bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl">
-                <h2 class="text-xl font-bold text-white mb-1">Hoş Geldiniz</h2>
-                <p class="text-sm text-gray-400 mb-8">Devam etmek için giriş yapın.</p>
-
-                <div id="auth-error"
-                    class="hidden mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 font-medium">
+                <div class="auth-story-metrics">
+                    <div><strong>01</strong><span>Merkezden<br>kontrol</span></div>
+                    <div><strong>24/7</strong><span>Canlı<br>erişim</span></div>
+                    <div><strong>∞</strong><span>Akışta<br>netlik</span></div>
                 </div>
+                <p class="auth-story-footer"><span></span> Kurumsal operasyon alanı</p>
+            </section>
 
-                <div class="space-y-4">
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">E-posta</label>
-                        <input type="email" id="auth-email"
-                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-all font-medium"
-                            placeholder="adi@firma.com" autocomplete="email">
+            <section class="auth-login-area">
+                <div class="auth-login-card">
+                    <div class="auth-mobile-brand">
+                        <div class="auth-brand-mark">
+                            <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <rect width="34" height="34" rx="9" fill="currentColor" />
+                                <g stroke="white" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="6" y="13" width="14" height="9" rx="1.5" stroke-width="1.6" fill="none" />
+                                    <path d="M20 17 L27 17 L27 22 L20 22" stroke-width="1.6" fill="none" />
+                                    <circle cx="10" cy="22" r="2.2" stroke-width="1.4" fill="none" />
+                                    <circle cx="24.5" cy="22" r="2.2" stroke-width="1.4" fill="none" />
+                                </g>
+                            </svg>
+                        </div>
+                        <span>IDEOL</span>
                     </div>
-                    <div>
-                        <label
-                            class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şifre</label>
-                        <input type="password" id="auth-password"
-                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 transition-all font-medium"
-                            placeholder="••••••••" autocomplete="current-password">
-                    </div>
-                </div>
+                    <p class="auth-kicker">Güvenli erişim</p>
+                    <h2>Tekrar hoş geldiniz.</h2>
+                    <p class="auth-login-subtitle">Günlük operasyonunuza kaldığınız yerden devam edin.</p>
 
-                <button onclick="doLogin()" id="auth-login-btn"
-                    class="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all text-sm">
-                    Giriş Yap
-                </button>
-                <p class="text-center text-xs text-gray-600 mt-4">Şifrenizi mi unuttunuz? Yöneticinizle iletişime geçin.
-                </p>
-            </div>
+                    <div id="auth-error" class="auth-error hidden"></div>
+
+                    <div class="auth-fields">
+                        <div class="auth-field">
+                            <label for="auth-email">E-posta</label>
+                            <input type="email" id="auth-email" class="auth-input" placeholder="adi@firma.com" autocomplete="email">
+                        </div>
+                        <div class="auth-field">
+                            <label for="auth-password">Şifre</label>
+                            <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <button onclick="doLogin()" id="auth-login-btn" class="auth-submit">
+                        Güvenli giriş yap
+                        <span aria-hidden="true">→</span>
+                    </button>
+                    <p class="auth-help">Şifrenizi mi unuttunuz? <span>Yöneticinizle iletişime geçin.</span></p>
+                </div>
+            </section>
         </div>
     </div>
 
