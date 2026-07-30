@@ -1179,8 +1179,10 @@
                             <div class="flex items-center gap-2 flex-wrap">
                                 <input type="text" id="taseron-hakedis-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
-                                <input type="month" id="taseron-hakedis-month" onchange="fetchTaseronHakedis()"
-                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white">
+                                <select id="taseron-hakedis-month" onchange="fetchTaseronHakedis()" aria-label="Hakediş dönemi"
+                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
+                                    <option value="">Dönem seçin</option>
+                                </select>
                                 <!-- Bölge Filtresi -->
                                 <select id="taseron-hakedis-bolge" onchange="fetchTaseronHakedis()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">

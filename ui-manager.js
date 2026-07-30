@@ -254,6 +254,29 @@ function switchFiloTab(tabName) {
 }
 
 /* === 1.C. TAŞERON ALT SEKMELERİ === */
+window.initTaseronHakedisMonth = function () {
+    const select = document.getElementById('taseron-hakedis-month');
+    if (!select || select.tagName !== 'SELECT') return;
+
+    const previousValue = select.value;
+    const today = new Date();
+    const months = [];
+    // Geçmiş raporlar için beş yıl, planlama için gelecek bir yıl sunulur.
+    for (let offset = -60; offset <= 12; offset += 1) {
+        const date = new Date(today.getFullYear(), today.getMonth() + offset, 1);
+        const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        const label = date.toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' });
+        months.push({ value, label });
+    }
+    months.reverse();
+    select.innerHTML = '<option value="">Dönem seçin</option>' + months
+        .map(item => `<option value="${item.value}">${item.label}</option>`)
+        .join('');
+
+    const available = months.some(item => item.value === previousValue);
+    select.value = available ? previousValue : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+};
+
 window.switchTaseronTab = function (tabName) {
     const tabs = ['liste', 'hakedis', 'sefer', 'evrak'];
     const inactiveClass = "px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2";
@@ -280,7 +303,10 @@ window.switchTaseronTab = function (tabName) {
 
     // Tab'a özgü veri yükle
     if (tabName === 'liste' && typeof fetchTaseronlar === 'function') fetchTaseronlar();
-    if (tabName === 'hakedis' && typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis();
+    if (tabName === 'hakedis') {
+        if (typeof window.initTaseronHakedisMonth === 'function') window.initTaseronHakedisMonth();
+        if (typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis();
+    }
     if (tabName === 'sefer' && typeof fetchTaseronSeferler === 'function') fetchTaseronSeferler();
 
     if (window.lucide) window.lucide.createIcons();
