@@ -1191,7 +1191,7 @@
             <div id="module-musteri" class="main-module hidden stagger-in">
 
                 <!-- === IMPORT SECTION (REORGANIZED) === -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 px-2 animate-fade-in-up">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10 px-2 animate-fade-in-up">
                     <!-- 1. Dikkan Özel Import -->
                     <div class="dashboard-card border-emerald-500/20 bg-emerald-500/5 relative overflow-hidden group">
                         <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -1285,6 +1285,38 @@
                             <a href="./ornek_puantaj_sablonu.xlsx" download="IDEOL_Ornek_Puantaj_Sablonu.xlsx" class="w-full py-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                                 <i data-lucide="download" class="w-4 h-4"></i> ÖRNEK ŞABLON
                             </a>
+                        </div>
+                    </div>
+
+                    <!-- 3. Manisa Fabrika Toplu Import -->
+                    <div class="dashboard-card border-violet-500/20 bg-violet-500/5 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <i data-lucide="factory" class="w-16 h-16 text-violet-400"></i>
+                        </div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-10 h-10 rounded-2xl bg-violet-500/20 flex items-center justify-center text-violet-300">
+                                <i data-lucide="files" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-white text-lg">Manisa Fabrika Toplu İçe Aktar</h3>
+                                <p class="text-xs text-gray-500">Tüm günlük sekmeleri; A1 fabrika adı ve sekme tarihinden otomatik işler.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4 rounded-xl border border-orange-500/25 bg-orange-500/10 px-4 py-3 flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-orange-300"></i>
+                            <span class="text-xs font-black tracking-wide text-orange-200">BÖLGE SABİT: MANİSA</span>
+                        </div>
+                        <input type="file" id="manisa-fabrika-file-input" class="hidden" accept=".xlsx" onchange="window.handleManisaFabrikaImport(this.files[0])">
+                        <div
+                            class="border-2 border-dashed border-violet-500/30 rounded-2xl p-6 text-center hover:border-violet-400/60 hover:bg-violet-500/10 transition-all cursor-pointer group/drop"
+                            onclick="window.openManisaFabrikaImport()"
+                        >
+                            <div class="w-14 h-14 bg-violet-500/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover/drop:scale-110 transition-transform">
+                                <i data-lucide="upload" class="w-7 h-7 text-violet-300"></i>
+                            </div>
+                            <p class="text-sm font-bold text-white mb-1">Fabrika Excelini Seçin</p>
+                            <p class="text-[10px] text-gray-500">Önce önizleme, sonra tek onayla aktarım</p>
                         </div>
                     </div>
                 </div>
@@ -2995,6 +3027,7 @@
 <!-- 6. NEW SRP MODULES -->
 <script defer src="evrak-arsivi.js"></script>
 <script defer src="is-emirleri.js"></script>
+<script defer src="manisa-fabrika-import.js"></script>
 <script defer src="dikkan-import.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
@@ -3124,6 +3157,3 @@ window.addEventListener('DOMContentLoaded', function() {
 </body>
 
 </html>
-
-
-

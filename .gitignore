@@ -5,6 +5,9 @@ Filo-ERP-main/
 conflicts.txt
 scratch_db_check.js
 check.js
+check_*.js
+diag_*.js
+test_*.js
 .vscode/
 *.log
 .DS_Store
