@@ -60,7 +60,7 @@ window.uploadDosya = async function (file, folder = 'common') {
     return publicUrl;
 };
 
-window.saveDataAndClose = async function (event) {
+window.saveDataAndClose = async function (event, keepOpen = false) {
     const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
 
@@ -347,14 +347,12 @@ window.saveDataAndClose = async function (event) {
             };
             let { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
 
-            if (error && error.message && (error.message.includes('could not identify column') || error.message.includes('does not exist'))) {
+            if (error && error.message && (error.message.toLowerCase().includes('could not find') || error.message.toLowerCase().includes('does not exist') || error.message.toLowerCase().includes('could not identify column'))) {
                 delete payload.koltuk_bitis;
                 delete payload.koltuk_dosya_url;
                 const fallbackRes = await window.supabaseClient.from('araclar').update(payload).eq('id', arac_id);
                 error = fallbackRes.error;
-                if (!error && window.Toast) {
-                    window.Toast.info("Koltuk Poliçesi sütunları Supabase'de yok. Diğer evraklar başarıyla kaydedildi.");
-                }
+                // Removed window.Toast.info to allow silent syncing without warning the user
             }
 
             if (error) throw error;
@@ -441,6 +439,75 @@ window.saveDataAndClose = async function (event) {
             if (typeof fetchYakitlar === 'function') fetchYakitlar();
             if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
             if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+        } else if (formTitle === 'Yeni Yakıt/KM Fişi') {
+            const arac_id = document.getElementById('manuel-yakit-arac').value;
+            const tarih = document.getElementById('manuel-yakit-tarih').value;
+            const sofor_adi = document.getElementById('manuel-yakit-sofor').value;
+            const tutar = parseFloat(document.getElementById('manuel-yakit-tutar').value) || 0;
+            const kilometre = parseInt(document.getElementById('manuel-yakit-km').value);
+
+            if (!arac_id || !tarih || isNaN(kilometre)) {
+                throw new Error("Lütfen Araç, Tarih ve KM alanlarını eksiksiz doldurun.");
+            }
+
+            // Önce aracın bir önceki KM kaydını bulalım (farkı hesaplamak için)
+            let fark_km = 0;
+            try {
+                const { data: lastRecord } = await window.supabaseClient
+                    .from('manuel_yakit_fisleri')
+                    .select('kilometre')
+                    .eq('arac_id', arac_id)
+                    .order('kilometre', { ascending: false })
+                    .limit(1)
+                    .single();
+
+                if (lastRecord && lastRecord.kilometre) {
+                    fark_km = kilometre - lastRecord.kilometre;
+                    if (fark_km < 0) fark_km = 0; // Yanlış giriş ihtimaline karşı
+                }
+            } catch (err) {
+                // Kayıt yoksa hata verir, fark 0 kalır. Normal durum.
+            }
+
+            // Yeni kaydı oluştur
+            const insertData = { arac_id, tarih, sofor_adi, tutar, kilometre, fark_km };
+            const { error } = await window.supabaseClient.from('manuel_yakit_fisleri').insert([insertData]);
+            
+            if (error) {
+                if (error.message && error.message.includes('relation "public.manuel_yakit_fisleri" does not exist')) {
+                    throw new Error("Veritabanında 'manuel_yakit_fisleri' tablosu bulunamadı. Lütfen size iletilen SQL komutunu Supabase'de çalıştırın.");
+                }
+                throw error;
+            }
+
+            // Aracın güncel KM değerini ana tabloda güncelle
+            try {
+                const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', arac_id).single();
+                if (!arac || kilometre > (arac.guncel_km || 0)) {
+                    await window.supabaseClient.from('araclar').update({ guncel_km: kilometre }).eq('id', arac_id);
+                    if (typeof fetchAraclar === 'function') fetchAraclar();
+                    if (typeof fetchDashboardData === 'function') fetchDashboardData();
+                }
+            } catch(e) { console.warn("KM Guncelleme hatasi:", e); }
+
+            if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+            
+            if (keepOpen) {
+                // Sadece formu temizle, modalı açık bırak
+                document.getElementById('manuel-yakit-tarih').value = new Date().toISOString().split('T')[0];
+                document.getElementById('manuel-yakit-tutar').value = '';
+                document.getElementById('manuel-yakit-km').value = '';
+                
+                // Submit butonunu tekrar aktif et
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+                
+                if (typeof showToast === 'function') showToast("Kayıt eklendi. Yeni fiş girebilirsiniz.", 'success');
+                
+                return; // closeModal()'a gitmesini engelle
+            }
         } else if (formTitle === 'Yeni Cari Hesap') {
             let unvan = document.getElementById('cari-unvan').value;
             const tur = document.getElementById('cari-tur').value;
@@ -527,6 +594,9 @@ window.saveDataAndClose = async function (event) {
                     if (!aData || bakim_km > (aData.guncel_km || 0)) {
                         await window.supabaseClient.from('araclar').update({ guncel_km: bakim_km }).eq('id', arac_id);
                     }
+                    if (islem_turu === 'Yağ Değişimi') {
+                        await window.supabaseClient.from('araclar').update({ son_yag_km: bakim_km }).eq('id', arac_id);
+                    }
                 } catch(err) { console.error('KM update error:', err); }
             }
 
@@ -576,6 +646,12 @@ window.saveDataAndClose = async function (event) {
             }
             if (typeof fetchBakimlar === 'function') fetchBakimlar();
             if (typeof fetchDashboardData === 'function') fetchDashboardData();
+        } else if (formTitle === 'Toplu Poliçe Kaydı') {
+            // Toplu kaydetme islemi ui-manager.js'teki saveTopluPolice fonksiyonuna delege edilir
+            if (typeof window.saveTopluPolice === 'function') {
+                await window.saveTopluPolice();
+            }
+            return; // saveTopluPolice kendi toast ve modal kapatma islemini yonetir
         } else if (formTitle === 'Yeni Poliçe Kaydı') {
             const arac_id = document.getElementById('police-arac').value;
             const cari_id = document.getElementById('police-cari').value || null;
@@ -616,7 +692,16 @@ window.saveDataAndClose = async function (event) {
 
             if (Object.keys(updatePayload).length > 0) {
                 const { error: updError } = await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
-                if (updError) console.error("Araç tarih güncelleme hatası:", updError);
+                if (updError) {
+                    if (updError.message && updError.message.toLowerCase().includes('could not find') && updatePayload.koltuk_bitis) {
+                        delete updatePayload.koltuk_bitis;
+                        if (Object.keys(updatePayload).length > 0) {
+                            await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
+                        }
+                    } else {
+                        console.error("Araç tarih güncelleme hatası:", updError);
+                    }
+                }
             }
 
             // --- 4. ÖDEME KAYITLARI (Entegre Detaylar) ---
@@ -1106,15 +1191,42 @@ window.filterOzmalCizelge = function(sirketName) {
     if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(window.currentOzmalFilter);
 };
 
+window.setCizelgeSort = function(value, btnEl) {
+    // Gizli select'i güncelle (fetchOzmalCizelge bu değeri okur)
+    const sel = document.getElementById('cizelge-sort');
+    if (sel) sel.value = value;
+
+    // Tüm sort butonlarını pasife al
+    ['sort-btn-alfa','sort-btn-yaklasan','sort-btn-trafik','sort-btn-kasko','sort-btn-vize'].forEach(id => {
+        const b = document.getElementById(id);
+        if (b) {
+            b.classList.remove('bg-orange-500','text-white');
+            b.classList.add('text-gray-400','hover:bg-white/10');
+        }
+    });
+    // Tıklanan butonu aktif yap
+    if (btnEl) {
+        btnEl.classList.add('bg-orange-500','text-white');
+        btnEl.classList.remove('text-gray-400','hover:bg-white/10');
+    }
+    // Tabloyu yenile
+    if (typeof window.fetchOzmalCizelge === 'function') window.fetchOzmalCizelge(window.currentOzmalFilter);
+};
+
 window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilter) {
     const tbody = document.getElementById('cizelge-tbody');
     if (!tbody) return;
 
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
-    // Verinin yükleniyor olduğunu göster (filtre değişikliğinde ekran temizlensin)
-    tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
-    if(window.lucide) window.lucide.createIcons();
+    // Banner-only modda tablo yeniden render etme (tarih girişi odak kaybetmesin)
+    const bannerOnly = window._cizelgeBannerOnly === true;
+    window._cizelgeBannerOnly = false;
+
+    if (!bannerOnly) {
+        tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
+        if(window.lucide) window.lucide.createIcons();
+    }
 
     try {
         let query = window.supabaseClient
@@ -1138,36 +1250,79 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         }
 
         const today = new Date();
-        
+        today.setHours(0,0,0,0);
+
+        const getColorClass = (dateValue) => {
+            if (!dateValue) return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30';
+            const dateObj = new Date(dateValue);
+            const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
+            if (diffDays < 0)   return 'bg-red-500/20 text-red-500 border border-red-500/30';
+            if (diffDays <= 30) return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+            return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        };
+
         // Helper to format date relative state
         const getDateRenderer = (dateValue, fieldName, aracId) => {
-            let cl = 'bg-orange-500/10 text-orange-400 border border-orange-500/20'; // ? empty state or warning
-            
-            if (dateValue) {
-                const dateObj = new Date(dateValue);
-                const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
-                if (diffDays < 0) {
-                    cl = 'bg-red-500/20 text-red-500 border border-red-500/30'; // Süresi dolmuş
-                } else if (diffDays <= 30) {
-                    cl = 'bg-orange-500/20 text-orange-400 border border-orange-500/30'; // Yaklaşıyor
-                } else {
-                    cl = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'; // Geçerli/Güvenli
-                }
-            } else {
-                cl = 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30'; // Belirtilmemiş
-            }
-
+            const cl = getColorClass(dateValue);
+            // data-arac / data-field kullanarak in-place renk güncellemesi yapalım
             return `
-                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20">
-                    <input type="date" 
-                        value="${dateValue || ''}" 
-                        onchange="updateCizelgeDate('${aracId}', '${fieldName}', this.value)"
-                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer placeholder-white/20"
-                        style="color: inherit;"
+                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20 cizelge-date-cell" data-arac="${aracId}" data-field="${fieldName}">
+                    <input type="date"
+                        value="${dateValue || ''}"
+                        onchange="window.updateCizelgeDateInPlace(this, '${aracId}', '${fieldName}')"
+                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer"
+                        style="color:inherit;"
                     />
                 </div>
             `;
         };
+
+        // ---- Uyarı Banner'ı ----
+        const WARN_DAYS = 30;
+        const fieldLabels = { sigorta_bitis: 'Trafik Sig.', koltuk_bitis: 'Koltuk Sig.', kasko_bitis: 'Kasko', vize_bitis: 'Vize' };
+        const warnings = [];
+        (data || []).forEach(a => {
+            Object.keys(fieldLabels).forEach(f => {
+                if (!a[f]) return;
+                const d = new Date(a[f]);
+                const diff = Math.ceil((d - today) / 86400000);
+                if (diff < 0) {
+                    warnings.push({ plaka: a.plaka, label: fieldLabels[f], diff, cls: 'bg-red-500/15 border-red-500/40 text-red-400', icon: 'alert-octagon', text: `Süresi doldu (${Math.abs(diff)} gün önce)` });
+                } else if (diff <= WARN_DAYS) {
+                    warnings.push({ plaka: a.plaka, label: fieldLabels[f], diff, cls: 'bg-orange-500/15 border-orange-500/40 text-orange-400', icon: 'alert-triangle', text: `${diff} gün kaldı` });
+                }
+            });
+        });
+        warnings.sort((a, b) => a.diff - b.diff);
+
+        let bannerEl = document.getElementById('cizelge-uyari-banner');
+        if (!bannerEl) {
+            bannerEl = document.createElement('div');
+            bannerEl.id = 'cizelge-uyari-banner';
+            bannerEl.className = 'mb-4';
+            tbody.closest('table').parentElement.before(bannerEl);
+        }
+        if (warnings.length === 0) {
+            bannerEl.innerHTML = '<div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-emerald-400 text-xs font-bold"><i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i> Tüm araçların belgeleri güncel — yaklaşan bitiş tarihi yok.</div>';
+        } else {
+            bannerEl.innerHTML = `
+            <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 overflow-hidden">
+                <div class="flex items-center gap-2 px-4 py-2.5 border-b border-orange-500/20 bg-orange-500/10">
+                    <i data-lucide="bell-ring" class="w-4 h-4 text-orange-400 flex-shrink-0"></i>
+                    <span class="text-xs font-black text-orange-400 uppercase tracking-widest">Dikkat — ${warnings.length} yaklaşan/geçmiş evrak</span>
+                </div>
+                <div class="flex flex-wrap gap-2 p-3">
+                    ${warnings.map(w => `
+                        <div class="flex items-center gap-1.5 ${w.cls} border rounded-lg px-2.5 py-1.5 text-[10px] font-bold">
+                            <i data-lucide="${w.icon}" class="w-3 h-3 flex-shrink-0"></i>
+                            <span class="text-white font-black">${w.plaka}</span>
+                            <span class="opacity-70">${w.label}:</span>
+                            <span>${w.text}</span>
+                        </div>`).join('')}
+                </div>
+            </div>`;
+        }
+        if (window.lucide) window.lucide.createIcons({ el: bannerEl });
 
         const cizelgeSort = document.getElementById('cizelge-sort')?.value || 'varsayilan';
         if (cizelgeSort !== 'varsayilan') {
@@ -1229,8 +1384,13 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
             `;
         });
 
-        tbody.innerHTML = rows.join('');
-        if (window.lucide) window.lucide.createIcons();
+        if (!bannerOnly) {
+            tbody.innerHTML = rows.join('');
+            if (window.lucide) window.lucide.createIcons();
+        } else {
+            // Sadece uyarı bannerı güncellendi, tablo DOM'una dokunmadık
+            if (window.lucide) window.lucide.createIcons({ el: document.getElementById('cizelge-uyari-banner') });
+        }
 
     } catch (e) {
         console.error("[fetchOzmalCizelge] Error:", e);
@@ -1238,28 +1398,51 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
     }
 };
 
-window.updateCizelgeDate = async function(aracId, fieldName, newDate) {
+// Tablo yeniden render etmeden sadece o hücrenin rengini günceller
+window.updateCizelgeDateInPlace = async function(inputEl, aracId, fieldName) {
     if (!aracId) return;
+    const newDate = inputEl.value;
+    const cell = inputEl.closest('.cizelge-date-cell');
     const payload = {};
     payload[fieldName] = newDate || null;
+
+    // Optimistic UI — rengi hemen güncelle
+    if (cell) {
+        const today = new Date(); today.setHours(0,0,0,0);
+        const allCls = ['bg-red-500/20','text-red-500','border-red-500/30','bg-orange-500/20','text-orange-400','border-orange-500/30','bg-emerald-500/20','text-emerald-400','border-emerald-500/30','bg-yellow-500/10','text-yellow-500','border-yellow-500/30'];
+        allCls.forEach(c => cell.classList.remove(c));
+        if (!newDate) {
+            cell.classList.add('bg-yellow-500/10','text-yellow-500','border-yellow-500/30');
+        } else {
+            const diff = Math.ceil((new Date(newDate) - today) / 86400000);
+            if (diff < 0)        cell.classList.add('bg-red-500/20','text-red-500','border-red-500/30');
+            else if (diff <= 30) cell.classList.add('bg-orange-500/20','text-orange-400','border-orange-500/30');
+            else                 cell.classList.add('bg-emerald-500/20','text-emerald-400','border-emerald-500/30');
+        }
+        inputEl.style.color = 'inherit';
+    }
 
     try {
         const { error } = await window.supabaseClient.from('araclar').update(payload).eq('id', aracId);
         if (error) throw error;
-        
-        if (typeof showToast === 'function') showToast('Tarih başarıyla güncellendi!', 'success');
-        
-        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge();
-        if (typeof fetchAraclar === 'function') fetchAraclar();
-        // Dashboard'da Evrak Bitişleri var, oranında tazelenmesi için:
-        if (typeof fetchDashboardData === 'function') setTimeout(fetchDashboardData, 500);
-
+        if (typeof showToast === 'function') showToast('Tarih güncellendi!', 'success');
+        // Sadece uyarı banner'ını yenile, tablo DOM'una dokunma
+        if (typeof window.fetchOzmalCizelge === 'function') {
+            window._cizelgeBannerOnly = true;
+            window.fetchOzmalCizelge();
+        }
+        if (typeof fetchDashboardData === 'function') setTimeout(fetchDashboardData, 800);
     } catch (e) {
-        console.error("updateCizelgeDate Error:", e);
+        console.error('updateCizelgeDateInPlace Error:', e);
         if (typeof showToast === 'function') showToast('Tarih güncellenirken hata oluştu!', 'error');
-        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge(); // revert
+        // Hatada eski rengi geri al — tüm tabloyu yenile
+        window._cizelgeBannerOnly = false;
+        if (typeof window.fetchOzmalCizelge === 'function') window.fetchOzmalCizelge();
     }
 };
+
+// Eski fonksiyonu da koru (geriye uyumluluk)
+window.updateCizelgeDate = window.updateCizelgeDateInPlace;
 
 /* === 4. SUPABASE VERİ ÇEKME (READ / SELECT) İŞLEMLERİ === */
 window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi') {
@@ -1391,7 +1574,51 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     .single();
 
                 if (error || !p) {
-                    alert(`${tur} kaydı bulunamadı.`);
+                    // Veritabanında (arac_policeler) detaylı poliçe kaydı yoksa sadece aracın kendi tarihini göster
+                    let bitisSutun = tur.toLowerCase().includes('kasko') ? 'kasko_bitis' : 
+                                    (tur.toLowerCase().includes('koltuk') ? 'koltuk_bitis' : 
+                                    (tur.toLowerCase().includes('vize') ? 'vize_bitis' : 'sigorta_bitis'));
+                    
+                    const { data: aracData } = await window.supabaseClient.from('araclar').select(bitisSutun).eq('id', aracId).single();
+                    let bitisTarihi = aracData ? aracData[bitisSutun] : null;
+
+                    if (!bitisTarihi) {
+                        alert(`${tur} kaydı bulunamadı.`);
+                        return;
+                    }
+                    
+                    let fallbackContent = `
+                        <div class="text-left space-y-3 p-2">
+                            <div class="flex justify-between border-b pb-2">
+                                <span class="text-xs text-gray-400 uppercase font-bold">Poliçe / Evrak Türü</span>
+                                <span class="text-sm font-bold text-primary">${tur}</span>
+                            </div>
+                            <div class="flex justify-between border-b pb-2">
+                                <span class="text-xs text-gray-400 uppercase font-bold">Geçerlilik Bitiş</span>
+                                <span class="text-sm font-bold text-danger">${window.formatDate ? window.formatDate(bitisTarihi) : bitisTarihi}</span>
+                            </div>
+                            <div class="mt-4 p-3 bg-yellow-50 rounded border border-yellow-200 text-[11px] text-yellow-700">
+                                <b>Bilgi:</b> Bu araç için yalnızca son geçerlilik tarihi girilmiştir. (Sistemde detaylı poliçe/ödeme kaydı veya doküman eşleşmesi bulunmamaktadır.)
+                            </div>
+                        </div>
+                    `;
+
+                    const detailModal = document.createElement('div');
+                    detailModal.id = "policy-detail-overlay";
+                    detailModal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4";
+                    detailModal.innerHTML = `
+                        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
+                            <div class="bg-primary px-4 py-3 flex justify-between items-center">
+                                <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} Özet Bilgisi</h3>
+                                <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">✕</button>
+                            </div>
+                            <div class="p-4 font-sans">${fallbackContent}</div>
+                            <div class="bg-gray-50 px-4 py-3 text-right">
+                                <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase">Kapat</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(detailModal);
                     return;
                 }
 
@@ -1523,6 +1750,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     <div class="flex flex-wrap items-center justify-between mt-auto pt-4 border-t border-white/5 gap-2">
                         <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="user-plus" class="w-3 h-3"></i>Şoför Eşleştir</button>
                         <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>Poliçe/Evrak</button>
+                        <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" class="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Geçmiş</button>
                         <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="text-[10px] font-bold text-orange-500 hover:text-orange-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>Düzenle</button>
                         <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Sil</button>
                     </div>
@@ -1565,6 +1793,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                         <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
                             <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="Şoför Ata"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
                             <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Evrak/Poliçe"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" class="p-1.5 text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-all" title="Bakım Geçmişi"><i data-lucide="history" class="w-3.5 h-3.5"></i></button>
                             <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="p-1.5 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-lg transition-all" title="Düzenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
                             <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all" title="Sil"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                         </div>
@@ -2382,6 +2611,7 @@ async function fetchSoforFinans() {
 }
 
 async function fetchTaseronFinans() {
+    window.fetchTaseronFinans = fetchTaseronFinans;
     const tbody = document.getElementById('taseron-finans-tbody');
     if (!tbody) return;
     try {
@@ -2400,7 +2630,8 @@ async function fetchTaseronFinans() {
         }
         const [year, month] = filterAy.split('-');
         const startDate = `${year}-${month}-01`;
-        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
+        const lastDayObj = new Date(parseInt(year), parseInt(month), 0);
+        const endDate = `${year}-${month}-${String(lastDayObj.getDate()).padStart(2, '0')}`;
 
         // 2. Data Fetching (Paginated)
         let puantajData = [];
@@ -2445,6 +2676,13 @@ async function fetchTaseronFinans() {
             .select('id, ad');
         const musteriAdMap = {};
         musteriListesi?.forEach(m => musteriAdMap[m.id] = m.ad || '-');
+
+        // Şoförleri Çek (Özmal araçlar için kullanılacak)
+        const { data: soforler } = await window.supabaseClient
+            .from('soforler')
+            .select('id, ad_soyad');
+        const soforMap = {};
+        soforler?.forEach(s => soforMap[s.id] = s.ad_soyad || 'Bilinmiyor');
             
         // Paginated Yakitlar Fetch
         let yakitlar = [];
@@ -2463,12 +2701,53 @@ async function fetchTaseronFinans() {
             yFrom += yStep;
         }
 
-        const { data: araclar } = await window.supabaseClient
-            .from('araclar')
-            .select('id, plaka, mulkiyet_durumu, firma_adi');
+        // Paginated Araclar Fetch (Büyük filolarda 'Bilinmiyor' hatası almamak için)
+        let araclar = [];
+        let aFrom = 0;
+        const aStep = 1000;
+        while (true) {
+            const { data: aBatch, error: aErr } = await window.supabaseClient
+                .from('araclar')
+                .select('id, plaka, mulkiyet_durumu, sofor_id, firma_adi')
+                .range(aFrom, aFrom + aStep - 1);
+            
+            if (aErr) {
+                console.error("Araclar fetch error:", aErr);
+                break;
+            }
+            if (!aBatch || aBatch.length === 0) break;
+            
+            araclar = araclar.concat(aBatch);
+            if (aBatch.length < aStep) break;
+            aFrom += aStep;
+        }
 
         const aracMap = {};
         araclar?.forEach(a => aracMap[a.id] = a);
+
+        // Yardımcı fonksiyon: Summary objesini başlat
+        const initSummaryRow = (aId) => {
+            const arac = aracMap[aId];
+            const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
+            
+            let sahip_bilgisi = '';
+            if (mulkiyet === 'ÖZMAL') {
+                sahip_bilgisi = soforMap[arac?.sofor_id] ? `Şoför: ${soforMap[arac.sofor_id]}` : 'Atanmış Şoför Yok';
+            } else if (mulkiyet === 'TAŞERON') {
+                sahip_bilgisi = arac?.firma_adi || 'Firma Bilinmiyor';
+            } else {
+                sahip_bilgisi = arac?.firma_adi || '';
+            }
+
+            return { 
+                arac_id: aId, 
+                plaka: arac?.plaka || 'Bilinmiyor', 
+                mulkiyet_durumu: mulkiyet,
+                sahip_bilgisi: sahip_bilgisi, 
+                vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, 
+                brut: 0, yakit: 0, musteriDetay: {} 
+            };
+        };
 
         // 3. Aggregate Data per Vehicle
         const summary = {};
@@ -2476,23 +2755,28 @@ async function fetchTaseronFinans() {
         if (puantajData) {
             puantajData.forEach(p => {
                 const aId = p.arac_id;
-                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const arac = aracMap[aId];
+                if (!arac) return; // Araç silinmişse puantajı atla
+                const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
                 const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
                 
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', firma_adi: (aracMap[aId]?.firma_adi || '').trim() || null, vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = initSummaryRow(aId);
                 }
-                const vStr = String(p.vardiya || '').trim();
-                const tStr = String(p.tek || '').trim();
-                const v  = isNaN(vStr) || vStr === '' ? 0 : parseInt(vStr);
-                const t  = isNaN(tStr) || tStr === '' ? 0 : parseInt(tStr);
-                const c8 = parseInt(p.cikis_8 || 0);
-                const g2 = parseInt(p.giris_2030 || 0);
+                const parseSafe = (val) => {
+                    const str = String(val || '').trim();
+                    if (str === '') return 0;
+                    const num = parseInt(str, 10);
+                    return isNaN(num) ? 0 : num;
+                };
+                const v  = parseSafe(p.vardiya);
+                const t  = parseSafe(p.tek);
+                const c8 = parseSafe(p.cikis_8);
+                const g2 = parseSafe(p.giris_2030);
                 const mId = p.musteri_id;
-                const mStr = String(p.mesai || '').trim();
-                const m  = isNaN(mStr) || mStr === '' ? 0 : parseInt(mStr);
+                const m  = parseSafe(p.mesai);
                 
                 if(v > 0 || t > 0 || c8 > 0 || g2 > 0 || m > 0) {
                     summary[aId].vardiya  += v;
@@ -2501,8 +2785,11 @@ async function fetchTaseronFinans() {
                     summary[aId].giris_2030 = (summary[aId].giris_2030 || 0) + g2;
                     summary[aId].mesai    = (summary[aId].mesai    || 0) + m;
 
-                    // ⭐ Key = musteri_id + bolge → İzmir ve Manisa ayrı panel
-                    const bolge   = p.bolge || 'Manisa';
+                    // ⭐ Dikkan fabrikası için bölgeyi daima 'İzmir' olarak normalize et
+                    // DB'de 'Manisa' veya NULL olarak kayıtlı olsa bile Dikkan = İzmir
+                    const musteriAdi = (musteriAdMap[mId] || '').toUpperCase();
+                    const isDikkanMusteri = musteriAdi.includes('DİKKAN') || musteriAdi.includes('DIKKAN');
+                    const bolge   = isDikkanMusteri ? 'İzmir' : (p.bolge || 'Manisa');
                     const detayKey = `${mId}|||${bolge}`;
                     const isIzmir  = bolge === 'İzmir';
                     const bolgeBadge = `<span style="font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:6px;${
@@ -2533,12 +2820,13 @@ async function fetchTaseronFinans() {
                             summary[aId].musteriDetay[detayKey].mesai_fiyat      = parseFloat(tanim.mesai_fiyat)      || 0;
                             summary[aId].musteriDetay[detayKey].kdv_oran         = parseFloat(tanim.kdv_oran)         || 0;
                             summary[aId].musteriDetay[detayKey].tev_oran         = parseFloat(tanim.tev_oran)         || 0;
-                            // Override sayıları (manuel düzeltme)
-                            summary[aId].musteriDetay[detayKey].override_vardiya    = tanim.override_vardiya    ?? null;
-                            summary[aId].musteriDetay[detayKey].override_tek        = tanim.override_tek        ?? null;
-                            summary[aId].musteriDetay[detayKey].override_cikis_8   = tanim.override_cikis_8   ?? null;
-                            summary[aId].musteriDetay[detayKey].override_giris_2030 = tanim.override_giris_2030 ?? null;
-                            summary[aId].musteriDetay[detayKey].override_mesai      = tanim.override_mesai      ?? null;
+                            
+                            // Map override counts
+                            summary[aId].musteriDetay[detayKey].override_vardiya    = tanim.override_vardiya;
+                            summary[aId].musteriDetay[detayKey].override_tek        = tanim.override_tek;
+                            summary[aId].musteriDetay[detayKey].override_cikis_8    = tanim.override_cikis_8;
+                            summary[aId].musteriDetay[detayKey].override_giris_2030 = tanim.override_giris_2030;
+                            summary[aId].musteriDetay[detayKey].override_mesai      = tanim.override_mesai;
                         }
                     }
                     summary[aId].musteriDetay[detayKey].vardiya    += v;
@@ -2553,13 +2841,15 @@ async function fetchTaseronFinans() {
         if (yakitlar) {
             yakitlar.forEach(y => {
                 const aId = y.arac_id;
-                const mulkiyet = (aracMap[aId]?.mulkiyet_durumu || 'Diğer').toUpperCase();
+                const arac = aracMap[aId];
+                if (!arac) return; // Araç silinmişse yakıtı atla
+                const mulkiyet = (arac?.mulkiyet_durumu || 'Diğer').toUpperCase();
                 const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
                 
                 if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
                 if (!summary[aId]) {
-                    summary[aId] = { arac_id: aId, plaka: aracMap[aId]?.plaka || 'Bilinmiyor', firma_adi: (aracMap[aId]?.firma_adi || '').trim() || null, vardiya: 0, tek: 0, cikis_8: 0, giris_2030: 0, mesai: 0, brut: 0, yakit: 0, musteriDetay: {} };
+                    summary[aId] = initSummaryRow(aId);
                 }
                 summary[aId].yakit += parseFloat(y.toplam_tutar) || 0;
             });
@@ -2567,21 +2857,38 @@ async function fetchTaseronFinans() {
 
         Object.values(summary).forEach(row => {
             let totalBrutOfRow = 0;
+            let totalVardiya = 0;
+            let totalTek = 0;
+            let totalMesai = 0;
+            
             Object.values(row.musteriDetay).forEach(md => {
-                totalBrutOfRow += (md.vardiya * md.vardiya_fiyat)
-                               + (md.tek     * md.tek_fiyat)
-                               + ((md.cikis_8   || 0) * (md.cikis_8_fiyat   || 0))
-                               + ((md.giris_2030 || 0) * (md.giris_2030_fiyat || 0))
-                               + ((md.mesai     || 0) * (md.mesai_fiyat     || 0));
+                const effV = md.override_vardiya ?? md.vardiya;
+                const effT = md.override_tek ?? md.tek;
+                const effC8 = md.override_cikis_8 ?? (md.cikis_8 || 0);
+                const effG2 = md.override_giris_2030 ?? (md.giris_2030 || 0);
+                const effM = md.override_mesai ?? (md.mesai || 0);
+
+                totalBrutOfRow += (effV * md.vardiya_fiyat)
+                               + (effT * md.tek_fiyat)
+                               + (effC8 * (md.cikis_8_fiyat || 0))
+                               + (effG2 * (md.giris_2030_fiyat || 0))
+                               + (effM * (md.mesai_fiyat || 0));
+                               
+                totalVardiya += effV;
+                totalTek += effT;
+                totalMesai += effM;
             });
             row.brut = totalBrutOfRow;
+            row.vardiya = totalVardiya;
+            row.tek = totalTek;
+            row.mesai = totalMesai;
         });
 
         let rows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
 
         const plakaFilter = document.getElementById('taseron-finans-search')?.value?.toUpperCase();
         if (plakaFilter) {
-            rows = rows.filter(r => r.plaka.toUpperCase().includes(plakaFilter) || (r.firma_adi || '').toUpperCase().includes(plakaFilter));
+            rows = rows.filter(r => r.plaka.toUpperCase().includes(plakaFilter) || (r.firma_adi || aracMap[r.arac_id]?.firma_adi || '').toUpperCase().includes(plakaFilter) || (r.sahip_bilgisi || '').toUpperCase().includes(plakaFilter));
         }
 
         tbody.innerHTML = '';
@@ -2597,12 +2904,13 @@ async function fetchTaseronFinans() {
         window._taseronCariData = summary;
         window._taseronCariAy = filterAy;
 
-        // --- Firma adına göre grupla ---
+        // --- firma_adi'ne göre grupla ---
         const firmaGroups = {};
         rows.forEach(row => {
-            const key = row.firma_adi || row.plaka;
+            const firmaAdi = (aracMap[row.arac_id]?.firma_adi || '').trim();
+            const key = firmaAdi || row.plaka;
             if (!firmaGroups[key]) {
-                firmaGroups[key] = { label: key, firma_adi: row.firma_adi || null, plakaList: [], vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0 };
+                firmaGroups[key] = { label: key, firma_adi: firmaAdi || null, plakaList: [], vardiya: 0, tek: 0, mesai: 0, brut: 0, yakit: 0 };
             }
             firmaGroups[key].plakaList.push(row);
             firmaGroups[key].vardiya += row.vardiya;
@@ -2700,7 +3008,8 @@ async function fetchTaseronAylikRapor() {
 
         const [year, month] = filterAy.split('-');
         const startDate = `${year}-${month}-01`;
-        const endDate = new Date(year, parseInt(month), 0).toISOString().split('T')[0];
+        const lastDayObj = new Date(parseInt(year), parseInt(month), 0);
+        const endDate = `${year}-${month}-${String(lastDayObj.getDate()).padStart(2, '0')}`;
 
         // Parallel Fetch Data (Small tables)
         const [yakitRes, bakimRes, aracRes] = await Promise.all([
@@ -2755,28 +3064,41 @@ async function fetchTaseronAylikRapor() {
 
         (puantajData || []).forEach(p => {
             const aid = p.arac_id;
+            if (!aracMap[aid]) return; // Araç silinmişse atla
             const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
             const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
             if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
 
             addRow(aid);
-            const v = parseInt(p.vardiya) || 0;
-            const t = parseInt(p.tek) || 0;
-            const m = parseInt(p.mesai) || 0;
+            const parseSafe = (val) => {
+                const str = String(val || '').trim();
+                if (str === '') return 0;
+                const num = parseInt(str, 10);
+                return isNaN(num) ? 0 : num;
+            };
+            const v = parseSafe(p.vardiya);
+            const t = parseSafe(p.tek);
+            const m = parseSafe(p.mesai);
 
             if(v > 0 || t > 0 || m > 0) {
                 addRow(aid);
-                summary[aid].sefer += (v + t + m);
-
                 const tanim = tanimlar?.find(x => x.musteri_id === p.musteri_id && x.arac_id === aid);
+                
+                const effV = tanim?.override_vardiya ?? v;
+                const effT = tanim?.override_tek ?? t;
+                const effM = tanim?.override_mesai ?? m;
+
+                summary[aid].sefer += (effV + effT + effM);
+
                 if(tanim) {
-                    summary[aid].brut += (v * (tanim.vardiya_fiyat || 0)) + (t * (tanim.tek_fiyat || 0)) + (m * (tanim.mesai_fiyat || 0));
+                    summary[aid].brut += (effV * (tanim.vardiya_fiyat || 0)) + (effT * (tanim.tek_fiyat || 0)) + (effM * (tanim.mesai_fiyat || 0));
                 }
             }
         });
 
         (yakitRes.data || []).forEach(y => {
             const aid = y.arac_id;
+            if (!aracMap[aid]) return; // Araç silinmişse atla
             const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
             const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
             if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
@@ -2787,6 +3109,7 @@ async function fetchTaseronAylikRapor() {
 
         (bakimRes.data || []).forEach(b => {
              const aid = b.arac_id;
+             if (!aracMap[aid]) return; // Araç silinmişse atla
              const mulkiyet = (aracMap[aid]?.mulkiyet_durumu || 'Diğer').toUpperCase();
              const currentFilter = (ownerFilter || 'TÜMÜ').toUpperCase();
              if (currentFilter !== 'TÜMÜ' && mulkiyet !== currentFilter) return;
@@ -2833,6 +3156,13 @@ async function fetchTaseronAylikRapor() {
             document.getElementById('total-taseron-net').textContent = '₺' + gtNet.toLocaleString('tr-TR');
         }
 
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(gtBrut);
+        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(gtYakit);
+        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(gtNet);
+        if (window.lucide) window.lucide.createIcons();
+
     } catch (e) {
         console.error("fetchTaseronAylikRapor error:", e);
         tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-8">Hata: ${e.message}</td></tr>`;
@@ -2848,6 +3178,7 @@ window.openCariHakedisDetay = async function(arac_id) {
     const overlay = document.createElement('div');
     overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] flex items-center justify-center p-4';
     overlay.id = 'cari-kart-modal-overlay';
+    overlay.setAttribute('data-arac-id', arac_id);
     overlay.innerHTML = '<div class="text-white text-sm font-bold animate-pulse"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i> Yükleniyor...</div>';
     document.body.appendChild(overlay);
     if(window.lucide) window.lucide.createIcons();
@@ -2860,7 +3191,8 @@ window.openCariHakedisDetay = async function(arac_id) {
         
         const [year, m] = month.split('-');
         const startDate = `${year}-${m}-01`;
-        const endDate = new Date(year, parseInt(m), 0).toISOString().split('T')[0];
+        const lastDayObj = new Date(parseInt(year), parseInt(m), 0);
+        const endDate = `${year}-${m}-${String(lastDayObj.getDate()).padStart(2, '0')}`;
         const { data: yakitlar } = await window.supabaseClient
             .from('yakit_takip')
             .select('*')
@@ -2868,6 +3200,29 @@ window.openCariHakedisDetay = async function(arac_id) {
             .gte('tarih', startDate)
             .lte('tarih', endDate)
             .order('tarih', {ascending: false});
+
+        // === ÖZMAL: Bakım ve Sigorta Giderlerini Çek ===
+        const isOzmal = (data.mulkiyet_durumu || '').toUpperCase() === 'ÖZMAL';
+        let otoBakimlar = [];
+        let otoPoliceler = [];
+        if (isOzmal) {
+            const [bakimRes, policeRes] = await Promise.all([
+                window.supabaseClient.from('arac_bakimlari')
+                    .select('id, islem_tarihi, islem_turu, aciklama, toplam_tutar')
+                    .eq('arac_id', arac_id)
+                    .gte('islem_tarihi', startDate)
+                    .lte('islem_tarihi', endDate)
+                    .order('islem_tarihi', { ascending: false }),
+                window.supabaseClient.from('arac_policeler')
+                    .select('id, baslangic_tarihi, bitis_tarihi, police_turu, toplam_tutar')
+                    .eq('arac_id', arac_id)
+                    .gte('baslangic_tarihi', startDate)
+                    .lte('baslangic_tarihi', endDate)
+                    .order('baslangic_tarihi', { ascending: false })
+            ]);
+            otoBakimlar  = bakimRes.data  || [];
+            otoPoliceler = policeRes.data || [];
+        }
 
         let factoriesHTML = '';
         const mIds = Object.keys(data.musteriDetay);
@@ -3004,20 +3359,36 @@ window.openCariHakedisDetay = async function(arac_id) {
         if(!yakitlar || yakitlar.length === 0) {
             yakitHTML = '<div class="text-sm text-gray-500 italic p-4 text-center border dashed border-white/5 rounded-xl">Bu ay hiç yakıt alımı bulunmuyor.</div>';
         } else {
-            yakitHTML = `<div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">`;
+            yakitHTML = `
+            <div class="flex justify-between items-center mb-2 px-1">
+                <label class="flex items-center gap-2 cursor-pointer group">
+                    <input type="checkbox" onchange="document.querySelectorAll('.yakit-cb').forEach(cb => cb.checked = this.checked)" class="w-3.5 h-3.5 rounded border-gray-600 bg-black/20 text-orange-500 focus:ring-orange-500/30 cursor-pointer">
+                    <span class="text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors uppercase tracking-widest">Tümünü Seç</span>
+                </label>
+                <button onclick="window.transferSelectedYakitlar('${arac_id}')" class="px-2 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-colors uppercase tracking-widest">
+                    <i data-lucide="arrow-right-left" class="w-3 h-3"></i> Toplu Aktar
+                </button>
+            </div>
+            <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-2" id="yakitlar-list-container">`;
             yakitlar.forEach(y => {
                 const tutar = parseFloat(y.toplam_tutar) || 0;
                 totalYakit += tutar;
                 yakitHTML += `
-                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors">
+                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5 hover:bg-white/10 transition-colors group">
                         <div class="flex items-center gap-3">
+                            <input type="checkbox" value="${y.id}" class="yakit-cb w-4 h-4 rounded border-gray-600 bg-black/40 text-orange-500 focus:ring-orange-500/30 cursor-pointer">
                             <div class="p-2 bg-orange-500/10 text-orange-400 rounded-lg"><i data-lucide="fuel" class="w-4 h-4"></i></div>
                             <div>
                                 <div class="text-xs text-white font-bold">${y.tarih}</div>
                                 <div class="text-[10px] text-gray-400 mt-0.5">${y.litre} Lt x ₺${y.birim_fiyat}</div>
                             </div>
                         </div>
-                        <div class="text-sm font-black text-orange-400">-₺${tutar.toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-sm font-black text-orange-400">-₺${tutar.toLocaleString('tr-TR', {minimumFractionDigits:2})}</div>
+                            <button onclick="window.transferYakit(['${y.id}'], '${arac_id}')" class="opacity-0 group-hover:opacity-100 p-1.5 bg-white/5 hover:bg-blue-500/20 text-gray-400 hover:text-blue-400 rounded-lg transition-all" title="Başka Araca Aktar">
+                                <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
                     </div>
                 `;
             });
@@ -3029,9 +3400,13 @@ window.openCariHakedisDetay = async function(arac_id) {
                 <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-orange-500/10 to-transparent">
                     <div>
                         <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i> Cari Kart: <span class="text-orange-400">${data.plaka}</span></h2>
-                        <p class="text-xs text-gray-400 mt-1">${month} Dönemi Servis ve Yakıt Hesap Dökümü</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <p class="text-xs text-gray-400">${month} Dönemi Hakediş Detayları</p>
+                            <span class="text-gray-600">|</span>
+                            <p class="text-xs font-bold text-orange-400/80 uppercase tracking-wider" id="modal-sahip-bilgisi">${data.sahip_bilgisi || ''}</p>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3">
                         <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> Yazdır
                         </button>
@@ -3054,6 +3429,41 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="droplets" class="w-4 h-4 text-orange-400"></i> Yakıt Kesintileri</h3>
                         ${yakitHTML}
                     </div>
+
+                    <!-- ÖZMAL OTOMATİK GİDERLER BÖLÜMÜ -->
+                    ${isOzmal ? `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="wrench" class="w-4 h-4 text-amber-400"></i>
+                                Bakım & Sigorta Giderleri
+                                <span class="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-[9px] font-black rounded border border-amber-500/30 uppercase tracking-wider">OTOMATİK</span>
+                            </h3>
+                        </div>
+                        <div id="auto-gider-container" class="space-y-2"></div>
+                    </div>
+                    ` : ''}
+
+                    <!-- MANUEL GELİR/GİDER BÖLÜMÜ -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="plus-minus" class="w-4 h-4 text-purple-400"></i> Manuel Gelir / Gider Kalemleri
+                            </h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="window.addManuelKalem('gelir')" class="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30 rounded-lg text-[11px] font-bold transition-all">
+                                    <i data-lucide="plus" class="w-3 h-3"></i> Gelir Ekle
+                                </button>
+                                <button onclick="window.addManuelKalem('gider')" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all">
+                                    <i data-lucide="minus" class="w-3 h-3"></i> Gider Ekle
+                                </button>
+                            </div>
+                        </div>
+                        <div id="manuel-kalemler-container" class="space-y-2 min-h-[40px]">
+                            <p class="text-xs text-gray-600 italic text-center py-3" id="manuel-bos-mesaj">Henüz manuel kalem eklenmedi. Gelir veya gider eklemek için yukarıdaki butonları kullanın.</p>
+                        </div>
+                    </div>
+
                 </div>
 
                 <div class="p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
@@ -3070,9 +3480,21 @@ window.openCariHakedisDetay = async function(arac_id) {
                             <span class="text-sm text-yellow-400 font-bold">- Toplam TEV (Stopaj)</span>
                             <span class="text-base text-yellow-300 font-black" id="modal-tev-total">-₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10">
+                        <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Yakıt Kesintisi</span>
                             <span class="text-base text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
+                        </div>
+                        <div class="flex justify-between items-center" id="modal-manuel-gelir-row" style="display:none!important">
+                            <span class="text-sm text-green-400 font-bold">+ Manuel Gelirler</span>
+                            <span class="text-base text-green-300 font-black" id="modal-manuel-gelir">+₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-manuel-gider-row" style="display:none!important">
+                            <span class="text-sm text-red-400 font-bold">- Manuel Giderler</span>
+                            <span class="text-base text-red-300 font-black" id="modal-manuel-gider">-₺0,00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-auto-gider-row" style="display:none!important">
+                            <span class="text-sm text-amber-400 font-bold">- Bakım &amp; Sigorta</span>
+                            <span class="text-base text-amber-300 font-black" id="modal-auto-gider">-₺0,00</span>
                         </div>
                         <div class="flex justify-between items-center pt-2">
                             <span class="text-xl text-white font-black uppercase tracking-widest">NET HAKEDİŞ</span>
@@ -3085,68 +3507,272 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         if(window.lucide) window.lucide.createIcons();
 
+        // === HESAPLAMA FONKSİYONU (önce tanımla) ===
         const calculateTotals = () => {
             let totalBrut = 0;
-            let totalKdv = 0;
-            let totalTev = 0;
+            let totalKdv  = 0;
+            let totalTev  = 0;
             const counts = data.musteriDetay;
-            
+
             overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
-                const mId = row.getAttribute('data-mid');
-                const vFiyat  = parseFloat(row.querySelector('.calc-vardiya-fiyat').value)   || 0;
-                const tFiyat  = parseFloat(row.querySelector('.calc-tek-fiyat').value)        || 0;
-                const c8Fiyat = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
-                const g2Fiyat = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
-                const mFiyat  = parseFloat(row.querySelector('.calc-mesai-fiyat').value)      || 0;
-                
+                const mId    = row.getAttribute('data-mid');
+                const vFiyat = parseFloat(row.querySelector('.calc-vardiya-fiyat').value)    || 0;
+                const tFiyat = parseFloat(row.querySelector('.calc-tek-fiyat').value)         || 0;
+                const c8Fiyat= parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
+                const g2Fiyat= parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
+                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat').value)       || 0;
+
                 const vCount  = parseFloat(row.querySelector('.calc-vardiya-count')?.value)  || 0;
                 const tCount  = parseFloat(row.querySelector('.calc-tek-count')?.value)       || 0;
                 const c8Count = parseFloat(row.querySelector('.calc-cikis8-count')?.value)    || 0;
                 const g2Count = parseFloat(row.querySelector('.calc-giris2030-count')?.value) || 0;
                 const mCount  = parseFloat(row.querySelector('.calc-mesai-count')?.value)     || 0;
-                
+
                 const kdvOran = parseFloat(row.querySelector('.calc-kdv-oran')?.value) || 0;
                 const tevOran = parseFloat(row.querySelector('.calc-tev-oran')?.value) || 0;
-                const rowBrut = (vCount * vFiyat) + (tCount * tFiyat) + (c8Count * c8Fiyat) + (g2Count * g2Fiyat) + (mCount * mFiyat);
+                const rowBrut = (vCount*vFiyat)+(tCount*tFiyat)+(c8Count*c8Fiyat)+(g2Count*g2Fiyat)+(mCount*mFiyat);
                 const rowKdv  = rowBrut * (kdvOran / 100);
                 const rowTev  = rowBrut * (tevOran / 100);
-                const rowTotal = rowBrut;
                 row.querySelector('.row-toplam').innerText = '₺' + rowBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 const kdvEl2 = row.querySelector('.row-kdv-tutar'); if(kdvEl2) kdvEl2.innerText = '+₺' + rowKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 const tevEl2 = row.querySelector('.row-tev-tutar'); if(tevEl2) tevEl2.innerText = '-₺' + rowTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
                 totalBrut += rowBrut;
-                totalKdv += rowKdv;
-                totalTev += rowTev;
+                totalKdv  += rowKdv;
+                totalTev  += rowTev;
             });
 
-            document.getElementById('modal-brut-total').innerText = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const kdvTotalEl = document.getElementById('modal-kdv-total'); if(kdvTotalEl) kdvTotalEl.innerText = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const tevTotalEl = document.getElementById('modal-tev-total'); if(tevTotalEl) tevTotalEl.innerText = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const yakit = parseFloat(document.getElementById('modal-yakit-total').getAttribute('data-val')) || 0;
-            const net = totalBrut + totalKdv - totalTev - yakit;
-            
+            // Manuel kalemler
+            let manuelGelir = 0;
+            let manuelGider = 0;
+            overlay.querySelectorAll('.manuel-kalem-row').forEach(row => {
+                const tip   = row.getAttribute('data-tip');
+                const tutar = parseFloat(row.querySelector('.manuel-tutar')?.value) || 0;
+                if (tip === 'gelir') manuelGelir += tutar;
+                else if (tip === 'gider') manuelGider += tutar;
+            });
+
+            // Otomatik bakım/sigorta giderleri (dismiss edilmemişler)
+            let autoGiderToplam = 0;
+            overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])').forEach(row => {
+                autoGiderToplam += parseFloat(row.getAttribute('data-tutar') || 0);
+            });
+
+            const gelirRow = document.getElementById('modal-manuel-gelir-row');
+            const giderRow = document.getElementById('modal-manuel-gider-row');
+            const gelirEl  = document.getElementById('modal-manuel-gelir');
+            const giderEl  = document.getElementById('modal-manuel-gider');
+            if (gelirRow) gelirRow.style.display = manuelGelir > 0 ? 'flex' : 'none';
+            if (giderRow) giderRow.style.display = manuelGider > 0 ? 'flex' : 'none';
+            if (gelirEl)  gelirEl.innerText  = '+₺' + manuelGelir.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            if (giderEl)  giderEl.innerText  = '-₺' + manuelGider.toLocaleString('tr-TR', {minimumFractionDigits:2});
+
+            // Auto gider satırı
+            const autoGiderRow = document.getElementById('modal-auto-gider-row');
+            const autoGiderEl  = document.getElementById('modal-auto-gider');
+            if (autoGiderRow) autoGiderRow.style.display = autoGiderToplam > 0 ? 'flex' : 'none';
+            if (autoGiderEl)  autoGiderEl.innerText = '-₺' + autoGiderToplam.toLocaleString('tr-TR', {minimumFractionDigits:2});
+
+            const brutEl  = document.getElementById('modal-brut-total');  if(brutEl)  brutEl.innerText  = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const kdvTEl  = document.getElementById('modal-kdv-total');   if(kdvTEl)  kdvTEl.innerText  = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const tevTEl  = document.getElementById('modal-tev-total');   if(tevTEl)  tevTEl.innerText  = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const yakit   = parseFloat(document.getElementById('modal-yakit-total')?.getAttribute('data-val')) || 0;
+            const net     = totalBrut + totalKdv - totalTev - yakit + manuelGelir - manuelGider - autoGiderToplam;
+
             const netEl = document.getElementById('modal-net-total');
-            netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            if(net < 0) {
-                netEl.classList.remove('text-green-400');
-                netEl.classList.add('text-red-500');
-            } else {
-                netEl.classList.remove('text-red-500');
-                netEl.classList.add('text-green-400');
+            if (netEl) {
+                netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                netEl.classList.toggle('text-green-400', net >= 0);
+                netEl.classList.toggle('text-red-500', net < 0);
             }
         };
 
-        calculateTotals();
+        // === MANUEL KALEM YARDIMCI FONKSİYONLARI ===
+        const STORAGE_KEY = `cari_manuel_${arac_id}_${month}`;
 
+        const loadFromStorage = () => {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+        };
+
+        const saveToStorage = () => {
+            const kalemler = [];
+            overlay.querySelectorAll('.manuel-kalem-row').forEach(row => {
+                kalemler.push({
+                    id:     row.getAttribute('data-kid'),
+                    tip:    row.getAttribute('data-tip'),
+                    baslik: row.querySelector('.manuel-baslik').value || '',
+                    tutar:  parseFloat(row.querySelector('.manuel-tutar').value) || 0
+                });
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(kalemler));
+            calculateTotals();
+        };
+
+        const renderKalemRow = (kalem) => {
+            const container = overlay.querySelector('#manuel-kalemler-container');
+            const bosMsg    = overlay.querySelector('#manuel-bos-mesaj');
+            if (bosMsg) bosMsg.remove();
+
+            const isGelir = kalem.tip === 'gelir';
+            const row = document.createElement('div');
+            row.className = 'manuel-kalem-row flex items-center gap-2 p-3 rounded-xl border transition-all ' +
+                (isGelir
+                    ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40'
+                    : 'bg-red-500/5   border-red-500/20   hover:border-red-500/40');
+            row.setAttribute('data-kid', kalem.id);
+            row.setAttribute('data-tip', kalem.tip);
+            row.innerHTML = `
+                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black ${isGelir ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                    ${isGelir ? '+' : '−'}
+                </div>
+                <input type="text"
+                    placeholder="${isGelir ? 'Gelir başlığı (örn: Ekstra Sefer)' : 'Gider başlığı (örn: Köprü Cezası)'}"
+                    class="manuel-baslik flex-1 bg-transparent text-white text-xs font-bold border-none outline-none placeholder-gray-600"
+                    value="${String(kalem.baslik || '').replace(/"/g, '&quot;')}"
+                />
+                <div class="flex items-center gap-1">
+                    <span class="text-gray-500 text-xs font-bold">₺</span>
+                    <input type="number" step="0.01" min="0" placeholder="0,00"
+                        class="manuel-tutar w-28 bg-transparent text-xs font-black border-none outline-none text-right ${isGelir ? 'text-green-300' : 'text-red-300'}"
+                        value="${kalem.tutar || ''}"
+                    />
+                </div>
+                <button class="manuel-sil-btn flex-shrink-0 p-1.5 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-all" title="Kalemi Sil">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                </button>
+            `;
+            row.querySelector('.manuel-baslik').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-tutar').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-sil-btn').addEventListener('click', () => {
+                row.style.transition = 'all 0.2s';
+                row.style.opacity    = '0';
+                row.style.transform  = 'translateX(10px)';
+                setTimeout(() => {
+                    row.remove();
+                    const c = overlay.querySelector('#manuel-kalemler-container');
+                    if (c && c.querySelectorAll('.manuel-kalem-row').length === 0) {
+                        const msg = document.createElement('p');
+                        msg.id        = 'manuel-bos-mesaj';
+                        msg.className = 'text-xs text-gray-600 italic text-center py-3';
+                        msg.textContent = 'Henüz manuel kalem eklenmedi. Gelir veya gider eklemek için yukarıdaki butonları kullanın.';
+                        c.appendChild(msg);
+                    }
+                    saveToStorage();
+                }, 200);
+            });
+            container.appendChild(row);
+        };
+
+        // Kayıtlı kalemleri yükle
+        loadFromStorage().forEach(k => renderKalemRow(k));
+
+        // === OTOMATİK BAKAM/SİGORTA GİDERLERİ ===
+        const AUTO_DISMISSED_KEY = `cari_auto_dismissed_${arac_id}_${month}`;
+        const loadDismissed = () => {
+            try { return new Set(JSON.parse(localStorage.getItem(AUTO_DISMISSED_KEY) || '[]')); } catch { return new Set(); }
+        };
+        const saveDismissed = (set) => {
+            localStorage.setItem(AUTO_DISMISSED_KEY, JSON.stringify([...set]));
+        };
+
+        const renderAutoGider = (item) => {
+            const container = overlay.querySelector('#auto-gider-container');
+            if (!container) return;
+            const dismissed = loadDismissed();
+            const row = document.createElement('div');
+            row.className = 'auto-gider-row flex items-center gap-2 p-3 rounded-xl border bg-amber-500/5 border-amber-500/20 hover:border-amber-500/40 transition-all';
+            row.setAttribute('data-agid', item.id);
+            row.setAttribute('data-tutar', item.tutar || 0);
+            if (dismissed.has(item.id)) {
+                row.setAttribute('data-dismissed', 'true');
+                row.style.opacity = '0.35';
+            }
+            const isSimulation = !dismissed.has(item.id);
+            row.innerHTML = `
+                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black bg-amber-500/20 text-amber-400">−</div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-bold text-amber-200 truncate">${item.baslik}</div>
+                    <div class="text-[10px] text-gray-500">${item.tarih} &nbsp;·&nbsp; <span class="uppercase tracking-wide">${item.tur}</span></div>
+                </div>
+                <div class="text-xs font-black text-amber-300 flex-shrink-0">-₺${(item.tutar||0).toLocaleString('tr-TR',{minimumFractionDigits:2})}</div>
+                <button class="auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${dismissed.has(item.id) ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}" title="${dismissed.has(item.id) ? 'Geri Ekle' : 'Gideri Kaldır'}">
+                    ${dismissed.has(item.id)
+                        ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'
+                        : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
+                    }
+                </button>
+            `;
+            row.querySelector('.auto-dismiss-btn').addEventListener('click', () => {
+                const d = loadDismissed();
+                if (d.has(item.id)) {
+                    d.delete(item.id);
+                    row.removeAttribute('data-dismissed');
+                    row.style.opacity = '1';
+                } else {
+                    d.add(item.id);
+                    row.setAttribute('data-dismissed', 'true');
+                    row.style.opacity = '0.35';
+                }
+                saveDismissed(d);
+                calculateTotals();
+                // Dismiss butonu ikonunu ve rengini güncelle
+                const newDismissed = d.has(item.id);
+                const btn = row.querySelector('.auto-dismiss-btn');
+                btn.className = `auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${newDismissed ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}`;
+                btn.title = newDismissed ? 'Geri Ekle' : 'Gideri Kaldır';
+                btn.innerHTML = newDismissed
+                    ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'
+                    : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+            });
+            container.appendChild(row);
+        };
+
+        if (isOzmal) {
+            const autoGiderContainer = overlay.querySelector('#auto-gider-container');
+            if (otoBakimlar.length === 0 && otoPoliceler.length === 0) {
+                if (autoGiderContainer) autoGiderContainer.innerHTML = '<p class="text-xs text-gray-600 italic text-center py-2">Bu ay için bakım/sigorta kaydı bulunmuyor.</p>';
+            } else {
+                otoBakimlar.forEach(b => renderAutoGider({
+                    id:     'bakim_' + b.id,
+                    baslik: (b.islem_turu || 'Bakım') + (b.aciklama ? ` — ${b.aciklama}` : ''),
+                    tarih:  b.islem_tarihi,
+                    tur:    'bakım/tamir',
+                    tutar:  b.toplam_tutar || 0
+                }));
+                otoPoliceler.forEach(p => renderAutoGider({
+                    id:     'police_' + p.id,
+                    baslik: (p.police_turu || 'Sigorta') + ' Poliçesi',
+                    tarih:  p.baslangic_tarihi,
+                    tur:    'sigorta',
+                    tutar:  p.toplam_tutar || 0
+                }));
+            }
+        }
+
+
+        // Global: buton onclick'ten çağrılır
+        window.addManuelKalem = (tip) => {
+            const kalem = { id: Date.now().toString(), tip, baslik: '', tutar: 0 };
+            renderKalemRow(kalem);
+            saveToStorage();
+            const allRows = overlay.querySelectorAll('.manuel-kalem-row');
+            const lastRow = allRows[allRows.length - 1];
+            if (lastRow) lastRow.querySelector('.manuel-baslik')?.focus();
+        };
+
+        // Fiyat inputlarına dinleyici ekle ve ilk hesaplamayı çalıştır
         overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran, .calc-vardiya-count, .calc-tek-count, .calc-cikis8-count, .calc-giris2030-count, .calc-mesai-count').forEach(inp => {
             inp.addEventListener('input', calculateTotals);
         });
+        calculateTotals();
+
 
     } catch (e) {
         console.error(e);
         overlay.innerHTML = `<div class="bg-white p-6 rounded text-red-500 font-bold">Hata oluştu: ${e.message} <button class="ml-4 underline blur-none text-black" onclick="this.parentElement.parentElement.remove()">Kapat</button></div>`;
     }
 };
+
+
 
 window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
     if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -3217,6 +3843,19 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                     .or(orFilter)
                     .order('donem', { ascending: false, nullsFirst: false });
                 existingList = d1;
+
+                // ⭐ rowBolge ile kayıt bulunamazsa → bolge fark etmeksizin ara
+                // (Dikkan'ın musteri_arac_tanimlari'nda Manisa/NULL bolge kaydı olabilir)
+                if (!existingList || existingList.length === 0) {
+                    const { data: d1b } = await window.supabaseClient
+                        .from('musteri_arac_tanimlari')
+                        .select('id, donem, bolge')
+                        .eq('arac_id', arac_id)
+                        .eq('musteri_id', musteri_id)
+                        .or(orFilter)
+                        .order('donem', { ascending: false, nullsFirst: false });
+                    existingList = d1b;
+                }
             } catch(_) {
                 // bolge kolonu henüz yoksa bolgesiz sorgula
                 const { data: d2 } = await window.supabaseClient
@@ -3235,15 +3874,26 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
 
             if (existing) {
                 // ID uzerinden direkt guncelle - en dolu payload'dan basla
+                // ⭐ bolge'yi de rowBolge olarak set et (Dikkan için Manisa→İzmir güncellemesi)
                 let saved = false;
                 for (const payload of payloads) {
-                    const { error: updErr } = await window.supabaseClient
+                    const updatePayload = { ...payload, bolge: rowBolge };
+                    let { error: updErr } = await window.supabaseClient
                         .from('musteri_arac_tanimlari')
-                        .update(payload)
+                        .update(updatePayload)
                         .eq('id', existing.id);
-                    if (!updErr) { saved = true; break; }        // basarili
-                    if (!isColErr(updErr)) throw updErr;         // beklenmedik hata
-                    // kolon hatasi → bir alt payload dene
+                    if (!updErr) { saved = true; break; }
+                    // bolge kolonu güncelleme hatası → bolge'siz dene
+                    if (isColErr(updErr)) {
+                        const { error: updErr2 } = await window.supabaseClient
+                            .from('musteri_arac_tanimlari')
+                            .update(payload)
+                            .eq('id', existing.id);
+                        if (!updErr2) { saved = true; break; }
+                        if (!isColErr(updErr2)) throw updErr2;
+                    } else {
+                        throw updErr;
+                    }
                 }
                 if (!saved) throw new Error('Fiyatlar kaydedilemedi.');
             } else {
@@ -3255,7 +3905,6 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
                         .from('musteri_arac_tanimlari')
                         .insert([{ arac_id, musteri_id, bolge: rowBolge, donem: taseronAy || null, ...payload }]);
                     if (!insErr) { saved = true; break; }
-                    if (insErr.message?.includes('duplicate')) { saved = true; break; }
                     if (isColErr(insErr)) {
                         // bolge kolonu yoksa bolgesiz dene
                         const { error: insErr2 } = await window.supabaseClient
@@ -4087,6 +4736,19 @@ window.fetchCariler = async function() {
             `;
             tbody.appendChild(tr);
         });
+        // Borclu cari sayisini hesapla
+        const borcluEl = document.getElementById('ozet-cari-borclu');
+        if (borcluEl) {
+            let borcluCount = 0;
+            carilerClean.forEach(c => {
+                const borFat = (faturalar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borPol = (policeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borBak = (bakimlar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borOd  = (odemeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.tutar) || 0), 0);
+                if ((borFat + borPol + borBak) - borOd > 0) borcluCount++;
+            });
+            borcluEl.textContent = borcluCount;
+        }
         if (window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[CARİFETCH] Error:', e);
@@ -4185,6 +4847,10 @@ async function fetchYakitlar() {
 
         // GRUPLAMA MANTIĞI
         const groups = {};
+        let grandLitre = 0;
+        let grandTutar = 0;
+        let islemSayisi = filteredData.length;
+
         filteredData.forEach(y => {
             const plaka = y.araclar ? y.araclar.plaka : 'BİLİNMİYOR';
             if (!groups[plaka]) {
@@ -4193,6 +4859,9 @@ async function fetchYakitlar() {
             groups[plaka].items.push(y);
             groups[plaka].totalLitre += (y.litre || 0);
             groups[plaka].totalTutar += (y.toplam_tutar || 0);
+            
+            grandLitre += (y.litre || 0);
+            grandTutar += (y.toplam_tutar || 0);
         });
 
         // SIRALAMA: Plaka ismine göre
@@ -4259,6 +4928,12 @@ async function fetchYakitlar() {
         });
 
         if (window.lucide) window.lucide.createIcons();
+
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const el1 = document.getElementById('fin-kpi-brut'); if (el1) el1.textContent = islemSayisi.toString();
+        const el2 = document.getElementById('fin-kpi-yakit'); if (el2) el2.textContent = Number(grandLitre).toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' LT';
+        const el3 = document.getElementById('fin-kpi-net'); if (el3) el3.textContent = fmt(grandTutar);
 
         // Reset Master Checkbox and Delete Button
         const master = document.getElementById('yakit-master-checkbox');
@@ -4968,6 +5643,8 @@ async function fetchBakimlar() {
         });
         const ozet = document.getElementById('ozet-bakim');
         if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        const ozetAdet = document.getElementById('ozet-bakim-adet');
+        if (ozetAdet) ozetAdet.textContent = data.length;
         
         if (typeof window.makeTableSortable === 'function') {
             window.makeTableSortable(tbody.closest('table'));
@@ -5079,7 +5756,23 @@ async function fetchPoliceler() {
             tbody.appendChild(tr);
         });
         const ozet = document.getElementById('ozet-police');
-        if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
+        const today = new Date();
+        const in30days = new Date(today); in30days.setDate(today.getDate() + 30);
+        const activePolice = filteredData.filter(p => new Date(p.bitis_tarihi) > today);
+        const expiringPolice = filteredData.filter(p => {
+            const d = new Date(p.bitis_tarihi);
+            return d > today && d <= in30days;
+        });
+        const activeTutar = activePolice.reduce((s, p) => s + (p.toplam_tutar || 0), 0);
+        if (ozet) ozet.textContent = activeTutar.toLocaleString('tr-TR') + " ₺";
+        const countEl = document.getElementById('ozet-police-count');
+        if (countEl) countEl.textContent = activePolice.length;
+        const expiringEl = document.getElementById('ozet-police-expiring');
+        const expiringCountEl = document.getElementById('ozet-police-expiring-count');
+        if (expiringEl && expiringCountEl) {
+            expiringCountEl.textContent = expiringPolice.length;
+            expiringEl.classList.toggle('hidden', expiringPolice.length === 0);
+        }
     } catch (e) { console.error(e); }
 }
 async function fetchFinansDashboard() {
@@ -5644,8 +6337,15 @@ window.teklifSec = async function (id) {
 
             const { data: aracRes, error: updError } = await window.supabaseClient.from('araclar').update(updateData).eq('id', row.arac_id).select();
             if (updError) {
-                console.error("[TEKLİFSEC] Araç tarih güncelleme hatası:", updError);
-                if (typeof showToast === 'function') showToast('⚠️ Poliçe kesildi ancak araç tarihleri güncellenemedi: ' + updError.message, 'warning');
+                if (updError.message && updError.message.toLowerCase().includes('could not find') && updateData.koltuk_bitis) {
+                    delete updateData.koltuk_bitis;
+                    if (Object.keys(updateData).length > 0) {
+                        await window.supabaseClient.from('araclar').update(updateData).eq('id', row.arac_id);
+                    }
+                } else {
+                    console.error("[TEKLİFSEC] Araç tarih güncelleme hatası:", updError);
+                    if (typeof showToast === 'function') showToast('⚠️ Poliçe kesildi ancak araç tarihleri güncellenemedi: ' + updError.message, 'warning');
+                }
             } else {
 
             }
@@ -5667,326 +6367,6 @@ window.teklifSec = async function (id) {
     }
 };
 
-window.fetchDashboardData = async function () {
-    const conn = window.checkSupabaseConnection();
-    if (!conn.ok) {
-        console.error("[fetchDashboardData] Connection Error:", conn.msg);
-        return;
-    }
-    try {
-        const today = new Date();
-        const todayStr = today.toISOString().split('T')[0];
-        const future30Str = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        const future90Str = new Date(today.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-        const y = today.getFullYear(), m = String(today.getMonth() + 1).padStart(2, '0');
-        const monthStart = `${y}-${m}-01`;
-        const monthEnd = `${y}-${m}-${new Date(y, today.getMonth() + 1, 0).getDate()}`;
-
-        const [
-            resAraclar,
-            resSoforler,
-            resCariler,
-            resPoliceler,
-            resYakitlar,
-            resBakimlar,
-            resHakedisTaseron,
-            resHakedisServis,
-        ] = await Promise.all([
-            window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sigorta_bitis, kasko_bitis, vize_bitis, koltuk_bitis, guncel_km, son_yag_km').then(r => r),
-            window.supabaseClient.from('soforler').select('id').then(r => r),
-            window.supabaseClient.from('cariler').select('id').then(r => r),
-            window.supabaseClient.from('arac_policeler').select('bitis_tarihi, police_turu, araclar(plaka)').gte('bitis_tarihi', todayStr).lte('bitis_tarihi', future30Str).order('bitis_tarihi', { ascending: true }).then(r => r),
-            window.supabaseClient.from('yakit_takip').select('toplam_tutar, tarih').gte('tarih', monthStart).lte('tarih', monthEnd).then(r => r),
-            window.supabaseClient.from('arac_bakimlari').select('toplam_tutar, islem_tarihi').gte('islem_tarihi', monthStart).lte('islem_tarihi', monthEnd).then(r => r),
-            window.supabaseClient.from('taseron_hakedis').select('net_hakedis, sefer_tarihi').gte('sefer_tarihi', monthStart).lte('sefer_tarihi', monthEnd).then(r => r),
-            window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret, tarih').gte('tarih', monthStart).lte('tarih', monthEnd).then(r => r),
-        ]);
-
-        const araclar = resAraclar.data || [];
-        const soforler = resSoforler.data || [];
-        const cariler = resCariler.data || [];
-        const policeler = resPoliceler.data || [];
-        const yakitlar = resYakitlar.data || [];
-        const bakimlar = resBakimlar.data || [];
-        const hakedisler_taseron = resHakedisTaseron.data || [];
-        const hakedisler_servis = resHakedisServis.data || [];
-
-        const fmt = v => new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(v) + ' ₺';
-        const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-
-        // === KPI ===
-        setEl('kpi-arac', araclar.length);
-        setEl('kpi-sofor', soforler.length);
-        setEl('kpi-cari', cariler.length);
-
-        let kritikEvrak = 0;
-        let expiring15Days = 0;
-        const future15Str = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-        araclar.forEach(a => {
-            let is30 = false;
-            let is15 = false;
-            ['sigorta_bitis', 'kasko_bitis', 'vize_bitis', 'koltuk_bitis'].forEach(f => {
-                if (a[f] && a[f] <= future30Str) is30 = true;
-                if (a[f] && a[f] <= future15Str) is15 = true;
-            });
-            if (is30) kritikEvrak++;
-            if (is15) expiring15Days++;
-        });
-        setEl('kpi-evrak', kritikEvrak);
-
-        if (expiring15Days > 0 && typeof window.Toast !== 'undefined') {
-            setTimeout(() => {
-                window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş!`);
-            }, 1000);
-        }
-
-        const sumYakit = yakitlar.reduce((s, y) => s + (y.toplam_tutar || 0), 0);
-        const sumBakim = bakimlar.reduce((s, b) => s + (b.toplam_tutar || 0), 0);
-        const sumCiro = (hakedisler_taseron.reduce((s, h) => s + (h.net_hakedis || 0), 0))
-            + (hakedisler_servis.reduce((s, h) => s + (h.gunluk_ucret || 0), 0));
-        setEl('kpi-ciro', fmt(sumCiro));
-        setEl('kpi-gider', fmt(sumYakit + sumBakim));
-
-        // === Donut Chart ===
-        const ozmal = araclar.filter(a => a.mulkiyet_durumu === 'ÖZMAL').length;
-        const taseron = araclar.filter(a => a.mulkiyet_durumu === 'TAŞERON').length;
-        const kiralik = araclar.length - ozmal - taseron;
-        setEl('fleet-ozmal-count', ozmal);
-        setEl('fleet-taseron-count', taseron);
-        setEl('fleet-kiralik-count', kiralik);
-        setEl('donut-total', araclar.length);
-
-        const donutCanvas = document.getElementById('fleetDonutChart');
-        if (donutCanvas) {
-            const existingDonut = Chart.getChart(donutCanvas);
-            if (existingDonut) existingDonut.destroy();
-            window._fleetDonutChart = new Chart(donutCanvas, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Özmal', 'Taşeron', 'Kiralık'],
-                    datasets: [{ data: [ozmal, taseron, kiralik], backgroundColor: ['#f97316', '#3b82f6', '#a855f7'], borderWidth: 0, cutout: '78%' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-        }
-
-        // === Line Chart ===
-        const lineCanvas = document.getElementById('mainChart');
-        if (lineCanvas) {
-            const labels = [], months = [];
-            for (let i = 5; i >= 0; i--) {
-                const d = new Date(today); d.setMonth(d.getMonth() - i);
-                labels.push(d.toLocaleString('tr-TR', { month: 'short' }));
-                months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`);
-            }
-            const ciroByMonth = Array(6).fill(0), giderByMonth = Array(6).fill(0);
-            const sixMonthsAgo = new Date(today); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-            const sixStart = `${sixMonthsAgo.getFullYear()}-${String(sixMonthsAgo.getMonth() + 1).padStart(2, '0')}-01`;
-
-            const [ht6, hs6, yk6, bk6] = await Promise.all([
-                window.supabaseClient.from('taseron_hakedis').select('net_hakedis, sefer_tarihi').gte('sefer_tarihi', sixStart).then(r => r.data || []),
-                window.supabaseClient.from('musteri_servis_puantaj').select('gunluk_ucret, tarih').gte('tarih', sixStart).then(r => r.data || []),
-                window.supabaseClient.from('yakit_takip').select('toplam_tutar, tarih').gte('tarih', sixStart).then(r => r.data || []),
-                window.supabaseClient.from('arac_bakimlari').select('toplam_tutar, islem_tarihi').gte('islem_tarihi', sixStart).then(r => r.data || []),
-            ]);
-
-            months.forEach((mo, idx) => {
-                ciroByMonth[idx] = (ht6.filter(r => r.sefer_tarihi?.startsWith(mo)).reduce((s, r) => s + (r.net_hakedis || 0), 0))
-                    + (hs6.filter(r => r.tarih?.startsWith(mo)).reduce((s, r) => s + (r.gunluk_ucret || 0), 0));
-                giderByMonth[idx] = (yk6.filter(r => r.tarih?.startsWith(mo)).reduce((s, r) => s + (r.toplam_tutar || 0), 0))
-                    + (bk6.filter(r => r.islem_tarihi?.startsWith(mo)).reduce((s, r) => s + (r.toplam_tutar || 0), 0));
-            });
-
-            const existingLine = Chart.getChart(lineCanvas);
-            if (existingLine) existingLine.destroy();
-            window._mainLineChart = new Chart(lineCanvas, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        { label: 'Ciro', data: ciroByMonth, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', tension: 0.4, fill: true },
-                        { label: 'Gider', data: giderByMonth, borderColor: '#f97316', backgroundColor: 'rgba(249,115,22,0.08)', tension: 0.4, fill: true }
-                    ]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('tr-TR')} ₺` } } }
-                }
-            });
-        }
-
-        // === Widgets ===
-        const evrakList = document.getElementById('evrak-bitis-list');
-        if (evrakList) {
-            const evrakItems = [];
-            araclar.forEach(a => {
-                ['sigorta_bitis', 'kasko_bitis', 'koltuk_bitis', 'vize_bitis'].forEach(f => {
-                    if (a[f] && a[f] <= future90Str) evrakItems.push({ plaka: a.plaka, tur: f.split('_')[0].toUpperCase(), bitis: a[f] });
-                });
-            });
-            evrakItems.sort((a, b) => a.bitis.localeCompare(b.bitis));
-            evrakList.innerHTML = evrakItems.length === 0 ? '<p class="text-xs text-center py-6">Bitmek üzere olan evrak yok.</p>' :
-                evrakItems.map(e => {
-                    const days = Math.ceil((new Date(e.bitis) - today) / 86400000);
-                    const cl = days < 0 ? 'text-red-400 bg-red-500/10 border-red-500/20' : 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-                    return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border ${cl} mb-1">
-                        <div><span class="text-xs font-bold">${e.plaka}</span><span class="text-[10px] text-gray-400 ml-2">${e.tur}</span></div>
-                        <span class="text-[11px] font-black">${days < 0 ? Math.abs(days) + 'g geçti' : days + 'g kaldı'}</span>
-                    </div>`;
-                }).join('');
-        }
-
-        const paymentsList = document.getElementById('upcoming-payments-list');
-        if (paymentsList) {
-            const items = policeler.map(p => ({ desc: `${p.araclar?.plaka || '-'} / ${p.police_turu}`, tarih: p.bitis_tarihi }));
-            paymentsList.innerHTML = items.length === 0 ? '<p class="text-xs text-center py-6">Yaklaşan ödeme yok.</p>' :
-                items.map(p => {
-                    const days = Math.ceil((new Date(p.tarih) - today) / 86400000);
-                    return `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border text-blue-400 bg-blue-500/10 border-blue-500/20 mb-1">
-                        <span class="text-xs font-bold">${p.desc}</span>
-                        <span class="text-[11px] font-black">${days}g</span>
-                    </div>`;
-                }).join('');
-        }
-
-        const yagList = document.getElementById('yag-bakim-list');
-        if (yagList) {
-            const yagItems = araclar.filter(a => ((a.guncel_km || 0) - (a.son_yag_km || 0)) >= 9000).map(a => ({ plaka: a.plaka, kalan: 10000 - ((a.guncel_km || 0) - (a.son_yag_km || 0)) }));
-            yagList.innerHTML = yagItems.length === 0 ? '<p class="text-xs text-center py-6">Yaklaşan yağ bakımı yok.</p>' :
-                yagItems.map(y => `<div class="flex items-center justify-between py-1.5 px-2 rounded-lg border text-orange-400 bg-orange-500/10 border-orange-500/20 mb-1">
-                    <span class="text-xs font-bold">${y.plaka}</span>
-                    <span class="text-[11px] font-black uppercase">${y.kalan < 0 ? 'GEÇTİ' : y.kalan + ' KM'}</span>
-                </div>`).join('');
-        }
-
-        const sonIslemlerTbody = document.getElementById('son-islemler-tbody');
-        if (sonIslemlerTbody) {
-            if (!sonIslemlerTbody.innerHTML.trim().includes('tr')) {
-                sonIslemlerTbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic uppercase tracking-widest animate-pulse">Aktiviteler Hazırlanıyor...</td></tr>';
-            }
-        }
-
-        if (window.lucide) window.lucide.createIcons();
-        if (window.fetchSonAktiviteler) window.fetchSonAktiviteler();
-    } catch (e) {
-        console.error('[DASHBOARD ERROR]', e);
-    }
-};
-
-/**
- * === SON SİSTEMSEL AKTİVİTELER ===
- * Fetches recent expenses (Yakıt, Bakım, Maaş, Poliçe) and populates the dashboard feed.
- * Optimized for performance and 50-item limit.
- */
-window.fetchSonAktiviteler = async function () {
-    const tbody = document.getElementById('son-islemler-tbody');
-    if (!tbody) return;
-
-    try {
-        const [resYakit, resBakim, resMaas, resPolice] = await Promise.all([
-            window.supabaseClient.from('yakit_takip').select('tarih, toplam_tutar, araclar(plaka)').order('tarih', { ascending: false }).limit(30),
-            window.supabaseClient.from('arac_bakimlari').select('islem_tarihi, toplam_tutar, aciklama, araclar(plaka), cariler(unvan)').order('islem_tarihi', { ascending: false }).limit(30),
-            window.supabaseClient.from('sofor_maas_bordro').select('donem, net_maas, soforler(ad_soyad)').order('id', { ascending: false }).limit(30),
-            window.supabaseClient.from('arac_policeler').select('bitis_tarihi, toplam_tutar, police_turu, araclar(plaka), cariler(unvan)').order('bitis_tarihi', { ascending: false }).limit(30)
-        ]);
-
-        let activities = [];
-
-        // 1. Yakıt (Expenses)
-        (resYakit.data || []).forEach(y => {
-            activities.push({
-                date: y.tarih,
-                type: 'YAKIT',
-                detail: `${y.araclar?.plaka || '-'} / Yakıt Alımı`,
-                tutar: -(y.toplam_tutar || 0)
-            });
-        });
-
-        // 2. Bakım (Expenses)
-        (resBakim.data || []).forEach(b => {
-            const desc = b.aciklama || 'Servis Bakımı';
-            const vendor = b.cariler?.unvan ? ` [Servis: ${b.cariler.unvan}]` : '';
-            activities.push({
-                date: b.islem_tarihi,
-                type: 'BAKIM',
-                detail: `${b.araclar?.plaka || '-'} / ${desc}${vendor}`,
-                tutar: -(b.toplam_tutar || 0)
-            });
-        });
-
-        // 3. Maaş (Expenses)
-        (resMaas.data || []).forEach(m => {
-            activities.push({
-                date: m.donem ? `${m.donem}-01` : new Date().toISOString().split('T')[0],
-                type: 'MAAŞ',
-                detail: `${m.soforler?.ad_soyad || '-'} / Personel Maaş`,
-                tutar: -(m.net_maas || 0)
-            });
-        });
-
-        // 4. Poliçe (Expenses)
-        (resPolice.data || []).forEach(p => {
-            const vendor = p.cariler?.unvan ? ` [Acente: ${p.cariler.unvan}]` : '';
-            activities.push({
-                date: p.bitis_tarihi,
-                type: 'POLİÇE',
-                detail: `${p.araclar?.plaka || '-'} / ${p.police_turu || 'Sigorta'}${vendor}`,
-                tutar: -(p.toplam_tutar || 0)
-            });
-        });
-
-        // Combine and Sort
-        activities.sort((a, b) => new Date(b.date) - new Date(a.date));
-        const finalItems = activities.slice(0, 50);
-
-        if (finalItems.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs text-gray-500 italic uppercase tracking-widest">Son işlem bulunmuyor.</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = finalItems.map(item => {
-            const typeColor = item.type === 'YAKIT' ? 'text-orange-400 bg-orange-400/10 border-orange-400/20' :
-                             item.type === 'BAKIM' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' :
-                             item.type === 'MAAŞ' ? 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20' :
-                                                   'text-pink-400 bg-pink-400/10 border-pink-400/20';
-            
-            const displayDate = item.date ? (window.formatDate ? window.formatDate(item.date) : item.date) : '-';
-            const displayTutar = (item.tutar || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₺';
-
-            return `<tr class="hover:bg-white/5 transition-colors">
-                <td class="py-3 px-2 text-xs text-gray-400 font-medium">${displayDate}</td>
-                <td class="py-3 px-2">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-black border ${typeColor}">${item.type}</span>
-                </td>
-                <td class="py-3 px-2 text-xs font-bold text-gray-200 leading-normal whitespace-normal break-words" style="min-width: 300px;" title="${item.detail}">${item.detail}</td>
-                <td class="py-3 px-2 text-right font-black text-red-500 whitespace-nowrap">${displayTutar}</td>
-            </tr>`;
-        }).join('');
-
-        if (window.lucide) window.lucide.createIcons();
-
-    } catch (err) {
-        console.error('[fetchSonAktiviteler] Hata:', err);
-        tbody.innerHTML = '<tr><td colspan="4" class="py-6 text-center text-xs text-red-500 font-bold uppercase tracking-widest">Veri yükleme hatası!</td></tr>';
-    }
-};
-
-// Alias to match filoyonetim.html initialization
-window.fetchDashboard = window.fetchDashboardData;
-
-
-/* ==========================================
-   DOSYA YÖNETİMİ - SUPABASE STORAGE
-   ========================================== */
-
-/**
- * Supabase Storage'a dosya yükler ve public URL döner.
- * @param {File} file - Yüklenecek dosya
- * @param {string} folder - 'policeler' | 'bakimlar' | 'soforler' | 'araclar'
- * @returns {string|null} Public URL ya da null
- */
 window.uploadDosya = async function (file, folder = 'genel') {
     if (!file || window.supabaseUrl === 'YOUR_SUPABASE_URL') return null;
     try {
@@ -6634,8 +7014,8 @@ window.fetchCariDetails = async function (cariId) {
         entries.sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
 
         // --- 8.B. POLİÇE ID'LERİNİ DİNAMİK ÇÖZÜMLEME (Plate/Acente Translation) ---
-        const policyIdsInList = entries.filter(e => e.desc && /poliçe id: /i.test(e.desc)).map(e => {
-            const match = e.desc.match(/poliçe id: ([a-f0-9-]{36})/i);
+        const policyIdsInList = entries.filter(e => e.desc && /POLİÇE ID: /i.test(e.desc)).map(e => {
+            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
             return match ? match[1] : null;
         }).filter(id => id);
 
@@ -6660,12 +7040,12 @@ window.fetchCariDetails = async function (cariId) {
 
                     // Listeyi güncelle
                     entries.forEach(e => {
-                        if (e.desc && /poliçe id: /i.test(e.desc)) {
-                            const match = e.desc.match(/poliçe id: ([a-f0-9-]{36})/i);
+                        if (e.desc && /POLİÇE ID: /i.test(e.desc)) {
+                            const match = e.desc.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
                             if (match && infoMap[match[1]]) {
                                 const i = infoMap[match[1]];
                                 // Tüm ID varyasyonlarını temizle (Regex ile)
-                                e.desc = e.desc.replace(/\[?poliçe id: [a-f0-9-]{36}\]?/gi, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`);
+                                e.desc = e.desc.replace(/\[?POLİÇE ID: [a-f0-9-]{36}\]?/gi, `${i.plaka} - ${i.acente} - ${i.taksit} Taksit`);
                             }
                         }
                     });
@@ -6844,9 +7224,9 @@ window.fetchKrediKartlari = async function () {
                     
                     // Önce aynı unvanda bir cari var mı bak
                     const { data: existingCari } = await window.supabaseClient.from('cariler')
-                        .select('id').eq('unvan', cariUnvan).maybeSingle();
+                        .select('id').eq('unvan', cariUnvan).limit(1);
                     
-                    let targetCariId = existingCari?.id;
+                    let targetCariId = existingCari && existingCari.length > 0 ? existingCari[0].id : null;
 
                     if (!targetCariId) {
                         const { data: newCari, error: cariErr } = await window.supabaseClient.from('cariler').insert([{
@@ -6904,7 +7284,7 @@ window.fetchKrediKartlari = async function () {
             const cariIdStr = k.cari_id ? `'${k.cari_id}'` : 'null';
 
             tr.innerHTML = `
-                <td class="px-6 py-4 cursor-pointer" onclick="if(${cariIdStr} !== 'null' && ${cariIdStr} !== null) window.openCariDetail(${cariIdStr})">
+                <td class="px-6 py-4 cursor-pointer" onclick="window.openCariDetail(${cariIdStr})">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center border border-orange-500/20">
                             <i data-lucide="credit-card" class="w-5 h-5 text-orange-500"></i>
@@ -6976,8 +7356,8 @@ window.fetchKrediKartiDetails = async function (kartId) {
         });
 
         // 4. Detaylı Bilgileri Çözümle (Poliçe ID -> Plaka/Acente)
-        const policyIdsInList = islemler.filter(i => i.aciklama && /poliçe id: /i.test(i.aciklama)).map(i => {
-            const match = i.aciklama.match(/poliçe id: ([a-f0-9-]{36})/i);
+        const policyIdsInList = islemler.filter(i => i.aciklama && /POLİÇE ID: /i.test(i.aciklama)).map(i => {
+            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
             return match ? match[1] : null;
         }).filter(id => id);
 
@@ -6999,11 +7379,11 @@ window.fetchKrediKartiDetails = async function (kartId) {
                     });
 
                     islemler.forEach(i => {
-                        if (i.aciklama && /poliçe id: /i.test(i.aciklama)) {
-                            const match = i.aciklama.match(/poliçe id: ([a-f0-9-]{36})/i);
+                        if (i.aciklama && /POLİÇE ID: /i.test(i.aciklama)) {
+                            const match = i.aciklama.match(/POLİÇE ID: ([a-f0-9-]{36})/i);
                             if (match && infoMap[match[1]]) {
                                 const info = infoMap[match[1]];
-                                i.aciklama = i.aciklama.replace(/\[?poliçe id: [a-f0-9-]{36}\]?/gi, `${info.plaka} - ${info.acente} - ${info.taksit} Taksit`);
+                                i.aciklama = i.aciklama.replace(/\[?POLİÇE ID: [a-f0-9-]{36}\]?/gi, ` - ${info.plaka} - ${info.acente}`);
                             }
                         }
                     });
@@ -7211,6 +7591,19 @@ window.fetchTaksitler = async function (category = 'HEPSİ') {
             tfootTotal.innerText = window.formatCurrency(currentMonthTotal);
             tfootRow.classList.remove('hidden');
         }
+        // Borclu cari sayisini hesapla
+        const borcluEl = document.getElementById('ozet-cari-borclu');
+        if (borcluEl) {
+            let borcluCount = 0;
+            carilerClean.forEach(c => {
+                const borFat = (faturalar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borPol = (policeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borBak = (bakimlar || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.toplam_tutar) || 0), 0);
+                const borOd  = (odemeler || []).filter(x => x.cari_id === c.id).reduce((s, x) => s + (Number(x.tutar) || 0), 0);
+                if ((borFat + borPol + borBak) - borOd > 0) borcluCount++;
+            });
+            borcluEl.textContent = borcluCount;
+        }
         if (window.lucide) window.lucide.createIcons();
     } catch (e) { console.error(e); }
 }
@@ -7298,6 +7691,13 @@ window.fetchAylikOdemeOzeti = async function () {
             const totalEl = document.getElementById('total-aylik-odeme');
             if (totalEl) totalEl.textContent = '₺' + grandTotal.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
         }
+
+        // Update KPIs
+        const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+        const el1 = document.getElementById('fin-kpi-brut'); if (el1) el1.textContent = fmt(grandTotal);
+        const el2 = document.getElementById('fin-kpi-yakit'); if (el2) el2.textContent = "₺0";
+        const el3 = document.getElementById('fin-kpi-net'); if (el3) el3.textContent = fmt(grandTotal);
+
         if (window.lucide) window.lucide.createIcons();
 
     } catch (e) { console.error(e); }
@@ -7359,7 +7759,8 @@ window.fetchRaporlar = async function() {
 
     const [year, month] = ay.split('-').map(Number);
     const firstDay = `${ay}-01`;
-    const lastDay = new Date(year, month, 0).toISOString().split('T')[0];
+    const lastDayObj = new Date(year, month, 0);
+    const lastDay = `${year}-${String(month).padStart(2,'0')}-${String(lastDayObj.getDate()).padStart(2,'0')}`;
     const fmt = (n) => '₺' + (n || 0).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
     try {
@@ -7912,7 +8313,8 @@ window.fetchDashboardData = async function() {
         const now = new Date();
         const ay = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
         const firstDay = `${ay}-01`;
-        const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).toISOString().split('T')[0];
+        const lastDayObj = new Date(now.getFullYear(), now.getMonth()+1, 0);
+        const lastDay = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(lastDayObj.getDate()).padStart(2,'0')}`;
 
         // Aktif müşteri sayısı
         const {count: musteriCount} = await window.supabaseClient.from('musteriler').select('id', {count:'exact', head:true});
@@ -8461,3 +8863,458 @@ if(typeof window._origDdash === 'undefined') {
     };
 }
 
+
+
+
+window.transferSelectedYakitlar = function(arac_id) {
+    const cbs = document.querySelectorAll('.yakit-cb:checked');
+    if (cbs.length === 0) return alert('Lütfen aktarılacak yakıt fişlerini seçin.');
+    const ids = Array.from(cbs).map(cb => cb.value);
+    window.transferYakit(ids, arac_id);
+}
+
+window.transferYakit = async function(yakitIds, currentAracId) {
+    const { data: araclar, error } = await window.supabaseClient.from('araclar').select('id, plaka').order('plaka');
+    if (error) return alert("Araçlar yüklenirken hata oluştu.");
+    
+    let optionsHtml = '';
+    araclar.forEach(a => {
+        if (a.id !== currentAracId) {
+            optionsHtml += `<div class="transfer-option p-3 hover:bg-blue-600 cursor-pointer text-sm font-bold text-gray-300 hover:text-white transition-colors border-b border-gray-700/50 last:border-0" data-val="${a.id}">${a.plaka}</div>`;
+        }
+    });
+
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
+    overlay.innerHTML = `
+        <div class="bg-gray-900 border border-white/10 rounded-3xl w-full max-w-md p-7 shadow-2xl animate-scaleIn">
+            <h3 class="text-xl font-black text-white mb-2 tracking-tight"><i data-lucide="arrow-right-left" class="w-5 h-5 inline-block mr-1 text-blue-400"></i> Yakıt Aktarımı</h3>
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed">Seçtiğiniz <strong>${yakitIds.length}</strong> adet yakıt fişi, seçeceğiniz yeni araca taşınacaktır. Bu işlem geri alınamaz.</p>
+            
+            <div class="relative w-full mb-6">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">HEDEF PLAKA ARAYIN</label>
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="search" class="w-4 h-4 text-gray-500 group-focus-within:text-blue-400 transition-colors"></i>
+                    </div>
+                    <input type="text" id="transfer-search-input" placeholder="35 ABC 123" class="w-full bg-black/50 text-white pl-10 pr-3 py-3 rounded-xl border border-white/10 focus:outline-none focus:border-blue-500 text-sm font-bold placeholder-gray-600 transition-colors">
+                </div>
+                
+                <div id="transfer-options-list" class="bg-black/80 border border-white/10 rounded-xl mt-2 max-h-48 overflow-y-auto custom-scrollbar shadow-2xl absolute w-full z-[101] hidden backdrop-blur-xl">
+                    ${optionsHtml}
+                </div>
+                <input type="hidden" id="transfer-target-arac" value="">
+                
+                <!-- Seçilen Araç Göstergesi -->
+                <div id="transfer-selected-display" class="mt-3 hidden p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center"><i data-lucide="check" class="w-4 h-4"></i></div>
+                        <div>
+                            <div class="text-[10px] text-blue-400/70 font-bold uppercase tracking-wider">SEÇİLEN ARAÇ</div>
+                            <div class="text-sm font-black text-blue-400" id="transfer-selected-plaka">35 ABC 123</div>
+                        </div>
+                    </div>
+                    <button id="transfer-clear-selection" class="p-1.5 hover:bg-white/10 rounded-lg text-gray-400 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-white/5">
+                <button onclick="this.closest('.fixed').remove()" class="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-bold transition-all">Vazgeç</button>
+                <button id="btn-onayla-transfer" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]" disabled>
+                    <i data-lucide="check-circle-2" class="w-4 h-4"></i> Seçili Araca Aktar
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    if(window.lucide) window.lucide.createIcons();
+
+    // DOM Elements
+    const searchInput = document.getElementById('transfer-search-input');
+    const optionsList = document.getElementById('transfer-options-list');
+    const targetInput = document.getElementById('transfer-target-arac');
+    const selectedDisplay = document.getElementById('transfer-selected-display');
+    const selectedPlaka = document.getElementById('transfer-selected-plaka');
+    const clearBtn = document.getElementById('transfer-clear-selection');
+    const onaylaBtn = document.getElementById('btn-onayla-transfer');
+
+    // Search Logic
+    searchInput.addEventListener('focus', () => optionsList.classList.remove('hidden'));
+    
+    // Yere tıklayınca listeyi gizle
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !optionsList.contains(e.target)) {
+            optionsList.classList.add('hidden');
+        }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        optionsList.classList.remove('hidden');
+        document.querySelectorAll('.transfer-option').forEach(opt => {
+            if (opt.innerText.toLowerCase().includes(val)) {
+                opt.style.display = 'block';
+            } else {
+                opt.style.display = 'none';
+            }
+        });
+    });
+
+    // Option Click Logic
+    document.querySelectorAll('.transfer-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            targetInput.value = opt.getAttribute('data-val');
+            selectedPlaka.innerText = opt.innerText;
+            
+            searchInput.parentElement.classList.add('hidden');
+            optionsList.classList.add('hidden');
+            selectedDisplay.classList.remove('hidden');
+            selectedDisplay.classList.add('flex');
+            onaylaBtn.disabled = false;
+        });
+    });
+
+    // Clear Selection
+    clearBtn.addEventListener('click', () => {
+        targetInput.value = '';
+        searchInput.value = '';
+        searchInput.parentElement.classList.remove('hidden');
+        selectedDisplay.classList.add('hidden');
+        selectedDisplay.classList.remove('flex');
+        onaylaBtn.disabled = true;
+        
+        // Reset list
+        document.querySelectorAll('.transfer-option').forEach(o => o.style.display = 'block');
+        setTimeout(() => searchInput.focus(), 50);
+    });
+
+    // Onayla Logic
+    onaylaBtn.onclick = async () => {
+        const targetId = targetInput.value;
+        if (!targetId) return;
+        
+        onaylaBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> İşleniyor...';
+        onaylaBtn.disabled = true;
+        if(window.lucide) window.lucide.createIcons();
+
+        // Update multiple
+        const { error: updErr } = await window.supabaseClient
+            .from('yakit_takip')
+            .update({ arac_id: targetId })
+            .in('id', yakitIds);
+            
+        if (updErr) {
+            alert("Hata: " + updErr.message);
+            onaylaBtn.innerHTML = '<i data-lucide="check-circle-2" class="w-4 h-4"></i> Seçili Araca Aktar';
+            onaylaBtn.disabled = false;
+            if(window.lucide) window.lucide.createIcons();
+        } else {
+            overlay.remove();
+            document.getElementById('cari-kart-modal-overlay')?.remove();
+            if(typeof window.fetchTaseronFinans === 'function') await window.fetchTaseronFinans();
+            if(typeof window.fetchFinansDashboard === 'function') window.fetchFinansDashboard();
+            if(typeof window.openCariHakedisDetay === 'function') window.openCariHakedisDetay(currentAracId);
+        }
+    };
+};
+
+/* === YAKIT & KM TAKIP (MANUEL) === */
+window.allYakitKmRecords = []; // Arama için tutuyoruz
+
+window.fetchManuelYakitFisleri = async function() {
+    const container = document.getElementById('yakit-km-container');
+    if (!container) return;
+
+    container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 shadow-2xl">Kayıtlar yükleniyor...</div>';
+
+    try {
+        const { data: fisler, error } = await window.supabaseClient
+            .from('manuel_yakit_fisleri')
+            .select('*, araclar(plaka)')
+            .order('tarih', { ascending: false })
+            .order('olusturulma_tarihi', { ascending: false })
+            .limit(200);
+
+        if (error) {
+            if (error.message && error.message.includes('relation "public.manuel_yakit_fisleri" does not exist')) {
+                container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-amber-500 font-bold shadow-2xl">Lütfen "manuel_yakit_fisleri" tablosunu SQL Editor ile oluşturun. İlgili SQL betiği ana dizindedir.</div>';
+                return;
+            }
+            throw error;
+        }
+
+        window.allYakitKmRecords = fisler || [];
+        renderYakitKmTable(window.allYakitKmRecords);
+
+    } catch (err) {
+        console.error("fetchManuelYakitFisleri hatası:", err);
+        container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-red-500 shadow-2xl">Veriler yüklenirken hata oluştu.</div>';
+    }
+};
+
+function renderYakitKmTable(records) {
+    const container = document.getElementById('yakit-km-container');
+    if (!container) return;
+
+    if (!records || records.length === 0) {
+        container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 italic shadow-2xl">Henüz yakıt / KM kaydı bulunmamaktadır.</div>';
+        return;
+    }
+
+    // Plakaya göre grupla
+    const grouped = {};
+    records.forEach(r => {
+        const plaka = r.araclar?.plaka || 'Bilinmiyor';
+        if (!grouped[plaka]) {
+            grouped[plaka] = { plaka, total_km: 0, total_tutar: 0, items: [] };
+        }
+        grouped[plaka].items.push(r);
+        grouped[plaka].total_km += (parseInt(r.fark_km) || 0);
+        grouped[plaka].total_tutar += (parseFloat(r.tutar) || 0);
+    });
+
+    // Grupları HTML'e çevir
+    let html = '';
+    Object.values(grouped).sort((a, b) => b.total_km - a.total_km).forEach(group => {
+        
+        let tableRows = '';
+        group.items.forEach(r => {
+            const tarih = r.tarih ? r.tarih.split('-').reverse().join('.') : '-';
+            const sofor = r.sofor_adi || '-';
+            const km = r.kilometre ? r.kilometre.toLocaleString('tr-TR') : '0';
+            const fark = r.fark_km ? r.fark_km.toLocaleString('tr-TR') : '0';
+            const tutar = r.tutar ? Number(r.tutar).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) : '0,00';
+            
+            tableRows += `
+                <tr class="hover:bg-white/5 transition-colors group/row">
+                    <td class="p-3 text-xs text-gray-300 font-medium">${tarih}</td>
+                    <td class="p-3 text-xs text-gray-400">${sofor}</td>
+                    <td class="p-3 text-xs font-black text-emerald-400 text-center">${km}</td>
+                    <td class="p-3 text-xs font-bold text-orange-400 text-center">+${fark} KM</td>
+                    <td class="p-3 text-xs font-black text-white text-right">₺${tutar}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="window.deleteManuelYakitFisi('${r.id}')" class="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors" title="Sil">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+            <div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-2xl relative mb-6">
+                <!-- Header -->
+                <div class="bg-[#1a1f26] px-6 py-4 border-b border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
+                            <i data-lucide="truck" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-black text-white tracking-wide">${group.plaka}</h3>
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">${group.items.length} Kayıt</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Toplam Menzil</p>
+                            <p class="text-lg font-black text-orange-500">+${group.total_km.toLocaleString('tr-TR')} KM</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Toplam Tutar</p>
+                            <p class="text-lg font-black text-white">₺${group.total_tutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})}</p>
+                        </div>
+                        <button onclick="window.printManuelYakitRaporu('${group.plaka}')" class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 transition-all" title="Bu araca özel rapor yazdır">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Rapor
+                        </button>
+                    </div>
+                </div>
+                <!-- Table -->
+                <div class="overflow-x-auto w-full custom-scrollbar">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] text-gray-500 uppercase tracking-widest border-b border-white/5 bg-black/20">
+                                <th class="p-3 font-bold">Tarih</th>
+                                <th class="p-3 font-bold">Şoför</th>
+                                <th class="p-3 font-bold text-center">Girilen KM</th>
+                                <th class="p-3 font-bold text-center">Fark (Menzil)</th>
+                                <th class="p-3 font-bold text-right">Tutar (TL)</th>
+                                <th class="p-3 font-bold text-right w-16">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+    if (window.lucide) window.lucide.createIcons();
+}
+
+window.filterYakitKm = function() {
+    const searchInput = document.getElementById('yakit-km-search');
+    const query = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    const monthInput = document.getElementById('filter-yakit-km-ay');
+    const monthQuery = monthInput ? monthInput.value : ''; // format: YYYY-MM
+
+    let filtered = window.allYakitKmRecords;
+
+    if (query) {
+        filtered = filtered.filter(r => {
+            const plaka = (r.araclar?.plaka || '').toLowerCase();
+            const sofor = (r.sofor_adi || '').toLowerCase();
+            return plaka.includes(query) || sofor.includes(query);
+        });
+    }
+
+    if (monthQuery) {
+        filtered = filtered.filter(r => {
+            return r.tarih && r.tarih.startsWith(monthQuery);
+        });
+    }
+
+    renderYakitKmTable(filtered);
+};
+
+window.deleteManuelYakitFisi = async function(id) {
+    if (!confirm('Bu kayıt silinecek. Onaylıyor musunuz?')) return;
+    try {
+        const { error } = await window.supabaseClient.from('manuel_yakit_fisleri').delete().eq('id', id);
+        if (error) throw error;
+        if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+    } catch (err) {
+        console.error("deleteManuelYakitFisi error:", err);
+        alert("Silinirken hata oluştu.");
+    }
+};
+
+window.printManuelYakitRaporu = function(specificPlaka = null) {
+    let recordsToPrint = window.allYakitKmRecords;
+    if (!recordsToPrint || recordsToPrint.length === 0) {
+        alert("Yazdırılacak veri bulunamadı. Lütfen önce tabloyu yükleyin.");
+        return;
+    }
+
+    if (specificPlaka) {
+        recordsToPrint = recordsToPrint.filter(r => (r.araclar?.plaka || 'Bilinmeyen Araç') === specificPlaka);
+        if (recordsToPrint.length === 0) {
+            alert("Bu plakaya ait yazdırılacak kayıt bulunamadı.");
+            return;
+        }
+    }
+
+    // Plakaya göre grupla ve topla
+    const grouped = {};
+    let grandTotalKm = 0;
+    let grandTotalTutar = 0;
+
+    recordsToPrint.forEach(r => {
+        const plaka = r.araclar?.plaka || 'Bilinmeyen Araç';
+        if (!grouped[plaka]) {
+            grouped[plaka] = { plaka, total_km: 0, total_tutar: 0, count: 0 };
+        }
+        const fark = parseInt(r.fark_km) || 0;
+        const tutar = parseFloat(r.tutar) || 0;
+        
+        grouped[plaka].total_km += fark;
+        grouped[plaka].total_tutar += tutar;
+        grouped[plaka].count += 1;
+
+        grandTotalKm += fark;
+        grandTotalTutar += tutar;
+    });
+
+    const sortedGroups = Object.values(grouped).sort((a, b) => b.total_km - a.total_km);
+
+    let rowsHtml = '';
+    sortedGroups.forEach(g => {
+        rowsHtml += `
+            <tr>
+                <td>${g.plaka}</td>
+                <td class="text-center">${g.count} Adet</td>
+                <td class="text-center font-bold text-orange-600">${g.total_km.toLocaleString('tr-TR')} KM</td>
+                <td class="text-right font-black">${g.total_tutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</td>
+            </tr>
+        `;
+    });
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+            <head>
+                <title>Yakıt & KM Takip Raporu</title>
+                <style>
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
+                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.5rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
+                    .header-title h1 { margin: 0; font-size: 1.8rem; color: #111; text-transform: uppercase; }
+                    .header-title p { margin: 5px 0 0; color: #555; font-size: 14px; font-weight: bold; }
+                    
+                    .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+                    .summary-item { text-align: center; flex: 1; }
+                    .summary-item p { margin: 0 0 5px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
+                    .summary-item h3 { margin: 0; font-size: 20px; color: #0f172a; }
+                    .summary-item-border { border-right: 1px solid #e2e8f0; }
+                    .text-orange-600 { color: #ea580c; }
+                    
+                    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; }
+                    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
+                    th { background: #f1f5f9; color: #475569; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 11px; }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+                    .font-bold { font-weight: bold; }
+                    .font-black { font-weight: 900; }
+                    
+                    .footer { text-align: center; font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 50px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
+                </style>
+            </head>
+            <body>
+                <div class="header-container">
+                    <div class="header-title">
+                        <h1>YAKIT & KM TAKİP ÖZETİ</h1>
+                        <p>Plaka Bazlı Toplam Harcama ve Menzil Raporu</p>
+                    </div>
+                    <div class="ideol-logo">IDEOL TURİZM</div>
+                </div>
+                
+                <div class="summary-box">
+                    <div class="summary-item summary-item-border">
+                        <p>Toplam Kayıt</p>
+                        <h3>${window.allYakitKmRecords.length} Adet</h3>
+                    </div>
+                    <div class="summary-item summary-item-border">
+                        <p>Toplam Yapılan Yol</p>
+                        <h3 class="text-orange-600">${grandTotalKm.toLocaleString('tr-TR')} KM</h3>
+                    </div>
+                    <div class="summary-item">
+                        <p>Toplam Yakıt Tutarı</p>
+                        <h3>${grandTotalTutar.toLocaleString('tr-TR', {minimumFractionDigits: 2})} ₺</h3>
+                    </div>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Araç Plakası</th>
+                            <th class="text-center">Kayıt Sayısı</th>
+                            <th class="text-center">Toplam Yapılan Yol (Menzil)</th>
+                            <th class="text-right">Toplam Harcama (TL)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+                
+                <div class="footer">Bu rapor IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+            </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+};
