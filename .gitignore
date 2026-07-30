@@ -1,5 +1,10 @@
 node_modules/
 release/
+outputs/
+Filo-ERP-main/
+conflicts.txt
+scratch_db_check.js
+check.js
 .vscode/
 *.log
 .DS_Store

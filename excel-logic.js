@@ -442,6 +442,9 @@ window.saveExcelGrid = async function () {
         alert("Puantaj başarıyla kaydedildi!");
         loadExcelGrid();
         fetchMusteriServis();
+        if (typeof window.fetchTaseronFinans === 'function') {
+            window.fetchTaseronFinans();
+        }
     } catch (e) {
         alert("Hata: " + e.message);
     } finally {

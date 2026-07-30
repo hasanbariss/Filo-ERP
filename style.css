@@ -170,6 +170,10 @@ button:active, .dashboard-card:active, .nav-item:active {
     transition: var(--transition-base);
     display: flex;
     flex-direction: column;
+    /* Mobil: sidebar içeriği kaydırılabilir */
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 }
 
 .nav-link {
@@ -574,25 +578,39 @@ button:active {
     }
 
     /* Nested Tabs yatay kaydırılabilir (swipeable) PWA hissi */
-    .flex-wrap[id$="-nav"], .flex-wrap[id*="tabs"] {
+    [id$="-nav"], [id*="tabs"] {
         flex-wrap: nowrap !important;
-        overflow-x: auto;
+        overflow-x: auto !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none; /* Firefox */
         padding-bottom: 4px;
+        justify-content: flex-start !important;
         -webkit-mask-image: linear-gradient(to right, black 90%, transparent 100%);
         mask-image: linear-gradient(to right, black 90%, transparent 100%);
     }
     
-    .flex-wrap[id$="-nav"]::-webkit-scrollbar, .flex-wrap[id*="tabs"]::-webkit-scrollbar {
+    [id$="-nav"]::-webkit-scrollbar, [id*="tabs"]::-webkit-scrollbar {
         display: none; /* Chrome/Safari */
     }
 
-    .flex-wrap[id$="-nav"] button, .flex-wrap[id*="tabs"] button {
+    [id$="-nav"] button, [id*="tabs"] button {
         flex-shrink: 0;
         white-space: nowrap;
         padding-left: 1rem;
         padding-right: 1rem;
+    }
+
+    /* Finans ve diger form filtreleri mobilde tam sigsin */
+    .flex.gap-2.items-center {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .flex.gap-2.items-center > input,
+    .flex.gap-2.items-center > select,
+    .flex.gap-2.items-center > button {
+        flex: 1 1 auto;
+        min-width: 120px;
     }
 
     /* Touch target büyüklükleri ve pürüzsüz form hatları (iOS Standardı) */
@@ -610,11 +628,37 @@ button:active {
         font-size: 16px;
     }
 
-    /* Kart iceriklerinde tablo tasmalarini engellemek */
+    /* Kart iceriklerinde tablo tasmalarini engellemek - ama ic scroll çalışsın */
     .dashboard-card {
         max-width: 100vw;
-        overflow: hidden;
+        overflow: visible;
     }
+
+    /* Modal backdrop tam ekran kapsasın */
+    .fixed.inset-0 {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Finans ve geniş tablolar yatay scroll yapsın */
+    .dashboard-card > .overflow-x-auto {
+        overflow-x: auto !important;
+        max-width: 100vw;
+    }
+
+    /* Cari detail modal mobilde tam ekran scroll */
+    #cari-detail-modal > div:last-child {
+        align-items: flex-start !important;
+        padding: 0.5rem !important;
+        overflow-y: auto;
+        max-height: 100vh;
+    }
+
+    #cari-detail-modal .relative.bg-\[#0d0f11\] {
+        max-height: 92vh;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
 }
 
 @keyframes slideUpActionSheet {

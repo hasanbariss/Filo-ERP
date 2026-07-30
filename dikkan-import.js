@@ -211,20 +211,23 @@ window.dikkanImportConfirm = async function() {
 
         for (const row of finalRows) {
             // 1. Puantaj Kaydı (Upsert)
+            // Dikkan fabrikası her zaman 'İzmir' bölgesi olarak kaydedilir
             const payload = {
                 musteri_id:  row.musteriId,
                 arac_id:     row.aracId,
                 tarih:       row.tarih,
-                tek:         row.tek,
-                cikis_8:     row.cikis_8,
-                giris_2030:  row.giris_2030,
-                mesai:       row.mesai,
+                bolge:       'İzmir',  // ⭐ Dikkan = daima İzmir
+                tek:         row.tek       > 0 ? row.tek       : 0,
+                cikis_8:     row.cikis_8  > 0 ? row.cikis_8  : 0,
+                giris_2030:  row.giris_2030 > 0 ? row.giris_2030 : 0,
+                mesai:       row.mesai    > 0 ? row.mesai    : 0,
                 vardiya:     0
             };
 
+            // onConflict, DB'deki gerçek unique kısıtla eşleşmeli: musteri_id + arac_id + tarih + bolge
             const { error: upsertErr } = await window.supabaseClient
                 .from('musteri_servis_puantaj')
-                .upsert(payload, { onConflict: 'musteri_id, arac_id, tarih' });
+                .upsert(payload, { onConflict: 'musteri_id,arac_id,tarih,bolge' });
             
             if (upsertErr) {
                 console.error("Puantaj upsert hatası:", upsertErr);

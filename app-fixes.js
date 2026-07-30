@@ -168,7 +168,11 @@ function initMobileSidebar() {
     // Close on nav click on mobile
     document.querySelectorAll('#main-nav-buttons .nav-link').forEach(function (btn) {
         btn.addEventListener('click', function () {
-            if (window.innerWidth <= 768) window.closeMobileSidebar();
+            if (window.innerWidth <= 768) {
+                // Debounce'u sifirla ki menu tiklamalari engellenmesi
+                window._lastSidebarToggle = 0;
+                window.closeMobileSidebar();
+            }
         });
     });
 }
@@ -429,7 +433,7 @@ function initSearchableSelects() {
             }
         });
 
-        searchInput.addEventListener('input', function () { renderOptions(this.value); });
+        searchInput.addEventListener('input', window.debounce(function () { renderOptions(this.value); }, 300));
         searchInput.addEventListener('click', function (e) { e.stopPropagation(); });
 
         document.addEventListener('click', function () { dropdown.classList.add('hidden'); });
@@ -537,7 +541,7 @@ function initQuickSearch() {
         wrapper.appendChild(dropdownEl);
     }
 
-    searchInput.addEventListener('input', function () { buildDropdown(this.value.trim()); });
+    searchInput.addEventListener('input', window.debounce(function () { buildDropdown(this.value.trim()); }, 300));
     searchInput.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { if (dropdownEl) { dropdownEl.remove(); dropdownEl = null; } this.value = ''; }
     });
