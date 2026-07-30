@@ -14,6 +14,9 @@
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3045/3045501.png">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS -->
@@ -2858,7 +2861,6 @@
 
         <script src="excel-logic.js"></script>
         <script src="pdf-fonts.js"></script>
-        <script src="export-manager.js"></script>
         <script src="rota-logic.js"></script>
 
         <!-- AUTH: Inline script - her zaman yuklen (CORS engeline takilmaz) -->
@@ -3081,20 +3083,6 @@ window.addEventListener('DOMContentLoaded', function() {
     <!-- Hidden Print Section -->
     <div id="print-section"></div>
 
-    <!-- === PWA SERVICE WORKER KAYDI === -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function () {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(function (reg) {
-                        console.log('[PWA] ✅ Service Worker kayıtlı. Scope:', reg.scope);
-                    })
-                    .catch(function (err) {
-                        console.warn('[PWA] ⚠️ Service Worker kayıt hatası:', err);
-                    });
-            });
-        }
-    </script>
     <!-- TAŞERON HAKEDİŞ DETAYLI EXCEL RAPORU MODALI -->
     <div id="modal-taseron-detay-rapor" class="fixed inset-0 z-[9999] hidden bg-[#0d0f11]/90 backdrop-blur-md overflow-y-auto w-full">
         <div class="min-h-screen px-4 text-center">
