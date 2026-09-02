@@ -1346,6 +1346,23 @@ textarea {
     height: 100%;
 }
 
+.auth-brand-logo {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 178px;
+    height: auto;
+    border-radius: 8px;
+}
+
+.sidebar-brand-logo {
+    display: block;
+    width: 154px;
+    max-width: 100%;
+    height: auto;
+    border-radius: 7px;
+}
+
 .auth-story-copy {
     position: relative;
     z-index: 1;
@@ -1630,21 +1647,15 @@ textarea {
     .auth-mobile-brand {
         display: flex;
         align-items: center;
-        gap: 0.65rem;
         margin-bottom: 2.5rem;
-        color: #edf3eb;
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.25rem;
-        font-weight: 800;
-        letter-spacing: -0.05em;
     }
 
-    .auth-mobile-brand .auth-brand-mark {
-        width: 37px;
-        height: 37px;
-        padding: 5px;
-        border-radius: 12px;
-        color: #c98a4d;
+    .auth-mobile-brand img {
+        display: block;
+        width: 165px;
+        max-width: 72vw;
+        height: auto;
+        border-radius: 8px;
     }
 }
 
