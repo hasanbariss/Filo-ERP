@@ -520,7 +520,7 @@ window.handlePrint = function() {
                     <p style="margin: 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">DONEM: ${subtitle}</p>
                 </div>
                 <div style="text-align: right;">
-                    <div style="font-size: 18px; font-weight: 950; color: #0f172a; letter-spacing: -0.02em;">IDEOL TURİZM</div>
+                    <div style="font-size: 18px; font-weight: 950; color: #0f172a; letter-spacing: -0.02em;">Baris.Flow Drive</div>
                     <div style="font-size: 9px; font-weight: 800; color: #94a3b8;">FİLO YÖNETİM SİSTEMİ</div>
                 </div>
             </div>

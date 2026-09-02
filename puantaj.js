@@ -550,7 +550,7 @@ window.handlePrint = function() {
                 <p style="margin: 2px 0 0; font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px;">${headersSubtitle} / SERVİS PUANTAJ RAPORU</p>
             </div>
             <div style="text-align: right;">
-                <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #ea580c; font-style: italic;">IDEOL TURİZM</h2>
+                <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #ea580c; font-style: italic;">Baris.Flow Drive</h2>
                 <p style="margin: 2px 0 0; font-size: 9px; font-weight: 700; color: #94a3b8;">FILO YÖNETIM SISTEMI</p>
             </div>
         </div>

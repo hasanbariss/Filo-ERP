@@ -1,5 +1,5 @@
 /**
- * app-fixes.js — IDEOL Filo ERP
+ * app-fixes.js — Baris.Flow Drive
  * Sidebar collapse, mobile toggle, personel tabs, PDF font, searchable dropdowns, quick search
  * All code runs AFTER DOMContentLoaded to avoid conflicts with ui-manager.js
  */
@@ -609,7 +609,7 @@ window.exportRaporPDF = async function (tab) {
         const fontName = window._pdfFontBase64 ? 'NotoSans' : 'helvetica';
         doc.setFont(fontName);
         doc.setFontSize(14);
-        doc.text('FILO ERP - ' + (tabTitles[tab] || tab) + ' Raporu', 14, 15);
+        doc.text('BARIS.FLOW DRIVE - ' + (tabTitles[tab] || tab) + ' Raporu', 14, 15);
         doc.setFontSize(9);
         doc.text('Donem: ' + ay, 14, 22);
         doc.text('Olusturulma: ' + new Date().toLocaleDateString('tr-TR'), 14, 28);

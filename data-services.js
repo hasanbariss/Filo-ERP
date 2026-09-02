@@ -1356,7 +1356,7 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         }
 
         const rows = data.map(a => {
-            const sirket = a.sirket || 'IDEOL TURİZM';
+            const sirket = ['IDEOL', 'IDEOL TURİZM'].includes(a.sirket) ? 'Baris.Flow' : (a.sirket || 'Baris.Flow');
             const plaka = a.plaka || '-';
             
             // Kullanıcı marka ve model istiyor. Eğer "marka_model" bütünleşikse bölelim veya direkt yazalım.
@@ -1692,7 +1692,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 const sirketColor = arac.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : (arac.sirket === 'DİKKAN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
                 sirketBadgeHtml = `
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded border ${sirketColor} text-[9px] font-bold uppercase tracking-wider">
-                        ${arac.sirket}
+                        ${arac.sirket === 'IDEOL' ? 'Baris.Flow' : arac.sirket}
                     </span>
                 `;
             }
@@ -2114,7 +2114,7 @@ window.openAracDetay = async function(aracId) {
                 ${a.sirket && a.sirket !== 'Belirtilmemiş' ? `
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
-                    <div class="font-bold text-orange-400">${a.sirket}</div>
+                    <div class="font-bold text-orange-400">${a.sirket === 'IDEOL' ? 'Baris.Flow' : a.sirket}</div>
                 </div>` : ''}
                 ${a.belge_turu && a.belge_turu !== 'Yok' ? `
                 <div class="bg-white/5 rounded-xl p-3">
@@ -2371,7 +2371,7 @@ window.openSoforDetay = async function(soforId, ev) {
                 ${s.sirket ? `
                 <div class="bg-white/5 rounded-xl p-3 col-span-2">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Şirket</div>
-                    <div class="font-bold ${s.sirket === 'IDEOL' ? 'text-orange-400' : 'text-red-400'}">${s.sirket}</div>
+                    <div class="font-bold ${s.sirket === 'IDEOL' ? 'text-orange-400' : 'text-red-400'}">${s.sirket === 'IDEOL' ? 'Baris.Flow' : s.sirket}</div>
                 </div>` : ''}
             </div>
             ${s.adres ? `<div class="bg-white/5 rounded-xl p-3">
@@ -2454,7 +2454,7 @@ async function fetchSoforler(sirketFilter) {
             const sirketBadgeColor = sofor.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : (sofor.sirket === 'DİKKAN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
             const sirketBadgeHtml = sofor.sirket ? `
                 <span class="px-1.5 py-0.5 rounded border ${sirketBadgeColor} text-[9px] font-bold uppercase tracking-wider ml-2">
-                    ${sofor.sirket}
+                    ${sofor.sirket === 'IDEOL' ? 'Baris.Flow' : sofor.sirket}
                 </span>` : '';
 
             const maasText = sofor.aylik_maas ? `₺${Number(sofor.aylik_maas).toLocaleString('tr-TR')} <span class="text-[9px] text-gray-500 ml-1 font-normal uppercase">Aylık</span>`
@@ -6798,7 +6798,7 @@ window.puantajExport = function () {
             card.querySelectorAll('input[data-field]').forEach(inp => {
                 inputs[inp.dataset.field] = inp.value || '0';
             });
-            rows.push({ 'Ad Soyad': name, 'Çalışma Gün': inputs.calisma_gun || '', 'Net Maaş': inputs.net_maas || '', 'Avans': inputs.avans || '', 'Ceza': inputs.ceza || '', 'Haciz': inputs.haciz || '', 'MK Banka': inputs.mk_banka || '', 'IDEOL Banka': inputs.ideol_banka || '' });
+            rows.push({ 'Ad Soyad': name, 'Çalışma Gün': inputs.calisma_gun || '', 'Net Maaş': inputs.net_maas || '', 'Avans': inputs.avans || '', 'Ceza': inputs.ceza || '', 'Haciz': inputs.haciz || '', 'MK Banka': inputs.mk_banka || '', 'Baris.Flow Banka': inputs.ideol_banka || '' });
         });
         if (window.XLSX) {
             const ws = XLSX.utils.json_to_sheet(rows);
@@ -8127,7 +8127,7 @@ window.exportRaporPDF = function(tab) {
         const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
         doc.setFont('helvetica','bold');
         doc.setFontSize(14);
-        doc.text('FILO ERP - ' + (tabTitles[tab]||tab), 14, 15);
+        doc.text('BARIS.FLOW DRIVE - ' + (tabTitles[tab]||tab), 14, 15);
         doc.setFontSize(9);
         doc.setFont('helvetica','normal');
         doc.text('Donem: ' + ay, 14, 22);
@@ -8178,8 +8178,8 @@ window.handleRaporPrint = function(tab) {
             <!-- Report Header -->
             <div style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
                 <div>
-                    <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #000;">IDEOL TURİZM</h1>
-                    <p style="font-size: 12px; color: #666; margin: 3px 0 0 0;">Filo Yönetim & Operasyonel Raporlama</p>
+                    <h1 style="font-size: 24px; font-weight: 800; margin: 0; color: #000;">Baris.Flow Drive</h1>
+                    <p style="font-size: 12px; color: #666; margin: 3px 0 0 0;">Filonuz. Tek akışta.</p>
                 </div>
                 <div style="text-align: right;">
                     <div style="font-size: 14px; font-weight: 700; background: #000; color: #fff; padding: 4px 12px; border-radius: 4px; display: inline-block;">${reportTitle}</div>
@@ -8299,7 +8299,7 @@ window.handleRaporPrint = function(tab) {
     printHTML += `
             <!-- Footer -->
             <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: space-between; font-size: 9px; color: #999;">
-                <div>IDEOL Filo ERP - Akıllı Raporlama Modülü</div>
+                <div>Baris.Flow Drive - Akıllı Raporlama Modülü</div>
                 <div>Bu belge sistem tarafından otomatik oluşturulmuştur.</div>
             </div>
         </div>
@@ -9298,7 +9298,7 @@ window.printManuelYakitRaporu = function(specificPlaka = null) {
                         <h1>YAKIT & KM TAKİP ÖZETİ</h1>
                         <p>Plaka Bazlı Toplam Harcama ve Menzil Raporu</p>
                     </div>
-                    <div class="ideol-logo">IDEOL TURİZM</div>
+                    <div class="ideol-logo">Baris.Flow Drive</div>
                 </div>
                 
                 <div class="summary-box">
@@ -9330,7 +9330,7 @@ window.printManuelYakitRaporu = function(specificPlaka = null) {
                     </tbody>
                 </table>
                 
-                <div class="footer">Bu rapor IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+                <div class="footer">Bu rapor Baris.Flow Drive tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
             </body>
         </html>
     `);

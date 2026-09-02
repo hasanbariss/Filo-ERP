@@ -1,6 +1,6 @@
 {
-    "name": "IDEOL Filo Yönetim Merkezi",
-    "short_name": "Filo ERP",
+    "name": "Baris.Flow Drive",
+    "short_name": "Baris.Flow",
     "description": "Araç filosu, personel ve finans yönetim sistemi",
     "start_url": "/filoyonetim.html",
     "scope": "/",

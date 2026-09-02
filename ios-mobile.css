@@ -1,4 +1,4 @@
-/* Filo ERP — compact premium iPhone design system. Desktop stays untouched. */
+/* Baris.Flow Drive — compact premium iPhone design system. Desktop stays untouched. */
 .ios-module-control{display:none}.mobile-bottom-nav{display:none!important}
 .nav-section-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:38px;margin:.65rem 0 .25rem;padding:.4rem .7rem;border:0;border-radius:10px;color:hsl(var(--text-dim));background:transparent;font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 .nav-section-toggle svg{width:15px;height:15px;transition:transform .18s}.nav-section-toggle[aria-expanded="false"] svg{transform:rotate(-90deg)}

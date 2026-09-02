@@ -14,7 +14,7 @@ app.whenReady().then(() => {
         height: 900,
         minWidth: 1024,
         minHeight: 600,
-        title: 'IDEOL — Filo Yönetim Merkezi',
+        title: 'Baris.Flow Drive',
         icon: path.join(__dirname, 'icon.png'),
         webPreferences: {
             nodeIntegration: false,

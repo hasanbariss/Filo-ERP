@@ -677,7 +677,7 @@ window.printCariEkstre = function () {
                         <h1>${unvan}</h1>
                         <p>${tur} • Hesap Ekstresi</p>
                     </div>
-                    <div class="ideol-logo">IDEOL TURİZM</div>
+                    <div class="ideol-logo">Baris.Flow Drive</div>
                 </div>
                 
                 <div class="summary-box">
@@ -710,7 +710,7 @@ window.printCariEkstre = function () {
                     </tbody>
                 </table>
                 
-                <div class="footer">Bu hesap ekstresi IDEOL Filo Yönetim Sistemi tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+                <div class="footer">Bu hesap ekstresi Baris.Flow Drive tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
             </body>
         </html>
     `);
@@ -781,7 +781,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
-                                    <option value="IDEOL">IDEOL</option>
+                                    <option value="IDEOL">Baris.Flow</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -824,7 +824,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="IDEOL">IDEOL</option>
+                                    <option value="IDEOL">Baris.Flow</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -1222,7 +1222,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="edit-sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="IDEOL">IDEOL</option>
+                                    <option value="IDEOL">Baris.Flow</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
                             </div>
@@ -2283,7 +2283,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="edit-arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
-                                    <option value="IDEOL">IDEOL</option>
+                                    <option value="IDEOL">Baris.Flow</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -2332,7 +2332,7 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Sahibi / Şirket</label>
-                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: IDEOL A.Ş.">
+                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Baris.Flow">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -3221,7 +3221,7 @@ window.printTaseronRapor = function () {
             </head>
             <body>
                 <div class="header-container">
-                    <div class="ideol-logo">IDEOL TURİZM</div>
+                    <div class="ideol-logo">Baris.Flow Drive</div>
                     <div class="header-title">
                         <h1>Taşeron Ay Sonu Hesap Özeti</h1>
                         <p>Dönem: ${month}</p>
@@ -3438,7 +3438,7 @@ window.printCariKart = function(plaka, month) {
 + '.empty-yakit{color:#cbd5e1;font-size:10px;font-style:italic}'
 + '.doc-ftr{margin-top:36px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;color:#cbd5e1;font-size:9px;font-weight:600}'
 + '</style></head><body>'
-+ '<div class="hdr"><div><h1>Cari Kart: ' + plaka + '</h1><p>' + month + ' Donemi Hakedis Detaylari' + (sahipBilgisi ? ' | ' + sahipBilgisi : '') + '</p></div><div class="logo">IDEOL TURIZM</div></div>'
++ '<div class="hdr"><div><h1>Cari Kart: ' + plaka + '</h1><p>' + month + ' Donemi Hakedis Detaylari' + (sahipBilgisi ? ' | ' + sahipBilgisi : '') + '</p></div><div class="logo">Baris.Flow Drive</div></div>'
 + '<span class="sec-lbl">Hizmet Dokumu</span>'
 + '<table class="tbl">'
 + '<thead><tr>'
@@ -3464,7 +3464,7 @@ window.printCariKart = function(plaka, month) {
 + (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
 + '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
 + '</div></div>'
-+ '<div class="doc-ftr"><span>' + new Date().toLocaleString('tr-TR') + '</span><span>IDEOL Filo Yonetim | www.ideoltur.com</span></div>'
++ '<div class="doc-ftr"><span>' + new Date().toLocaleString('tr-TR') + '</span><span>Baris.Flow Drive | Filonuz. Tek akışta.</span></div>'
 + '</body></html>');
     win.document.close();
     win.setTimeout(function(){ win.print(); win.close(); }, 700);
@@ -3939,7 +3939,7 @@ window.printOzmalCizelge = function() {
                 <div class="subtitle">Çıktı Tarihi: ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
             </div>
             <div>
-                <h2 style="margin:0; font-size: 16px; font-weight: 900; color: #111; letter-spacing: -0.5px;">IDEOL <span style="color:#ea580c;">FILO</span></h2>
+                <h2 style="margin:0; font-size: 16px; font-weight: 900; color: #111; letter-spacing: -0.5px;">Baris.Flow <span style="color:#ea580c;">Drive</span></h2>
             </div>
         </div>
         <table>
@@ -4000,7 +4000,7 @@ window.printOzmalCizelge = function() {
         printHtml += `
             <tr>
                 <td style="text-align: center; color: #94a3b8; font-weight: 900; font-size: 10px;">${count++}</td>
-                <td style="font-weight: 900; color: #1e293b; font-size: 12px; letter-spacing: -0.5px;">${sirket}</td>
+                <td style="font-weight: 900; color: #1e293b; font-size: 12px; letter-spacing: -0.5px;">${sirket === 'IDEOL' ? 'Baris.Flow' : sirket}</td>
                 <td style="font-size: 14px; font-weight: 900; color: #f97316; letter-spacing: -0.5px;">${plaka}</td>
                 <td style="color: #64748b; font-weight: 800; font-size: 11px;">${marka}</td>
                 <td class="date-cell ${trafik.class}">${trafik.text}</td>

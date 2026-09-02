@@ -47,7 +47,7 @@ window.exportTableToPDF = function (tableId, title) {
             font: 'helvetica', // Fallback, will be overridden if custom font set
         },
         headStyles: {
-            fillColor: [13, 15, 17], // IDEOL dark theme
+            fillColor: [13, 15, 17], // Baris.Flow dark theme
             textColor: [255, 255, 255]
         },
         alternateRowStyles: {

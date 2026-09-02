@@ -1,9 +1,9 @@
 {
   "name": "filo-erp",
   "version": "1.0.0",
-  "description": "IDEOL Filo Yönetim Merkezi — Desktop ERP",
+  "description": "Baris.Flow Drive — Filo yönetimi",
   "main": "main.js",
-  "author": "IDEOL",
+  "author": "Baris.Flow",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
@@ -18,7 +18,7 @@
   },
   "build": {
     "appId": "com.ideol.filoerpm",
-    "productName": "Filo Yönetim Merkezi",
+    "productName": "Baris.Flow Drive",
     "directories": {
       "output": "release"
     },
