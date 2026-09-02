@@ -1,6 +1,11 @@
 node_modules/
 release/
 outputs/
+build/
+dist/
+coverage/
+.cache/
+.vercel/
 www/
 Filo-ERP-main/
 conflicts.txt
@@ -10,7 +15,10 @@ check_*.js
 diag_*.js
 test_*.js
 .vscode/
+.idea/
 *.log
+*.tmp
+*.swp
 .DS_Store
 Thumbs.db
 
