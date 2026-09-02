@@ -64,7 +64,7 @@ function showGpsBlocked() {
     b.style.display = 'flex';
 }
 /* === 1. ANA NAVİGASYON (SİDEBAR) MANTIĞI === */
-const navButtons = document.querySelectorAll('#main-nav-buttons button');
+const navButtons = document.querySelectorAll('#main-nav-buttons button[data-target]');
 const modules = document.querySelectorAll('.main-module');
 const pageTitle = document.getElementById('page-title');
 
@@ -93,7 +93,9 @@ navButtons.forEach(btn => {
             targetMod.classList.remove('hidden');
         }
 
-        // Modüle özgü veri yükle
+        // Önce yeni modülü ekrana çiz, veri yenilemeyi hemen sonraki karede başlat.
+        // Böylece iPhone'da menü dokunuşu veritabanı sorgusunu beklemez.
+        requestAnimationFrame(() => setTimeout(() => {
         // Modüle özgü veri yükle
         if (targetId === 'module-teklifler' && typeof fetchTeklifler === 'function') {
             fetchTeklifler();
@@ -148,6 +150,7 @@ navButtons.forEach(btn => {
             }
         }
         }
+        }, 0));
     });
 });
 

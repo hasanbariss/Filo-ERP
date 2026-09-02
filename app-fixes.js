@@ -159,7 +159,7 @@ function initMobileSidebar() {
         sidebar.classList.remove('mobile-open');
         if (overlay) {
             overlay.classList.remove('visible');
-            setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 300);
+            setTimeout(() => { if (overlay) overlay.style.display = 'none'; }, 180);
         }
     };
 

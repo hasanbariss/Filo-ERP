@@ -55,6 +55,9 @@
     }
 
     document.addEventListener('touchstart', function (e) {
+        // iPhone uygulamasında yatay modül geçişi ekranın sağa-sola kaçıyormuş
+        // gibi hissedilmesine neden oluyor. Mobilde menüler yalnızca dokunarak açılır.
+        if (window.innerWidth <= 768) { isSwiping = false; return; }
         if (isScrollableTarget(e.target)) { isSwiping = false; return; }
         touchStartX = e.changedTouches[0].screenX;
         touchStartY = e.changedTouches[0].screenY;

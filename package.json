@@ -9,6 +9,10 @@
     "start": "electron .",
     "test": "electron .",
     "build": "echo 'No build step needed'",
+    "ios:prepare": "node scripts/prepare-ios.mjs",
+    "ios:add": "npm run ios:prepare && cap add ios",
+    "ios:sync": "npm run ios:prepare && cap sync ios",
+    "ios:open": "cap open ios",
     "build-win": "electron-builder --win --x64",
     "build-portable": "electron-builder --win portable --x64"
   },
@@ -52,11 +56,15 @@
     ]
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
     "dotenv": "^16.3.1",
     "electron": "^33.0.0",
     "electron-builder": "^25.0.0"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/ios": "^8.5.0",
     "@supabase/supabase-js": "^2.98.0",
     "exceljs": "^4.4.0",
     "xlsx": "^0.18.5"

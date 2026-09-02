@@ -256,8 +256,8 @@
         overlay.id = 'manisa-fabrika-import-modal';
         overlay.className = 'fixed inset-0 z-[9999] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4';
         overlay.innerHTML = `
-            <div class="w-full max-w-6xl max-h-[92vh] overflow-hidden rounded-3xl border border-violet-500/30 bg-[#111827] shadow-2xl flex flex-col">
-                <div class="px-6 py-5 border-b border-white/10 flex items-start justify-between gap-4">
+            <div class="ios-modal-sheet w-full max-w-6xl max-h-[92vh] overflow-hidden rounded-3xl border border-violet-500/30 bg-[#111827] shadow-2xl flex flex-col">
+                <div class="ios-modal-header px-6 py-5 border-b border-white/10 flex items-start justify-between gap-4">
                     <div>
                         <p class="text-[10px] uppercase tracking-[0.2em] font-black text-violet-300">Manisa Fabrika Toplu Import</p>
                         <h3 class="text-xl font-black text-white mt-1">${escapeHtml(metadata.factory)}</h3>
@@ -272,7 +272,7 @@
                     <div class="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3"><p class="text-[10px] text-blue-300 font-bold uppercase">Aktarılacak</p><p class="text-xl text-white font-black">${importable}</p></div>
                 </div>
                 ${notices.length ? `<div class="mx-6 mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-100">${notices.map(escapeHtml).join('<br>')}</div>` : ''}
-                <div class="overflow-auto p-6 flex-1">
+                <div class="ios-modal-body overflow-auto p-6 flex-1">
                     <table class="w-full text-left text-xs">
                         <thead class="sticky top-0 bg-[#111827] text-gray-400 uppercase tracking-wider">
                             <tr class="border-b border-white/10"><th class="py-3 pr-2">Tarih</th><th class="py-3 pr-2">Fabrika</th><th class="py-3 pr-2">Güzergah</th><th class="py-3 pr-2">Plaka</th><th class="py-3 pr-2 text-center">Vardiya</th><th class="py-3 pr-2 text-center">Tek</th><th class="py-3">Durum</th></tr>
@@ -282,7 +282,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="px-6 py-5 border-t border-white/10 flex justify-end gap-3">
+                <div class="ios-modal-footer px-6 py-5 border-t border-white/10 flex justify-end gap-3">
                     <button onclick="window.closeManisaFabrikaImportModal()" class="px-5 py-3 rounded-xl border border-white/10 text-sm font-bold text-gray-300 hover:text-white">Vazgeç</button>
                     <button id="confirm-manisa-fabrika-import" ${importable ? '' : 'disabled'} onclick="window.confirmManisaFabrikaImport()" class="px-5 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-sm font-black text-white">${importable} Kaydı Manisa'ya Aktar</button>
                 </div>

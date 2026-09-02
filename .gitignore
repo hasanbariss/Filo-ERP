@@ -1,6 +1,7 @@
 node_modules/
 release/
 outputs/
+www/
 Filo-ERP-main/
 conflicts.txt
 scratch_db_check.js

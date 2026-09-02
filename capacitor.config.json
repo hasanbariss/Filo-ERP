@@ -1,0 +1,8 @@
+{
+  "appId": "com.ideol.filoerp",
+  "appName": "Filo ERP",
+  "webDir": "www",
+  "server": {
+    "iosScheme": "https"
+  }
+}

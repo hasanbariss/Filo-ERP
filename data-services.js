@@ -1607,13 +1607,13 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                     detailModal.id = "policy-detail-overlay";
                     detailModal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4";
                     detailModal.innerHTML = `
-                        <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
-                            <div class="bg-primary px-4 py-3 flex justify-between items-center">
+                        <div class="ios-modal-sheet bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
+                            <div class="ios-modal-header bg-primary px-4 py-3 flex justify-between items-center">
                                 <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} Özet Bilgisi</h3>
                                 <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">✕</button>
                             </div>
-                            <div class="p-4 font-sans">${fallbackContent}</div>
-                            <div class="bg-gray-50 px-4 py-3 text-right">
+                            <div class="ios-modal-body p-4 font-sans">${fallbackContent}</div>
+                            <div class="ios-modal-footer bg-gray-50 px-4 py-3 text-right">
                                 <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase">Kapat</button>
                             </div>
                         </div>
@@ -1654,13 +1654,13 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 detailModal.id = "policy-detail-overlay";
                 detailModal.className = "fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4";
                 detailModal.innerHTML = `
-                            <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
-                                <div class="bg-primary px-4 py-3 flex justify-between items-center">
+                            <div class="ios-modal-sheet bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden animate-scaleIn">
+                                <div class="ios-modal-header bg-primary px-4 py-3 flex justify-between items-center">
                                     <h3 class="text-white font-bold text-sm uppercase tracking-wider">${tur} Detayları</h3>
                                     <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-white hover:rotate-90 transition-transform">✕</button>
                                 </div>
-                                <div class="p-4 font-sans">${content}</div>
-                                <div class="bg-gray-50 px-4 py-3 text-right">
+                                <div class="ios-modal-body p-4 font-sans">${content}</div>
+                                <div class="ios-modal-footer bg-gray-50 px-4 py-3 text-right">
                                     <button onclick="document.getElementById('policy-detail-overlay').remove()" class="text-xs font-bold text-gray-400 hover:text-gray-600 uppercase">Kapat</button>
                                 </div>
                             </div>
@@ -2035,8 +2035,8 @@ window.openAracDetay = async function(aracId) {
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
 
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden max-h-[90vh]">
+            <div class="ios-modal-header flex items-center justify-between px-6 py-4 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-orange-500/10 rounded-xl text-orange-500">
                         <i data-lucide="truck" class="w-5 h-5"></i>
@@ -2047,7 +2047,7 @@ window.openAracDetay = async function(aracId) {
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <div id="arac-detay-body" class="p-6 space-y-4">
+            <div id="arac-detay-body" class="ios-modal-body p-6 space-y-4">
                 <div class="animate-pulse space-y-3">
                     <div class="h-4 bg-white/10 rounded w-3/4"></div>
                     <div class="h-4 bg-white/10 rounded w-1/2"></div>
@@ -2298,8 +2298,8 @@ window.openSoforDetay = async function(soforId, ev) {
     overlay.className = 'fixed inset-0 bg-black/70 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
     overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
-            <div class="flex items-center justify-between px-6 py-4 border-b border-white/10">
+        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh]">
+            <div class="ios-modal-header flex items-center justify-between px-6 py-4 border-b border-white/10">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400"><i data-lucide="user" class="w-5 h-5"></i></div>
                     <div id="sofor-detay-isim" class="text-lg font-black text-white">Yükleniyor...</div>
@@ -2308,7 +2308,7 @@ window.openSoforDetay = async function(soforId, ev) {
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
-            <div id="sofor-detay-body" class="p-6 space-y-4">
+            <div id="sofor-detay-body" class="ios-modal-body p-6 space-y-4">
                 <div class="animate-pulse space-y-3">
                     <div class="h-4 bg-white/10 rounded w-3/4"></div>
                     <div class="h-4 bg-white/10 rounded w-1/2"></div>
@@ -2941,23 +2941,23 @@ async function fetchTaseronFinans() {
             ).join('');
 
             const tr = document.createElement('tr');
-            tr.className = `hover:bg-gray-50/5 transition-colors border-b border-gray-100/10 group${isSingle ? ' cursor-pointer' : ''}`;
+            tr.className = `cari-hakedis-card hover:bg-gray-50/5 transition-colors border-b border-gray-100/10 group${isSingle ? ' cursor-pointer' : ''}`;
             if (isSingle) tr.onclick = () => window.openCariHakedisDetay(group.plakaList[0].arac_id);
 
             tr.innerHTML = `
-                <td class="px-6 py-4">
+                <td class="cari-card-identity px-6 py-4" data-label="Firma / Araç">
                     <div class="text-sm font-bold ${isSingle ? 'text-primary group-hover:text-orange-500' : 'text-white'} transition-colors leading-tight">${group.label}</div>
                     ${!isSingle ? `<div class="flex flex-wrap gap-1 mt-1.5">${plakaHTML}</div>` : ''}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
+                <td class="px-6 py-4 whitespace-nowrap text-center" data-label="Seferler">
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${group.vardiya} V</span>
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${group.tek} T</span>
                     <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${group.mesai} M</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700" data-label="Brüt">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500" data-label="Yakıt">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="cari-card-net px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}" data-label="Net Hakediş">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="cari-card-detail px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
                     ${isSingle ? 'Detay Gör &rarr;' : `<span class="text-[10px] text-gray-600 font-bold">${group.plakaList.length} Araç</span>`}
                 </td>
             `;
@@ -2965,13 +2965,13 @@ async function fetchTaseronFinans() {
         });
         
         const tfoot = document.createElement('tr');
-        tfoot.className = "bg-white/5 border-t-2 border-gray-200 shadow-sm";
+        tfoot.className = "cari-hakedis-total bg-white/5 border-t-2 border-gray-200 shadow-sm";
         tfoot.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary">GENEL TOPLAM</td>
-            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700">${totalVardiya} V - ${totalTek} T - ${totalMesai} M</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary" data-label="Toplam">GENEL TOPLAM</td>
+            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700" data-label="Seferler">${totalVardiya} V - ${totalTek} T - ${totalMesai} M</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800" data-label="Brüt">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600" data-label="Yakıt">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}" data-label="Net">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td></td>
         `;
         tbody.appendChild(tfoot);
@@ -3229,17 +3229,17 @@ window.openCariHakedisDetay = async function(arac_id) {
         if(mIds.length === 0) {
             factoriesHTML = '<div class="text-sm text-gray-500 italic p-4 text-center border dashed border-white/5 rounded-xl">Bu ay hiç servis kaydı bulunmuyor.</div>';
         } else {
-            factoriesHTML = `<div class="space-y-4">`;
+            factoriesHTML = `<div class="cari-factory-list space-y-4">`;
             mIds.forEach(mId => {
                 const md = data.musteriDetay[mId];
                 const unvan = md.musteri_ad || musteriMap[mId] || `Fabrika ID: ${mId}`;
                 factoriesHTML += `
-                    <div class="bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
-                        <div class="font-black text-sm text-white mb-4 flex items-center gap-2">
+                    <div class="cari-factory-card bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
+                        <div class="cari-factory-title font-black text-sm text-white mb-4 flex items-center gap-2">
                             <i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i> ${unvan}
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
+                        <div class="cari-rate-grid grid grid-cols-2 gap-4">
+                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Vardiya</span>
@@ -3254,7 +3254,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-vardiya-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.vardiya_fiyat}">
                                 </div>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
+                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Tek Sefer</span>
@@ -3270,7 +3270,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <!-- 8 Çıkışı Satırı (Dikkan Özel) -->
-                            <div class="bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
+                            <div class="cari-rate-item bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
                                 <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>8 Çıkışı</span>
@@ -3286,7 +3286,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <!-- 20:30 Girişi Satırı (Dikkan Özel) -->
-                            <div class="bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
+                            <div class="cari-rate-item bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
                                 <div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>20:30 Giriş</span>
@@ -3302,7 +3302,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <!-- Mesai Row -->
-                            <div class="bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
+                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Mesai (Dikkan Özel)</span>
@@ -3318,7 +3318,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 mt-3">
+                        <div class="cari-tax-grid grid grid-cols-2 gap-3 mt-3">
                             <div class="bg-white/5 p-3 rounded-xl border border-emerald-500/20 focus-within:border-emerald-500/50 transition-colors">
                                 <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-2">KDV %</div>
                                 <div class="flex items-center gap-1">
@@ -3334,7 +3334,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                         </div>
-                        <div class="mt-3 pt-3 border-t border-white/10 space-y-1">
+                        <div class="cari-factory-total mt-3 pt-3 border-t border-white/10 space-y-1">
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Brüt Tutar:</span>
                                 <span class="text-white font-black text-sm row-toplam">₺0,00</span>
@@ -3396,10 +3396,10 @@ window.openCariHakedisDetay = async function(arac_id) {
         }
 
         overlay.innerHTML = `
-            <div class="bg-[#1a1c23] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
-                <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-orange-500/10 to-transparent">
+            <div class="cari-card-sheet bg-[#1a1c23] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
+                <div class="cari-card-header p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-orange-500/10 to-transparent">
                     <div>
-                        <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i> Cari Kart: <span class="text-orange-400">${data.plaka}</span></h2>
+                        <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i><span class="cari-hakedis-title">Hakediş</span><span class="cari-hakedis-plate">${data.plaka}</span></h2>
                         <div class="flex items-center gap-2 mt-1">
                             <p class="text-xs text-gray-400">${month} Dönemi Hakediş Detayları</p>
                             <span class="text-gray-600">|</span>
@@ -3419,20 +3419,20 @@ window.openCariHakedisDetay = async function(arac_id) {
                     </div>
                 </div>
 
-                <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
-                    <div>
+                <div class="cari-card-body p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
+                    <div class="cari-card-section cari-service-section">
                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> Hizmet Fiyatlandırma</h3>
                         ${factoriesHTML}
                     </div>
 
-                    <div>
+                    <div class="cari-card-section cari-fuel-section">
                         <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="droplets" class="w-4 h-4 text-orange-400"></i> Yakıt Kesintileri</h3>
                         ${yakitHTML}
                     </div>
 
                     <!-- ÖZMAL OTOMATİK GİDERLER BÖLÜMÜ -->
                     ${isOzmal ? `
-                    <div>
+                    <div class="cari-card-section cari-auto-expense-section">
                         <div class="flex items-center justify-between mb-3">
                             <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                 <i data-lucide="wrench" class="w-4 h-4 text-amber-400"></i>
@@ -3445,7 +3445,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                     ` : ''}
 
                     <!-- MANUEL GELİR/GİDER BÖLÜMÜ -->
-                    <div>
+                    <div class="cari-card-section cari-manual-section">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                 <i data-lucide="plus-minus" class="w-4 h-4 text-purple-400"></i> Manuel Gelir / Gider Kalemleri
@@ -3466,7 +3466,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
                 </div>
 
-                <div class="p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
+                <div class="cari-card-summary p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
                     <div class="flex flex-col gap-2.5">
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Brüt Kazanç</span>
@@ -4298,8 +4298,8 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
     
     // We fetch araclar here directly
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
-            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
+        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
+            <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
                 <div>
                     <h2 class="text-lg font-black text-white uppercase tracking-wider">Toplu Araç Tanımlama</h2>
                     <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisine/Fabrikasına Araç Ata</p>
@@ -4307,7 +4307,7 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
                 <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
             </div>
             
-            <div class="p-6">
+            <div class="ios-modal-body p-6">
                 <!-- Üst Kontroller -->
                 <div class="flex gap-4 mb-6">
                     <div class="flex-1">
@@ -4342,7 +4342,7 @@ window.openTopluAracEkle = function (musteriId, musteriAdi) {
                 </div>
             </div>
 
-            <div class="p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
+            <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
                 <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
                 <button onclick="kaydetTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white font-black text-sm shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
                     <i data-lucide="save" class="w-4 h-4"></i>
@@ -4450,8 +4450,8 @@ window.openTopluAracSil = function (musteriId, musteriAdi) {
     overlay.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-20 pb-20";
     
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
-            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
+        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
+            <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
                 <div>
                     <h2 class="text-lg font-black text-white uppercase tracking-wider text-red-500">Toplu Araç Silme</h2>
                     <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisinden Araçları Çıkar</p>
@@ -4459,7 +4459,7 @@ window.openTopluAracSil = function (musteriId, musteriAdi) {
                 <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
             </div>
             
-            <div class="p-6">
+            <div class="ios-modal-body p-6">
                 <!-- Üst Kontroller -->
                 <div class="flex gap-4 mb-6">
                     <div class="flex-1">
@@ -4485,7 +4485,7 @@ window.openTopluAracSil = function (musteriId, musteriAdi) {
                 </div>
             </div>
 
-            <div class="p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
+            <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
                 <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
                 <button onclick="silTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black text-sm shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -4708,26 +4708,26 @@ window.fetchCariler = async function() {
             });
 
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors border-b border-gray-50 cursor-pointer";
+            tr.className = "ios-cari-row hover:bg-gray-50 transition-colors border-b border-gray-50 cursor-pointer";
             tr.onclick = (e) => {
                 if (e.target.tagName !== 'BUTTON') window.openCariDetail(c.id);
             };
             tr.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-primary hover:text-orange-500 transition-colors">
+                <td class="cari-list-name px-6 py-4 whitespace-nowrap text-sm font-bold text-primary hover:text-orange-500 transition-colors" data-label="Cari">
                     <div class="flex items-center gap-2">
                         <i data-lucide="external-link" class="w-3 h-3 text-gray-400"></i>
                         ${c.unvan || '-'}
                     </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-600 rounded uppercase">${c.tur || c.isletme_turu || 'Cari'}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${c.telefon || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <td class="cari-list-type px-6 py-4 whitespace-nowrap" data-label="Tür"><span class="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-600 rounded uppercase">${c.tur || c.isletme_turu || 'Cari'}</span></td>
+                <td class="cari-list-phone px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="İletişim">${c.telefon || '-'}</td>
+                <td class="cari-list-balance px-6 py-4 whitespace-nowrap text-sm" data-label="Güncel Bakiye">
                     <div class="font-bold ${bakiye > 0 ? 'text-danger' : 'text-green-600'}">
                         ₺${bakiye.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     ${aylikYuk > 0 ? `<div class="text-[10px] text-gray-400">Aylık Yük: ₺${aylikYuk.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</div>` : ''}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right space-x-2">
+                <td class="cari-list-actions px-6 py-4 whitespace-nowrap text-right space-x-2" data-label="İşlemler">
                     <button onclick="event.stopPropagation(); openModal('Yeni Bakım/Parça Kaydı', '${c.id}')" class="text-orange-600 hover:text-orange-800 text-[10px] font-bold uppercase border border-orange-200 px-2 py-1 rounded bg-orange-50">Bakım Ekle</button>
                     <button onclick="event.stopPropagation(); openModal('Yeni Fatura Kaydı', '${c.id}')" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase border border-blue-200 px-2 py-1 rounded bg-blue-50">Fatura Ekle</button>
                     <button onclick="event.stopPropagation(); openModal('Cari Güncelle', '${c.id}')" class="text-green-600 hover:text-green-800 text-[10px] font-bold uppercase border border-green-200 px-2 py-1 rounded bg-green-50">Düzenle</button>
@@ -5284,8 +5284,8 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
         }
         
         overlay.innerHTML = `
-            <div class="bg-[#0b0d0f] border border-white/10 rounded-[2rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-white/5">
-                <div class="p-8 border-b border-white/10 bg-white/[0.02] flex justify-between items-center bg-gradient-to-r from-orange-500/5 to-transparent">
+            <div class="ios-modal-sheet bg-[#0b0d0f] border border-white/10 rounded-[2rem] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden ring-1 ring-white/5">
+                <div class="ios-modal-header p-8 border-b border-white/10 bg-white/[0.02] flex justify-between items-center bg-gradient-to-r from-orange-500/5 to-transparent">
                     <div>
                         <h3 class="text-2xl font-black text-white flex items-center gap-4 tracking-tighter">
                             <span class="p-3 bg-orange-500/10 rounded-2xl border border-orange-500/20 shadow-inner">
@@ -5321,7 +5321,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                     </div>
                 </div>
                 
-                <div class="flex-1 overflow-auto p-8 bg-gradient-to-b from-transparent to-white/[0.01]">
+                <div class="ios-modal-body flex-1 overflow-auto p-8 bg-gradient-to-b from-transparent to-white/[0.01]">
                     ${isLoading ? `
                         <div class="h-full flex flex-col items-center justify-center gap-6 py-24">
                             <div id="yakit-import-status-icon" class="w-20 h-20 border-[6px] border-orange-500/10 border-t-orange-500 rounded-full animate-spin shadow-lg shadow-orange-500/10"></div>
@@ -5367,7 +5367,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                     `}
                 </div>
 
-                <div class="p-8 border-t border-white/10 bg-white/[0.03] flex justify-between items-center">
+                <div class="ios-modal-footer p-8 border-t border-white/10 bg-white/[0.03] flex justify-between items-center">
                     <button onclick="document.getElementById('yakit-import-preview-overlay').remove()" class="px-8 py-3 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition-all border border-white/10 hover:bg-white/5">İptal Et</button>
                     ${!isLoading ? `
                         <button onclick="confirmYakitImport()" class="px-10 py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
@@ -7078,17 +7078,17 @@ window.fetchCariDetails = async function (cariId) {
             currentBakiye += ((Number(e.borc) || 0) - (Number(e.alacak) || 0));
 
             const tr = document.createElement('tr');
-            tr.className = "border-b border-white/5 hover:bg-white/5 transition-colors";
+            tr.className = "cari-statement-row border-b border-white/5 hover:bg-white/5 transition-colors";
             tr.innerHTML = `
-                <td class="px-6 py-4 text-gray-400 font-medium">${window.formatDate(e.tarih)}</td>
-                <td class="px-6 py-4">
+                <td class="statement-date px-6 py-4 text-gray-400 font-medium" data-label="Tarih">${window.formatDate(e.tarih)}</td>
+                <td class="statement-detail px-6 py-4" data-label="İşlem">
                     <div class="text-white font-bold">${e.type}</div>
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest">${e.desc}</div>
                 </td>
-                <td class="px-6 py-4 text-right text-white font-bold">${e.borc > 0 ? window.formatCurrency(e.borc) : '-'}</td>
-                <td class="px-6 py-4 text-right text-green-500 font-bold">${e.alacak > 0 ? window.formatCurrency(e.alacak) : '-'}</td>
-                <td class="px-6 py-4 text-right ${currentBakiye > 0 ? 'text-orange-500' : 'text-green-400'} font-black text-base">${window.formatCurrency(currentBakiye)}</td>
-                <td class="px-6 py-4 text-center">
+                <td class="statement-debt px-6 py-4 text-right text-white font-bold" data-label="Borç">${e.borc > 0 ? window.formatCurrency(e.borc) : '-'}</td>
+                <td class="statement-credit px-6 py-4 text-right text-green-500 font-bold" data-label="Alacak">${e.alacak > 0 ? window.formatCurrency(e.alacak) : '-'}</td>
+                <td class="statement-balance px-6 py-4 text-right ${currentBakiye > 0 ? 'text-orange-500' : 'text-green-400'} font-black text-base" data-label="Bakiye">${window.formatCurrency(currentBakiye)}</td>
+                <td class="statement-action px-6 py-4 text-center" data-label="İşlem">
                     <button onclick="deleteRecord('${e.table}', '${e.id}', 'refreshCariDetails')" class="text-[10px] text-red-500 hover:text-red-400 font-bold border border-red-500/20 px-2 py-1 rounded transition-all">SİL</button>
                 </td>
             `;
@@ -8899,11 +8899,16 @@ window.transferYakit = async function(yakitIds, currentAracId) {
     });
 
     const overlay = document.createElement('div');
+    overlay.id = 'yakit-transfer-overlay';
     overlay.className = 'fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4';
     overlay.innerHTML = `
-        <div class="bg-gray-900 border border-white/10 rounded-3xl w-full max-w-md p-7 shadow-2xl animate-scaleIn">
-            <h3 class="text-xl font-black text-white mb-2 tracking-tight"><i data-lucide="arrow-right-left" class="w-5 h-5 inline-block mr-1 text-blue-400"></i> Yakıt Aktarımı</h3>
-            <p class="text-xs text-gray-400 mb-6 leading-relaxed">Seçtiğiniz <strong>${yakitIds.length}</strong> adet yakıt fişi, seçeceğiniz yeni araca taşınacaktır. Bu işlem geri alınamaz.</p>
+        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-3xl w-full max-w-md shadow-2xl animate-scaleIn">
+            <div class="ios-modal-header">
+                <h3 class="text-xl font-black text-white tracking-tight"><i data-lucide="arrow-right-left" class="w-5 h-5 inline-block mr-1 text-blue-400"></i> Yakıt Aktarımı</h3>
+                <button onclick="this.closest('.fixed').remove()" class="text-gray-400 bg-white/5">✕</button>
+            </div>
+            <div class="ios-modal-body">
+                <p class="text-xs text-gray-400 mb-6 leading-relaxed">Seçtiğiniz <strong>${yakitIds.length}</strong> adet yakıt fişi, seçeceğiniz yeni araca taşınacaktır. Bu işlem geri alınamaz.</p>
             
             <div class="relative w-full mb-6">
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">HEDEF PLAKA ARAYIN</label>
@@ -8932,7 +8937,8 @@ window.transferYakit = async function(yakitIds, currentAracId) {
                 </div>
             </div>
 
-            <div class="flex justify-end gap-3 pt-4 border-t border-white/5">
+            </div>
+            <div class="ios-modal-footer flex justify-end gap-3 pt-4 border-t border-white/5">
                 <button onclick="this.closest('.fixed').remove()" class="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-sm font-bold transition-all">Vazgeç</button>
                 <button id="btn-onayla-transfer" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]" disabled>
                     <i data-lucide="check-circle-2" class="w-4 h-4"></i> Seçili Araca Aktar

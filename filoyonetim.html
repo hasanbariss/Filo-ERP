@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no">
     <title>IDEOL — Filo Yönetim Merkezi</title>
     <meta name="google" content="notranslate">
     <!-- iOS PWA Support -->
@@ -13,7 +14,7 @@
     <meta name="theme-color" content="#0d0f11">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3045/3045501.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -78,19 +79,12 @@
         }
     </script>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ios-mobile.css">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <!-- === PWA META TAGS === -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#3b82f6">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Filo ERP">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/192/3045/3045501.png">
 
     <!-- === DOMPurify (XSS KorumasÄ±) === -->
     <style>
@@ -248,7 +242,10 @@
         </div>
 
         <nav class="flex-1 space-y-1 overflow-y-auto pr-2" id="main-nav-buttons">
-            <p class="nav-section-label" aria-hidden="true">Operasyon</p>
+            <button type="button" class="nav-section-toggle" data-nav-section="operasyon" aria-expanded="true">
+                <span>Operasyon</span><i data-lucide="chevron-down"></i>
+            </button>
+            <div class="nav-section-content" data-nav-content="operasyon">
             <button data-target="module-dashboard" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all active">
                 <i data-lucide="layout-dashboard"></i> Genel Bakış
             </button>
@@ -261,7 +258,11 @@
             <button data-target="module-gps" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="map-pin"></i> Canlı Takip
             </button>
-            <p class="nav-section-label" aria-hidden="true">Yönetim</p>
+            </div>
+            <button type="button" class="nav-section-toggle" data-nav-section="yonetim" aria-expanded="true">
+                <span>Yönetim</span><i data-lucide="chevron-down"></i>
+            </button>
+            <div class="nav-section-content" data-nav-content="yonetim">
             <button data-target="module-personel" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="user-cog"></i> Personel
             </button>
@@ -271,7 +272,11 @@
             <button data-target="module-cari" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="building-2"></i> Cariler
             </button>
-            <p class="nav-section-label" aria-hidden="true">Finans &amp; Analiz</p>
+            </div>
+            <button type="button" class="nav-section-toggle" data-nav-section="finans" aria-expanded="true">
+                <span>Finans &amp; Analiz</span><i data-lucide="chevron-down"></i>
+            </button>
+            <div class="nav-section-content" data-nav-content="finans">
             <button data-target="module-finans" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="banknote"></i> Taşeron Hakediş
             </button>
@@ -288,7 +293,7 @@
             <button data-target="module-teklifler" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
                 <i data-lucide="file-text"></i> Teklif Yönetimi
             </button>
-
+            </div>
         </nav>
 
         <div class="mt-auto pt-6 border-t border-white/5">
@@ -310,14 +315,14 @@
     <!-- Main Content Area -->
     <main>
         <header class="top-bar">
+            <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all flex" aria-label="Ana menüyü aç" aria-controls="main-sidebar" aria-expanded="false">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
             <div>
                 <h1 class="text-2xl font-bold" id="page-title">Genel Bakış</h1>
                 <p class="text-sm text-gray-500">Hoş geldin, sistem kontrolünde her şey yolunda.</p>
             </div>
             <div class="flex items-center gap-4">
-                <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all flex">
-                    <i data-lucide="menu" class="w-5 h-5"></i>
-                </button>
                 <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
                     <input type="text" id="top-search" placeholder="Hızlı ara..."
@@ -599,7 +604,7 @@
                                 <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
                                 <button onclick="window.fetchDashboardData()" class="text-[10px] text-gray-400 hover:text-white transition-colors"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
                             </div>
-                            <div class="flex-1 bg-[#0d0f11] border border-white/5 rounded-xl p-3 overflow-y-auto" style="max-height: 220px;">
+                            <div id="son-aktiviteler-list" class="flex-1 bg-[#0d0f11] border border-white/5 rounded-xl p-3 overflow-y-auto" style="max-height: 300px;">
                                 <table class="w-full text-left border-collapse">
                                     <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
                                         <tr><td class="text-xs text-gray-500 text-center py-4">Yükleniyor...</td></tr>
@@ -686,13 +691,13 @@
                     </div>
 
                     <!-- Biten & Yaklaşan Poliçeler Tablosu (Kullanıcı Önceliği) -->
-                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-6">
+                    <div id="dashboard-policy-card" class="bg-[#1a1d24] border border-white/10 rounded-2xl p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-rose-500/15 flex items-center justify-center"><i data-lucide="shield-x" class="w-5 h-5 text-rose-400"></i></div>
+                                <div class="policy-header-emoji" aria-hidden="true">🛡️</div>
                                 <div>
                                     <h3 class="font-bold text-base text-white">Biten &amp; Yaklaşan Poliçeler</h3>
-                                    <p class="text-[10px] text-gray-500 mt-0.5">Geçmiş bitişler ve önümüzdeki 90 gün içinde dolacak sigortalar</p>
+                                    <p class="text-[10px] text-gray-500 mt-0.5">Süresi bitenler ve önümüzdeki 90 günün kısa özeti</p>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
@@ -1830,7 +1835,7 @@
                                 <h3 class="text-lg font-bold">Taşeron Cari Hakediş (Özet)</h3>
                                 <p class="text-xs text-gray-500">Puantajdan çekilen aylık araç bazlı hakediş tablosu.</p>
                             </div>
-                            <div class="flex gap-2 items-center">
+                            <div class="cari-hakedis-controls flex gap-2 items-center">
                                 <input type="text" id="taseron-finans-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronFinans === 'function') fetchTaseronFinans()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
                                 <select id="filter-cari-hakedis-ay" onchange="fetchTaseronFinans()" aria-label="Cari hakediş dönemi"
@@ -2111,8 +2116,8 @@
                     </div>
 
                     <!-- Cari Kartlar -->
-                    <div id="content-cariler" class="block p-6">
-                        <div class="flex justify-between items-center mb-8">
+                    <div id="content-cariler" class="block p-6 cari-list-content">
+                        <div class="flex justify-between items-center mb-8 cari-list-header">
                             <h3 class="text-lg font-bold">Cari Hesap Listesi</h3>
                             <button onclick="openModal('Yeni Cari Hesap')"
                                 class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20">
@@ -2733,9 +2738,9 @@
             </div>
             <div class="flex items-center justify-center min-h-screen px-4 p-4">
                 <div
-                    class="relative bg-[#0d0f11] border border-white/10 rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-5xl w-full">
+                    class="cari-detail-sheet relative bg-[#0d0f11] border border-white/10 rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-5xl w-full">
                     <!-- Header -->
-                    <div class="premium-modal-header p-8 pb-4 flex justify-between items-start border-b border-white/5">
+                    <div class="cari-detail-header premium-modal-header p-8 pb-4 flex justify-between items-start border-b border-white/5">
                         <div class="flex gap-5">
                             <div
                                 class="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
@@ -2760,9 +2765,9 @@
                         </div>
                     </div>
 
-                    <div class="p-8 space-y-8 overflow-y-auto max-h-[80vh]">
+                    <div class="cari-detail-scroll p-8 space-y-8 overflow-y-auto max-h-[80vh]">
                         <!-- Cari Metrics -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="cari-detail-metrics grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
                                 <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Toplam Borç
                                 </p>
@@ -2786,7 +2791,7 @@
                                 <div class="text-xs text-gray-500 font-medium">Son 1 yıla ait tüm fatura ve ödemeler
                                 </div>
                             </div>
-                            <div class="overflow-x-auto rounded-2xl border border-white/5">
+                            <div class="cari-detail-transactions overflow-x-auto rounded-2xl border border-white/5">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr
@@ -2815,9 +2820,9 @@
             <div class="fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity" onclick="closeKrediKartiDetail()">
             </div>
             <div class="flex items-center justify-center min-h-screen px-4 p-4">
-                <div class="relative bg-[#0d0f11] border border-white/10 rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-5xl w-full">
+                <div class="ios-modal-sheet kredi-detail-sheet relative bg-[#0d0f11] border border-white/10 rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-5xl w-full">
                     <!-- Header -->
-                    <div class="premium-modal-header p-8 pb-4 flex justify-between items-start border-b border-white/5">
+                    <div class="ios-modal-header premium-modal-header p-8 pb-4 flex justify-between items-start border-b border-white/5">
                         <div class="flex gap-5">
                             <div class="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
                                 <i data-lucide="credit-card" class="w-8 h-8"></i>
@@ -2837,7 +2842,7 @@
                         </div>
                     </div>
 
-                    <div class="p-8 space-y-8 overflow-y-auto max-h-[80vh]">
+                    <div class="ios-modal-body p-8 space-y-8 overflow-y-auto max-h-[80vh]">
                         <!-- Metrics -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
@@ -2890,21 +2895,21 @@
             <!-- Modal İçeriği -->
             <div class="flex items-center justify-center min-h-screen px-4 p-4">
                 <div
-                    class="relative bg-[#1a1c1e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl transform transition-all max-w-lg w-full">
+                    class="ios-modal-sheet general-modal-sheet relative bg-[#1a1c1e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl transform transition-all max-w-lg w-full">
                     <!-- Header -->
-                    <div class="bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
+                    <div class="ios-modal-header general-modal-header bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
                         <h3 class="text-lg font-bold text-white" id="modal-title">Yeni Kayıt Ekle</h3>
                         <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-all">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
 
-                    <div class="px-6 py-8 overflow-y-auto max-h-[75vh]" id="modal-dynamic-body">
+                    <div class="ios-modal-body px-6 py-8 overflow-y-auto max-h-[75vh]" id="modal-dynamic-body">
                         <!-- Dinamik içerik js ile doldurulacak -->
                     </div>
 
                     <!-- Footer -->
-                    <div class="bg-white/5 px-6 py-4 flex justify-end gap-3 border-t border-white/5">
+                    <div class="ios-modal-footer general-modal-footer bg-white/5 px-6 py-4 flex justify-end gap-3 border-t border-white/5">
                         <button type="button" onclick="closeModal()"
                             class="px-5 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 text-sm font-bold transition-all">İptal</button>
                         <button type="button" id="btn-save-continue" onclick="saveDataAndClose(event, true)"
@@ -3003,35 +3008,15 @@
 
 
 
-<!-- PWA MOBILE BOTTOM NAVIGATION -->
-<nav class="mobile-bottom-nav" id="mobile-nav">
-    <button class="nav-item active" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-dashboard]').click();">
-        <i data-lucide="layout-dashboard"></i>
-        <span>�zet</span>
-    </button>
-    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-operasyon-merkezi]').click(); if(window.openOperasyonTab) window.openOperasyonTab('quick');">
-        <i data-lucide="smartphone"></i>
-        <span>Hızlı Giriş</span>
-    </button>
-    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-cari]').click();">
-        <i data-lucide="wallet"></i>
-        <span>Finans</span>
-    </button>
-    <button class="nav-item" onclick="if(window.triggerHaptic) triggerHaptic(15); document.querySelector('[data-target=module-raporlar]').click();">
-        <i data-lucide="bar-chart-3"></i>
-        <span>Raporlar</span>
-    </button>
-</nav>
-
 <!-- ======================== IMPORT PREVIEW MODAL ======================== -->
 <div
     id="import-preview-modal"
     class="hidden fixed inset-0 z-[9000] items-center justify-center"
     style="background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);"
 >
-    <div class="import-modal-content">
+    <div class="ios-modal-sheet import-modal-content">
         <!-- Header -->
-        <div class="flex items-center justify-between p-5 border-b border-white/10">
+        <div class="ios-modal-header flex items-center justify-between p-5 border-b border-white/10">
             <div class="flex items-center gap-3">
                 <div class="p-2 bg-emerald-500/10 rounded-xl">
                     <i data-lucide="file-spreadsheet" class="w-5 h-5 text-emerald-500"></i>
@@ -3049,7 +3034,7 @@
             </button>
         </div>
         <!-- Dinamik içerik -->
-        <div id="import-modal-body" class="p-5 overflow-y-auto" style="max-height:70vh;"></div>
+        <div id="import-modal-body" class="ios-modal-body p-5 overflow-y-auto" style="max-height:70vh;"></div>
     </div>
 </div>
 
@@ -3066,7 +3051,10 @@
 
     <!-- === SERVICE WORKER KAYDI (PWA Offline) === -->
     <script>
-        if ('serviceWorker' in navigator) {
+        var isNativeApp = window.Capacitor &&
+            typeof window.Capacitor.isNativePlatform === 'function' &&
+            window.Capacitor.isNativePlatform();
+        if ('serviceWorker' in navigator && !isNativeApp) {
             window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then(function(reg) { window.log && window.log('[SW] KayÄ±tlÄ±:', reg.scope); })
@@ -3116,6 +3104,7 @@
 
 <!-- 5. FIXES -->
 <script defer src="app-fixes.js"></script>
+<script defer src="ios-mobile.js"></script>
 
 <!-- 6. NEW SRP MODULES -->
 <script defer src="evrak-arsivi.js"></script>
@@ -3180,9 +3169,9 @@ window.addEventListener('DOMContentLoaded', function() {
     <div id="modal-taseron-detay-rapor" class="fixed inset-0 z-[9999] hidden bg-[#0d0f11]/90 backdrop-blur-md overflow-y-auto w-full">
         <div class="min-h-screen px-4 text-center">
             <span class="inline-block h-screen align-middle" aria-hidden="true">&#8203;</span>
-            <div class="inline-block w-full max-w-[95vw] p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#111418] shadow-2xl rounded-2xl border border-white/10 relative">
+            <div class="ios-modal-sheet taseron-report-sheet inline-block w-full max-w-[95vw] p-8 my-8 overflow-hidden text-left align-middle transition-all transform bg-[#111418] shadow-2xl rounded-2xl border border-white/10 relative">
                 
-                <div class="flex justify-between items-center mb-6 pb-4 border-b border-white/10">
+                <div class="ios-modal-header flex justify-between items-center mb-6 pb-4 border-b border-white/10">
                     <div>
                         <h2 class="text-2xl font-black text-white" id="rapor-detay-baslik">Taşeron Hakediş Detay Tablosu</h2>
                         <p class="text-sm text-gray-500 font-medium mt-1">İzmir, Manisa ve Dikkan bölgeleri gruplu detaylı finansal rapor.</p>
@@ -3203,7 +3192,7 @@ window.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
 
-                <div class="rapor-print-container bg-white p-4 rounded-xl overflow-x-auto text-black print:bg-transparent print:p-0">
+                <div class="ios-modal-body rapor-print-container bg-white p-4 rounded-xl overflow-x-auto text-black print:bg-transparent print:p-0">
                     <!-- Dinamik olarak JS ile doldurulacak -->
                     <div id="rapor-tables-container" class="space-y-12">
                         <div class="text-center py-12 text-gray-400 italic">Yükleniyor...</div>

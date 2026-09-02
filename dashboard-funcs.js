@@ -304,10 +304,10 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
     // Badges
     if (badgesEl) {
         badgesEl.innerHTML = [
-            gecmis   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-gray-700/60 text-gray-300 uppercase tracking-widest">${gecmis} GEÇMİŞ</span>` : '',
-            kritik   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest">${kritik} KRİTİK</span>` : '',
-            yaklasan ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest">${yaklasan} YAKLAŞAN</span>` : '',
-            normal   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-emerald-500/20 text-emerald-400 uppercase tracking-widest">${normal} NORMAL</span>` : ''
+            gecmis   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-gray-700/60 text-gray-300 uppercase tracking-widest">🕓 ${gecmis} BİTEN</span>` : '',
+            kritik   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest">🚨 ${kritik} KRİTİK</span>` : '',
+            yaklasan ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest">⏳ ${yaklasan} YAKLAŞAN</span>` : '',
+            normal   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-emerald-500/20 text-emerald-400 uppercase tracking-widest">✅ ${normal} GÜVENLİ</span>` : ''
         ].filter(Boolean).join('');
     }
 
@@ -331,26 +331,32 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
 
     tbody.innerHTML = filtered.map(p => {
         const days = p.days;
-        let statusBadge, rowClass;
+        let statusBadge, rowClass, stateKey;
 
         if (days === null || days === undefined) {
-            statusBadge = `<span class="px-2 py-1 rounded-md text-[9px] font-black bg-gray-700/50 text-gray-500 uppercase">—</span>`;
+            statusBadge = `<span class="px-2 py-1 rounded-md text-[9px] font-black bg-gray-700/50 text-gray-500 uppercase"><span class="policy-status-emoji">⚪</span><span class="policy-status-copy">TARİH YOK</span></span>`;
             rowClass = '';
+            stateKey = 'unknown';
         } else if (days < 0) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-gray-800 text-gray-400 uppercase tracking-widest border border-gray-600/40">BİTTİ ${Math.abs(days)} GÜN ÖNCE</span>`;
+            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-gray-800 text-gray-400 uppercase tracking-widest border border-gray-600/40"><span class="policy-status-emoji">⛔</span><span class="policy-status-copy">${Math.abs(days)} GÜN ÖNCE BİTTİ</span></span>`;
             rowClass = 'opacity-60';
+            stateKey = 'expired';
         } else if (days === 0) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500 text-white uppercase tracking-widest animate-pulse">BUGÜN BİTİYOR</span>`;
+            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500 text-white uppercase tracking-widest animate-pulse"><span class="policy-status-emoji">🚨</span><span class="policy-status-copy">BUGÜN BİTİYOR</span></span>`;
             rowClass = 'bg-red-500/5';
+            stateKey = 'critical';
         } else if (days <= 7) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest border border-red-500/30">${days} GÜN KALDI</span>`;
+            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest border border-red-500/30"><span class="policy-status-emoji">🚨</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
             rowClass = 'bg-red-500/3';
+            stateKey = 'critical';
         } else if (days <= 30) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest border border-amber-500/30">${days} GÜN KALDI</span>`;
+            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest border border-amber-500/30"><span class="policy-status-emoji">⏳</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
             rowClass = 'bg-amber-500/3';
+            stateKey = 'upcoming';
         } else {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-emerald-500/15 text-emerald-400 uppercase tracking-widest border border-emerald-500/20">${days} GÜN KALDI</span>`;
+            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-emerald-500/15 text-emerald-400 uppercase tracking-widest border border-emerald-500/20"><span class="policy-status-emoji">✅</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
             rowClass = '';
+            stateKey = 'safe';
         }
 
         // Progress bar (sadece gelecekteki poliçeler için)
@@ -375,38 +381,38 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
                            pLower.includes('koltuk') ? '💺' :
                            pLower.includes('vize') ? '📋' : '📑';
 
-        return `<tr class="hover:bg-white/[0.03] transition-all border-b border-white/5 ${rowClass} group">
-            <td class="py-3.5 px-3 whitespace-nowrap">${statusBadge}</td>
-            <td class="py-3.5 px-3 whitespace-nowrap">
+        return `<tr class="dashboard-policy-row hover:bg-white/[0.03] transition-all border-b border-white/5 ${rowClass} group" data-policy-state="${stateKey}">
+            <td class="policy-status py-3.5 px-3 whitespace-nowrap">${statusBadge}</td>
+            <td class="policy-plate py-3.5 px-3 whitespace-nowrap">
                 <span class="font-black text-sm text-white group-hover:text-orange-400 transition-colors font-mono">${p.plaka}</span>
             </td>
-            <td class="py-3.5 px-3 whitespace-nowrap">
+            <td class="policy-type py-3.5 px-3 whitespace-nowrap">
                 <div class="flex items-center gap-2">
                     <span class="text-base">${policeIcon}</span>
                     <span class="text-xs font-bold text-gray-200">${policeAdi}</span>
                 </div>
             </td>
-            <td class="py-3.5 px-3">
+            <td class="policy-company py-3.5 px-3">
                 <span class="text-xs text-gray-400 font-medium">${p.firma}</span>
             </td>
-            <td class="py-3.5 px-3 whitespace-nowrap">
+            <td class="policy-start py-3.5 px-3 whitespace-nowrap">
                 <span class="text-xs text-gray-500 font-mono">${_fmtDate(p.baslangic_tarihi)}</span>
             </td>
-            <td class="py-3.5 px-3 whitespace-nowrap">
+            <td class="policy-end py-3.5 px-3 whitespace-nowrap">
                 <div>
                     <span class="text-xs font-bold ${days !== null && days < 0 ? 'text-gray-500 line-through' : days !== null && days <= 7 ? 'text-red-400' : days !== null && days <= 30 ? 'text-amber-400' : 'text-gray-300'} font-mono">${_fmtDate(p.bitis_tarihi)}</span>
                     ${progressBar}
                 </div>
             </td>
-            <td class="py-3.5 px-3 text-center whitespace-nowrap">
+            <td class="policy-remaining py-3.5 px-3 text-center whitespace-nowrap">
                 ${days === null ? '<span class="text-gray-600 text-xs">—</span>' :
                   days < 0 ? `<span class="text-gray-600 text-xs font-mono">${Math.abs(days)} gün önce</span>` :
                   `<span class="text-xs font-black ${days <= 7 ? 'text-red-400' : days <= 30 ? 'text-amber-400' : 'text-emerald-400'} font-mono">${days} gün</span>`}
             </td>
-            <td class="py-3.5 px-3 text-right whitespace-nowrap">
+            <td class="policy-price py-3.5 px-3 text-right whitespace-nowrap">
                 <span class="text-sm font-black text-white tabular-nums">${p.toplam_tutar !== null ? _fmt(p.toplam_tutar) : '—'}</span>
             </td>
-            <td class="py-3.5 px-3 text-center whitespace-nowrap">
+            <td class="policy-installment py-3.5 px-3 text-center whitespace-nowrap">
                 <span class="text-[10px] font-bold ${p.taksit_sayisi > 1 ? 'text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md' : 'text-gray-600'}">${p.taksit_sayisi > 1 ? p.taksit_sayisi + ' Taksit' : (p.toplam_tutar !== null ? 'Peşin' : '—')}</span>
             </td>
         </tr>`;
@@ -709,15 +715,15 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
             const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
             const icon = typeIcons[a.tur] || '•';
             const dateStr = a.tarih ? new Date(a.tarih).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
-            return `<tr class="hover:bg-white/[0.03] transition-all group border-b border-white/5">
-                <td class="py-3.5 px-3 whitespace-nowrap">
+            return `<tr class="dashboard-activity-row hover:bg-white/[0.03] transition-all group border-b border-white/5">
+                <td class="activity-date py-3.5 px-3 whitespace-nowrap">
                     <span class="text-xs font-mono text-gray-500">${dateStr}</span>
                 </td>
-                <td class="py-3.5 px-3">
+                <td class="activity-type py-3.5 px-3">
                     <span class="px-2.5 py-1 border ${colorClass} text-[9px] uppercase font-bold rounded-md whitespace-nowrap tracking-widest">${icon} ${a.tur}</span>
                 </td>
-                <td class="py-3.5 px-3 text-xs font-medium text-gray-300 max-w-[260px] truncate group-hover:text-white transition-colors" title="${a.detay}">${a.detay}</td>
-                <td class="py-3.5 px-3 text-sm font-black text-right text-white tabular-nums whitespace-nowrap">${_fmtFull(a.tutar)}</td>
+                <td class="activity-detail py-3.5 px-3 text-xs font-medium text-gray-300 max-w-[260px] truncate group-hover:text-white transition-colors" title="${a.detay}">${a.detay}</td>
+                <td class="activity-amount py-3.5 px-3 text-sm font-black text-right text-white tabular-nums whitespace-nowrap">${_fmtFull(a.tutar)}</td>
             </tr>`;
         }).join('');
 
