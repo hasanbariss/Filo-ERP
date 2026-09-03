@@ -32,15 +32,12 @@ window.exportTableToPDF = function (tableId, title) {
         return;
     }
 
-    doc.setFontSize(18);
-    doc.text(title || 'Rapor', 40, 40);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
+    window.CompanyBranding.addPdfBranding(doc, { title: title || 'Rapor' });
 
     // AutoTable plugin
     doc.autoTable({
         html: `#${tableId}`,
-        startY: 60,
+        startY: 68,
         styles: {
             fontSize: 8,
             cellPadding: 3,
@@ -53,7 +50,7 @@ window.exportTableToPDF = function (tableId, title) {
         alternateRowStyles: {
             fillColor: [245, 245, 245]
         },
-        margin: { top: 60 },
+        margin: { top: 68 },
         // Use custom font for Turkish
         didParseCell: function (data) {
             if (typeof window.pdfFontRoboto !== 'undefined') {

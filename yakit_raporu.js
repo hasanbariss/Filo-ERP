@@ -431,6 +431,7 @@ document.addEventListener('click', (e) => {
 });
 
 window.handlePrint = function() {
+    const branding = window.CompanyBranding;
     const title = document.getElementById('header-title').textContent;
     const subtitle = document.getElementById('header-subtitle').textContent;
     const totalLitre = isolatedYakitlar.reduce((sum, y) => sum + (parseFloat(y.litre) || 0), 0);
@@ -480,6 +481,7 @@ window.handlePrint = function() {
     let html = `
         <div style="padding: 10px; font-family: 'Inter', sans-serif;">
             <style>
+                ${branding.getPrintStyles()}
                 @page { size: portrait; margin: 5mm; }
                 body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; margin: 0; padding: 0; }
                 
@@ -514,16 +516,7 @@ window.handlePrint = function() {
                 .sig-box { border-top: 1.5px solid #0f172a; padding-top: 10px; text-align: center; font-size: 12px; font-weight: 900; color: #0f172a; text-transform: uppercase; }
             </style>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 2px solid #0f172a; padding-bottom: 8px;">
-                <div>
-                    <h1 style="margin: 0; font-size: 20px; font-weight: 950; text-transform: uppercase; color: #0f172a;">${title}</h1>
-                    <p style="margin: 0; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">DONEM: ${subtitle}</p>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-size: 18px; font-weight: 950; color: #0f172a; letter-spacing: -0.02em;">Baris.Flow Drive</div>
-                    <div style="font-size: 9px; font-weight: 800; color: #94a3b8;">FİLO YÖNETİM SİSTEMİ</div>
-                </div>
-            </div>
+            ${branding.getPrintHeader({ title: title, subtitle: 'Dönem: ' + subtitle })}
 
             <div class="summary-box">
                 <div class="summary-item"><label>TOPLAM MİKTAR</label><span>${totalLitre.toLocaleString('tr-TR', {maximumFractionDigits:1})} LT</span></div>
@@ -541,6 +534,7 @@ window.handlePrint = function() {
             <div style="text-align: center; margin-top: 20px; font-size: 8px; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
                 Rapor Tarihi: ${new Date().toLocaleString('tr-TR')} • Belge No: ERP-YKT-${Math.random().toString(36).substr(2, 9).toUpperCase()}
             </div>
+            ${branding.getPrintFooter()}
         </div>
     `;
     const printSec = document.getElementById('print-section');

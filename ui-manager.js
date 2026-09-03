@@ -608,6 +608,7 @@ window.openKrediKartiDetay = function (kartId, kartAdi) {
 };
 
 window.printCariEkstre = function () {
+    const branding = window.CompanyBranding;
     const unvan = document.getElementById('cari-detail-unvan').innerText;
     const tur = document.getElementById('cari-detail-tur').innerText;
     const borc = document.getElementById('cari-detail-borc').innerText;
@@ -645,11 +646,8 @@ window.printCariEkstre = function () {
             <head>
                 <title>Cari Hesap Ekstresi - ${unvan}</title>
                 <style>
+                    ${branding.getPrintStyles()}
                     body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
-                    .header-container { position: relative; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
-                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.5rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
-                    .header-title h1 { margin: 0; font-size: 1.8rem; color: #111; text-transform: uppercase; }
-                    .header-title p { margin: 5px 0 0; color: #555; font-size: 14px; font-weight: bold; }
                     
                     .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
                     .summary-item { text-align: center; flex: 1; }
@@ -672,13 +670,7 @@ window.printCariEkstre = function () {
                 </style>
             </head>
             <body>
-                <div class="header-container">
-                    <div class="header-title">
-                        <h1>${unvan}</h1>
-                        <p>${tur} • Hesap Ekstresi</p>
-                    </div>
-                    <div class="ideol-logo">Baris.Flow Drive</div>
-                </div>
+                ${branding.getPrintHeader({ title: unvan, subtitle: tur + ' • Hesap Ekstresi' })}
                 
                 <div class="summary-box">
                     <div class="summary-item summary-item-border">
@@ -710,7 +702,7 @@ window.printCariEkstre = function () {
                     </tbody>
                 </table>
                 
-                <div class="footer">Bu hesap ekstresi Baris.Flow Drive tarafından oluşturulmuştur. Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+                ${branding.getPrintFooter('Tarih: ' + new Date().toLocaleDateString('tr-TR'))}
             </body>
         </html>
     `);
@@ -781,7 +773,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
-                                    <option value="IDEOL">Baris.Flow</option>
+                                    <option value="IDEOL">${window.CompanyBranding.companyDisplayName('IDEOL')}</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -824,7 +816,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="IDEOL">Baris.Flow</option>
+                                    <option value="IDEOL">${window.CompanyBranding.companyDisplayName('IDEOL')}</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -1222,7 +1214,7 @@ window.openModal = function (title, id = null, extra = null) {
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="edit-sofor-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
-                                    <option value="IDEOL">Baris.Flow</option>
+                                    <option value="IDEOL">${window.CompanyBranding.companyDisplayName('IDEOL')}</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
                             </div>
@@ -2283,7 +2275,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Çalıştığı Şirket</label>
                                 <select id="edit-arac-sirket" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Belirtilmemiş">Belirtilmemiş</option>
-                                    <option value="IDEOL">Baris.Flow</option>
+                                    <option value="IDEOL">${window.CompanyBranding.companyDisplayName('IDEOL')}</option>
                                     <option value="DİKKAN">DİKKAN</option>
                                     <option value="M.K.">M.K.</option>
                                 </select>
@@ -2332,7 +2324,7 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Kart Sahibi / Şirket</label>
-                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Baris.Flow">
+                                <input type="text" id="kredi-kart-sahibi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: Şirket Kartı">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -3193,6 +3185,7 @@ window.saveTopluPolice = async function() {
 
 /* === PRINT FUNCTIONS === */
 window.printTaseronRapor = function () {
+    const branding = window.CompanyBranding;
     const month = document.getElementById('filter-taseron-rapor-ay')?.value || '';
     const tableHtml = document.querySelector('#content-taseron-rapor .overflow-x-auto').innerHTML;
 
@@ -3202,12 +3195,8 @@ window.printTaseronRapor = function () {
             <head>
                 <title>Taşeron Ay Sonu Raporu - ${month}</title>
                 <style>
+                    ${branding.getPrintStyles()}
                     body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #111; }
-                    .header-container { position: relative; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 15px; }
-                    .header-title { text-align: center; }
-                    .header-title h1 { margin: 0; font-size: 1.5rem; color: #111; }
-                    .header-title p { margin: 5px 0 0; color: #444; }
-                    .ideol-logo { position: absolute; top: 0; right: 0; font-size: 1.25rem; font-weight: 900; color: #ea580c; font-style: italic; letter-spacing: 1.5px; border-bottom: 2px solid #ea580c; }
                     table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
                     th, td { border: 1px solid #cbd5e1; padding: 8px; text-align: left; }
                     th { background-color: #f8fafc; color: #111; font-weight: bold; }
@@ -3220,14 +3209,9 @@ window.printTaseronRapor = function () {
                 </style>
             </head>
             <body>
-                <div class="header-container">
-                    <div class="ideol-logo">Baris.Flow Drive</div>
-                    <div class="header-title">
-                        <h1>Taşeron Ay Sonu Hesap Özeti</h1>
-                        <p>Dönem: ${month}</p>
-                    </div>
-                </div>
+                ${branding.getPrintHeader({ title: 'Taşeron Ay Sonu Hesap Özeti', subtitle: 'Dönem: ' + month })}
                 ${tableHtml}
+                ${branding.getPrintFooter()}
             </body>
         </html>
     `);
@@ -3238,6 +3222,7 @@ window.printTaseronRapor = function () {
 window.printCariKart = function(plaka, month) {
     const overlay = document.getElementById('cari-kart-modal-overlay');
     if (!overlay) return;
+    const branding = window.CompanyBranding;
 
     const fmt = v => String.fromCharCode(8378) + Number(v).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
@@ -3395,13 +3380,10 @@ window.printCariKart = function(plaka, month) {
 + '<title>Cari Hesap - ' + plaka + '</title>'
 + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
 + '<style>'
++ branding.getPrintStyles()
 + '*{margin:0;padding:0;box-sizing:border-box}'
 + 'body{font-family:Inter,sans-serif;padding:28px 36px;color:#1e293b;background:#fff;font-size:11px;line-height:1.5}'
 + '@page{size:portrait;margin:0}'
-+ '.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:2px solid #f1f5f9;padding-bottom:14px}'
-+ '.hdr h1{font-size:18px;font-weight:800;color:#0f172a;letter-spacing:-.5px}'
-+ '.hdr p{color:#64748b;font-size:10px;font-weight:500;margin-top:2px}'
-+ '.logo{font-size:15px;font-weight:900;color:#ea580c;font-style:italic}'
 + '.sec-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:block}'
 + '.tbl{width:100%;border-collapse:collapse;margin-bottom:18px}'
 + '.tbl th{background:#f8fafc;color:#64748b;font-weight:700;text-transform:uppercase;font-size:8.5px;padding:7px 9px;border-bottom:2px solid #e2e8f0}'
@@ -3438,7 +3420,7 @@ window.printCariKart = function(plaka, month) {
 + '.empty-yakit{color:#cbd5e1;font-size:10px;font-style:italic}'
 + '.doc-ftr{margin-top:36px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;color:#cbd5e1;font-size:9px;font-weight:600}'
 + '</style></head><body>'
-+ '<div class="hdr"><div><h1>Cari Kart: ' + plaka + '</h1><p>' + month + ' Donemi Hakedis Detaylari' + (sahipBilgisi ? ' | ' + sahipBilgisi : '') + '</p></div><div class="logo">Baris.Flow Drive</div></div>'
++ branding.getPrintHeader({ title: 'Cari Kart: ' + plaka, subtitle: month + ' Dönemi Hakediş Detayları' + (sahipBilgisi ? ' • ' + sahipBilgisi : '') })
 + '<span class="sec-lbl">Hizmet Dokumu</span>'
 + '<table class="tbl">'
 + '<thead><tr>'
@@ -3464,7 +3446,7 @@ window.printCariKart = function(plaka, month) {
 + (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
 + '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
 + '</div></div>'
-+ '<div class="doc-ftr"><span>' + new Date().toLocaleString('tr-TR') + '</span><span>Baris.Flow Drive | Filonuz. Tek akışta.</span></div>'
++ branding.getPrintFooter(new Date().toLocaleString('tr-TR'))
 + '</body></html>');
     win.document.close();
     win.setTimeout(function(){ win.print(); win.close(); }, 700);
@@ -3845,6 +3827,7 @@ function parseCellValue(str) {
 
 /* === 6. Özmal Çizelge Yazdırma Fonksiyonu === */
 window.printOzmalCizelge = function() {
+    const branding = window.CompanyBranding;
     const tbody = document.getElementById('cizelge-tbody');
     if (!tbody || tbody.querySelectorAll('tr').length === 0) {
         alert("Yazdırılacak veri bulunamadı.");
@@ -3868,6 +3851,7 @@ window.printOzmalCizelge = function() {
     <head>
         <title>Özmal Çizelge Raporu</title>
         <style>
+            ${branding.getPrintStyles()}
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
             
             /* Tarayıcı kenar boşluklarını ve başlık/altbilgileri yoksaymak için SIFIR MARGIN */
@@ -3933,15 +3917,7 @@ window.printOzmalCizelge = function() {
             <div class="no-print" style="margin-bottom: 15px; text-align: right;">
                 <button onclick="window.print()" style="padding: 8px 20px; background: #ea580c; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.2);">Yazdır</button>
             </div>
-        <div class="header">
-            <div>
-                <h1 class="title">Özmal Araç Evrak Çizelgesi</h1>
-                <div class="subtitle">Çıktı Tarihi: ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'})}</div>
-            </div>
-            <div>
-                <h2 style="margin:0; font-size: 16px; font-weight: 900; color: #111; letter-spacing: -0.5px;">Baris.Flow <span style="color:#ea580c;">Drive</span></h2>
-            </div>
-        </div>
+        ${branding.getPrintHeader({ title: 'Özmal Araç Evrak Çizelgesi', subtitle: 'Çıktı Tarihi: ' + new Date().toLocaleDateString('tr-TR') + ' ' + new Date().toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'}) })}
         <table>
             <thead>
                 <tr>
@@ -4000,7 +3976,7 @@ window.printOzmalCizelge = function() {
         printHtml += `
             <tr>
                 <td style="text-align: center; color: #94a3b8; font-weight: 900; font-size: 10px;">${count++}</td>
-                <td style="font-weight: 900; color: #1e293b; font-size: 12px; letter-spacing: -0.5px;">${sirket === 'IDEOL' ? 'Baris.Flow' : sirket}</td>
+                <td style="font-weight: 900; color: #1e293b; font-size: 12px; letter-spacing: -0.5px;">${window.CompanyBranding.companyDisplayName(sirket)}</td>
                 <td style="font-size: 14px; font-weight: 900; color: #f97316; letter-spacing: -0.5px;">${plaka}</td>
                 <td style="color: #64748b; font-weight: 800; font-size: 11px;">${marka}</td>
                 <td class="date-cell ${trafik.class}">${trafik.text}</td>
@@ -4015,8 +3991,9 @@ window.printOzmalCizelge = function() {
             </tbody>
         </table>
         <div style="margin-top: 10px; font-size: 8px; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 6px;">
-            Filo-ERP Sisteminden otomatik olarak üretilmiştir. Toplam ${count - 1} kayıt listelenmiştir.
+            Toplam ${count - 1} kayıt listelenmiştir.
         </div>
+        ${branding.getPrintFooter()}
         </div> <!-- end .print-container -->
     </body>
     </html>

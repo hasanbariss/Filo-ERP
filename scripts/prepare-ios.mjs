@@ -19,6 +19,7 @@ const webFiles = [
   'ios-mobile.js',
   'cache-manager.js',
   'config.js',
+  'company-branding.js',
   'dashboard-funcs.js',
   'data-services.js',
   'dikkan-import.js',

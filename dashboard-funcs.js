@@ -1129,6 +1129,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
 window.printRapor = function(selector) {
     const el = document.querySelector(selector);
     if (!el) return;
+    const branding = window.CompanyBranding;
     
     // Açık olan modal'ı direkt yazdırmak yerine temiz bir pencere açıyoruz
     const printWindow = window.open('', '_blank');
@@ -1137,6 +1138,7 @@ window.printRapor = function(selector) {
             <head>
                 <title>Taseron_Hakedis_Raporu_${window._taseronCariAy || 'Donem'}</title>
                 <style>
+                    ${branding.getPrintStyles()}
                     @page { size: A4 landscape; margin: 5mm; }
                     body { 
                         font-family: 'Inter', -apple-system, sans-serif; 
@@ -1198,15 +1200,9 @@ window.printRapor = function(selector) {
                 </style>
             </head>
             <body>
-                <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
-                    <div style="text-align: right;">
-                        <div style="font-family: 'Inter', -apple-system, sans-serif; font-weight: 900; font-size: 24px; letter-spacing: 4px;">
-                            <span style="color: #0f172a;">IDE</span><span style="color: #2563eb;">OL</span>
-                        </div>
-                        <div style="font-size: 6.5px; color: #64748b; font-weight: 700; letter-spacing: 1px; margin-top: 2px;">FİLO YÖNETİM SİSTEMLERİ</div>
-                    </div>
-                </div>
+                ${branding.getPrintHeader({ title: 'Taşeron Hakediş Raporu', subtitle: 'Dönem: ' + (window._taseronCariAy || 'Belirtilmedi') })}
                 ${el.innerHTML}
+                ${branding.getPrintFooter()}
             </body>
         </html>
     `);

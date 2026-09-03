@@ -536,6 +536,7 @@ window.filterPuantaj = function() {
 }
 
 window.handlePrint = function() {
+    const branding = window.CompanyBranding;
     const sId = document.getElementById('filter-arac')?.value || 'ALL';
     const [y, mStr] = monthStr.split('-');
     const m = parseInt(mStr, 10), dim = new Date(y, m, 0).getDate();
@@ -543,17 +544,8 @@ window.handlePrint = function() {
     const headersSubtitle = document.getElementById('header-subtitle').textContent;
 
     let h = `<div style="padding: 8mm; font-family: 'Inter', sans-serif; color: #1e293b; background: white;">
-        <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6mm; border-bottom: 2px solid #334155; padding-bottom: 3mm;">
-            <div>
-                <h1 style="margin: 0; font-size: 22px; font-weight: 900; color: #0f172a; text-transform: uppercase;">${headersTitle}</h1>
-                <p style="margin: 2px 0 0; font-size: 11px; font-weight: 700; color: #64748b; letter-spacing: 1px;">${headersSubtitle} / SERVİS PUANTAJ RAPORU</p>
-            </div>
-            <div style="text-align: right;">
-                <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #ea580c; font-style: italic;">Baris.Flow Drive</h2>
-                <p style="margin: 2px 0 0; font-size: 9px; font-weight: 700; color: #94a3b8;">FILO YÖNETIM SISTEMI</p>
-            </div>
-        </div>
+        <style>${branding.getPrintStyles()}</style>
+        ${branding.getPrintHeader({ title: headersTitle, subtitle: headersSubtitle + ' • Servis Puantaj Raporu' })}
 
         <table style="width: 100%; border-collapse: collapse; font-size: 8px; table-layout: fixed; border: 1px solid #e2e8f0;">
             <thead>
@@ -666,7 +658,7 @@ window.handlePrint = function() {
     for(let i=1; i<=dim; i++) { const tot = cV[i] + cT[i] + cC8[i] + cG2[i] + cM[i]; gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 800; font-size: 9px;">${tot}</td>`; sGrand += tot; }
     gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #34d399; font-size: 10px;">${sGrand}</td></tr>`;
 
-    h += vSumRow + tSumRow + c8SumPrint + g2SumPrint + gSumRow + `</tbody></table></div>`;
+    h += vSumRow + tSumRow + c8SumPrint + g2SumPrint + gSumRow + `</tbody></table>${branding.getPrintFooter()}</div>`;
 
     const ps = document.getElementById('print-section');
     if(ps) {

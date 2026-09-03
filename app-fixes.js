@@ -608,11 +608,10 @@ window.exportRaporPDF = async function (tab) {
 
         const fontName = window._pdfFontBase64 ? 'NotoSans' : 'helvetica';
         doc.setFont(fontName);
-        doc.setFontSize(14);
-        doc.text('BARIS.FLOW DRIVE - ' + (tabTitles[tab] || tab) + ' Raporu', 14, 15);
-        doc.setFontSize(9);
-        doc.text('Donem: ' + ay, 14, 22);
-        doc.text('Olusturulma: ' + new Date().toLocaleDateString('tr-TR'), 14, 28);
+        window.CompanyBranding.addPdfBranding(doc, {
+            title: (tabTitles[tab] || tab) + ' Raporu',
+            subtitle: 'Dönem: ' + ay + ' • Oluşturulma: ' + new Date().toLocaleDateString('tr-TR')
+        });
 
         const headers = Array.from(table.querySelectorAll('thead th')).map(function (th) { return th.textContent.trim(); });
         const bodyRows = Array.from(table.querySelectorAll('tbody tr')).map(function (tr) {

@@ -362,6 +362,48 @@ textarea.form-control {
     overflow: hidden;
 }
 
+.platform-logo {
+    display: block;
+    object-fit: contain;
+}
+
+.platform-logo--dark-bg {
+    border-radius: var(--bf-radius-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+}
+
+.platform-logo--light-bg {
+    border-radius: var(--bf-radius-sm);
+}
+
+.bf-company-context {
+    display: grid;
+    gap: 2px;
+    margin: 0 var(--bf-space-4) var(--bf-space-4);
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, .08);
+    border-radius: var(--bf-radius-md);
+    background: rgba(255, 255, 255, .045);
+}
+
+.bf-company-context span {
+    color: rgba(226, 232, 240, .56);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.bf-company-context strong {
+    overflow: hidden;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .bf-sidebar .sidebar-brand-logo {
     width: 156px;
     max-width: none;
@@ -552,6 +594,10 @@ body.bf-app > .bf-main-shell {
     width: 40px;
     margin-bottom: var(--bf-space-6);
     padding: 0;
+}
+
+.bf-sidebar.is-collapsed .bf-company-context {
+    display: none;
 }
 
 .bf-sidebar.is-collapsed .sidebar-brand-logo {

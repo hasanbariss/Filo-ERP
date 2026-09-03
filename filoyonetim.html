@@ -150,7 +150,7 @@
         <div class="auth-shell">
             <section class="auth-story" aria-label="Baris.Flow Drive">
                 <div class="auth-story-grid" aria-hidden="true"></div>
-                <img class="auth-brand-logo" src="./icons/baris-flow-logo.png" alt="baris. Flow">
+                <img class="auth-brand-logo platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
                 <div class="auth-story-copy">
                     <p class="auth-kicker">Filo yönetimi</p>
                     <h1>Operasyonun<br><em>ritmini</em> yönetin.</h1>
@@ -167,7 +167,7 @@
             <section class="auth-login-area">
                 <div class="auth-login-card">
                     <div class="auth-mobile-brand">
-                        <img src="./icons/baris-flow-logo.png" alt="baris. Flow">
+                        <img class="platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
                     </div>
                     <p class="auth-kicker">Güvenli erişim</p>
                     <h2>Tekrar hoş geldiniz.</h2>
@@ -204,7 +204,12 @@
     <!-- Fixed Sidebar -->
     <aside class="sidebar bf-sidebar" id="main-sidebar" aria-label="Ana navigasyon">
         <div class="bf-sidebar-brand">
-            <img class="sidebar-brand-logo" src="./icons/baris-flow-logo.png" alt="baris. Flow">
+            <img class="sidebar-brand-logo platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
+        </div>
+
+        <div class="bf-company-context" aria-label="Aktif şirket">
+            <span>Aktif Şirket</span>
+            <strong data-company-name>IDEOL</strong>
         </div>
 
         <nav class="bf-sidebar-nav" id="main-nav-buttons" aria-label="Uygulama modülleri">
@@ -762,7 +767,7 @@
                                             Belgeli</button>
                                         <div class="w-px h-4 bg-white/10 mx-1"></div>
                                         <button id="filter-btn-ideol" onclick="window.filterAraclarBySirket('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all">Baris.Flow</button>
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all" data-company-name>IDEOL</button>
                                         <button id="filter-btn-dikkan" onclick="window.filterAraclarBySirket('DİKKAN')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all">DİKKAN</button>
                                         <button id="filter-btn-mk" onclick="window.filterAraclarBySirket('M.K.')"
@@ -849,7 +854,7 @@
                                         <button id="filter-sofor-btn-hepsi" onclick="window.filterSoforler('hepsi')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all">Hepsi</button>
                                         <button id="filter-sofor-btn-ideol" onclick="window.filterSoforler('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all">Baris.Flow</button>
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all" data-company-name>IDEOL</button>
                                         <button id="filter-sofor-btn-dikkan" onclick="window.filterSoforler('DİKKAN')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-emerald-400 hover:bg-emerald-500/20 transition-all">DİKKAN</button>
                                         <button id="filter-sofor-btn-mk" onclick="window.filterSoforler('M.K.')"
@@ -963,7 +968,7 @@
                                         <button id="filter-cizelge-hepsi" onclick="window.filterOzmalCizelge('hepsi')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
                                         <button id="filter-cizelge-ideol" onclick="window.filterOzmalCizelge('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Baris.Flow</button>
+                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" data-company-name>IDEOL</button>
                                         <button id="filter-cizelge-dikkan" onclick="window.filterOzmalCizelge('DİKKAN')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">DİKKAN</button>
                                         <button id="filter-cizelge-mk" onclick="window.filterOzmalCizelge('M.K.')"
@@ -1770,7 +1775,7 @@
                                     class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
                                     <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor (Excel Formu)
                                 </button>
-                                <button onclick="window.print()"
+                                <button onclick="window.CompanyBranding.printElement('#content-taseron-finans .overflow-x-auto', { title: 'Cari Hakediş Özeti', subtitle: 'Aktif dönem hakediş dökümü' })"
                                     class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
                                     <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
                                 </button>
@@ -1863,7 +1868,7 @@
                                     <button id="filter-yakit-btn-ozmal" onclick="window.filterYakitlar('ÖZMAL', window.currentYakitSirket || 'hepsi')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Özmal</button>
                                     <button id="filter-yakit-btn-taseron" onclick="window.filterYakitlar('TAŞERON', window.currentYakitSirket || 'hepsi')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Taşeron</button>
                                     <div class="w-px h-4 bg-white/10 mx-1"></div>
-                                    <button id="filter-yakit-btn-ideol" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'IDEOL')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Baris.Flow</button>
+                                    <button id="filter-yakit-btn-ideol" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'IDEOL')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" data-company-name>IDEOL</button>
                                     <button id="filter-yakit-btn-dikkan" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'DİKKAN')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">DİKKAN</button>
                                     <button id="filter-yakit-btn-mk" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'M.K.')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">M.K.</button>
                                 </div>
@@ -3048,6 +3053,7 @@
 
 <!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
 <script defer src="config.js"></script>
+<script defer src="company-branding.js"></script>
 <script defer src="data-services.js"></script>
 <script defer src="ui-manager.js"></script>
 
