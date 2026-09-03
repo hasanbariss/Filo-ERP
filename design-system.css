@@ -609,7 +609,13 @@ textarea.form-control {
     padding-right: var(--bf-space-1);
     overflow-x: hidden;
     overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    -webkit-overflow-scrolling: touch;
 }
+
+.bf-sidebar-nav > .nav-section-toggle,
+.bf-sidebar-nav > .nav-section-content { flex-shrink: 0; }
 
 .bf-sidebar .nav-section-toggle {
     min-height: 32px;

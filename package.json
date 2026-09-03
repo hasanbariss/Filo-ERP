@@ -9,6 +9,7 @@
     "start": "electron .",
     "test": "electron .",
     "build": "echo 'No build step needed'",
+    "test:hakedis": "node scripts/test-hakedis-calculations.cjs",
     "ios:prepare": "node scripts/prepare-ios.mjs",
     "ios:add": "npm run ios:prepare && cap add ios",
     "ios:sync": "npm run ios:prepare && cap sync ios",

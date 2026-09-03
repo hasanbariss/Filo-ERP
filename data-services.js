@@ -2929,10 +2929,12 @@ async function fetchTaseronFinans() {
                             musteri_id: mId
                         };
                         // Fiyat tanımını bul — önce bolge eşleşmesi, yoksa bolge'siz (eski/genel) kayıt
-                        const tanim = tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (x.bolge || 'Manisa') === bolge && x.donem === filterAy)
-                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (x.bolge || 'Manisa') === bolge && (!x.donem || x.donem === ''))
-                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && x.donem === filterAy)
-                                   || tanimlar?.find(x => x.musteri_id === mId && x.arac_id === aId && (!x.donem || x.donem === ''));
+                        const tanim = window.HakedisCalculations.selectPriceDefinition(tanimlar, {
+                            musteriId: mId,
+                            aracId: aId,
+                            bolge,
+                            donem: filterAy
+                        });
                         if(tanim) {
                             summary[aId].musteriDetay[detayKey].vardiya_fiyat    = parseFloat(tanim.vardiya_fiyat)    || 0;
                             summary[aId].musteriDetay[detayKey].tek_fiyat        = parseFloat(tanim.tek_fiyat)        || 0;
@@ -2943,11 +2945,12 @@ async function fetchTaseronFinans() {
                             summary[aId].musteriDetay[detayKey].tev_oran         = parseFloat(tanim.tev_oran)         || 0;
                             
                             // Map override counts
-                            summary[aId].musteriDetay[detayKey].override_vardiya    = tanim.override_vardiya;
-                            summary[aId].musteriDetay[detayKey].override_tek        = tanim.override_tek;
-                            summary[aId].musteriDetay[detayKey].override_cikis_8    = tanim.override_cikis_8;
-                            summary[aId].musteriDetay[detayKey].override_giris_2030 = tanim.override_giris_2030;
-                            summary[aId].musteriDetay[detayKey].override_mesai      = tanim.override_mesai;
+                            const overrideContext = { bolge, donem: filterAy, fallback: null };
+                            summary[aId].musteriDetay[detayKey].override_vardiya    = window.HakedisCalculations.periodOverride(tanim, 'override_vardiya', overrideContext);
+                            summary[aId].musteriDetay[detayKey].override_tek        = window.HakedisCalculations.periodOverride(tanim, 'override_tek', overrideContext);
+                            summary[aId].musteriDetay[detayKey].override_cikis_8    = window.HakedisCalculations.periodOverride(tanim, 'override_cikis_8', overrideContext);
+                            summary[aId].musteriDetay[detayKey].override_giris_2030 = window.HakedisCalculations.periodOverride(tanim, 'override_giris_2030', overrideContext);
+                            summary[aId].musteriDetay[detayKey].override_mesai      = window.HakedisCalculations.periodOverride(tanim, 'override_mesai', overrideContext);
                         }
                     }
                     summary[aId].musteriDetay[detayKey].vardiya    += v;
@@ -3206,11 +3209,17 @@ async function fetchTaseronAylikRapor() {
 
             if(v > 0 || t > 0 || m > 0) {
                 addRow(aid);
-                const tanim = tanimlar?.find(x => x.musteri_id === p.musteri_id && x.arac_id === aid);
-                
-                const effV = tanim?.override_vardiya ?? v;
-                const effT = tanim?.override_tek ?? t;
-                const effM = tanim?.override_mesai ?? m;
+                const bolge = p.bolge || 'Manisa';
+                const tanim = window.HakedisCalculations.selectPriceDefinition(tanimlar, {
+                    musteriId: p.musteri_id,
+                    aracId: aid,
+                    bolge,
+                    donem: filterAy
+                });
+                const overrideContext = { bolge, donem: filterAy };
+                const effV = window.HakedisCalculations.periodOverride(tanim, 'override_vardiya', { ...overrideContext, fallback: v });
+                const effT = window.HakedisCalculations.periodOverride(tanim, 'override_tek', { ...overrideContext, fallback: t });
+                const effM = window.HakedisCalculations.periodOverride(tanim, 'override_mesai', { ...overrideContext, fallback: m });
 
                 summary[aid].sefer += (effV + effT + effM);
 
@@ -3370,7 +3379,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <div class="flex justify-between items-center">
                                         <span>Vardiya</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-vardiya-count w-14 bg-white/10 text-orange-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-orange-500 transition-colors" value="${md.override_vardiya !== null && md.override_vardiya !== undefined ? md.override_vardiya : md.vardiya}" title="D\u00fczenlene bilir. Puantaj: ${md.vardiya}">
+                                            <input type="number" min="0" step="1" class="calc-vardiya-count w-14 bg-white/10 text-orange-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-orange-500 transition-colors" value="${md.override_vardiya !== null && md.override_vardiya !== undefined ? md.override_vardiya : md.vardiya}" data-puantaj="${md.vardiya}" data-period-override="${md.override_vardiya !== null && md.override_vardiya !== undefined}" title="D\u00fczenlene bilir. Puantaj: ${md.vardiya}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.vardiya}</span>
                                         </div>
                                     </div>
@@ -3385,7 +3394,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <div class="flex justify-between items-center">
                                         <span>Tek Sefer</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-tek-count w-14 bg-white/10 text-blue-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-blue-500 transition-colors" value="${md.override_tek !== null && md.override_tek !== undefined ? md.override_tek : md.tek}" title="D\u00fczenlene bilir. Puantaj: ${md.tek}">
+                                            <input type="number" min="0" step="1" class="calc-tek-count w-14 bg-white/10 text-blue-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-blue-500 transition-colors" value="${md.override_tek !== null && md.override_tek !== undefined ? md.override_tek : md.tek}" data-puantaj="${md.tek}" data-period-override="${md.override_tek !== null && md.override_tek !== undefined}" title="D\u00fczenlene bilir. Puantaj: ${md.tek}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.tek}</span>
                                         </div>
                                     </div>
@@ -3401,7 +3410,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <div class="flex justify-between items-center">
                                         <span>8 Çıkışı</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-cikis8-count w-14 bg-amber-500/10 text-amber-300 text-xs font-black border border-amber-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-amber-500 transition-colors" value="${md.override_cikis_8 !== null && md.override_cikis_8 !== undefined ? md.override_cikis_8 : (md.cikis_8 || 0)}" title="Puantaj: ${md.cikis_8 || 0}">
+                                            <input type="number" min="0" step="1" class="calc-cikis8-count w-14 bg-amber-500/10 text-amber-300 text-xs font-black border border-amber-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-amber-500 transition-colors" value="${md.override_cikis_8 !== null && md.override_cikis_8 !== undefined ? md.override_cikis_8 : (md.cikis_8 || 0)}" data-puantaj="${md.cikis_8 || 0}" data-period-override="${md.override_cikis_8 !== null && md.override_cikis_8 !== undefined}" title="Puantaj: ${md.cikis_8 || 0}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.cikis_8 || 0}</span>
                                         </div>
                                     </div>
@@ -3417,7 +3426,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <div class="flex justify-between items-center">
                                         <span>20:30 Giriş</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-giris2030-count w-14 bg-purple-500/10 text-purple-300 text-xs font-black border border-purple-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-purple-500 transition-colors" value="${md.override_giris_2030 !== null && md.override_giris_2030 !== undefined ? md.override_giris_2030 : (md.giris_2030 || 0)}" title="Puantaj: ${md.giris_2030 || 0}">
+                                            <input type="number" min="0" step="1" class="calc-giris2030-count w-14 bg-purple-500/10 text-purple-300 text-xs font-black border border-purple-500/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-purple-500 transition-colors" value="${md.override_giris_2030 !== null && md.override_giris_2030 !== undefined ? md.override_giris_2030 : (md.giris_2030 || 0)}" data-puantaj="${md.giris_2030 || 0}" data-period-override="${md.override_giris_2030 !== null && md.override_giris_2030 !== undefined}" title="Puantaj: ${md.giris_2030 || 0}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.giris_2030 || 0}</span>
                                         </div>
                                     </div>
@@ -3433,7 +3442,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <div class="flex justify-between items-center">
                                         <span>Mesai (Dikkan Özel)</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-mesai-count w-14 bg-white/10 text-emerald-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-emerald-500 transition-colors" value="${md.override_mesai !== null && md.override_mesai !== undefined ? md.override_mesai : (md.mesai || 0)}" title="Puantaj: ${md.mesai || 0}">
+                                            <input type="number" min="0" step="1" class="calc-mesai-count w-14 bg-white/10 text-emerald-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-emerald-500 transition-colors" value="${md.override_mesai !== null && md.override_mesai !== undefined ? md.override_mesai : (md.mesai || 0)}" data-puantaj="${md.mesai || 0}" data-period-override="${md.override_mesai !== null && md.override_mesai !== undefined}" title="Puantaj: ${md.mesai || 0}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.mesai || 0}</span>
                                         </div>
                                     </div>
@@ -3595,7 +3604,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                 <div class="cari-card-summary p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
                     <div class="flex flex-col gap-2.5">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm text-gray-400 font-bold">Toplam Brüt Kazanç</span>
+                            <span class="text-sm text-gray-400 font-bold">Fatura Matrahı</span>
                             <span class="text-lg text-gray-300 font-black" id="modal-brut-total">₺0,00</span>
                         </div>
                         <div class="flex justify-between items-center">
@@ -3609,14 +3618,6 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <div class="flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Yakıt Kesintisi</span>
                             <span class="text-base text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
-                        </div>
-                        <div class="flex justify-between items-center" id="modal-manuel-gelir-row" style="display:none!important">
-                            <span class="text-sm text-green-400 font-bold">+ Manuel Gelirler</span>
-                            <span class="text-base text-green-300 font-black" id="modal-manuel-gelir">+₺0,00</span>
-                        </div>
-                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-manuel-gider-row" style="display:none!important">
-                            <span class="text-sm text-red-400 font-bold">- Manuel Giderler</span>
-                            <span class="text-base text-red-300 font-black" id="modal-manuel-gider">-₺0,00</span>
                         </div>
                         <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-auto-gider-row" style="display:none!important">
                             <span class="text-sm text-amber-400 font-bold">- Bakım &amp; Sigorta</span>
@@ -3667,14 +3668,15 @@ window.openCariHakedisDetay = async function(arac_id) {
                 totalTev  += rowTev;
             });
 
-            // Manuel kalemler
-            let manuelGelir = 0;
-            let manuelGider = 0;
+            const manualLines = [];
             overlay.querySelectorAll('.manuel-kalem-row').forEach(row => {
-                const tip   = row.getAttribute('data-tip');
-                const tutar = parseFloat(row.querySelector('.manuel-tutar')?.value) || 0;
-                if (tip === 'gelir') manuelGelir += tutar;
-                else if (tip === 'gider') manuelGider += tutar;
+                manualLines.push({
+                    tip: row.getAttribute('data-tip'),
+                    tutar: parseFloat(row.querySelector('.manuel-tutar')?.value) || 0,
+                    kdv_oran: parseFloat(row.querySelector('.manuel-kdv-oran')?.value) || 0,
+                    kdv_dahil: row.querySelector('.manuel-kdv-dahil')?.value === 'dahil',
+                    tev_oran: parseFloat(row.querySelector('.manuel-tev-oran')?.value) || 0
+                });
             });
 
             // Otomatik bakım/sigorta giderleri (dismiss edilmemişler)
@@ -3683,14 +3685,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                 autoGiderToplam += parseFloat(row.getAttribute('data-tutar') || 0);
             });
 
-            const gelirRow = document.getElementById('modal-manuel-gelir-row');
-            const giderRow = document.getElementById('modal-manuel-gider-row');
-            const gelirEl  = document.getElementById('modal-manuel-gelir');
-            const giderEl  = document.getElementById('modal-manuel-gider');
-            if (gelirRow) gelirRow.style.display = manuelGelir > 0 ? 'flex' : 'none';
-            if (giderRow) giderRow.style.display = manuelGider > 0 ? 'flex' : 'none';
-            if (gelirEl)  gelirEl.innerText  = '+₺' + manuelGelir.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            if (giderEl)  giderEl.innerText  = '-₺' + manuelGider.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const totals = window.HakedisCalculations.calculateTotals({
+                serviceBrut: totalBrut,
+                serviceKdv: totalKdv,
+                serviceTev: totalTev,
+                yakit: parseFloat(document.getElementById('modal-yakit-total')?.getAttribute('data-val')) || 0,
+                autoGider: autoGiderToplam,
+                manualLines
+            });
 
             // Auto gider satırı
             const autoGiderRow = document.getElementById('modal-auto-gider-row');
@@ -3698,17 +3700,15 @@ window.openCariHakedisDetay = async function(arac_id) {
             if (autoGiderRow) autoGiderRow.style.display = autoGiderToplam > 0 ? 'flex' : 'none';
             if (autoGiderEl)  autoGiderEl.innerText = '-₺' + autoGiderToplam.toLocaleString('tr-TR', {minimumFractionDigits:2});
 
-            const brutEl  = document.getElementById('modal-brut-total');  if(brutEl)  brutEl.innerText  = '₺' + totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const kdvTEl  = document.getElementById('modal-kdv-total');   if(kdvTEl)  kdvTEl.innerText  = '+₺' + totalKdv.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const tevTEl  = document.getElementById('modal-tev-total');   if(tevTEl)  tevTEl.innerText  = '-₺' + totalTev.toLocaleString('tr-TR', {minimumFractionDigits:2});
-            const yakit   = parseFloat(document.getElementById('modal-yakit-total')?.getAttribute('data-val')) || 0;
-            const net     = totalBrut + totalKdv - totalTev - yakit + manuelGelir - manuelGider - autoGiderToplam;
+            const brutEl  = document.getElementById('modal-brut-total');  if(brutEl)  brutEl.innerText  = '₺' + totals.matrah.toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const kdvTEl  = document.getElementById('modal-kdv-total');   if(kdvTEl)  kdvTEl.innerText  = (totals.kdv >= 0 ? '+₺' : '-₺') + Math.abs(totals.kdv).toLocaleString('tr-TR', {minimumFractionDigits:2});
+            const tevTEl  = document.getElementById('modal-tev-total');   if(tevTEl)  tevTEl.innerText  = (totals.tev >= 0 ? '-₺' : '+₺') + Math.abs(totals.tev).toLocaleString('tr-TR', {minimumFractionDigits:2});
 
             const netEl = document.getElementById('modal-net-total');
             if (netEl) {
-                netEl.innerText = '₺' + net.toLocaleString('tr-TR', {minimumFractionDigits:2});
-                netEl.classList.toggle('text-green-400', net >= 0);
-                netEl.classList.toggle('text-red-500', net < 0);
+                netEl.innerText = '₺' + totals.net.toLocaleString('tr-TR', {minimumFractionDigits:2});
+                netEl.classList.toggle('text-green-400', totals.net >= 0);
+                netEl.classList.toggle('text-red-500', totals.net < 0);
             }
         };
 
@@ -3726,7 +3726,10 @@ window.openCariHakedisDetay = async function(arac_id) {
                     id:     row.getAttribute('data-kid'),
                     tip:    row.getAttribute('data-tip'),
                     baslik: row.querySelector('.manuel-baslik').value || '',
-                    tutar:  parseFloat(row.querySelector('.manuel-tutar').value) || 0
+                    tutar:  parseFloat(row.querySelector('.manuel-tutar').value) || 0,
+                    kdv_oran: parseFloat(row.querySelector('.manuel-kdv-oran')?.value) || 0,
+                    kdv_dahil: row.querySelector('.manuel-kdv-dahil')?.value === 'dahil',
+                    tev_oran: parseFloat(row.querySelector('.manuel-tev-oran')?.value) || 0
                 });
             });
             localStorage.setItem(STORAGE_KEY, JSON.stringify(kalemler));
@@ -3740,7 +3743,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
             const isGelir = kalem.tip === 'gelir';
             const row = document.createElement('div');
-            row.className = 'manuel-kalem-row flex items-center gap-2 p-3 rounded-xl border transition-all ' +
+            row.className = 'manuel-kalem-row flex flex-wrap items-center gap-2 p-3 rounded-xl border transition-all ' +
                 (isGelir
                     ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40'
                     : 'bg-red-500/5   border-red-500/20   hover:border-red-500/40');
@@ -3762,12 +3765,29 @@ window.openCariHakedisDetay = async function(arac_id) {
                         value="${kalem.tutar || ''}"
                     />
                 </div>
+                <div class="w-full grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                    <label class="text-[9px] text-gray-500 font-bold uppercase">KDV %
+                        <input type="number" min="0" max="100" step="1" class="manuel-kdv-oran mt-1 w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs text-white" value="${kalem.kdv_oran || 0}">
+                    </label>
+                    <label class="text-[9px] text-gray-500 font-bold uppercase">KDV Biçimi
+                        <select class="manuel-kdv-dahil mt-1 w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs text-white">
+                            <option value="haric" ${kalem.kdv_dahil ? '' : 'selected'}>KDV Hariç</option>
+                            <option value="dahil" ${kalem.kdv_dahil ? 'selected' : ''}>KDV Dahil</option>
+                        </select>
+                    </label>
+                    <label class="text-[9px] text-gray-500 font-bold uppercase">Tevkifat %
+                        <input type="number" min="0" max="100" step="1" class="manuel-tev-oran mt-1 w-full bg-white/5 border border-white/10 rounded-md px-2 py-1 text-xs text-white" value="${kalem.tev_oran || 0}">
+                    </label>
+                </div>
                 <button class="manuel-sil-btn flex-shrink-0 p-1.5 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-400 rounded-lg transition-all" title="Kalemi Sil">
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
                 </button>
             `;
             row.querySelector('.manuel-baslik').addEventListener('input', saveToStorage);
             row.querySelector('.manuel-tutar').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-kdv-oran').addEventListener('input', saveToStorage);
+            row.querySelector('.manuel-kdv-dahil').addEventListener('change', saveToStorage);
+            row.querySelector('.manuel-tev-oran').addEventListener('input', saveToStorage);
             row.querySelector('.manuel-sil-btn').addEventListener('click', () => {
                 row.style.transition = 'all 0.2s';
                 row.style.opacity    = '0';
@@ -3877,7 +3897,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         // Global: buton onclick'ten çağrılır
         window.addManuelKalem = (tip) => {
-            const kalem = { id: Date.now().toString(), tip, baslik: '', tutar: 0 };
+            const kalem = { id: Date.now().toString(), tip, baslik: '', tutar: 0, kdv_oran: 0, kdv_dahil: false, tev_oran: 0 };
             renderKalemRow(kalem);
             saveToStorage();
             const allRows = overlay.querySelectorAll('.manuel-kalem-row');
@@ -3887,7 +3907,10 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         // Fiyat inputlarına dinleyici ekle ve ilk hesaplamayı çalıştır
         overlay.querySelectorAll('.calc-vardiya-fiyat, .calc-tek-fiyat, .calc-cikis8-fiyat, .calc-giris2030-fiyat, .calc-mesai-fiyat, .calc-kdv-oran, .calc-tev-oran, .calc-vardiya-count, .calc-tek-count, .calc-cikis8-count, .calc-giris2030-count, .calc-mesai-count').forEach(inp => {
-            inp.addEventListener('input', calculateTotals);
+            inp.addEventListener('input', () => {
+                if (inp.className.includes('-count')) inp.setAttribute('data-override-dirty', 'true');
+                calculateTotals();
+            });
         });
         calculateTotals();
 
@@ -3912,7 +3935,10 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
 
     try {
         const rows = overlay.querySelectorAll('.musteri-calc-row');
-        const taseronAy = specificDonem || document.getElementById('taseron-ay')?.value;
+        const taseronAy = specificDonem || document.getElementById('filter-cari-hakedis-ay')?.value;
+        if (!/^\d{4}-\d{2}$/.test(taseronAy || '')) {
+            throw new Error('Hakediş kaydı için geçerli bir dönem seçilmelidir.');
+        }
 
         for (const row of rows) {
             // data-mid contains composite key "uuid|||bolge" — extract real musteri_id and bolge
@@ -3927,12 +3953,23 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             const mf   = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value)      || 0;
             const kdv_oran = parseFloat(row.querySelector('.calc-kdv-oran')?.value)     || 0;
             const tev_oran = parseFloat(row.querySelector('.calc-tev-oran')?.value)     || 0;
-            // Override sayıları
-            const ov  = parseFloat(row.querySelector('.calc-vardiya-count')?.value);
-            const ot  = parseFloat(row.querySelector('.calc-tek-count')?.value);
-            const oc8 = parseFloat(row.querySelector('.calc-cikis8-count')?.value);
-            const og2 = parseFloat(row.querySelector('.calc-giris2030-count')?.value);
-            const om  = parseFloat(row.querySelector('.calc-mesai-count')?.value);
+            // Puantaj değeri değiştirilmediyse override üretme; dönem içindeki canlı
+            // puantaj hesaplaması kullanılmaya devam etsin.
+            const readOverride = selector => {
+                const input = row.querySelector(selector);
+                if (!input) return null;
+                const current = parseFloat(input.value);
+                const puantaj = parseFloat(input.getAttribute('data-puantaj'));
+                const hadPeriodOverride = input.getAttribute('data-period-override') === 'true';
+                const changedInModal = input.getAttribute('data-override-dirty') === 'true';
+                if (isNaN(current)) return null;
+                return current === puantaj && (!hadPeriodOverride || changedInModal) ? null : current;
+            };
+            const ov  = readOverride('.calc-vardiya-count');
+            const ot  = readOverride('.calc-tek-count');
+            const oc8 = readOverride('.calc-cikis8-count');
+            const og2 = readOverride('.calc-giris2030-count');
+            const om  = readOverride('.calc-mesai-count');
 
             // Sutun hatasi kontrolcu (schema cache veya eksik kolon)
             const isColErr = (e) => e && e.message && (
@@ -3945,65 +3982,46 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             // 1. tam, 2. kdv/tev'siz, 3. sadece temel
             const payloads = [
                 { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya',
-                  override_vardiya: isNaN(ov) ? null : ov, override_tek: isNaN(ot) ? null : ot, override_cikis_8: isNaN(oc8) ? null : oc8, override_giris_2030: isNaN(og2) ? null : og2, override_mesai: isNaN(om) ? null : om },
+                  override_vardiya: ov, override_tek: ot, override_cikis_8: oc8, override_giris_2030: og2, override_mesai: om },
                 { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya' },
                 { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, tarife_turu: 'Vardiya' },
                 { tek_fiyat: tk, vardiya_fiyat: vd, mesai_fiyat: mf, tarife_turu: 'Vardiya' }
             ];
 
-            // Mevcut kaydi bul: donem=null VEYA donem=taseronAy, bolge eşleşmesi zorunlu
-            // Dikkan import null donem ile ekler; manuel kayitlar ay bazli olabilir
-            const orFilter = taseronAy
-                ? `donem.eq.${taseronAy},donem.is.null`
-                : 'donem.is.null';
-
-            // bolge kolonu varsa ona göre, yoksa graceful fallback
+            // Yalnızca seçili dönemin tam kaydını güncelle. Global fiyat fallback kaydı
+            // hiçbir zaman dönemsel override hedefi değildir.
             let existingList = null;
             try {
-                const { data: d1 } = await window.supabaseClient
+                const { data: d1, error: d1Error } = await window.supabaseClient
                     .from('musteri_arac_tanimlari')
                     .select('id, donem, bolge')
                     .eq('arac_id', arac_id)
                     .eq('musteri_id', musteri_id)
                     .eq('bolge', rowBolge)
-                    .or(orFilter)
-                    .order('donem', { ascending: false, nullsFirst: false });
+                    .eq('donem', taseronAy);
+                if (d1Error) throw d1Error;
                 existingList = d1;
-
-                // ⭐ rowBolge ile kayıt bulunamazsa → bolge fark etmeksizin ara
-                // (Dikkan'ın musteri_arac_tanimlari'nda Manisa/NULL bolge kaydı olabilir)
-                if (!existingList || existingList.length === 0) {
-                    const { data: d1b } = await window.supabaseClient
-                        .from('musteri_arac_tanimlari')
-                        .select('id, donem, bolge')
-                        .eq('arac_id', arac_id)
-                        .eq('musteri_id', musteri_id)
-                        .or(orFilter)
-                        .order('donem', { ascending: false, nullsFirst: false });
-                    existingList = d1b;
-                }
-            } catch(_) {
+            } catch(queryError) {
+                if (!isColErr(queryError)) throw queryError;
                 // bolge kolonu henüz yoksa bolgesiz sorgula
-                const { data: d2 } = await window.supabaseClient
+                const { data: d2, error: d2Error } = await window.supabaseClient
                     .from('musteri_arac_tanimlari')
                     .select('id, donem')
                     .eq('arac_id', arac_id)
                     .eq('musteri_id', musteri_id)
-                    .or(orFilter)
-                    .order('donem', { ascending: false, nullsFirst: false });
+                    .eq('donem', taseronAy);
+                if (d2Error) throw d2Error;
                 existingList = d2;
             }
 
-            // Spesifik ay esleseni, yoksa null donem kaydi kullan
-            const existing = existingList?.find(e => e.donem === taseronAy)
-                          || existingList?.[0];
+            const existing = existingList?.find(e => e.donem === taseronAy);
 
             if (existing) {
                 // ID uzerinden direkt guncelle - en dolu payload'dan basla
                 // ⭐ bolge'yi de rowBolge olarak set et (Dikkan için Manisa→İzmir güncellemesi)
                 let saved = false;
                 for (const payload of payloads) {
-                    const updatePayload = { ...payload, bolge: rowBolge };
+                    const updatePayload = { ...payload, bolge: rowBolge, donem: taseronAy };
                     let { error: updErr } = await window.supabaseClient
                         .from('musteri_arac_tanimlari')
                         .update(updatePayload)

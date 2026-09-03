@@ -20,6 +20,7 @@ const webFiles = [
   'cache-manager.js',
   'config.js',
   'company-branding.js',
+  'hakedis-calculations.js',
   'dashboard-funcs.js',
   'data-services.js',
   'dikkan-import.js',

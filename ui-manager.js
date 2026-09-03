@@ -3309,9 +3309,8 @@ window.printCariKart = function(plaka, month) {
     }
 
     // --- Manuel Gelir / Gider satırları (LocalStorage'dan) ---
-    var manuelGelir = 0;
-    var manuelGider = 0;
     var manuelHtml = '';
+    var manualLines = [];
     try {
         // Araç id'sini modal içindeki data'dan al
         var aracIdStr = overlay.getAttribute('data-arac-id');
@@ -3324,14 +3323,16 @@ window.printCariKart = function(plaka, month) {
                 // Verify it matches — plaka check not possible here, just include all that match month
                 // (modal is open so only one arac is shown at a time; key is unique per arac+ay)
                 kalemler.forEach(function(kl) {
-                    var t = parseFloat(kl.tutar) || 0;
-                    if (kl.tip === 'gelir') manuelGelir += t;
-                    else if (kl.tip === 'gider') manuelGider += t;
+                    var values = window.HakedisCalculations.normalizeManualLine(kl);
+                    manualLines.push(kl);
                     var isGelir = kl.tip === 'gelir';
                     manuelHtml += '<tr>'
                         + '<td class="mk-tip" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+ Gelir' : '− Gider') + '</td>'
                         + '<td class="mk-baslik">' + (kl.baslik || '—') + '</td>'
-                        + '<td class="text-right mk-tutar" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+' : '-') + fmt(t) + '</td>'
+                        + '<td class="text-right mono">' + (isGelir ? '+' : '-') + fmt(values.matrah) + '</td>'
+                        + '<td class="text-right mono kdv-col">' + (isGelir ? '+' : '-') + fmt(values.kdv) + '</td>'
+                        + '<td class="text-right mono tev-col">' + (isGelir ? '-' : '+') + fmt(values.tev) + '</td>'
+                        + '<td class="text-right mk-tutar" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+' : '-') + fmt(values.toplam) + '</td>'
                         + '</tr>';
                 });
             }
@@ -3342,7 +3343,7 @@ window.printCariKart = function(plaka, month) {
     if (manuelHtml) {
         manuelSectionHtml = '<div style="margin-top:18px"><span class="sec-lbl">⊕ Manuel Gelir / Gider Kalemleri</span>'
             + '<table class="tbl" style="margin-top:4px">'
-            + '<thead><tr><th style="width:12%">Tur</th><th>Başlık / Açıklama</th><th class="tr" style="width:18%">Tutar</th></tr></thead>'
+            + '<thead><tr><th>Tur</th><th>Açıklama</th><th class="tr">Matrah</th><th class="tr">KDV</th><th class="tr">TEV</th><th class="tr">Net</th></tr></thead>'
             + '<tbody>' + manuelHtml + '</tbody>'
             + '</table></div>';
     }
@@ -3376,7 +3377,15 @@ window.printCariKart = function(plaka, month) {
             + '</table></div>';
     }
 
-    var netTop = grandBrut + grandKdv - grandTev - yakitVal + manuelGelir - manuelGider - autoGiderToplam;
+    var invoiceTotals = window.HakedisCalculations.calculateTotals({
+        serviceBrut: grandBrut,
+        serviceKdv: grandKdv,
+        serviceTev: grandTev,
+        yakit: yakitVal,
+        autoGider: autoGiderToplam,
+        manualLines: manualLines
+    });
+    var netTop = invoiceTotals.net;
 
     var sahipBilgisi = (overlay.querySelector('#modal-sahip-bilgisi') || {innerText:''}).innerText;
     var win = window.open('', '', 'height=850,width=960');
@@ -3442,12 +3451,10 @@ window.printCariKart = function(plaka, month) {
 + '<div class="fg">'
 + '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + manuelSectionHtml + autoSectionHtml + '</div>'
 + '<div class="scard">'
-+ '<div class="sr"><span>Brut Hakedis</span><b>' + fmt(grandBrut) + '</b></div>'
-+ '<div class="sr"><span style="color:#16a34a">+ KDV Toplami</span><b style="color:#16a34a">+' + fmt(grandKdv) + '</b></div>'
-+ '<div class="sr"><span style="color:#dc2626">- TEV (Stopaj)</span><b style="color:#dc2626">-' + fmt(grandTev) + '</b></div>'
++ '<div class="sr"><span>Fatura Matrahi</span><b>' + fmt(invoiceTotals.matrah) + '</b></div>'
++ '<div class="sr"><span style="color:#16a34a">KDV Toplami</span><b style="color:#16a34a">' + (invoiceTotals.kdv >= 0 ? '+' : '-') + fmt(Math.abs(invoiceTotals.kdv)) + '</b></div>'
++ '<div class="sr"><span style="color:#dc2626">TEV (Stopaj)</span><b style="color:#dc2626">' + (invoiceTotals.tev >= 0 ? '-' : '+') + fmt(Math.abs(invoiceTotals.tev)) + '</b></div>'
 + '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
-+ (manuelGelir > 0 ? '<div class="sr"><span style="color:#16a34a">+ Manuel Gelirler</span><b style="color:#16a34a">+' + fmt(manuelGelir) + '</b></div>' : '')
-+ (manuelGider > 0 ? '<div class="sr"><span style="color:#dc2626">- Manuel Giderler</span><b style="color:#dc2626">-' + fmt(manuelGider) + '</b></div>' : '')
 + (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
 + '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
 + '</div></div>'

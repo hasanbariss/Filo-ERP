@@ -65,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
     initSearchableSelects();
     initQuickSearch();
     initPersonelModule();
-    initMobilePreviewToggle();
     schedulePDFFontLoad();
     initGlobalHaptics();
 });
@@ -183,6 +182,16 @@ function initMobileSidebar() {
 function initSidebarCollapse() {
     const sidebar = document.getElementById('main-sidebar');
     if (!sidebar) return;
+    const sidebarNav = sidebar.querySelector('.bf-sidebar-nav');
+
+    // Desktop'ta wheel/trackpad hareketini, imleç sidebar'ın hangi bölümünde
+    // olursa olsun yalnızca sidebar menüsüne yönlendir.
+    sidebar.addEventListener('wheel', function (event) {
+        if (window.innerWidth <= 768 || !sidebarNav || sidebarNav.scrollHeight <= sidebarNav.clientHeight) return;
+        const previousTop = sidebarNav.scrollTop;
+        sidebarNav.scrollTop += event.deltaY;
+        if (sidebarNav.scrollTop !== previousTop) event.preventDefault();
+    }, { passive: false });
 
     // Inject collapse toggle button into sidebar top
     const collapseBtn = document.createElement('button');
@@ -222,38 +231,7 @@ function initSidebarCollapse() {
 }
 
 // ============================================================
-// 3. MOBILE PREVIEW TOGGLE (desktop)
-// ============================================================
-function initMobilePreviewToggle() {
-    window.toggleMobilePreview = function () {
-        const isPreview = document.body.classList.toggle('mobile-preview-mode');
-        const label = document.getElementById('mobile-preview-label');
-        const sidebar = document.getElementById('main-sidebar');
-        const main = document.querySelector('main');
-
-        if (isPreview) {
-            // Add a close banner
-            let banner = document.getElementById('mobile-preview-banner');
-            if (!banner) {
-                banner = document.createElement('div');
-                banner.id = 'mobile-preview-banner';
-                banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(90deg,#f97316,#ea580c);color:white;text-align:center;padding:6px 16px;font-size:0.75rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:12px;';
-                banner.innerHTML = '<span>📱 Mobil Önizleme Modu (390px)</span><button onclick="window.toggleMobilePreview()" style="background:rgba(255,255,255,0.2);border:none;color:white;padding:2px 10px;border-radius:6px;cursor:pointer;font-size:0.7rem;font-weight:700;">✕ Kapat</button>';
-                document.body.prepend(banner);
-            }
-            banner.style.display = 'flex';
-            if (label) label.textContent = 'Masaüstü';
-            if (sidebar) sidebar.classList.remove('mobile-open');
-        } else {
-            const banner = document.getElementById('mobile-preview-banner');
-            if (banner) banner.style.display = 'none';
-            if (label) label.textContent = 'Mobil Önizleme';
-        }
-    };
-}
-
-// ============================================================
-// 4. PERSONEL MODULE TAB SWITCH
+// 3. PERSONEL MODULE TAB SWITCH
 // ============================================================
 function initPersonelModule() {
     window.switchPersonelTab = function (tab) {
@@ -431,6 +409,7 @@ function initSearchableSelects() {
 
         searchInput.addEventListener('input', window.debounce(function () { renderOptions(this.value); }, 300));
         searchInput.addEventListener('click', function (e) { e.stopPropagation(); });
+        optionsList.addEventListener('wheel', function (e) { e.stopPropagation(); }, { passive: true });
 
         document.addEventListener('click', function () { dropdown.classList.add('hidden'); });
 
