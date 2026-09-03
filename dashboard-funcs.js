@@ -304,10 +304,10 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
     // Badges
     if (badgesEl) {
         badgesEl.innerHTML = [
-            gecmis   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-gray-700/60 text-gray-300 uppercase tracking-widest">🕓 ${gecmis} BİTEN</span>` : '',
-            kritik   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest">🚨 ${kritik} KRİTİK</span>` : '',
-            yaklasan ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest">⏳ ${yaklasan} YAKLAŞAN</span>` : '',
-            normal   ? `<span class="px-2.5 py-1 rounded-lg text-[9px] font-black bg-emerald-500/20 text-emerald-400 uppercase tracking-widest">✅ ${normal} GÜVENLİ</span>` : ''
+            gecmis   ? `<span class="badge-neutral"><i data-lucide="history" aria-hidden="true"></i>${gecmis} Biten</span>` : '',
+            kritik   ? `<span class="badge-danger"><i data-lucide="circle-alert" aria-hidden="true"></i>${kritik} Kritik</span>` : '',
+            yaklasan ? `<span class="badge-warning"><i data-lucide="clock-3" aria-hidden="true"></i>${yaklasan} Yaklaşan</span>` : '',
+            normal   ? `<span class="badge-success"><i data-lucide="circle-check" aria-hidden="true"></i>${normal} Güvenli</span>` : ''
         ].filter(Boolean).join('');
     }
 
@@ -334,27 +334,27 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
         let statusBadge, rowClass, stateKey;
 
         if (days === null || days === undefined) {
-            statusBadge = `<span class="px-2 py-1 rounded-md text-[9px] font-black bg-gray-700/50 text-gray-500 uppercase"><span class="policy-status-emoji">⚪</span><span class="policy-status-copy">TARİH YOK</span></span>`;
+            statusBadge = `<span class="badge-neutral"><i data-lucide="circle-help" aria-hidden="true"></i><span class="policy-status-copy">Tarih yok</span></span>`;
             rowClass = '';
             stateKey = 'unknown';
         } else if (days < 0) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-gray-800 text-gray-400 uppercase tracking-widest border border-gray-600/40"><span class="policy-status-emoji">⛔</span><span class="policy-status-copy">${Math.abs(days)} GÜN ÖNCE BİTTİ</span></span>`;
+            statusBadge = `<span class="badge-neutral"><i data-lucide="ban" aria-hidden="true"></i><span class="policy-status-copy">${Math.abs(days)} gün önce bitti</span></span>`;
             rowClass = 'opacity-60';
             stateKey = 'expired';
         } else if (days === 0) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500 text-white uppercase tracking-widest animate-pulse"><span class="policy-status-emoji">🚨</span><span class="policy-status-copy">BUGÜN BİTİYOR</span></span>`;
+            statusBadge = `<span class="badge-danger"><i data-lucide="circle-alert" aria-hidden="true"></i><span class="policy-status-copy">Bugün bitiyor</span></span>`;
             rowClass = 'bg-red-500/5';
             stateKey = 'critical';
         } else if (days <= 7) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-red-500/20 text-red-400 uppercase tracking-widest border border-red-500/30"><span class="policy-status-emoji">🚨</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
+            statusBadge = `<span class="badge-danger"><i data-lucide="triangle-alert" aria-hidden="true"></i><span class="policy-status-copy">${days} gün kaldı</span></span>`;
             rowClass = 'bg-red-500/3';
             stateKey = 'critical';
         } else if (days <= 30) {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-amber-500/20 text-amber-400 uppercase tracking-widest border border-amber-500/30"><span class="policy-status-emoji">⏳</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
+            statusBadge = `<span class="badge-warning"><i data-lucide="clock-3" aria-hidden="true"></i><span class="policy-status-copy">${days} gün kaldı</span></span>`;
             rowClass = 'bg-amber-500/3';
             stateKey = 'upcoming';
         } else {
-            statusBadge = `<span class="px-2.5 py-1 rounded-md text-[9px] font-black bg-emerald-500/15 text-emerald-400 uppercase tracking-widest border border-emerald-500/20"><span class="policy-status-emoji">✅</span><span class="policy-status-copy">${days} GÜN KALDI</span></span>`;
+            statusBadge = `<span class="badge-success"><i data-lucide="circle-check" aria-hidden="true"></i><span class="policy-status-copy">${days} gün kaldı</span></span>`;
             rowClass = '';
             stateKey = 'safe';
         }
@@ -367,19 +367,19 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
             const total = Math.max(1, (end - start) / 864e5);
             const elapsed = Math.max(0, total - days);
             const pct = Math.min(100, Math.round((elapsed / total) * 100));
-            const barColor = days <= 7 ? 'bg-red-500' : days <= 30 ? 'bg-amber-500' : 'bg-emerald-500';
+            const barColor = days <= 7 ? 'is-danger' : days <= 30 ? 'is-warning' : 'is-success';
             progressBar = `
-                <div class="mt-1 h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div class="${barColor} h-full transition-all" style="width:${pct}%"></div>
+                <div class="policy-progress">
+                    <div class="${barColor}" style="width:${pct}%"></div>
                 </div>`;
         }
 
         const policeAdi = p.police_turu || '—';
         const pLower = policeAdi.toLowerCase();
-        const policeIcon = pLower.includes('kasko') ? '🛡️' :
-                           (pLower.includes('trafik') || pLower.includes('zorunlu')) ? '🚗' :
-                           pLower.includes('koltuk') ? '💺' :
-                           pLower.includes('vize') ? '📋' : '📑';
+        const policeIcon = pLower.includes('kasko') ? 'shield-check' :
+                           (pLower.includes('trafik') || pLower.includes('zorunlu')) ? 'car-front' :
+                           pLower.includes('koltuk') ? 'armchair' :
+                           pLower.includes('vize') ? 'clipboard-check' : 'file-text';
 
         return `<tr class="dashboard-policy-row hover:bg-white/[0.03] transition-all border-b border-white/5 ${rowClass} group" data-policy-state="${stateKey}">
             <td class="policy-status py-3.5 px-3 whitespace-nowrap">${statusBadge}</td>
@@ -388,7 +388,7 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
             </td>
             <td class="policy-type py-3.5 px-3 whitespace-nowrap">
                 <div class="flex items-center gap-2">
-                    <span class="text-base">${policeIcon}</span>
+                    <i data-lucide="${policeIcon}" class="policy-type-icon" aria-hidden="true"></i>
                     <span class="text-xs font-bold text-gray-200">${policeAdi}</span>
                 </div>
             </td>
@@ -648,14 +648,14 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
         tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center"><div class="flex items-center justify-center gap-2 text-gray-600"><div class="w-4 h-4 border-2 border-gray-700 border-t-orange-500 rounded-full animate-spin"></div><span class="text-xs font-bold uppercase tracking-widest">Aktiviteler yükleniyor...</span></div></td></tr>';
 
         const typeColors = {
-            'Yakıt':       'bg-blue-500/10 text-blue-400 border-blue-500/20',
-            'Bakım':       'bg-orange-500/10 text-orange-400 border-orange-500/20',
-            'Maaş':        'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
-            'Cari Fatura': 'bg-red-500/10 text-red-400 border-red-500/20',
-            'Poliçe':      'bg-rose-500/10 text-rose-400 border-rose-500/20'
+            'Yakıt':       'badge-info',
+            'Bakım':       'badge-warning',
+            'Maaş':        'badge-neutral',
+            'Cari Fatura': 'badge-danger',
+            'Poliçe':      'badge-success'
         };
         const typeIcons = {
-            'Yakıt': '⛽', 'Bakım': '🔧', 'Maaş': '💵', 'Cari Fatura': '🧾', 'Poliçe': '🛡️'
+            'Yakıt': 'fuel', 'Bakım': 'wrench', 'Maaş': 'banknote', 'Cari Fatura': 'receipt-text', 'Poliçe': 'shield-check'
         };
 
         const [yakitRes, bakimRes, maasRes, fatRes, policeRes] = await Promise.allSettled([
@@ -712,20 +712,22 @@ window.fetchSonAktiviteler = async function(araclarDB = []) {
         }
 
         tbody.innerHTML = top.map(a => {
-            const colorClass = typeColors[a.tur] || 'bg-gray-500/10 text-gray-400 border-gray-500/20';
-            const icon = typeIcons[a.tur] || '•';
+            const colorClass = typeColors[a.tur] || 'badge-neutral';
+            const icon = typeIcons[a.tur] || 'activity';
             const dateStr = a.tarih ? new Date(a.tarih).toLocaleDateString('tr-TR', { day:'2-digit', month:'short', year:'numeric' }) : '—';
             return `<tr class="dashboard-activity-row hover:bg-white/[0.03] transition-all group border-b border-white/5">
                 <td class="activity-date py-3.5 px-3 whitespace-nowrap">
                     <span class="text-xs font-mono text-gray-500">${dateStr}</span>
                 </td>
                 <td class="activity-type py-3.5 px-3">
-                    <span class="px-2.5 py-1 border ${colorClass} text-[9px] uppercase font-bold rounded-md whitespace-nowrap tracking-widest">${icon} ${a.tur}</span>
+                    <span class="activity-badge ${colorClass}"><i data-lucide="${icon}" aria-hidden="true"></i>${a.tur}</span>
                 </td>
                 <td class="activity-detail py-3.5 px-3 text-xs font-medium text-gray-300 max-w-[260px] truncate group-hover:text-white transition-colors" title="${a.detay}">${a.detay}</td>
                 <td class="activity-amount py-3.5 px-3 text-sm font-black text-right text-white tabular-nums whitespace-nowrap">${_fmtFull(a.tutar)}</td>
             </tr>`;
         }).join('');
+
+        if (window.lucide) window.lucide.createIcons();
 
     } catch(e) {
         console.error('[fetchSonAktiviteler]', e);

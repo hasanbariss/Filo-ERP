@@ -671,7 +671,7 @@
             if (urgentJobs.length) tasks.push({ type: 'danger', icon: 'wrench', title: `${urgentJobs.length} açık iş emri öncelikli`, detail: urgentJobs.slice(0, 2).map(item => item.baslik || 'İş emri').join(' · '), action: 'İş emirleri', tab: '' });
             const calendar = window.importCalendarSummary;
             if (calendar && calendar.month === currentMonth() && calendar.missing > 0) tasks.push({ type: 'warning', icon: 'calendar-x2', title: `${calendar.missing} puantaj günü kontrol bekliyor`, detail: `${calendar.factories} fabrika için aylık import takviminden geldi.`, action: 'Takvimi aç', tab: '' });
-            list.innerHTML = tasks.map(item => `<article class="today-task is-${item.type}"><i data-lucide="${item.icon}"></i><div><strong>${esc(item.title)}</strong><span>${esc(item.detail)}</span></div>${item.tab ? `<button type="button" data-task-tab="${esc(item.tab)}">${esc(item.action)}</button>` : `<span class="today-task-label">${esc(item.action)}</span>`}</article>`).join('') || '<div class="today-tasks-empty">Bugün için öne çıkan bir işlem yok.</div>';
+            list.innerHTML = tasks.map(item => `<article class="today-task is-${item.type}"><i data-lucide="${item.icon}"></i><div><strong>${esc(item.title)}</strong><span>${esc(item.detail)}</span></div>${item.tab ? `<button type="button" data-task-tab="${esc(item.tab)}">${esc(item.action)}</button>` : `<span class="today-task-label">${esc(item.action)}</span>`}</article>`).join('') || '<div class="today-tasks-empty"><i data-lucide="circle-check" aria-hidden="true"></i><span>Şu anda dikkat gerektiren kritik bir kayıt bulunmuyor.</span></div>';
             list.querySelectorAll('[data-task-tab]').forEach(button => button.addEventListener('click', () => {
                 const nav = document.querySelector('[data-target="module-operasyon-merkezi"]');
                 if (nav) nav.click();
@@ -680,7 +680,8 @@
             refreshIcons();
         } catch (error) {
             console.warn('[Bugün yapılacaklar]', error);
-            list.innerHTML = '<div class="today-tasks-empty">Bugünün kontrol listesi şu an alınamadı.</div>';
+            list.innerHTML = '<div class="today-tasks-empty is-error"><i data-lucide="triangle-alert" aria-hidden="true"></i><span>Kontrol listesi şu anda alınamadı. Lütfen yeniden deneyin.</span></div>';
+            refreshIcons();
         }
     };
 })();

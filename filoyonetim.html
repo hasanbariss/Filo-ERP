@@ -352,239 +352,197 @@
             </div>
 
             <!-- Dashboard Module - v2 Detaylı -->
-            <div id="module-dashboard" class="main-module block stagger-in">
+            <div id="module-dashboard" class="main-module block stagger-in bf-dashboard">
 
-                <!-- HEADER -->
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div>
-                        <div class="flex items-center gap-3 mb-1">
-                            <h2 class="text-3xl font-black tracking-tight text-white">Genel Bakış</h2>
-                            <div id="dashboard-refresh-spin" class="hidden w-5 h-5 border-2 border-white/20 border-t-orange-500 rounded-full animate-spin"></div>
+                <header class="page-header dashboard-page-header">
+                    <div class="page-header-identity">
+                        <div class="dashboard-title-line">
+                            <h2 class="page-title">Genel Bakış</h2>
+                            <div id="dashboard-refresh-spin" class="dashboard-refresh-spinner hidden" role="status" aria-label="Dashboard yenileniyor"></div>
                         </div>
-                        <p class="text-sm font-medium text-gray-400" id="dashboard-date-label">Yükleniyor...</p>
+                        <p class="page-subtitle">Filonuzun güncel durumu ve önemli operasyon bilgileri.</p>
+                        <p class="dashboard-updated-at" id="dashboard-date-label" aria-live="polite">Yükleniyor...</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button onclick="window.fetchDashboardData()" class="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm font-bold text-gray-300 transition-all hover:border-white/20">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Yenile
+                    <div class="page-actions dashboard-page-actions">
+                        <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile">
+                            <i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span>
                         </button>
-                        <button onclick="if(window.sendAutoWhatsAppReport) window.sendAutoWhatsAppReport()" class="flex items-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-green-500/30 transition-all">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i> WhatsApp Rapor
+                        <button type="button" onclick="if(window.sendAutoWhatsAppReport) window.sendAutoWhatsAppReport()" class="btn-secondary" aria-label="WhatsApp operasyon raporu gönder">
+                            <i data-lucide="message-circle" aria-hidden="true"></i><span>WhatsApp Rapor</span>
                         </button>
                     </div>
-                </div>
+                </header>
 
-                <!-- YENİ MODERN DASHBOARD - 1. SATIR: KPI KARTLARI -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Ana karar metrikleri: mevcut dashboard verileri korunur. -->
+                <section class="dashboard-kpi-grid" aria-label="Filo özet metrikleri">
                     <!-- Kart 1: Filo Durumu -->
-                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-blue-500/30 transition-all shadow-lg relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <div class="flex items-end gap-2 mb-1">
-                                    <span class="text-4xl font-black text-white" id="kpi-arac-main">0</span>
-                                </div>
-                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Toplam Filo Sayısı</h3>
-                            </div>
+                    <article class="kpi-card dashboard-kpi-card is-fleet">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="truck" aria-hidden="true"></i></span><span class="badge-info">Filo</span></div>
+                        <h3>Toplam Filo</h3>
+                        <strong class="dashboard-kpi-value" id="kpi-arac-main">0</strong>
+                        <div class="dashboard-kpi-meta" aria-label="Araç sahiplik dağılımı">
+                            <span>Özmal <strong id="kpi-arac-ozmal">0</strong></span>
+                            <span>Taşeron <strong id="kpi-arac-taseron">0</strong></span>
+                            <span>Kiralık <strong id="kpi-arac-kiralik">0</strong></span>
                         </div>
-                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
-                            <div class="w-14 h-14 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
-                                <i data-lucide="truck" class="w-6 h-6"></i>
-                            </div>
-                            <div class="flex-1 space-y-2">
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-xs font-bold text-gray-300">Özmal</span></div><span class="text-sm font-black text-white" id="kpi-arac-ozmal">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-500"></div><span class="text-xs font-bold text-gray-300">Taşeron</span></div><span class="text-sm font-black text-white" id="kpi-arac-taseron">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div><span class="text-xs font-bold text-gray-300">Kiralık</span></div><span class="text-sm font-black text-white" id="kpi-arac-kiralik">0</span></div>
-                            </div>
-                        </div>
-                    </div>
+                    </article>
                     
                     <!-- Kart 2: Yaklaşan Poliçeler -->
-                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-red-500/30 transition-all shadow-lg relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <div class="flex items-end gap-2 mb-1">
-                                    <span class="text-4xl font-black text-white" id="kpi-police-main">0</span>
-                                    <span class="text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md mb-1 border border-red-500/20">30 GÜN</span>
-                                </div>
-                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Yaklaşan Poliçeler</h3>
-                            </div>
+                    <article class="kpi-card dashboard-kpi-card is-policy">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="shield-alert" aria-hidden="true"></i></span><span class="badge-warning">30 gün</span></div>
+                        <h3>Yaklaşan Poliçe</h3>
+                        <strong class="dashboard-kpi-value" id="kpi-police-main">0</strong>
+                        <div class="dashboard-kpi-meta" aria-label="Yaklaşan poliçe türleri">
+                            <span>Trafik <strong id="kpi-police-trafik">0</strong></span>
+                            <span>Kasko <strong id="kpi-police-kasko">0</strong></span>
+                            <span>Koltuk <strong id="kpi-police-koltuk">0</strong></span>
                         </div>
-                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
-                            <div class="w-14 h-14 rounded-full bg-red-500/20 text-red-400 flex items-center justify-center shadow-[0_0_15px_rgba(239,68,68,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
-                                <i data-lucide="shield-alert" class="w-6 h-6"></i>
-                            </div>
-                            <div class="flex-1 space-y-2">
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-400"></div><span class="text-xs font-bold text-gray-300">Trafik</span></div><span class="text-sm font-black text-white" id="kpi-police-trafik">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400"></div><span class="text-xs font-bold text-gray-300">Kasko</span></div><span class="text-sm font-black text-white" id="kpi-police-kasko">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-pink-400"></div><span class="text-xs font-bold text-gray-300">Koltuk</span></div><span class="text-sm font-black text-white" id="kpi-police-koltuk">0</span></div>
-                            </div>
-                        </div>
-                    </div>
+                    </article>
                 
                     <!-- Kart 3: Vize & Bakım -->
-                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-yellow-500/30 transition-all shadow-lg relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <div class="flex items-end gap-2 mb-1">
-                                    <span class="text-4xl font-black text-white" id="kpi-bakim-main">0</span>
-                                    <span class="text-[10px] font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-md mb-1 border border-orange-500/20">ACİL</span>
-                                </div>
-                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Yaklaşan Vize & Bakım</h3>
-                            </div>
+                    <article class="kpi-card dashboard-kpi-card is-maintenance">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wrench" aria-hidden="true"></i></span><span class="badge-danger">Kontrol</span></div>
+                        <h3>Yaklaşan Bakım &amp; Vize</h3>
+                        <strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
+                        <div class="dashboard-kpi-meta" aria-label="Bakım ve vize dağılımı">
+                            <span>Vize <strong id="kpi-bakim-vize">0</strong></span>
+                            <span>Yağ (KM) <strong id="kpi-bakim-yag">0</strong></span>
+                            <span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span>
                         </div>
-                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
-                            <div class="w-14 h-14 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center shadow-[0_0_15px_rgba(234,179,8,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
-                                <i data-lucide="wrench" class="w-6 h-6"></i>
-                            </div>
-                            <div class="flex-1 space-y-2">
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-400"></div><span class="text-xs font-bold text-gray-300">Vize</span></div><span class="text-sm font-black text-white" id="kpi-bakim-vize">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-yellow-400"></div><span class="text-xs font-bold text-gray-300">Yağ (KM)</span></div><span class="text-sm font-black text-white" id="kpi-bakim-yag">0</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-400"></div><span class="text-xs font-bold text-gray-300">Süresi Geçen</span></div><span class="text-sm font-black text-white" id="kpi-bakim-gecmis">0</span></div>
-                            </div>
-                        </div>
-                    </div>
+                    </article>
                 
                     <!-- Kart 4: Finansal Performans -->
-                    <div class="bg-[#1a1d24] border border-white/10 rounded-2xl p-5 flex flex-col justify-between hover:border-emerald-500/30 transition-all shadow-lg relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                        <div class="flex justify-between items-start mb-4 relative z-10">
-                            <div>
-                                <div class="flex items-end gap-2 mb-1">
-                                    <span class="text-2xl font-black text-white" id="kpi-finans-main">0 ₺</span>
-                                    <span class="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md mb-1 border border-emerald-500/20">AYLIK</span>
-                                </div>
-                                <h3 class="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Aylık Toplam Ciro</h3>
-                            </div>
+                    <article class="kpi-card dashboard-kpi-card is-finance">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wallet-cards" aria-hidden="true"></i></span><span class="badge-success">Bu ay</span></div>
+                        <h3>Aylık Toplam Ciro</h3>
+                        <strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">0 ₺</strong>
+                        <div class="dashboard-kpi-meta is-finance-meta" aria-label="Aylık gelir ve gider özeti">
+                            <span>Servis <strong id="kpi-finans-gelir">0 ₺</strong></span>
+                            <span>Yakıt <strong id="kpi-finans-yakit">0 ₺</strong></span>
+                            <span>Bakım <strong id="kpi-finans-bakim">0 ₺</strong></span>
                         </div>
-                        <div class="flex items-center gap-6 relative z-10 border-t border-white/5 pt-4 mt-2">
-                            <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.2)] group-hover:scale-110 transition-transform flex-shrink-0">
-                                <i data-lucide="wallet" class="w-6 h-6"></i>
-                            </div>
-                            <div class="flex-1 space-y-2">
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-emerald-400"></div><span class="text-[11px] font-bold text-gray-300">Servis Geliri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-gelir">0 ₺</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-400"></div><span class="text-[11px] font-bold text-gray-300">Yakıt Gideri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-yakit">0 ₺</span></div>
-                                <div class="flex justify-between items-center"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-orange-400"></div><span class="text-[11px] font-bold text-gray-300">Bakım Gideri</span></div><span class="text-[10px] font-black text-white" id="kpi-finans-bakim">0 ₺</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    </article>
 
-                <!-- 2. SATIR: GRAFİK VE LİSTELER -->
-                <section class="today-tasks-card dashboard-card mb-8" aria-labelledby="today-tasks-title">
+                    <article class="kpi-card dashboard-kpi-card is-people">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="users-round" aria-hidden="true"></i></span><span class="badge-neutral">Kayıtlı</span></div>
+                        <h3>Profil &amp; Sürücü</h3>
+                        <strong class="dashboard-kpi-value" id="kpi-personel-main">0</strong>
+                        <div class="dashboard-kpi-meta" aria-label="Profil dağılımı">
+                            <span>Sürücü <strong id="bar-sofor-count">0</strong></span>
+                            <span>Cari <strong id="bar-cari-count">0</strong></span>
+                        </div>
+                    </article>
+                </section>
+
+                <!-- Kritik operasyon alanı -->
+                <section class="data-section today-tasks-card dashboard-attention" aria-labelledby="today-tasks-title">
                     <div class="today-tasks-head">
                         <div>
                             <p class="today-tasks-kicker">OPERASYON TAKİBİ</p>
-                            <h3 id="today-tasks-title"><i data-lucide="list-todo" class="w-5 h-5"></i> Bugün yapılacaklar</h3>
-                            <p>Öncelikli puantaj, evrak ve iş emri kontrolleri.</p>
+                            <h3 id="today-tasks-title"><i data-lucide="circle-alert" aria-hidden="true"></i> Dikkat Gerektirenler</h3>
+                            <p>Bugünün öncelikli puantaj, evrak ve iş emri kontrolleri.</p>
                         </div>
-                        <button type="button" onclick="window.renderBugunYapilacaklar && window.renderBugunYapilacaklar()" title="Listeyi yenile"><i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Yenile</span></button>
+                        <button type="button" class="btn-ghost" onclick="window.renderBugunYapilacaklar && window.renderBugunYapilacaklar()" aria-label="Dikkat gerektiren kayıtları yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
                     </div>
                     <div id="today-tasks-list" class="today-tasks-list" aria-live="polite">
                         <div class="today-tasks-loading"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Bugünün kontrol listesi hazırlanıyor...</div>
                     </div>
                 </section>
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+                <div class="dashboard-decision-grid">
                     <!-- Sol Panel: Filo Durumu Donut Chart -->
-                    <div class="lg:col-span-5 bg-[#1a1d24] border border-white/10 rounded-2xl p-6 relative flex flex-col">
-                        <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                    <section class="app-card dashboard-chart-card" aria-labelledby="fleet-chart-title">
+                        <div class="dashboard-section-head">
                             <div>
-                                <h3 class="text-lg font-black text-white">Filo Durumu</h3>
-                                <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">Sahiplik Dağılımı</p>
+                                <h3 id="fleet-chart-title">Filo Durumu</h3>
+                                <p>Sahiplik dağılımı</p>
                             </div>
-                            <div class="p-2 bg-white/5 rounded-lg text-gray-400"><i data-lucide="pie-chart" class="w-4 h-4"></i></div>
+                            <span class="dashboard-section-icon"><i data-lucide="pie-chart" aria-hidden="true"></i></span>
                         </div>
                         
-                        <div class="relative h-64 flex items-center justify-center flex-1">
-                            <canvas id="fleetDonutChart"></canvas>
-                            <!-- Center Text -->
-                            <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                <span class="text-4xl font-black text-white" id="donut-total">0</span>
-                                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Araç</span>
+                        <div class="dashboard-chart-frame">
+                            <canvas id="fleetDonutChart" role="img" aria-label="Özmal, taşeron ve kiralık araç sahiplik dağılımı"></canvas>
+                            <div class="dashboard-chart-total" aria-hidden="true">
+                                <strong id="donut-total">0</strong>
+                                <span>Araç</span>
                             </div>
                         </div>
                         
-                        <div class="flex justify-center items-center gap-6 mt-6 border-t border-white/5 pt-4">
-                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#f97316]"></div><span class="text-xs font-bold text-gray-300">Özmal (<span id="fleet-ozmal-count">0</span>)</span></div>
-                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#3b82f6]"></div><span class="text-xs font-bold text-gray-300">Taşeron (<span id="fleet-taseron-count">0</span>)</span></div>
-                            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-[#a855f7]"></div><span class="text-xs font-bold text-gray-300">Kiralık (<span id="fleet-kiralik-count">0</span>)</span></div>
+                        <div class="dashboard-chart-legend" aria-label="Grafik açıklaması">
+                            <span class="is-owned"><i></i>Özmal <strong id="fleet-ozmal-count">0</strong></span>
+                            <span class="is-contractor"><i></i>Taşeron <strong id="fleet-taseron-count">0</strong></span>
+                            <span class="is-rental"><i></i>Kiralık <strong id="fleet-kiralik-count">0</strong></span>
                         </div>
-                    </div>
+                    </section>
 
                     <!-- Sağ Panel: Personel Durumu ve Aktiviteler -->
-                    <div class="lg:col-span-7 bg-[#1a1d24] border border-white/10 rounded-2xl p-6 flex flex-col gap-6">
+                    <section class="data-section dashboard-operations" aria-labelledby="dashboard-operations-title">
                         
                         <!-- Üst: Personel / İşlemler -->
                         <div>
-                            <div class="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                            <div class="dashboard-section-head">
                                 <div>
-                                    <h3 class="text-lg font-black text-white">Kayıtlı Profil Özeti</h3>
-                                    <p class="text-[10px] font-medium text-gray-400 uppercase tracking-widest mt-1">Güncel Veri Tabanı İstatistikleri</p>
+                                    <h3 id="dashboard-operations-title">Operasyon Özeti</h3>
+                                    <p>Profil dağılımı ve hızlı kayıt işlemleri</p>
                                 </div>
-                                <div class="text-right flex items-center gap-3">
-                                    <div class="text-right">
-                                        <span class="text-3xl font-black text-white" id="kpi-personel-main">0</span>
-                                        <div class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mt-1">Toplam Profil</div>
-                                    </div>
-                                </div>
+                                <span class="dashboard-section-icon"><i data-lucide="route" aria-hidden="true"></i></span>
                             </div>
                             
                             <div class="space-y-6">
                                 <!-- Bar 1 -->
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div class="flex items-center gap-3">
-                                            <div class="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg"><i data-lucide="users" class="w-4 h-4"></i></div>
-                                            <div><p class="text-sm font-bold text-white leading-none">Sürücüler / Şoförler</p><p class="text-[10px] text-gray-500 mt-0.5">Araç kullanan personel</p></div>
+                                    <div class="dashboard-profile-row">
+                                        <div class="dashboard-profile-name">
+                                            <span class="dashboard-profile-icon"><i data-lucide="users" aria-hidden="true"></i></span>
+                                            <div><p>Sürücüler / Şoförler</p><p>Araç kullanan personel</p></div>
                                         </div>
-                                        <span class="text-sm font-black text-white" id="bar-sofor-count">0</span>
+                                        <span class="dashboard-profile-label">Sürücü profilleri</span>
                                     </div>
-                                    <div class="w-full bg-[#0d0f11] h-2 rounded-full overflow-hidden border border-white/5"><div class="bg-blue-500 h-full rounded-full transition-all duration-1000" style="width: 0%" id="bar-sofor-width"></div></div>
+                                    <div class="dashboard-profile-track"><div class="dashboard-profile-fill is-driver" id="bar-sofor-width"></div></div>
                                 </div>
                                 <!-- Bar 2 -->
                                 <div>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <div class="flex items-center gap-3">
-                                            <div class="p-1.5 bg-yellow-500/20 text-yellow-400 rounded-lg"><i data-lucide="building-2" class="w-4 h-4"></i></div>
-                                            <div><p class="text-sm font-bold text-white leading-none">Müşteri / Cari Firmalar</p><p class="text-[10px] text-gray-500 mt-0.5">Fabrika ve taşeronlar</p></div>
+                                    <div class="dashboard-profile-row">
+                                        <div class="dashboard-profile-name">
+                                            <span class="dashboard-profile-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>
+                                            <div><p>Müşteri / Cari Firmalar</p><p>Fabrika ve taşeronlar</p></div>
                                         </div>
-                                        <span class="text-sm font-black text-white" id="bar-cari-count">0</span>
+                                        <span class="dashboard-profile-label">Cari profilleri</span>
                                     </div>
-                                    <div class="w-full bg-[#0d0f11] h-2 rounded-full overflow-hidden border border-white/5"><div class="bg-yellow-500 h-full rounded-full transition-all duration-1000" style="width: 0%" id="bar-cari-width"></div></div>
+                                    <div class="dashboard-profile-track"><div class="dashboard-profile-fill is-account" id="bar-cari-width"></div></div>
                                 </div>
                             </div>
                             
-                            <div class="mt-6 flex flex-wrap gap-3">
-                                <button onclick="openModal('Yeni Yakıt Kaydı')" class="flex-1 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 text-orange-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="fuel" class="w-4 h-4"></i> Yakıt Gir</button>
-                                <button onclick="openModal('Yeni Bakım/Parça Kaydı')" class="flex-1 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="wrench" class="w-4 h-4"></i> Bakım Gir</button>
-                                <button onclick="openModal('Yeni Poliçe Kaydı')" class="flex-1 py-2.5 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/20 text-pink-400 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"><i data-lucide="shield" class="w-4 h-4"></i> Poliçe Ekle</button>
+                            <div class="dashboard-quick-actions">
+                                <button type="button" onclick="openModal('Yeni Yakıt Kaydı')" class="btn-ghost"><i data-lucide="fuel" aria-hidden="true"></i><span>Yakıt Gir</span></button>
+                                <button type="button" onclick="openModal('Yeni Bakım/Parça Kaydı')" class="btn-ghost"><i data-lucide="wrench" aria-hidden="true"></i><span>Bakım Gir</span></button>
+                                <button type="button" onclick="openModal('Yeni Poliçe Kaydı')" class="btn-ghost"><i data-lucide="shield" aria-hidden="true"></i><span>Poliçe Ekle</span></button>
                             </div>
                         </div>
 
                         <!-- Alt: Son Aktiviteler -->
-                        <div class="flex-1 flex flex-col border-t border-white/5 pt-6">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Son Sistemsel Aktiviteler</h3>
-                                <button onclick="window.fetchDashboardData()" class="text-[10px] text-gray-400 hover:text-white transition-colors"><i data-lucide="refresh-cw" class="w-3 h-3"></i></button>
+                        <div class="dashboard-activity-section">
+                            <div class="dashboard-activity-head">
+                                <h4><i data-lucide="activity" aria-hidden="true"></i> Son Aktiviteler</h4>
+                                <button type="button" onclick="window.fetchDashboardData()" class="btn-icon" aria-label="Son aktiviteleri yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
                             </div>
-                            <div id="son-aktiviteler-list" class="flex-1 bg-[#0d0f11] border border-white/5 rounded-xl p-3 overflow-y-auto" style="max-height: 300px;">
-                                <table class="w-full text-left border-collapse">
-                                    <tbody id="son-islemler-tbody" class="divide-y divide-white/5">
-                                        <tr><td class="text-xs text-gray-500 text-center py-4">Yükleniyor...</td></tr>
+                            <div id="son-aktiviteler-list" class="dashboard-activity-list">
+                                <table class="dashboard-activity-table">
+                                    <caption class="sr-only">Son sistem aktiviteleri</caption>
+                                    <tbody id="son-islemler-tbody">
+                                        <tr><td class="loading-state">Aktiviteler yükleniyor...</td></tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <!-- 3. SATIR: EXCEL IMPORT VE DETAYLI POLİÇELER -->
-                <div class="grid grid-cols-1 gap-6 mb-8">
+                <div class="dashboard-support-grid">
 
                     <!-- Aylık Puantaj Import Takvimi -->
-                    <section class="import-calendar-card dashboard-card p-0 overflow-hidden" aria-labelledby="import-calendar-title">
+                    <section class="data-section dashboard-calendar" aria-labelledby="import-calendar-title">
                         <div class="import-calendar-head">
                             <div class="flex items-start gap-3">
                                 <div class="import-calendar-icon"><i data-lucide="calendar-check-2" class="w-5 h-5"></i></div>
@@ -624,50 +582,50 @@
                     </section>
                     
                     <!-- Excel Import -->
-                    <div class="bg-[#1a1d24] border border-emerald-500/20 rounded-2xl p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2"><i data-lucide="file-up" class="w-5 h-5 text-emerald-500"></i><h3 class="font-bold text-base text-white">Günlük Excel Import (Puantaj)</h3></div>
-                            <span class="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest hidden sm:block">Tarih | Plaka | Fabrika | Giriş | Çıkış</span>
+                    <section class="data-section dashboard-import" aria-labelledby="dashboard-import-title">
+                        <div class="dashboard-import-head">
+                            <div class="flex items-center gap-2"><i data-lucide="file-up" aria-hidden="true"></i><h3 id="dashboard-import-title">Günlük Excel Import</h3></div>
+                            <span class="badge-info hidden sm:inline-flex">Puantaj</span>
                         </div>
-                        <div class="mb-4 p-4 bg-[#0d0f11] border border-white/5 rounded-xl flex items-center gap-4">
-                            <div class="flex items-center gap-2 flex-shrink-0">
-                                <div class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-                                <label for="import-bolge-select" class="text-xs font-black text-white uppercase tracking-widest">Bölge Seçiniz</label>
-                                <span class="text-red-400 text-[10px] font-bold">(Zorunlu)</span>
+                        <div class="dashboard-import-region">
+                            <div class="dashboard-import-region-label">
+                                <i data-lucide="map-pin" aria-hidden="true"></i>
+                                <label for="import-bolge-select">Bölge seçin</label>
+                                <span class="badge-danger">Zorunlu</span>
                             </div>
-                            <select id="import-bolge-select" class="flex-1 bg-[#1a1d24] border-2 border-orange-500/50 text-white font-bold text-sm rounded-xl px-4 py-2.5 outline-none focus:border-orange-500 cursor-pointer transition-all hover:border-orange-400">
+                            <select id="import-bolge-select" class="form-control">
                                 <option value="" disabled selected>-- Lütfen bir bölge seçin --</option>
-                                <option value="İzmir">🔵 İzmir Servisleri</option>
-                                <option value="Manisa">🟠 Manisa Servisleri</option>
+                                <option value="İzmir">İzmir Servisleri</option>
+                                <option value="Manisa">Manisa Servisleri</option>
                             </select>
-                            <div id="import-bolge-badge" class="hidden px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest"></div>
+                            <div id="import-bolge-badge" class="badge-info hidden"></div>
                         </div>
-                        <input type="file" id="import-file-input" accept=".xlsx,.xls" style="display:none" onchange="window.handleImportFile(this.files[0])">
-                        <div class="import-drop-area border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all cursor-pointer" ondrop="window.handleImportDrop(event)" ondragover="window.handleImportDragOver(event)" ondragleave="window.handleImportDragLeave()" onclick="window.checkBolgeAndOpenFile()">
-                            <div class="flex justify-center mb-3"><div class="p-3 bg-emerald-500/20 rounded-full text-emerald-400"><i data-lucide="upload-cloud" class="w-8 h-8"></i></div></div>
-                            <p class="text-sm font-bold text-white mt-2">Excel'i sürükle &amp; bırak</p>
-                            <p class="text-xs text-gray-500 mt-1">veya tıkla &amp; seç (.xlsx / .xls)</p>
+                        <input type="file" id="import-file-input" class="hidden" accept=".xlsx,.xls" onchange="window.handleImportFile(this.files[0])">
+                        <div class="import-drop-area dashboard-import-drop" role="button" tabindex="0" aria-label="Puantaj Excel dosyası seç" ondrop="window.handleImportDrop(event)" ondragover="window.handleImportDragOver(event)" ondragleave="window.handleImportDragLeave()" onclick="window.checkBolgeAndOpenFile()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.checkBolgeAndOpenFile()}">
+                            <span class="dashboard-import-drop-icon"><i data-lucide="upload-cloud" aria-hidden="true"></i></span>
+                            <p>Excel'i sürükle ve bırak</p>
+                            <p>veya dosya seçmek için tıklayın (.xlsx / .xls)</p>
                         </div>
-                        <div class="mt-4 text-center">
-                            <a href="./ornek_puantaj_sablonu.xlsx" download="BarisFlow_Ornek_Puantaj_Sablonu.xlsx" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg text-[10px] font-bold transition-all uppercase tracking-wide">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i> ŞABLONU İNDİR
+                        <div class="dashboard-import-download">
+                            <a href="./ornek_puantaj_sablonu.xlsx" download="BarisFlow_Ornek_Puantaj_Sablonu.xlsx" class="btn-ghost">
+                                <i data-lucide="download" aria-hidden="true"></i> Şablonu indir
                             </a>
                         </div>
-                    </div>
+                    </section>
 
                     <!-- Biten & Yaklaşan Poliçeler Tablosu (Kullanıcı Önceliği) -->
-                    <div id="dashboard-policy-card" class="bg-[#1a1d24] border border-white/10 rounded-2xl p-6">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <section id="dashboard-policy-card" class="data-section dashboard-policy" aria-labelledby="dashboard-policy-title">
+                        <div class="dashboard-policy-head">
                             <div class="flex items-center gap-3">
-                                <div class="policy-header-emoji" aria-hidden="true">🛡️</div>
+                                <span class="dashboard-section-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span>
                                 <div>
-                                    <h3 class="font-bold text-base text-white">Biten &amp; Yaklaşan Poliçeler</h3>
-                                    <p class="text-[10px] text-gray-500 mt-0.5">Süresi bitenler ve önümüzdeki 90 günün kısa özeti</p>
+                                    <h3 id="dashboard-policy-title">Biten &amp; Yaklaşan Poliçeler</h3>
+                                    <p>Süresi bitenler ve önümüzdeki 90 günün kısa özeti</p>
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <div id="police-ozet-badges" class="flex items-center gap-2"></div>
-                                <select id="police-filtre" onchange="window.filterPoliceDashboard(this.value)" class="bg-white/5 border border-white/10 text-white text-[10px] font-bold rounded-lg px-3 py-2 outline-none cursor-pointer hover:border-white/25 transition-all uppercase tracking-wide">
+                                <select id="police-filtre" aria-label="Poliçeleri duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter">
                                     <option value="tumu">Tüm Kayıtlar</option>
                                     <option value="gecmis">Geçmiş (Biten)</option>
                                     <option value="kritik">Kritik (0–7 Gün)</option>
@@ -676,10 +634,11 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="overflow-x-auto custom-scrollbar">
-                            <table class="w-full text-left">
+                        <div class="dashboard-table-wrap custom-scrollbar">
+                            <table class="dashboard-policy-table">
+                                <caption class="sr-only">Biten ve yaklaşan araç poliçeleri</caption>
                                 <thead>
-                                    <tr class="text-[9px] text-gray-500 uppercase tracking-widest border-b border-white/5">
+                                    <tr>
                                         <th class="pb-3 px-3 font-bold">Durum</th>
                                         <th class="pb-3 px-3 font-bold">Plaka</th>
                                         <th class="pb-3 px-3 font-bold">Poliçe Türü</th>
@@ -693,19 +652,19 @@
                                 </thead>
                                 <tbody id="police-dashboard-tbody" class="divide-y divide-white/5">
                                     <tr><td colspan="9" class="py-14 text-center">
-                                        <div class="flex flex-col items-center gap-3 text-gray-600">
-                                            <div class="w-8 h-8 border-2 border-gray-700 border-t-rose-500 rounded-full animate-spin"></div>
-                                            <span class="text-xs font-bold uppercase tracking-widest">Poliçeler yükleniyor...</span>
+                                        <div class="loading-state">
+                                            <i data-lucide="loader-2" class="animate-spin" aria-hidden="true"></i>
+                                            <span>Poliçeler yükleniyor...</span>
                                         </div>
                                     </td></tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div id="police-dashboard-footer" class="hidden mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
-                            <span class="text-[10px] text-gray-500" id="police-gosterilen-sayi"></span>
-                            <button onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="text-[10px] text-rose-400 hover:text-rose-300 font-bold transition-colors">Tümünü Göster →</button>
+                        <div id="police-dashboard-footer" class="dashboard-policy-footer hidden">
+                            <span id="police-gosterilen-sayi"></span>
+                            <button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="btn-ghost">Tümünü Göster <i data-lucide="arrow-right" aria-hidden="true"></i></button>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
 
