@@ -1239,12 +1239,58 @@
             </div>
 
             <!-- 3. MÜŞTERİ VE SERVİS YÖNETİMİ -->
-            <div id="module-musteri" class="main-module hidden stagger-in">
+            <div id="module-musteri" class="main-module hidden stagger-in bf-factory-module">
+
+                <div class="page-header factory-page-header">
+                    <div class="page-header-identity">
+                        <p class="factory-eyebrow">Operasyon noktaları</p>
+                        <h1 class="page-title">Fabrikalar</h1>
+                        <p class="page-subtitle">Hizmet verilen fabrikaları, bölgeleri, servisleri ve araç atamalarını yönetin.</p>
+                    </div>
+                    <div class="page-actions factory-page-actions">
+                        <button onclick="window.exportTableToExcel('musteri-table', 'Musteri_Portfoyu')" class="btn-ghost" title="Fabrika listesini Excel olarak indir">
+                            <i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Excel</span>
+                        </button>
+                        <button onclick="openModal('Müşteriye Araç Tanımla')" class="btn-secondary">
+                            <i data-lucide="link" aria-hidden="true"></i><span>Araç Ata</span>
+                        </button>
+                        <button onclick="openModal('Yeni Müşteri Ekle')" class="btn-primary">
+                            <i data-lucide="plus" aria-hidden="true"></i><span>Fabrika Ekle</span>
+                        </button>
+                    </div>
+                </div>
+
+                <section class="factory-kpi-grid" aria-label="Fabrika özeti">
+                    <article class="factory-kpi-card"><span class="factory-kpi-icon"><i data-lucide="factory"></i></span><div><span>Toplam Fabrika</span><strong id="factory-kpi-total">—</strong></div></article>
+                    <article class="factory-kpi-card"><span class="factory-kpi-icon is-success"><i data-lucide="badge-check"></i></span><div><span>Atamalı Fabrika</span><strong id="factory-kpi-assigned">—</strong></div></article>
+                    <article class="factory-kpi-card"><span class="factory-kpi-icon is-info"><i data-lucide="bus-front"></i></span><div><span>Benzersiz Araç</span><strong id="factory-kpi-vehicles">—</strong></div></article>
+                    <article class="factory-kpi-card"><span class="factory-kpi-icon is-warning"><i data-lucide="circle-alert"></i></span><div><span>Atama Bekleyen</span><strong id="factory-kpi-unassigned">—</strong></div></article>
+                </section>
+
+                <section class="factory-workspace">
+                    <div class="factory-toolbar">
+                        <div><strong>Fabrika listesi</strong><p>Operasyon, iletişim ve araç atamalarını tek görünümde inceleyin.</p></div>
+                        <p><span id="factory-visible-count" class="badge-neutral">—</span> fabrika</p>
+                    </div>
+                    <div id="musteri-cards-grid" class="factory-card-grid">
+                        <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Fabrikalar yükleniyor...</p></div></div>
+                    </div>
+                    <div class="factory-table-wrap">
+                        <table class="factory-table">
+                            <thead><tr><th>Fabrika</th><th>İletişim</th><th>Operasyon</th><th>Atanan Araçlar</th><th>Durum</th><th class="factory-actions-heading">İşlemler</th></tr></thead>
+                            <tbody id="factory-list-tbody"><tr><td colspan="6"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Fabrikalar yükleniyor...</p></div></div></td></tr></tbody>
+                        </table>
+                    </div>
+                </section>
 
                 <!-- === IMPORT SECTION (REORGANIZED) === -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-10 px-2 animate-fade-in-up">
+                <section class="factory-import-section" aria-labelledby="factory-import-title">
+                    <div class="factory-section-heading">
+                        <div><p class="factory-eyebrow">Puantaj araçları</p><h2 id="factory-import-title">Excel ile içe aktar</h2><p>Mevcut günlük puantaj şablonlarını kullanarak kayıtları kontrollü biçimde aktarın.</p></div>
+                    </div>
+                <div class="factory-import-grid">
                     <!-- 1. Dikkan Özel Import -->
-                    <div class="dashboard-card border-emerald-500/20 bg-emerald-500/5 relative overflow-hidden group">
+                    <div class="dashboard-card factory-import-card relative overflow-hidden group">
                         <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                             <i data-lucide="factory" class="w-16 h-16 text-emerald-500"></i>
                         </div>
@@ -1281,7 +1327,7 @@
                     </div>
 
                     <!-- 2. Genel Günlük Excel Import -->
-                    <div class="dashboard-card border-blue-500/20 bg-blue-500/5 relative overflow-hidden group">
+                    <div class="dashboard-card factory-import-card relative overflow-hidden group">
                         <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                             <i data-lucide="layout-dashboard" class="w-16 h-16 text-blue-500"></i>
                         </div>
@@ -1340,7 +1386,7 @@
                     </div>
 
                     <!-- 3. Manisa Fabrika Toplu Import -->
-                    <div class="dashboard-card border-violet-500/20 bg-violet-500/5 relative overflow-hidden group">
+                    <div class="dashboard-card factory-import-card relative overflow-hidden group">
                         <div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
                             <i data-lucide="factory" class="w-16 h-16 text-violet-400"></i>
                         </div>
@@ -1371,38 +1417,7 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- === HEADER === -->
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                    <div>
-                        <h2 class="text-2xl font-black">Müşteri Portföyü</h2>
-                        <p class="text-sm text-gray-500 mt-1">Fabrikalar, araç atamaları ve servis puantajı yönetimi.
-                        </p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <button onclick="openModal('Yeni Müşteri Ekle')"
-                            class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Yeni Fabrika / Müşteri
-                        </button>
-                        <button onclick="openModal('Müşteriye Araç Tanımla')"
-                            class="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2">
-                            <i data-lucide="link" class="w-4 h-4"></i> Araç Ata
-                        </button>
-                        <button onclick="window.exportTableToExcel('musteri-table', 'Musteri_Portfoyu')"
-                            class="p-2.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl transition-all border border-green-500/20"
-                            title="Excel İndir">
-                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- === CUSTOMER CARDS GRID === -->
-                <div id="musteri-cards-grid" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
-                    <div class="col-span-full dashboard-card py-12 text-center text-gray-500">
-                        <i data-lucide="building-2" class="w-10 h-10 mx-auto mb-3 text-gray-700"></i>
-                        <p>Yükleniyor...</p>
-                    </div>
-                </div>
+                </section>
 
                 <!-- Hidden legacy table for export compatibility -->
                 <table class="hidden" id="musteri-table">

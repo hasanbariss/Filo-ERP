@@ -71,6 +71,133 @@
     --bf-transition: 180ms ease;
 }
 
+/* ============================================================
+   BARIS.FLOW 2.0 — FABRİKALAR
+   ============================================================ */
+.bf-factory-module { min-width: 0; }
+.factory-page-header { align-items: flex-start; }
+.factory-eyebrow { margin: 0 0 var(--bf-space-1); color: var(--bf-flow-coral-600); font-size: var(--bf-text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.factory-page-actions { flex-wrap: wrap; }
+.factory-page-actions svg { width: 16px; height: 16px; }
+.factory-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.factory-kpi-card { display: flex; min-width: 0; align-items: center; padding: var(--bf-space-4); gap: var(--bf-space-3); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.factory-kpi-card > div { display: grid; min-width: 0; gap: 2px; }
+.factory-kpi-card > div > span { color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 600; }
+.factory-kpi-card strong { color: var(--bf-text-primary); font-size: 1.45rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.factory-kpi-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.factory-kpi-icon.is-success { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.factory-kpi-icon.is-info { color: var(--bf-info); background: rgba(47,111,237,.1); }
+.factory-kpi-icon.is-warning { color: var(--bf-warning); background: rgba(183,110,0,.1); }
+.factory-kpi-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.factory-workspace { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.factory-toolbar { display: flex; align-items: center; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-4); border-bottom: 1px solid var(--bf-border); background: color-mix(in srgb, var(--bf-surface) 94%, var(--bf-surface-subtle)); }
+.factory-toolbar > div { display: grid; gap: 2px; }
+.factory-toolbar > div > strong { color: var(--bf-text-primary); font-size: var(--bf-text-sm); }
+.factory-toolbar > div > p { margin: 0; color: var(--bf-text-secondary); font-size: var(--bf-text-xs); }
+.factory-toolbar > p { display: flex; align-items: center; margin: 0; gap: var(--bf-space-2); color: var(--bf-text-secondary); font-size: var(--bf-text-xs); }
+.factory-card-grid { display: none; }
+.factory-table-wrap { max-width: 100%; max-height: 620px; overflow: auto; }
+.factory-table { width: 100%; min-width: 980px; border-collapse: separate; border-spacing: 0; color: var(--bf-text-primary); text-align: left; }
+.factory-table thead { position: sticky; top: 0; z-index: 2; }
+.factory-table th { height: 44px; padding: 0 var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-muted); background: var(--bf-surface-subtle); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.factory-table td { padding: var(--bf-space-3) var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); vertical-align: middle; }
+.factory-table tbody tr:last-child td { border-bottom: 0; }
+.factory-table tbody tr:hover { background: color-mix(in srgb, var(--bf-surface) 72%, var(--bf-surface-subtle)); }
+.factory-identity { display: flex; min-width: 220px; align-items: center; gap: var(--bf-space-3); }
+.factory-identity > div, .factory-contact { display: grid; min-width: 0; gap: 2px; }
+.factory-identity strong, .factory-contact strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.factory-identity span, .factory-contact span { max-width: 240px; overflow: hidden; color: var(--bf-text-muted); font-size: var(--bf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.factory-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; overflow: hidden; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); font-size: var(--bf-text-sm); font-weight: 750; }
+.factory-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.factory-region { display: flex; align-items: center; gap: var(--bf-space-1); color: var(--bf-text-primary); font-size: var(--bf-text-xs); font-weight: 650; }
+.factory-region svg { width: 14px; height: 14px; color: var(--bf-flow-coral-600); }
+.factory-table td > small { display: block; max-width: 180px; margin-top: 3px; overflow: hidden; color: var(--bf-text-muted); font-size: var(--bf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.factory-actions-heading { width: 132px; text-align: right; }
+.factory-row-actions { display: flex; justify-content: flex-end; gap: var(--bf-space-1); }
+.factory-row-actions button { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid transparent; border-radius: var(--bf-radius-sm); color: var(--bf-text-secondary); background: transparent; cursor: pointer; }
+.factory-row-actions button:hover { border-color: var(--bf-border); color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.factory-row-actions button.is-danger { color: var(--bf-danger); }
+.factory-row-actions svg { width: 16px; height: 16px; }
+.factory-table-vehicles { position: relative; }
+.factory-table-vehicles summary { display: inline-flex; min-height: 34px; align-items: center; padding: 0 var(--bf-space-2); gap: var(--bf-space-1); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-sm); color: var(--bf-text-primary); background: var(--bf-surface-subtle); font-size: var(--bf-text-xs); font-weight: 650; cursor: pointer; list-style: none; }
+.factory-table-vehicles summary::-webkit-details-marker { display: none; }
+.factory-table-vehicles summary svg { width: 14px; height: 14px; color: var(--bf-info); }
+.factory-table-vehicles > div { position: absolute; z-index: 5; display: flex; width: 260px; flex-wrap: wrap; padding: var(--bf-space-3); gap: var(--bf-space-2); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-md); }
+.factory-table-vehicles p { width: 100%; margin: 0; color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+.factory-vehicle-chip { display: inline-flex; min-height: 30px; align-items: center; padding-left: var(--bf-space-2); gap: var(--bf-space-1); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-sm); color: var(--bf-text-primary); background: var(--bf-surface-subtle); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--bf-text-xs); font-weight: 750; }
+.factory-vehicle-chip button { display: grid; width: 29px; height: 29px; place-items: center; border: 0; color: var(--bf-text-muted); background: transparent; cursor: pointer; }
+.factory-vehicle-chip button:hover { color: var(--bf-danger); }
+.factory-vehicle-chip svg { width: 13px; height: 13px; }
+.factory-inline-action { display: inline-flex; min-height: 30px; align-items: center; padding: 0 var(--bf-space-2); gap: var(--bf-space-1); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-sm); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); font-size: var(--bf-text-xs); font-weight: 700; }
+.factory-inline-action svg { width: 13px; height: 13px; }
+.factory-import-section { display: grid; margin-top: var(--bf-space-8); gap: var(--bf-space-4); }
+.factory-section-heading h2 { margin: 0; color: var(--bf-text-primary); font-size: var(--bf-text-xl); font-weight: 750; }
+.factory-section-heading > div > p:last-child { margin: var(--bf-space-1) 0 0; color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.factory-import-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.bf-factory-module .factory-import-card { margin: 0; border-color: var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.bf-factory-module .factory-import-card h3 { color: var(--bf-text-primary); }
+.bf-factory-module .factory-import-card p { color: var(--bf-text-secondary); }
+.bf-factory-module .factory-import-card select { min-height: var(--bf-touch-target); color: var(--bf-text-primary); background: var(--bf-surface); }
+.bf-factory-module .factory-import-card button, .bf-factory-module .factory-import-card a { min-height: var(--bf-touch-target); }
+.factory-empty-state, .factory-error-state { padding: var(--bf-space-10) var(--bf-space-4); color: var(--bf-text-secondary); text-align: center; }
+.factory-empty-state strong, .factory-error-state strong { display: block; margin-top: var(--bf-space-3); color: var(--bf-text-primary); font-size: var(--bf-text-lg); }
+.factory-empty-state p, .factory-error-state p { margin: var(--bf-space-1) 0 var(--bf-space-4); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.factory-state-icon { display: grid; width: 48px; height: 48px; place-items: center; margin: 0 auto; border-radius: var(--bf-radius-pill); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.factory-state-icon svg { width: 22px; height: 22px; }
+.factory-error-state .factory-state-icon { color: var(--bf-danger); background: rgba(197,59,72,.1); }
+
+@media (max-width: 1120px) {
+    .factory-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .factory-import-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 700px) {
+    .factory-page-header { align-items: stretch; flex-direction: column; }
+    .factory-page-actions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .factory-page-actions .btn-primary { grid-column: 1 / -1; grid-row: 1; }
+    .factory-page-actions .btn-ghost, .factory-page-actions .btn-secondary, .factory-page-actions .btn-primary { min-height: var(--bf-touch-target); }
+    .factory-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bf-space-2); }
+    .factory-kpi-card { padding: var(--bf-space-3); }
+    .factory-kpi-icon { width: 34px; height: 34px; flex-basis: 34px; }
+    .factory-kpi-card strong { font-size: 1.25rem; }
+    .factory-toolbar { align-items: stretch; flex-direction: column; padding: var(--bf-space-3); }
+    .factory-table-wrap { display: none; }
+    .factory-card-grid { display: grid; grid-template-columns: minmax(0, 1fr); padding: var(--bf-space-3); gap: var(--bf-space-3); }
+    .factory-card { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+    .factory-card-head { display: flex; align-items: flex-start; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-2); }
+    .factory-card-identity { display: flex; min-width: 0; align-items: center; gap: var(--bf-space-3); }
+    .factory-card-identity > div { min-width: 0; }
+    .factory-card-identity h3 { margin: 0; overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-lg); text-overflow: ellipsis; white-space: nowrap; }
+    .factory-card-identity p { margin: 2px 0 0; overflow: hidden; color: var(--bf-text-muted); font-size: var(--bf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+    .factory-card-details { display: grid; padding: 0 var(--bf-space-4) var(--bf-space-4); gap: var(--bf-space-3); }
+    .factory-card-details > div { display: grid; grid-template-columns: 82px minmax(0, 1fr); align-items: center; gap: var(--bf-space-2); }
+    .factory-card-details span { display: inline-flex; align-items: center; gap: var(--bf-space-1); color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .factory-card-details strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); text-overflow: ellipsis; white-space: nowrap; }
+    .factory-card-details svg { width: 14px; height: 14px; }
+    .factory-vehicle-disclosure { border-top: 1px solid var(--bf-border); }
+    .factory-vehicle-disclosure > button { display: flex; width: 100%; min-height: var(--bf-touch-target); align-items: center; justify-content: space-between; padding: 0 var(--bf-space-4); border: 0; color: var(--bf-text-secondary); background: var(--bf-surface-subtle); font-size: var(--bf-text-xs); font-weight: 650; }
+    .factory-vehicle-disclosure > button > span { display: flex; align-items: center; gap: var(--bf-space-2); }
+    .factory-vehicle-disclosure > button svg { width: 16px; height: 16px; }
+    .factory-vehicle-list { display: flex; flex-wrap: wrap; padding: var(--bf-space-3); gap: var(--bf-space-2); }
+    .factory-vehicle-list p { margin: 0; color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .factory-vehicle-chip { min-height: var(--bf-touch-target); }
+    .factory-vehicle-chip button { width: var(--bf-touch-target); height: var(--bf-touch-target); }
+    .factory-assignment-actions, .factory-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--bf-border); }
+    .factory-assignment-actions button, .factory-card-actions button { display: flex; min-height: var(--bf-touch-target); align-items: center; justify-content: center; gap: 4px; border: 0; border-right: 1px solid var(--bf-border); color: var(--bf-text-secondary); background: transparent; font-size: var(--bf-text-xs); font-weight: 650; }
+    .factory-assignment-actions button:last-child, .factory-card-actions button:last-child { border-right: 0; }
+    .factory-assignment-actions button.is-danger, .factory-card-actions button.is-danger { color: var(--bf-danger); }
+    .factory-assignment-actions svg, .factory-card-actions svg { width: 15px; height: 15px; }
+    .factory-import-section { margin-top: var(--bf-space-6); }
+    .bf-factory-module .factory-import-card { padding: var(--bf-space-4); }
+    #general-modal.bf-fleet-modal #modal-dynamic-body .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 390px) {
+    .factory-kpi-card { align-items: flex-start; flex-direction: column; }
+    .factory-card-head { align-items: stretch; flex-direction: column; }
+    .factory-card-head > [class^="badge-"] { align-self: flex-start; }
+}
+
 /* Baris.Flow 2.0 — Owned fleet */
 .bf-fleet-module { color: var(--bf-text-primary); }
 

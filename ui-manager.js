@@ -744,7 +744,7 @@ const modalTitle = document.getElementById('modal-title');
 
 window.openModal = function (title, id = null, extra = null) {
     modalTitle.textContent = title;
-    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı', 'Yeni Taşeron Kaydı', 'Yeni Sefer Hakedişi Ekle', 'Yeni Şoför Ekle', 'Şoför Güncelle'];
+    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı', 'Yeni Taşeron Kaydı', 'Yeni Sefer Hakedişi Ekle', 'Yeni Şoför Ekle', 'Şoför Güncelle', 'Yeni Müşteri Ekle', 'Müşteri Güncelle', 'Müşteriye Araç Tanımla', 'Yeni Servis Kaydı'];
     modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');

@@ -4161,9 +4161,12 @@ async function fetchSoforPuantaj() {
 
 async function fetchMusteriler() {
     const grid = document.getElementById('musteri-cards-grid');
+    const tableBody = document.getElementById('factory-list-tbody');
     if (!grid) return;
 
-    grid.innerHTML = `<div class="col-span-full dashboard-card py-12 text-center text-gray-500 animate-pulse">Yükleniyor...</div>`;
+    const loadingState = `<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Fabrikalar yükleniyor...</p></div></div>`;
+    grid.innerHTML = loadingState;
+    if (tableBody) tableBody.innerHTML = `<tr><td colspan="6">${loadingState}</td></tr>`;
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -4223,11 +4226,13 @@ async function fetchMusteriler() {
         }
 
         if (!must || must.length === 0) {
-            grid.innerHTML = `<div class="col-span-full dashboard-card py-16 text-center">
-                <i data-lucide="building-2" class="w-12 h-12 mx-auto mb-3 text-gray-700"></i>
-                <p class="text-gray-500 font-medium">Henüz müşteri / fabrika kaydı yok.</p>
-                <button onclick="openModal('Yeni Müşteri Ekle')" class="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-5 rounded-xl text-sm">+ Müşteri Ekle</button>
-            </div>`;
+            const emptyState = `<div class="factory-empty-state"><span class="factory-state-icon"><i data-lucide="factory"></i></span><strong>Henüz fabrika kaydı yok</strong><p>İlk operasyon noktasını ekleyerek araç ve puantaj yönetimine başlayın.</p><button onclick="openModal('Yeni Müşteri Ekle')" class="btn-primary"><i data-lucide="plus"></i>Fabrika Ekle</button></div>`;
+            grid.innerHTML = emptyState;
+            if (tableBody) tableBody.innerHTML = `<tr><td colspan="6">${emptyState}</td></tr>`;
+            ['factory-kpi-total', 'factory-kpi-assigned', 'factory-kpi-vehicles', 'factory-kpi-unassigned', 'factory-visible-count'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = '0';
+            });
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -4239,103 +4244,87 @@ async function fetchMusteriler() {
             tanimMap[t.musteri_id].push(t);
         });
 
+        const assignedFactoryCount = (must || []).filter(m => (tanimMap[m.id] || []).length > 0).length;
+        const uniqueVehicleCount = new Set((tanimlar || []).map(t => t.arac_id).filter(Boolean)).size;
+        const kpiValues = {
+            'factory-kpi-total': must.length,
+            'factory-kpi-assigned': assignedFactoryCount,
+            'factory-kpi-vehicles': uniqueVehicleCount,
+            'factory-kpi-unassigned': must.length - assignedFactoryCount,
+            'factory-visible-count': must.length
+        };
+        Object.entries(kpiValues).forEach(([id, value]) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = value;
+        });
+
         grid.innerHTML = '';
-        const colors = ['bg-orange-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500'];
+        if (tableBody) tableBody.innerHTML = '';
 
         must.forEach(m => {
-            const initials = m.ad.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
-            const colorIdx = m.ad.charCodeAt(0) % colors.length;
+            const factoryName = m.ad || m.unvan || 'İsimsiz Fabrika';
+            const initials = factoryName.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
             const araclar = tanimMap[m.id] || [];
-            const isDikkan = m.ad?.toUpperCase().includes('DİKKAN');
-            const vardiyaAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('vardiya'));
-            const tekAraclar = araclar.filter(t => t.tarife_turu?.toLowerCase().includes('tek'));
-            const mesaiAraclar = isDikkan ? araclar.filter(t => t.mesai_fiyat > 0 || t.tarife_turu?.toLowerCase().includes('mesai')) : [];
+            const regions = [...new Set(araclar.map(t => t.bolge).filter(Boolean))];
+            const tariffTypes = [...new Set(araclar.map(t => t.tarife_turu).filter(Boolean))];
+            const regionLabel = regions.length ? regions.join(', ') : 'Bölge belirtilmemiş';
+            const operationLabel = tariffTypes.length ? tariffTypes.join(', ') : 'Servis tanımı yok';
+            const contactName = m.yetkili_kisi_ad_soyad || 'Yetkili belirtilmemiş';
 
-            // Sadece plakaları göster, etiket yok
             const buildAracChip = (t) => {
                 const plaka = t.araclar?.plaka || 'Bilinmiyor';
-                return `<div class="flex items-center gap-1 px-2 py-1 bg-white/5 border border-white/8 rounded-md hover:bg-white/10 hover:border-white/20 transition-all group">
-                    <span class="text-[10px] font-black text-white font-mono tracking-wider">${plaka}</span>
-                    <button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" class="ml-0.5 opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 text-[9px] transition-all leading-none" title="Kaldır">✕</button>
-                </div>`;
+                return `<span class="factory-vehicle-chip"><span>${plaka}</span><button onclick="deleteRecord('musteri_arac_tanimlari','${t.id}','fetchMusteriler')" title="${plaka} atamasını kaldır" aria-label="${plaka} atamasını kaldır"><i data-lucide="x"></i></button></span>`;
             };
 
             const card = document.createElement('div');
-            card.className = 'relative bg-gradient-to-br from-white/[0.04] to-white/[0.01] border border-white/8 rounded-2xl overflow-hidden hover:border-white/15 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 flex flex-col';
+            card.className = 'factory-card';
             card.setAttribute('data-musteri-id', m.id);
 
-            // Fabrikaya özel renk şeridi
-            const accentColors = ['from-orange-500 to-amber-500', 'from-blue-500 to-indigo-500', 'from-emerald-500 to-teal-500', 'from-purple-500 to-violet-500', 'from-pink-500 to-rose-500', 'from-cyan-500 to-sky-500'];
-            const accentColor = accentColors[colorIdx];
-
             card.innerHTML = `
-                <!-- Renk şeridi (üst) -->
-                <div class="h-1 w-full bg-gradient-to-r ${accentColor} opacity-70"></div>
-
-                <!-- Card Header -->
-                <div class="p-4 flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${accentColor} flex items-center justify-center text-white font-black text-sm flex-shrink-0 shadow-lg shadow-black/30">
-                        ${m.logo_url ? `<img src="${m.logo_url}" class="w-full h-full rounded-xl object-cover" onerror="this.parentElement.textContent='${initials}'">` : initials}
+                <div class="factory-card-head">
+                    <div class="factory-card-identity">
+                        <span class="factory-avatar">${m.logo_url ? `<img src="${m.logo_url}" alt="" onerror="this.parentElement.textContent='${initials}'">` : initials}</span>
+                        <div><h3>${factoryName}</h3><p>${contactName}</p></div>
                     </div>
-                    <div class="flex-1 min-w-0">
-                        <h4 class="font-black text-white text-sm leading-tight truncate">${m.ad}</h4>
-                        <p class="text-[10px] text-gray-500 mt-0.5 truncate">
-                            ${m.yetkili_kisi_ad_soyad ? `${m.yetkili_kisi_ad_soyad}` : ''}${m.telefon ? ` • ${m.telefon}` : ''}${!m.yetkili_kisi_ad_soyad && !m.telefon ? 'Yetkili girilmemiş' : ''}
-                        </p>
-                    </div>
-                    <div class="flex-shrink-0 text-right">
-                        <div class="text-[11px] font-black text-white">${araclar.length}</div>
-                        <div class="text-[9px] text-gray-500 uppercase tracking-wide">Araç</div>
-                    </div>
+                    <span class="${araclar.length ? 'badge-success' : 'badge-warning'}">${araclar.length ? 'Araç tanımlı' : 'Atama bekliyor'}</span>
                 </div>
-
-                <!-- Assigned Vehicles Expandable -->
-                <div class="border-t border-white/5 flex-1">
-                    <button onclick="toggleMusteriAraclar(this)" class="w-full px-4 py-2 text-[10px] font-bold text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center justify-between uppercase tracking-widest">
-                        <span class="flex items-center gap-2">
-                            <i data-lucide="truck" class="w-3 h-3"></i>
-                            Araçlar
-                            <span class="px-1.5 py-0.5 bg-white/10 rounded-full text-[9px] font-black text-gray-400">${araclar.length}</span>
-                        </span>
-                        <i data-lucide="chevron-down" class="w-3 h-3 transition-transform musteri-arac-chevron"></i>
+                <div class="factory-card-details">
+                    <div><span><i data-lucide="map-pin"></i>Bölge</span><strong>${regionLabel}</strong></div>
+                    <div><span><i data-lucide="route"></i>Servisler</span><strong>${tariffTypes.length ? `${tariffTypes.length} tanım · ${operationLabel}` : operationLabel}</strong></div>
+                    <div><span><i data-lucide="phone"></i>Telefon</span><strong>${m.telefon || 'Belirtilmemiş'}</strong></div>
+                </div>
+                <div class="factory-vehicle-disclosure">
+                    <button onclick="toggleMusteriAraclar(this)">
+                        <span><i data-lucide="bus-front"></i>Atanan araçlar <b>${araclar.length}</b></span><i data-lucide="chevron-down" class="musteri-arac-chevron"></i>
                     </button>
-                    <div class="musteri-arac-panel hidden bg-black/20">
-                        <!-- Compact plaka grid -->
-                        <div class="px-3 pt-2 pb-1">
-                            ${araclar.length > 0
-                                ? `<div class="flex flex-wrap gap-1.5">${araclar.map(buildAracChip).join('')}</div>`
-                                : `<p class="text-[10px] text-gray-600 italic py-2 px-1">Henüz araç atanmamış.</p>`
-                            }
-                        </div>
-                        <!-- Araç yönetim butonları -->
-                        <div class="flex gap-1.5 px-3 pb-3 pt-2 border-t border-white/5">
-                            <button onclick="openMusteriAracTanim('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-blue-400 hover:text-white hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="plus" class="w-3 h-3"></i> Ekle
-                            </button>
-                            <button onclick="window.openTopluAracEkle('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-orange-400 hover:text-white hover:bg-orange-500/20 border border-orange-500/20 hover:border-orange-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="list-plus" class="w-3 h-3"></i> Toplu
-                            </button>
-                            <button onclick="window.openTopluAracSil('${m.id}','${m.ad}')" class="flex-1 py-1.5 text-[10px] font-bold text-red-400 hover:text-white hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/50 rounded-lg transition-all flex items-center justify-center gap-1">
-                                <i data-lucide="trash-2" class="w-3 h-3"></i> Sil
-                            </button>
+                    <div class="musteri-arac-panel hidden">
+                        <div class="factory-vehicle-list">${araclar.length ? araclar.map(buildAracChip).join('') : '<p>Henüz araç atanmamış.</p>'}</div>
+                        <div class="factory-assignment-actions">
+                            <button onclick="openMusteriAracTanim('${m.id}','${factoryName}')"><i data-lucide="plus"></i>Ekle</button>
+                            <button onclick="window.openTopluAracEkle('${m.id}','${factoryName}')"><i data-lucide="list-plus"></i>Toplu ekle</button>
+                            <button class="is-danger" onclick="window.openTopluAracSil('${m.id}','${factoryName}')"><i data-lucide="trash-2"></i>Toplu sil</button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Actions Footer -->
-                <div class="border-t border-white/5 px-4 py-2.5 flex items-center justify-between bg-black/10">
-                    <button onclick="openPuantajForMusteri('${m.id}')"
-                        class="flex items-center gap-1.5 text-[10px] font-black text-orange-400 hover:text-orange-300 transition-all bg-orange-500/10 hover:bg-orange-500/20 px-3 py-1.5 rounded-lg border border-orange-500/20 hover:border-orange-500/40">
-                        <i data-lucide="table-2" class="w-3 h-3"></i> Puantaj Aç
-                    </button>
-                    <div class="flex items-center gap-2">
-                        ${m.vade_gun ? `<span class="text-[9px] text-gray-600 font-mono">${m.vade_gun}g vade</span>` : ''}
-                        <button onclick="openModal('Müşteri Güncelle', '${m.id}')" class="text-[10px] font-bold text-gray-500 hover:text-white transition-all px-2 py-1 rounded-md hover:bg-white/5">Düzenle</button>
-                        <button onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" class="text-[10px] font-bold text-red-600 hover:text-red-400 transition-all px-2 py-1 rounded-md hover:bg-red-500/10">Sil</button>
-                    </div>
+                <div class="factory-card-actions">
+                    <button onclick="openPuantajForMusteri('${m.id}')"><i data-lucide="table-2"></i>Puantaj</button>
+                    <button onclick="openModal('Müşteri Güncelle', '${m.id}')"><i data-lucide="pencil"></i>Düzenle</button>
+                    <button class="is-danger" onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')"><i data-lucide="trash-2"></i>Sil</button>
                 </div>
             `;
             grid.appendChild(card);
+
+            if (tableBody) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><div class="factory-identity"><span class="factory-avatar">${m.logo_url ? `<img src="${m.logo_url}" alt="" onerror="this.parentElement.textContent='${initials}'">` : initials}</span><div><strong>${factoryName}</strong><span>${m.adres || 'Adres belirtilmemiş'}</span></div></div></td>
+                    <td><div class="factory-contact"><strong>${contactName}</strong><span>${m.telefon || 'Telefon belirtilmemiş'}</span></div></td>
+                    <td><span class="factory-region"><i data-lucide="map-pin"></i>${regionLabel}</span><small>${tariffTypes.length ? `${tariffTypes.length} servis tanımı · ${operationLabel}` : operationLabel}</small></td>
+                    <td><details class="factory-table-vehicles"><summary><i data-lucide="bus-front"></i>${araclar.length} araç</summary><div>${araclar.length ? araclar.map(buildAracChip).join('') : '<p>Henüz araç atanmamış.</p>'}<button class="factory-inline-action" onclick="openMusteriAracTanim('${m.id}','${factoryName}')"><i data-lucide="plus"></i>Araç ekle</button></div></details></td>
+                    <td><span class="${araclar.length ? 'badge-success' : 'badge-warning'}">${araclar.length ? 'Araç tanımlı' : 'Atama bekliyor'}</span></td>
+                    <td><div class="factory-row-actions"><button onclick="openPuantajForMusteri('${m.id}')" title="Puantajı aç" aria-label="${factoryName} puantajını aç"><i data-lucide="table-2"></i></button><button onclick="openModal('Müşteri Güncelle', '${m.id}')" title="Düzenle" aria-label="${factoryName} kaydını düzenle"><i data-lucide="pencil"></i></button><button class="is-danger" onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" title="Sil" aria-label="${factoryName} kaydını sil"><i data-lucide="trash-2"></i></button></div></td>`;
+                tableBody.appendChild(row);
+            }
         });
 
 
@@ -4343,7 +4332,10 @@ async function fetchMusteriler() {
 
     } catch (e) {
         console.error(e);
-        grid.innerHTML = `<div class="col-span-full dashboard-card py-8 text-center text-red-400 font-bold">Veri hatası: ${e.message}</div>`;
+        const errorState = `<div class="factory-error-state"><span class="factory-state-icon"><i data-lucide="triangle-alert"></i></span><strong>Fabrika verileri yüklenemedi</strong><p>${e.message}</p><button onclick="fetchMusteriler()" class="btn-secondary"><i data-lucide="refresh-cw"></i>Tekrar dene</button></div>`;
+        grid.innerHTML = errorState;
+        if (tableBody) tableBody.innerHTML = `<tr><td colspan="6">${errorState}</td></tr>`;
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 
