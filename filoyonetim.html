@@ -80,7 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="design-system.css?v=2.0.1">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -213,58 +213,36 @@
         </div>
 
         <nav class="bf-sidebar-nav" id="main-nav-buttons" aria-label="Uygulama modülleri">
-            <button type="button" class="nav-section-toggle" data-nav-section="operasyon" aria-expanded="true">
-                <span>Operasyon</span><i data-lucide="chevron-down"></i>
-            </button>
-            <div class="nav-section-content" data-nav-content="operasyon">
-            <button data-target="module-dashboard" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all active">
-                <i data-lucide="layout-dashboard"></i> Genel Bakış
-            </button>
-            <button data-target="module-filo" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="truck"></i> Özmal Filo
-            </button>
-            <button data-target="module-taseron" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="users-2"></i> Taşeron Yönetimi
-            </button>
-            <button data-target="module-gps" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="map-pin"></i> Canlı Takip
-            </button>
-            </div>
-            <button type="button" class="nav-section-toggle" data-nav-section="yonetim" aria-expanded="true">
-                <span>Yönetim</span><i data-lucide="chevron-down"></i>
-            </button>
-            <div class="nav-section-content" data-nav-content="yonetim">
-            <button data-target="module-personel" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="user-cog"></i> Personel
-            </button>
-            <button data-target="module-musteri" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="users"></i> Fabrikalar
-            </button>
-            <button data-target="module-cari" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="building-2"></i> Cariler
-            </button>
-            </div>
-            <button type="button" class="nav-section-toggle" data-nav-section="finans" aria-expanded="true">
-                <span>Finans &amp; Analiz</span><i data-lucide="chevron-down"></i>
-            </button>
-            <div class="nav-section-content" data-nav-content="finans">
-            <button data-target="module-finans" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="banknote"></i> Taşeron Hakediş
-            </button>
-            <button data-target="module-yakit-km" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="fuel"></i> Yakıt & KM Takip
-            </button>
-            <button data-target="module-operasyon-merkezi" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="layout-panel-top"></i> Operasyon Merkezi
-            </button>
-            <button data-target="module-raporlar" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="bar-chart-3"></i> Raporlar
-            </button>
-
-            <button data-target="module-teklifler" class="nav-link text-slate-400 font-medium border-l-2 border-emerald-500/0 hover:border-emerald-500/50 bg-emerald-500/0 hover:bg-emerald-500/5 hover:text-emerald-400 transition-all">
-                <i data-lucide="file-text"></i> Teklif Yönetimi
-            </button>
-            </div>
+            <section class="nav-section" aria-labelledby="nav-general-label">
+                <h2 class="nav-section-label" id="nav-general-label">Genel</h2>
+                <button data-target="module-dashboard" class="nav-link active"><i data-lucide="layout-dashboard"></i><span>Genel Bakış</span></button>
+            </section>
+            <section class="nav-section" aria-labelledby="nav-fleet-label">
+                <h2 class="nav-section-label" id="nav-fleet-label">Filo</h2>
+                <button data-target="module-filo" class="nav-link"><i data-lucide="truck"></i><span>Özmal Filo</span></button>
+                <button data-target="module-taseron" class="nav-link"><i data-lucide="users-2"></i><span>Taşeronlar</span></button>
+                <button data-target="module-musteri" class="nav-link"><i data-lucide="factory"></i><span>Fabrikalar</span></button>
+                <button data-target="module-personel" class="nav-link"><i data-lucide="user-round-cog"></i><span>Personel</span></button>
+                <button data-target="module-yakit-km" class="nav-link"><i data-lucide="fuel"></i><span>Yakıt &amp; KM</span></button>
+            </section>
+            <section class="nav-section" aria-labelledby="nav-operation-label">
+                <h2 class="nav-section-label" id="nav-operation-label">Operasyon</h2>
+                <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
+                <button data-target="module-is-emirleri" class="nav-link"><i data-lucide="clipboard-list"></i><span>İş Emirleri</span></button>
+                <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
+            </section>
+            <section class="nav-section" aria-labelledby="nav-finance-label">
+                <h2 class="nav-section-label" id="nav-finance-label">Finans</h2>
+                <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span>Cariler</span></button>
+                <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span>Hakediş</span></button>
+                <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span>Teklifler</span></button>
+                <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Raporlar</span></button>
+            </section>
+            <section class="nav-section nav-section-secondary" aria-labelledby="nav-other-label">
+                <h2 class="nav-section-label" id="nav-other-label">Diğer</h2>
+                <button data-target="module-gps" class="nav-link"><i data-lucide="map-pin"></i><span>Canlı Takip</span></button>
+                <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span>Operasyon Takvimi</span></button>
+            </section>
         </nav>
 
         <div class="bf-sidebar-footer">
@@ -352,321 +330,78 @@
                 </div>
             </div>
 
-            <!-- Dashboard Module - v2 Detaylı -->
-            <div id="module-dashboard" class="main-module block stagger-in bf-dashboard">
-
+            <!-- Management Dashboard — Baris.Flow 2.0 -->
+            <div id="module-dashboard" class="main-module block stagger-in bf-dashboard bf-management-dashboard">
                 <header class="page-header dashboard-page-header">
                     <div class="page-header-identity">
+                        <p class="dashboard-eyebrow">Yönetim Merkezi</p>
                         <div class="dashboard-title-line">
                             <h2 class="page-title">Genel Bakış</h2>
                             <div id="dashboard-refresh-spin" class="dashboard-refresh-spinner hidden" role="status" aria-label="Dashboard yenileniyor"></div>
                         </div>
-                        <p class="page-subtitle">Filonuzun güncel durumu ve önemli operasyon bilgileri.</p>
+                        <p class="page-subtitle">Filo sağlığı, yaklaşan yükümlülükler ve finansal görünüm.</p>
                         <p class="dashboard-updated-at" id="dashboard-date-label" aria-live="polite">Yükleniyor...</p>
                     </div>
-                    <div class="page-actions dashboard-page-actions">
-                        <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile">
-                            <i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span>
-                        </button>
-                        <button type="button" onclick="if(window.sendAutoWhatsAppReport) window.sendAutoWhatsAppReport()" class="btn-secondary" aria-label="WhatsApp operasyon raporu gönder">
-                            <i data-lucide="message-circle" aria-hidden="true"></i><span>WhatsApp Rapor</span>
-                        </button>
-                    </div>
+                    <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
                 </header>
 
-                <!-- Ana karar metrikleri: mevcut dashboard verileri korunur. -->
-                <section class="dashboard-kpi-grid" aria-label="Filo özet metrikleri">
-                    <!-- Kart 1: Filo Durumu -->
+                <section class="dashboard-kpi-grid" aria-label="Yönetim özet metrikleri">
                     <article class="kpi-card dashboard-kpi-card is-fleet">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="truck" aria-hidden="true"></i></span><span class="badge-info">Filo</span></div>
-                        <h3>Toplam Filo</h3>
-                        <strong class="dashboard-kpi-value" id="kpi-arac-main">0</strong>
-                        <div class="dashboard-kpi-meta" aria-label="Araç sahiplik dağılımı">
-                            <span>Özmal <strong id="kpi-arac-ozmal">0</strong></span>
-                            <span>Taşeron <strong id="kpi-arac-taseron">0</strong></span>
-                            <span>Kiralık <strong id="kpi-arac-kiralik">0</strong></span>
-                        </div>
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="truck"></i></span><span class="badge-neutral">Filo</span></div>
+                        <h3>Toplam Araç</h3><strong class="dashboard-kpi-value" id="kpi-arac-main">0</strong>
+                        <div class="dashboard-kpi-meta"><span>Özmal <strong id="kpi-arac-ozmal">0</strong></span><span>Taşeron <strong id="kpi-arac-taseron">0</strong></span><span>Kiralık <strong id="kpi-arac-kiralik">0</strong></span></div>
                     </article>
-                    
-                    <!-- Kart 2: Yaklaşan Poliçeler -->
                     <article class="kpi-card dashboard-kpi-card is-policy">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="shield-alert" aria-hidden="true"></i></span><span class="badge-warning">30 gün</span></div>
-                        <h3>Yaklaşan Poliçe</h3>
-                        <strong class="dashboard-kpi-value" id="kpi-police-main">0</strong>
-                        <div class="dashboard-kpi-meta" aria-label="Yaklaşan poliçe türleri">
-                            <span>Trafik <strong id="kpi-police-trafik">0</strong></span>
-                            <span>Kasko <strong id="kpi-police-kasko">0</strong></span>
-                            <span>Koltuk <strong id="kpi-police-koltuk">0</strong></span>
-                        </div>
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="shield-alert"></i></span><span class="badge-warning">30 gün</span></div>
+                        <h3>Kritik Evrak</h3><strong class="dashboard-kpi-value" id="kpi-police-main">0</strong>
+                        <div class="dashboard-kpi-meta"><span>Trafik <strong id="kpi-police-trafik">0</strong></span><span>Kasko <strong id="kpi-police-kasko">0</strong></span><span>Koltuk <strong id="kpi-police-koltuk">0</strong></span></div>
                     </article>
-                
-                    <!-- Kart 3: Vize & Bakım -->
                     <article class="kpi-card dashboard-kpi-card is-maintenance">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wrench" aria-hidden="true"></i></span><span class="badge-danger">Kontrol</span></div>
-                        <h3>Yaklaşan Bakım &amp; Vize</h3>
-                        <strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
-                        <div class="dashboard-kpi-meta" aria-label="Bakım ve vize dağılımı">
-                            <span>Vize <strong id="kpi-bakim-vize">0</strong></span>
-                            <span>Yağ (KM) <strong id="kpi-bakim-yag">0</strong></span>
-                            <span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span>
-                        </div>
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wrench"></i></span><span class="badge-danger">Kontrol</span></div>
+                        <h3>Yaklaşan Bakım</h3><strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
+                        <div class="dashboard-kpi-meta"><span>Muayene <strong id="kpi-bakim-vize">0</strong></span><span>Bakım <strong id="kpi-bakim-yag">0</strong></span><span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span></div>
                     </article>
-                
-                    <!-- Kart 4: Finansal Performans -->
                     <article class="kpi-card dashboard-kpi-card is-finance">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wallet-cards" aria-hidden="true"></i></span><span class="badge-success">Bu ay</span></div>
-                        <h3>Aylık Toplam Ciro</h3>
-                        <strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">0 ₺</strong>
-                        <div class="dashboard-kpi-meta is-finance-meta" aria-label="Aylık gelir ve gider özeti">
-                            <span>Servis <strong id="kpi-finans-gelir">0 ₺</strong></span>
-                            <span>Yakıt <strong id="kpi-finans-yakit">0 ₺</strong></span>
-                            <span>Bakım <strong id="kpi-finans-bakim">0 ₺</strong></span>
-                        </div>
-                    </article>
-
-                    <article class="kpi-card dashboard-kpi-card is-people">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="users-round" aria-hidden="true"></i></span><span class="badge-neutral">Kayıtlı</span></div>
-                        <h3>Profil &amp; Sürücü</h3>
-                        <strong class="dashboard-kpi-value" id="kpi-personel-main">0</strong>
-                        <div class="dashboard-kpi-meta" aria-label="Profil dağılımı">
-                            <span>Sürücü <strong id="bar-sofor-count">0</strong></span>
-                            <span>Cari <strong id="bar-cari-count">0</strong></span>
-                        </div>
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wallet-cards"></i></span><span class="badge-info">Bu ay</span></div>
+                        <h3>Filo Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
+                        <div class="dashboard-kpi-meta"><span>Yakıt <strong id="kpi-finans-yakit">₺0</strong></span><span>Bakım <strong id="kpi-finans-bakim">₺0</strong></span></div>
                     </article>
                 </section>
 
-                <!-- Kritik operasyon alanı -->
-                <section class="data-section today-tasks-card dashboard-attention" aria-labelledby="today-tasks-title">
-                    <div class="today-tasks-head">
-                        <div>
-                            <p class="today-tasks-kicker">OPERASYON TAKİBİ</p>
-                            <h3 id="today-tasks-title"><i data-lucide="circle-alert" aria-hidden="true"></i> Dikkat Gerektirenler</h3>
-                            <p>Bugünün öncelikli puantaj, evrak ve iş emri kontrolleri.</p>
-                        </div>
-                        <button type="button" class="btn-ghost" onclick="window.renderBugunYapilacaklar && window.renderBugunYapilacaklar()" aria-label="Dikkat gerektiren kayıtları yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
+                <section class="data-section dashboard-attention" aria-labelledby="management-attention-title">
+                    <div class="dashboard-section-head">
+                        <div><p class="dashboard-eyebrow">Öncelik Sırası</p><h3 id="management-attention-title">Yaklaşanlar / Dikkat Gerektirenler</h3><p>Poliçe, muayene, bakım ve eksik evraklar tek listede.</p></div>
+                        <span class="dashboard-section-icon"><i data-lucide="circle-alert"></i></span>
                     </div>
-                    <div id="today-tasks-list" class="today-tasks-list" aria-live="polite">
-                        <div class="today-tasks-loading"><i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Bugünün kontrol listesi hazırlanıyor...</div>
-                    </div>
+                    <div id="management-attention-list" class="management-attention-list" aria-live="polite"><div class="loading-state">Kritik kayıtlar hazırlanıyor...</div></div>
                 </section>
 
-                <div class="dashboard-decision-grid">
-                    <!-- Sol Panel: Filo Durumu Donut Chart -->
+                <div class="dashboard-management-grid">
+                    <section class="data-section dashboard-finance-summary" aria-labelledby="finance-summary-title">
+                        <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Finans</p><h3 id="finance-summary-title">Finansal Özet</h3><p>Bu ayın filo giderleri ve hakediş görünümü.</p></div><span class="dashboard-section-icon"><i data-lucide="landmark"></i></span></div>
+                        <div class="finance-summary-list">
+                            <div><span>Toplam filo gideri</span><strong id="finance-month-total">₺0</strong></div>
+                            <div><span>Yakıt gideri</span><strong id="finance-month-fuel">₺0</strong></div>
+                            <div><span>Bakım gideri</span><strong id="finance-month-maintenance">₺0</strong></div>
+                            <div><span>Hakediş hacmi</span><strong id="finance-month-accrual">₺0</strong></div>
+                        </div>
+                        <button type="button" class="btn-ghost finance-summary-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-finans\']').click()">Hakedişe Git <i data-lucide="arrow-right"></i></button>
+                    </section>
                     <section class="app-card dashboard-chart-card" aria-labelledby="fleet-chart-title">
-                        <div class="dashboard-section-head">
-                            <div>
-                                <h3 id="fleet-chart-title">Filo Durumu</h3>
-                                <p>Sahiplik dağılımı</p>
-                            </div>
-                            <span class="dashboard-section-icon"><i data-lucide="pie-chart" aria-hidden="true"></i></span>
-                        </div>
-                        
-                        <div class="dashboard-chart-frame">
-                            <canvas id="fleetDonutChart" role="img" aria-label="Özmal, taşeron ve kiralık araç sahiplik dağılımı"></canvas>
-                            <div class="dashboard-chart-total" aria-hidden="true">
-                                <strong id="donut-total">0</strong>
-                                <span>Araç</span>
-                            </div>
-                        </div>
-                        
-                        <div class="dashboard-chart-legend" aria-label="Grafik açıklaması">
-                            <span class="is-owned"><i></i>Özmal <strong id="fleet-ozmal-count">0</strong></span>
-                            <span class="is-contractor"><i></i>Taşeron <strong id="fleet-taseron-count">0</strong></span>
-                            <span class="is-rental"><i></i>Kiralık <strong id="fleet-kiralik-count">0</strong></span>
-                        </div>
-                    </section>
-
-                    <!-- Sağ Panel: Personel Durumu ve Aktiviteler -->
-                    <section class="data-section dashboard-operations" aria-labelledby="dashboard-operations-title">
-                        
-                        <!-- Üst: Personel / İşlemler -->
-                        <div>
-                            <div class="dashboard-section-head">
-                                <div>
-                                    <h3 id="dashboard-operations-title">Operasyon Özeti</h3>
-                                    <p>Profil dağılımı ve hızlı kayıt işlemleri</p>
-                                </div>
-                                <span class="dashboard-section-icon"><i data-lucide="route" aria-hidden="true"></i></span>
-                            </div>
-                            
-                            <div class="space-y-6">
-                                <!-- Bar 1 -->
-                                <div>
-                                    <div class="dashboard-profile-row">
-                                        <div class="dashboard-profile-name">
-                                            <span class="dashboard-profile-icon"><i data-lucide="users" aria-hidden="true"></i></span>
-                                            <div><p>Sürücüler / Şoförler</p><p>Araç kullanan personel</p></div>
-                                        </div>
-                                        <span class="dashboard-profile-label">Sürücü profilleri</span>
-                                    </div>
-                                    <div class="dashboard-profile-track"><div class="dashboard-profile-fill is-driver" id="bar-sofor-width"></div></div>
-                                </div>
-                                <!-- Bar 2 -->
-                                <div>
-                                    <div class="dashboard-profile-row">
-                                        <div class="dashboard-profile-name">
-                                            <span class="dashboard-profile-icon"><i data-lucide="building-2" aria-hidden="true"></i></span>
-                                            <div><p>Müşteri / Cari Firmalar</p><p>Fabrika ve taşeronlar</p></div>
-                                        </div>
-                                        <span class="dashboard-profile-label">Cari profilleri</span>
-                                    </div>
-                                    <div class="dashboard-profile-track"><div class="dashboard-profile-fill is-account" id="bar-cari-width"></div></div>
-                                </div>
-                            </div>
-                            
-                            <div class="dashboard-quick-actions">
-                                <button type="button" onclick="openModal('Yeni Yakıt Kaydı')" class="btn-ghost"><i data-lucide="fuel" aria-hidden="true"></i><span>Yakıt Gir</span></button>
-                                <button type="button" onclick="openModal('Yeni Bakım/Parça Kaydı')" class="btn-ghost"><i data-lucide="wrench" aria-hidden="true"></i><span>Bakım Gir</span></button>
-                                <button type="button" onclick="openModal('Yeni Poliçe Kaydı')" class="btn-ghost"><i data-lucide="shield" aria-hidden="true"></i><span>Poliçe Ekle</span></button>
-                            </div>
-                        </div>
-
-                        <!-- Alt: Son Aktiviteler -->
-                        <div class="dashboard-activity-section">
-                            <div class="dashboard-activity-head">
-                                <h4><i data-lucide="activity" aria-hidden="true"></i> Son Aktiviteler</h4>
-                                <button type="button" onclick="window.fetchDashboardData()" class="btn-icon" aria-label="Son aktiviteleri yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i></button>
-                            </div>
-                            <div id="son-aktiviteler-list" class="dashboard-activity-list">
-                                <table class="dashboard-activity-table">
-                                    <caption class="sr-only">Son sistem aktiviteleri</caption>
-                                    <tbody id="son-islemler-tbody">
-                                        <tr><td class="loading-state">Aktiviteler yükleniyor...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Dağılım</p><h3 id="fleet-chart-title">Filo Yapısı</h3><p>Özmal, taşeron ve kiralık araçlar.</p></div><span class="dashboard-section-icon"><i data-lucide="pie-chart"></i></span></div>
+                        <div class="dashboard-chart-frame"><canvas id="fleetDonutChart" role="img" aria-label="Araç sahiplik dağılımı"></canvas><div class="dashboard-chart-total"><strong id="donut-total">0</strong><span>Araç</span></div></div>
+                        <div class="dashboard-chart-legend"><span class="is-owned"><i></i>Özmal <strong id="fleet-ozmal-count">0</strong></span><span class="is-contractor"><i></i>Taşeron <strong id="fleet-taseron-count">0</strong></span><span class="is-rental"><i></i>Kiralık <strong id="fleet-kiralik-count">0</strong></span></div>
                     </section>
                 </div>
 
-                <!-- 3. SATIR: EXCEL IMPORT VE DETAYLI POLİÇELER -->
-                <div class="dashboard-support-grid">
-
-                    <!-- Aylık Puantaj Import Takvimi -->
-                    <section class="data-section dashboard-calendar" aria-labelledby="import-calendar-title">
-                        <div class="import-calendar-head">
-                            <div class="flex items-start gap-3">
-                                <div class="import-calendar-icon"><i data-lucide="calendar-check-2" class="w-5 h-5"></i></div>
-                                <div>
-                                    <p class="import-calendar-kicker">Puantaj Kontrol Merkezi</p>
-                                    <h3 id="import-calendar-title">Aylık Import Takvimi</h3>
-                                    <p class="import-calendar-description">Son üç ayda aktif olan fabrikaların seçili aydaki kayıtlarını tek ekranda takip edin.</p>
-                                </div>
-                            </div>
-                            <div class="import-calendar-controls">
-                                <input type="month" id="import-calendar-month" aria-label="Takvim ayı" onchange="window.fetchImportCalendar()">
-                                <select id="import-calendar-region" aria-label="Takvim bölgesi" onchange="window.fetchImportCalendar()">
-                                    <option value="Tümü">Tüm Bölgeler</option>
-                                    <option value="Manisa">Manisa</option>
-                                    <option value="İzmir">İzmir</option>
-                                </select>
-                                <button type="button" class="import-calendar-refresh" onclick="window.fetchImportCalendar()" title="Takvimi yenile">
-                                    <i data-lucide="refresh-cw" class="w-4 h-4"></i><span>Yenile</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="import-calendar-stats" aria-live="polite">
-                            <div><span>Fabrika</span><strong id="import-calendar-factory-count">–</strong></div>
-                            <div><span>İşlenen gün</span><strong id="import-calendar-complete-count">–</strong></div>
-                            <div><span>Kontrol bekleyen</span><strong id="import-calendar-missing-count">–</strong></div>
-                            <div><span>Son import</span><strong id="import-calendar-last-import">–</strong></div>
-                        </div>
-                        <div class="import-calendar-legend">
-                            <span><i class="is-complete"></i> İşlendi</span>
-                            <span><i class="is-missing"></i> Kontrol edin</span>
-                            <span><i class="is-weekend"></i> Hafta sonu</span>
-                            <span><i class="is-future"></i> Gelecek gün</span>
-                        </div>
-                        <div id="import-calendar-list" class="import-calendar-list" aria-live="polite">
-                            <div class="import-calendar-loading"><i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> Takvim hazırlanıyor...</div>
-                        </div>
-                    </section>
-                    
-                    <!-- Excel Import -->
-                    <section class="data-section dashboard-import" aria-labelledby="dashboard-import-title">
-                        <div class="dashboard-import-head">
-                            <div class="flex items-center gap-2"><i data-lucide="file-up" aria-hidden="true"></i><h3 id="dashboard-import-title">Günlük Excel Import</h3></div>
-                            <span class="badge-info hidden sm:inline-flex">Puantaj</span>
-                        </div>
-                        <div class="dashboard-import-region">
-                            <div class="dashboard-import-region-label">
-                                <i data-lucide="map-pin" aria-hidden="true"></i>
-                                <label for="import-bolge-select">Bölge seçin</label>
-                                <span class="badge-danger">Zorunlu</span>
-                            </div>
-                            <select id="import-bolge-select" class="form-control">
-                                <option value="" disabled selected>-- Lütfen bir bölge seçin --</option>
-                                <option value="İzmir">İzmir Servisleri</option>
-                                <option value="Manisa">Manisa Servisleri</option>
-                            </select>
-                            <div id="import-bolge-badge" class="badge-info hidden"></div>
-                        </div>
-                        <input type="file" id="import-file-input" class="hidden" accept=".xlsx,.xls" onchange="window.handleImportFile(this.files[0])">
-                        <div class="import-drop-area dashboard-import-drop" role="button" tabindex="0" aria-label="Puantaj Excel dosyası seç" ondrop="window.handleImportDrop(event)" ondragover="window.handleImportDragOver(event)" ondragleave="window.handleImportDragLeave()" onclick="window.checkBolgeAndOpenFile()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.checkBolgeAndOpenFile()}">
-                            <span class="dashboard-import-drop-icon"><i data-lucide="upload-cloud" aria-hidden="true"></i></span>
-                            <p>Excel'i sürükle ve bırak</p>
-                            <p>veya dosya seçmek için tıklayın (.xlsx / .xls)</p>
-                        </div>
-                        <div class="dashboard-import-download">
-                            <a href="./ornek_puantaj_sablonu.xlsx" download="BarisFlow_Ornek_Puantaj_Sablonu.xlsx" class="btn-ghost">
-                                <i data-lucide="download" aria-hidden="true"></i> Şablonu indir
-                            </a>
-                        </div>
-                    </section>
-
-                    <!-- Biten & Yaklaşan Poliçeler Tablosu (Kullanıcı Önceliği) -->
-                    <section id="dashboard-policy-card" class="data-section dashboard-policy" aria-labelledby="dashboard-policy-title">
-                        <div class="dashboard-policy-head">
-                            <div class="flex items-center gap-3">
-                                <span class="dashboard-section-icon"><i data-lucide="shield-check" aria-hidden="true"></i></span>
-                                <div>
-                                    <h3 id="dashboard-policy-title">Biten &amp; Yaklaşan Poliçeler</h3>
-                                    <p>Süresi bitenler ve önümüzdeki 90 günün kısa özeti</p>
-                                </div>
-                            </div>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <div id="police-ozet-badges" class="flex items-center gap-2"></div>
-                                <select id="police-filtre" aria-label="Poliçeleri duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter">
-                                    <option value="tumu">Tüm Kayıtlar</option>
-                                    <option value="gecmis">Geçmiş (Biten)</option>
-                                    <option value="kritik">Kritik (0–7 Gün)</option>
-                                    <option value="yaklasan">Yaklaşan (8–30 Gün)</option>
-                                    <option value="normal">Normal (31–90 Gün)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="dashboard-table-wrap custom-scrollbar">
-                            <table class="dashboard-policy-table">
-                                <caption class="sr-only">Biten ve yaklaşan araç poliçeleri</caption>
-                                <thead>
-                                    <tr>
-                                        <th class="pb-3 px-3 font-bold">Durum</th>
-                                        <th class="pb-3 px-3 font-bold">Plaka</th>
-                                        <th class="pb-3 px-3 font-bold">Poliçe Türü</th>
-                                        <th class="pb-3 px-3 font-bold">Sigorta Firması</th>
-                                        <th class="pb-3 px-3 font-bold">Başlangıç</th>
-                                        <th class="pb-3 px-3 font-bold">Bitiş Tarihi</th>
-                                        <th class="pb-3 px-3 font-bold text-center">Kalan Süre</th>
-                                        <th class="pb-3 px-3 font-bold text-right">Prim Tutarı</th>
-                                        <th class="pb-3 px-3 font-bold text-center">Taksit</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="police-dashboard-tbody" class="divide-y divide-white/5">
-                                    <tr><td colspan="9" class="py-14 text-center">
-                                        <div class="loading-state">
-                                            <i data-lucide="loader-2" class="animate-spin" aria-hidden="true"></i>
-                                            <span>Poliçeler yükleniyor...</span>
-                                        </div>
-                                    </td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="police-dashboard-footer" class="dashboard-policy-footer hidden">
-                            <span id="police-gosterilen-sayi"></span>
-                            <button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="btn-ghost">Tümünü Göster <i data-lucide="arrow-right" aria-hidden="true"></i></button>
-                        </div>
-                    </section>
-                </div>
+                <section id="dashboard-policy-card" class="data-section dashboard-policy" aria-labelledby="dashboard-policy-title">
+                    <div class="dashboard-policy-head">
+                        <div><span class="dashboard-section-icon"><i data-lucide="shield-check"></i></span><div><h3 id="dashboard-policy-title">Poliçe ve Muayene Takvimi</h3><p>Biten ve önümüzdeki 90 gün içinde yaklaşan kayıtlar.</p></div></div>
+                        <div><div id="police-ozet-badges"></div><select id="police-filtre" aria-label="Kayıtları duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter"><option value="tumu">Tüm Kayıtlar</option><option value="gecmis">Süresi Geçen</option><option value="kritik">Kritik (0–7 Gün)</option><option value="yaklasan">Yaklaşan (8–30 Gün)</option><option value="normal">Planlı (31–90 Gün)</option></select></div>
+                    </div>
+                    <div class="dashboard-table-wrap custom-scrollbar"><table class="dashboard-policy-table"><caption class="sr-only">Biten ve yaklaşan filo kayıtları</caption><thead><tr><th>Durum</th><th>Plaka</th><th>Konu</th><th>Firma</th><th>Başlangıç</th><th>Bitiş</th><th class="text-center">Kalan</th><th class="text-right">Tutar</th><th class="text-center">Ödeme</th></tr></thead><tbody id="police-dashboard-tbody"><tr><td colspan="9"><div class="loading-state">Kayıtlar yükleniyor...</div></td></tr></tbody></table></div>
+                    <div id="police-dashboard-footer" class="dashboard-policy-footer hidden"><span id="police-gosterilen-sayi"></span><button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="btn-ghost">Tümünü Göster <i data-lucide="arrow-right"></i></button></div>
+                </section>
             </div>
 
 
@@ -3109,7 +2844,7 @@
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="data-services.js"></script>
-<script defer src="ui-manager.js"></script>
+<script defer src="ui-manager.js?v=2.0.1"></script>
 
 
 <!-- 3. FEATURE MODULES -->
@@ -3120,8 +2855,8 @@
 <!-- puantaj.js removed: belongs exclusively to puantaj.html -->
 
 <!-- 5. FIXES -->
-<script defer src="app-fixes.js"></script>
-<script defer src="ios-mobile.js"></script>
+<script defer src="app-fixes.js?v=2.0.1"></script>
+<script defer src="ios-mobile.js?v=2.0.1"></script>
 
 <!-- 6. NEW SRP MODULES -->
 <script defer src="evrak-arsivi.js"></script>
@@ -3132,7 +2867,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js"></script>
+<script defer src="dashboard-funcs.js?v=2.0.1"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

@@ -122,6 +122,10 @@ navButtons.forEach(btn => {
             if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
         } else if (targetId === 'module-operasyon-merkezi') {
             if (typeof window.renderOperasyonMerkezi === 'function') window.renderOperasyonMerkezi();
+        } else if (targetId === 'module-is-emirleri') {
+            if (typeof window.initIsEmirleriModule === 'function') window.initIsEmirleriModule();
+        } else if (targetId === 'module-evrak-arsivi') {
+            if (typeof window.initEvrakModule === 'function') window.initEvrakModule();
         } else if (targetId === 'module-personel') {
             const ayEl = document.getElementById('personel-ay');
             if (ayEl && !ayEl.value) {

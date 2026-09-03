@@ -182,16 +182,6 @@ function initMobileSidebar() {
 function initSidebarCollapse() {
     const sidebar = document.getElementById('main-sidebar');
     if (!sidebar) return;
-    const sidebarNav = sidebar.querySelector('.bf-sidebar-nav');
-
-    // Desktop'ta wheel/trackpad hareketini, imleç sidebar'ın hangi bölümünde
-    // olursa olsun yalnızca sidebar menüsüne yönlendir.
-    sidebar.addEventListener('wheel', function (event) {
-        if (window.innerWidth <= 768 || !sidebarNav || sidebarNav.scrollHeight <= sidebarNav.clientHeight) return;
-        const previousTop = sidebarNav.scrollTop;
-        sidebarNav.scrollTop += event.deltaY;
-        if (sidebarNav.scrollTop !== previousTop) event.preventDefault();
-    }, { passive: false });
 
     // Inject collapse toggle button into sidebar top
     const collapseBtn = document.createElement('button');

@@ -128,9 +128,19 @@ window.fetchDashboardData = async function () {
             setTimeout(() => window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş!`), 2000);
         }
 
-        const sumYakit = yakitlar.reduce((s, y) => s + (y.toplam_tutar || 0), 0);
-        const sumBakim = bakimlar.reduce((s, b) => s + (b.toplam_tutar || 0), 0);
-        const sumHakedisTaseron = hakedisTaseron.reduce((s, h) => s + (h.net_hakedis || h.anlasilan_tutar || 0), 0);
+        const isCurrentMonth = (row, fields) => {
+            const field = fields.find(candidate => row?.[candidate]);
+            const value = field ? String(row[field]).slice(0, 10) : '';
+            return value >= monthStart && value <= monthEnd;
+        };
+        const aylikYakitlar = yakitlar.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
+        const aylikBakimlar = bakimlar.filter(row => isCurrentMonth(row, ['islem_tarihi', 'tarih', 'created_at']));
+        const aylikTaseronHakedis = hakedisTaseron.filter(row => isCurrentMonth(row, ['sefer_tarihi', 'tarih', 'created_at']));
+        const aylikServisHakedis = hakedisServis.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
+        const sumYakit = aylikYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0);
+        const sumBakim = aylikBakimlar.reduce((s, b) => s + (Number(b.toplam_tutar) || 0), 0);
+        const sumHakedisTaseron = aylikTaseronHakedis.reduce((s, h) => s + (Number(h.net_hakedis || h.anlasilan_tutar) || 0), 0);
+        const sumHakedisServis = aylikServisHakedis.reduce((s, h) => s + (Number(h.gunluk_ucret) || 0), 0);
         const ozmalAraçIds = araclar.filter(a => (a.mulkiyet_durumu || '').toUpperCase().trim() === 'ÖZMAL').map(a => a.id);
         
         // Özmal Araçların Cari Kartları (taseron_hakedis tablosundaki kayıtları)
@@ -145,8 +155,8 @@ window.fetchDashboardData = async function () {
             
         const ozmalServisGeliri = ozmalHakedisGeliri + ozmalPuantajGeliri;
         
-        // Toplam Ciro (Sadece Özmal Geliri olarak kabul ediliyor)
         const sumCiro = ozmalServisGeliri;
+        const sumFiloGider = sumYakit + sumBakim;
 
         setEl('kpi-arac-main', araclar.length);
         setEl('kpi-arac-ozmal', ozmal);
@@ -163,10 +173,14 @@ window.fetchDashboardData = async function () {
         setEl('kpi-bakim-yag', yagYaklasan);
         setEl('kpi-bakim-gecmis', suresiGecen);
 
-        setEl('kpi-finans-main', _fmt(sumCiro));
+        setEl('kpi-finans-main', _fmt(sumFiloGider));
         setEl('kpi-finans-gelir', _fmt(ozmalServisGeliri));
         setEl('kpi-finans-yakit', _fmt(sumYakit));
         setEl('kpi-finans-bakim', _fmt(sumBakim));
+        setEl('finance-month-total', _fmt(sumFiloGider));
+        setEl('finance-month-fuel', _fmt(sumYakit));
+        setEl('finance-month-maintenance', _fmt(sumBakim));
+        setEl('finance-month-accrual', _fmt(sumHakedisTaseron + sumHakedisServis));
         
         const totalProfil = soforCount + cariCount;
         setEl('kpi-personel-main', totalProfil);
@@ -248,29 +262,7 @@ window.fetchDashboardData = async function () {
         // Cache'e yaz ve tabloyu render et
         window._dashboardPolicelerCache = policelerEnriched;
         window.renderPoliceDashboardTable(policelerEnriched, 'tumu');
-
-        // ── Widget render'ları ────────────────────────────────
-        try { _renderEvrakWidget(araclar, future30Str, todayStr, today); } catch(e) { console.error('Evrak widget:', e); }
-
-        const police30 = policelerEnriched.filter(p => p.bitis_tarihi >= todayStr && p.bitis_tarihi <= future30Str);
-        try { _renderOdemelerWidget(police30); } catch(e) { console.error('Ödemeler widget:', e); }
-
-        try { _renderYagBakimWidget(araclar, bakimlar); } catch(e) { console.error('Yağ widget:', e); }
-
-        // ── Aktivite feed ─────────────────────────────────────
-        await window.fetchSonAktiviteler(araclar);
-
-        // ── Aylık puantaj import takvimi ──────────────────────
-        if (typeof window.fetchImportCalendar === 'function') {
-            await window.fetchImportCalendar();
-        }
-
-        // ── Ciro/Gider grafiği ────────────────────────────────
-        if (typeof window.renderBugunYapilacaklar === 'function') {
-            await window.renderBugunYapilacaklar();
-        }
-
-        await _renderMainChart();
+        window.renderManagementAttention(araclar, policelerEnriched);
 
     } catch(e) {
         console.error('[DASHBOARD] Kritik hata:', e);
@@ -430,6 +422,75 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
 window.filterPoliceDashboard = function(value) {
     if (!window._dashboardPolicelerCache) return;
     window.renderPoliceDashboardTable(window._dashboardPolicelerCache, value);
+};
+
+// Dashboard'daki tek yönetim listesi; yalnızca yukarıda çekilen mevcut filo verisini kullanır.
+window.renderManagementAttention = function (araclar, policeler) {
+    const container = document.getElementById('management-attention-list');
+    if (!container) return;
+    const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+    const items = [];
+
+    (policeler || []).filter(item => Number.isFinite(item.days) && item.days <= 30).forEach(item => {
+        const expired = item.days < 0;
+        const critical = item.days <= 7;
+        const type = String(item.police_turu || 'Araç evrakı');
+        items.push({
+            plaka: item.plaka || '—',
+            subject: type,
+            detail: item.bitis_tarihi ? `Bitiş: ${_fmtDate(item.bitis_tarihi)}` : 'Bitiş tarihi kontrol edilmeli',
+            time: expired ? `${Math.abs(item.days)} gün gecikti` : item.days === 0 ? 'Bugün' : `${item.days} gün kaldı`,
+            badge: expired || critical ? 'badge-danger' : 'badge-warning',
+            status: expired ? 'Süresi geçti' : critical ? 'Kritik' : 'Yaklaşıyor',
+            priority: expired ? -200 + item.days : item.days
+        });
+    });
+
+    (araclar || []).forEach(vehicle => {
+        const currentKm = Number(vehicle.guncel_km) || 0;
+        const lastOilKm = Number(vehicle.son_yag_km) || 0;
+        if (currentKm > 0 && lastOilKm > 0) {
+            const remaining = 10000 - (currentKm - lastOilKm);
+            if (remaining <= 1200) items.push({
+                plaka: vehicle.plaka || '—', subject: 'Periyodik bakım',
+                detail: `Güncel kilometre: ${currentKm.toLocaleString('tr-TR')} km`,
+                time: remaining < 0 ? `${Math.abs(remaining).toLocaleString('tr-TR')} km gecikti` : `${remaining.toLocaleString('tr-TR')} km kaldı`,
+                badge: remaining <= 500 ? 'badge-danger' : 'badge-warning',
+                status: remaining < 0 ? 'Gecikti' : remaining <= 500 ? 'Kritik' : 'Yaklaşıyor',
+                priority: remaining < 0 ? -150 : remaining / 100
+            });
+        }
+
+        if (String(vehicle.mulkiyet_durumu || '').toLocaleUpperCase('tr-TR') === 'ÖZMAL') {
+            const missing = [
+                ['sigorta_bitis', 'Trafik sigortası'], ['kasko_bitis', 'Kasko'],
+                ['vize_bitis', 'Muayene'], ['koltuk_bitis', 'Koltuk sigortası']
+            ].filter(([field]) => !vehicle[field]).map(([, label]) => label);
+            if (missing.length) items.push({
+                plaka: vehicle.plaka || '—', subject: 'Eksik araç evrakı',
+                detail: missing.join(', '), time: `${missing.length} eksik kayıt`,
+                badge: 'badge-neutral', status: 'Kontrol', priority: 35
+            });
+        }
+    });
+
+    items.sort((a, b) => a.priority - b.priority);
+    const visible = items.slice(0, 10);
+    if (!visible.length) {
+        container.innerHTML = '<div class="management-attention-empty"><i data-lucide="circle-check"></i><p>Dikkat gerektiren kritik filo kaydı bulunmuyor.</p></div>';
+    } else {
+        container.innerHTML = visible.map(item => `<div class="management-attention-row">
+            <strong class="management-attention-plate">${escapeText(item.plaka)}</strong>
+            <div><span class="management-attention-subject">${escapeText(item.subject)}</span><small class="management-attention-detail">${escapeText(item.detail)}</small></div>
+            <span class="management-attention-time">${escapeText(item.time)}</span>
+            <span class="${item.badge}">${escapeText(item.status)}</span>
+            <button type="button" class="btn-ghost" data-attention-target="module-filo">İncele</button>
+        </div>`).join('');
+        container.querySelectorAll('[data-attention-target]').forEach(button => button.addEventListener('click', () => {
+            document.querySelector(`#main-nav-buttons [data-target="${button.dataset.attentionTarget}"]`)?.click();
+        }));
+    }
+    if (window.lucide) window.lucide.createIcons();
 };
 
 // ════════════════════════════════════════════════════════════════

@@ -96,6 +96,7 @@
     }
 
     function enhanceModuleCollapse(module) {
+        if (window.innerWidth > 768) return;
         if (!module || !module.id || module.dataset.iosCollapseReady === 'true') return;
 
         module.dataset.iosCollapseReady = 'true';

@@ -3,20 +3,23 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.18';
+var CACHE_NAME = 'filo-erp-v1.0.19';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
     '/style.css',
+    '/design-system.css?v=2.0.1',
     '/config.js',
     '/company-branding.js',
     '/hakedis-calculations.js',
     '/teklif-management.js',
     '/data-services.js',
-    '/ui-manager.js',
+    '/ui-manager.js?v=2.0.1',
     '/import-calendar.js',
     '/operasyon-merkezi.js',
-    '/app-fixes.js',
+    '/app-fixes.js?v=2.0.1',
+    '/ios-mobile.js?v=2.0.1',
+    '/dashboard-funcs.js?v=2.0.1',
     '/cache-manager.js',
     '/toast-manager.js',
     '/manifest.json'
