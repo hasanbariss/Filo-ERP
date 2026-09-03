@@ -8423,7 +8423,7 @@ window.fetchRaporPersonel = async function(ay) {
             const toplam = (parseFloat(m.net_maas)||0) - Math.abs(parseFloat(m.avans)||0) - (parseFloat(m.ceza)||0) - (parseFloat(m.haciz)||0);
             return `<tr class="hover:bg-white/5 transition-colors">
                 <td class="p-3 font-bold">${m.soforler?.ad_soyad || 'Bilinmeyen'}</td>
-                <td class="p-3 text-right text-green-400">${fmt(m.net_maas)}</td>
+                <td class="p-3 text-right text-amber-300">${fmt(m.net_maas)}</td>
                 <td class="p-3 text-right text-red-400">${fmt(m.avans)}</td>
                 <td class="p-3 text-right text-red-400">${fmt((parseFloat(m.ceza)||0)+(parseFloat(m.haciz)||0))}</td>
                 <td class="p-3 text-right font-black ${toplam >= 0 ? 'text-green-400' : 'text-red-400'}">${fmt(toplam)}</td>
@@ -9166,7 +9166,7 @@ window.fetchSoforMaas = async function() {
                 <td class="p-4 text-xs font-bold text-gray-400">${s.telefon||"-"}</td>
                 <td class="p-4 text-sm font-black text-gray-300 text-right">${fmt(rm)}</td>
                 <td class="p-4">${kHtml}</td>
-                <td class="p-4 text-lg font-black text-green-400 text-right">${fmt(net)}</td>
+                <td class="p-4 text-lg font-black text-amber-300 text-right">${fmt(net)}</td>
                 <td class="p-4 text-center">
                     <button onclick="window.openAvansKesinti('${s.id}', '${s.ad_soyad}')" class="px-4 py-2 bg-orange-500/10 hover:bg-orange-500 focus:ring-2 ring-orange-500 text-orange-500 hover:text-white border border-orange-500/50 rounded-lg text-[10px] uppercase tracking-widest font-black transition-all shadow-lg"> + Avans / Ceza </button>
                 </td>

@@ -59,8 +59,8 @@
                 container.setAttribute('aria-label', 'Bildirimler');
                 container.style.cssText = [
                     'position:fixed',
-                    'top:80px',
-                    'right:20px',
+                    'top:88px',
+                    'right:28px',
                     'z-index:99999',
                     'display:flex',
                     'flex-direction:column',
@@ -76,10 +76,10 @@
 
         _createToast: function (message, type) {
             var TYPES = {
-                success: { bg: 'linear-gradient(135deg,#059669,#10b981)', icon: '✓', border: '#10b981' },
-                error:   { bg: 'linear-gradient(135deg,#dc2626,#ef4444)', icon: '✕', border: '#ef4444' },
-                warning: { bg: 'linear-gradient(135deg,#d97706,#f59e0b)', icon: '⚠', border: '#f59e0b' },
-                info:    { bg: 'linear-gradient(135deg,#2563eb,#3b82f6)', icon: 'ℹ', border: '#3b82f6' }
+                success: { icon: '✓', border: '#55c58a' },
+                error:   { icon: '✕', border: '#ef6373' },
+                warning: { icon: '⚠', border: '#e6aa4b' },
+                info:    { icon: 'ℹ', border: '#61a9ec' }
             };
 
             var t = TYPES[type] || TYPES.info;
@@ -87,11 +87,13 @@
             var toast = document.createElement('div');
             toast.setAttribute('role', 'alert');
             toast.style.cssText = [
-                'background:' + t.bg,
-                'color:#fff',
+                'background:linear-gradient(145deg,#1a2630,#111920)',
+                'color:#f3f7f8',
                 'padding:13px 16px',
-                'border-radius:12px',
-                'box-shadow:0 8px 32px rgba(0,0,0,0.35),0 0 0 1px ' + t.border + '33',
+                'border:1px solid #2b3a45',
+                'border-left:3px solid ' + t.border,
+                'border-radius:14px',
+                'box-shadow:0 18px 44px rgba(0,0,0,0.42),inset 0 1px 0 rgba(255,255,255,.035)',
                 'display:flex',
                 'align-items:center',
                 'gap:10px',
@@ -103,7 +105,6 @@
                 'transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s ease',
                 'cursor:pointer',
                 'pointer-events:all',
-                'backdrop-filter:blur(12px)',
                 'max-width:100%',
                 'word-break:break-word',
                 'user-select:none'
@@ -112,7 +113,7 @@
             // Icon
             var iconEl = document.createElement('span');
             iconEl.textContent = t.icon;
-            iconEl.style.cssText = 'font-size:17px;flex-shrink:0;min-width:20px;text-align:center';
+            iconEl.style.cssText = 'font-size:17px;flex-shrink:0;min-width:20px;text-align:center;color:' + t.border;
 
             // Message (textContent = XSS safe)
             var msgEl = document.createElement('span');
