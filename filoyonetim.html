@@ -80,6 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
+    <link rel="stylesheet" href="design-system.css">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -137,7 +138,7 @@
     </style>
 </head>
 
-<body class="selection:bg-orange-500 selection:text-white">
+<body class="bf-app">
 
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" onclick="window.closeMobileSidebar()"></div>
@@ -201,12 +202,12 @@
     </div>
 
     <!-- Fixed Sidebar -->
-    <aside class="sidebar" id="main-sidebar">
-        <div class="px-2 mb-10">
+    <aside class="sidebar bf-sidebar" id="main-sidebar" aria-label="Ana navigasyon">
+        <div class="bf-sidebar-brand">
             <img class="sidebar-brand-logo" src="./icons/baris-flow-logo.png" alt="baris. Flow">
         </div>
 
-        <nav class="flex-1 space-y-1 overflow-y-auto pr-2" id="main-nav-buttons">
+        <nav class="bf-sidebar-nav" id="main-nav-buttons" aria-label="Uygulama modülleri">
             <button type="button" class="nav-section-toggle" data-nav-section="operasyon" aria-expanded="true">
                 <span>Operasyon</span><i data-lucide="chevron-down"></i>
             </button>
@@ -261,7 +262,7 @@
             </div>
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-white/5">
+        <div class="bf-sidebar-footer">
             <button id="mobile-preview-toggle" onclick="window.toggleMobilePreview()" class="nav-link w-full text-left mb-1">
                 <i data-lucide="smartphone" id="mobile-preview-icon"></i>
                 <span id="mobile-preview-label">Mobil Onizleme</span>
@@ -278,31 +279,30 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main>
-        <header class="top-bar">
-            <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all flex" aria-label="Ana menüyü aç" aria-controls="main-sidebar" aria-expanded="false">
+    <main class="bf-main-shell">
+        <header class="top-bar page-header bf-topbar">
+            <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn btn-icon bf-menu-toggle" aria-label="Ana menüyü aç" title="Ana menüyü aç" aria-controls="main-sidebar" aria-expanded="false">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
-            <div>
-                <h1 class="text-2xl font-bold" id="page-title">Genel Bakış</h1>
-                <p class="text-sm text-gray-500">Hoş geldin, sistem kontrolünde her şey yolunda.</p>
+            <div class="page-header-identity">
+                <h1 class="page-title" id="page-title">Genel Bakış</h1>
+                <p class="page-subtitle">Hoş geldin, sistem kontrolünde her şey yolunda.</p>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="relative">
+            <div class="page-actions">
+                <div class="bf-top-search">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
                     <input type="text" id="top-search" placeholder="Hızlı ara..."
-                        class="bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-orange-500 transition-all w-64">
+                        class="form-control bf-top-search-input" aria-label="Uygulamada hızlı ara">
                 </div>
-                <div id="user-display-name"
-                    class="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold cursor-pointer"
-                    onclick="doLogout()" title="Çıkış Yap">
+                <button type="button" id="user-display-name" class="bf-user-menu"
+                    onclick="doLogout()" aria-label="Oturumu kapat" title="Çıkış yap">
                     ??
-                </div>
+                </button>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="max-w-[1920px] w-full mx-auto py-10 px-4 sm:px-6 lg:px-8">
+        <main class="bf-content max-w-[1920px] w-full mx-auto py-10 px-4 sm:px-6 lg:px-8">
 
             <!-- Evrak Arsivi Module -->
             <div id="module-evrak-arsivi" class="main-module hidden stagger-in"></div>
@@ -2971,6 +2971,39 @@
             });
         </script>
 
+
+<!-- Baris.Flow 2.0 mobile primary navigation -->
+<nav class="mobile-bottom-nav mobile-primary-nav" id="mobile-nav" aria-label="Mobil ana navigasyon">
+    <button type="button" class="nav-item active" data-module="module-dashboard"
+        onclick="document.querySelector('#main-nav-buttons [data-target=\'module-dashboard\']').click()"
+        aria-label="Genel Bakış">
+        <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+        <span>Genel Bakış</span>
+    </button>
+    <button type="button" class="nav-item" data-module="module-filo"
+        onclick="document.querySelector('#main-nav-buttons [data-target=\'module-filo\']').click()"
+        aria-label="Filo">
+        <i data-lucide="truck" aria-hidden="true"></i>
+        <span>Filo</span>
+    </button>
+    <button type="button" class="nav-item" data-module="module-operasyon-merkezi"
+        onclick="document.querySelector('#main-nav-buttons [data-target=\'module-operasyon-merkezi\']').click()"
+        aria-label="Operasyon">
+        <i data-lucide="layout-panel-top" aria-hidden="true"></i>
+        <span>Operasyon</span>
+    </button>
+    <button type="button" class="nav-item" data-module="module-finans"
+        onclick="document.querySelector('#main-nav-buttons [data-target=\'module-finans\']').click()"
+        aria-label="Finans">
+        <i data-lucide="banknote" aria-hidden="true"></i>
+        <span>Finans</span>
+    </button>
+    <button type="button" class="nav-item nav-item-menu" onclick="window.toggleMobileSidebar()"
+        aria-label="Diğer modülleri aç" aria-controls="main-sidebar" aria-expanded="false">
+        <i data-lucide="menu" aria-hidden="true"></i>
+        <span>Diğer</span>
+    </button>
+</nav>
 
 
 <!-- ======================== IMPORT PREVIEW MODAL ======================== -->

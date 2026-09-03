@@ -36,7 +36,10 @@
         var isOpen = Boolean(sidebar && sidebar.classList.contains('mobile-open'));
 
         if (hamburger) hamburger.setAttribute('aria-expanded', String(isOpen));
-        if (menuItem) menuItem.classList.toggle('menu-open', isOpen);
+        if (menuItem) {
+            menuItem.classList.toggle('menu-open', isOpen);
+            menuItem.setAttribute('aria-expanded', String(isOpen));
+        }
     }
 
     function pinHamburgerToViewport() {

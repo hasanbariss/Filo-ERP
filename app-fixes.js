@@ -182,15 +182,18 @@ function initMobileSidebar() {
 // ============================================================
 function initSidebarCollapse() {
     const sidebar = document.getElementById('main-sidebar');
-    const main = document.querySelector('main');
     if (!sidebar) return;
 
     // Inject collapse toggle button into sidebar top
     const collapseBtn = document.createElement('button');
     collapseBtn.id = 'sidebar-collapse-btn';
-    collapseBtn.title = 'Menüyü Kapat/Aç';
+    collapseBtn.type = 'button';
+    collapseBtn.className = 'btn-icon sidebar-collapse-toggle';
+    collapseBtn.title = 'Menüyü daralt';
+    collapseBtn.setAttribute('aria-label', 'Menüyü daralt');
+    collapseBtn.setAttribute('aria-controls', 'main-sidebar');
+    collapseBtn.setAttribute('aria-expanded', 'true');
     collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-    collapseBtn.style.cssText = 'position:fixed;top:1.25rem;left:246px;width:28px;height:28px;border-radius:50%;background:hsl(var(--bg-card));border:1px solid hsl(var(--border-strong));display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9999;color:hsl(var(--text-secondary));transition:all 0.3s ease;box-shadow:0 2px 8px rgba(0,0,0,0.2);';
     document.body.appendChild(collapseBtn);
 
     function checkWidth() {
@@ -203,19 +206,16 @@ function initSidebarCollapse() {
     let collapsed = false;
     collapseBtn.addEventListener('click', function () {
         collapsed = !collapsed;
+        document.body.classList.toggle('sidebar-collapsed', collapsed);
+        sidebar.classList.toggle('is-collapsed', collapsed);
+        collapseBtn.setAttribute('aria-expanded', String(!collapsed));
         if (collapsed) {
-            sidebar.style.width = '0px';
-            sidebar.style.padding = '0';
-            sidebar.style.overflow = 'hidden';
-            if (main) main.style.marginLeft = '0';
-            collapseBtn.style.left = '12px';
+            collapseBtn.title = 'Menüyü genişlet';
+            collapseBtn.setAttribute('aria-label', 'Menüyü genişlet');
             collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
         } else {
-            sidebar.style.width = '';
-            sidebar.style.padding = '';
-            sidebar.style.overflow = '';
-            if (main) main.style.marginLeft = '';
-            collapseBtn.style.left = '246px';
+            collapseBtn.title = 'Menüyü daralt';
+            collapseBtn.setAttribute('aria-label', 'Menüyü daralt');
             collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
         }
     });

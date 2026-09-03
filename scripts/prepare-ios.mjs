@@ -11,6 +11,7 @@ const webFiles = [
   'yakit_raporu.html',
   'style.css',
   'ios-mobile.css',
+  'design-system.css',
   'manifest.json',
   'service-worker.js',
   'ornek_puantaj_sablonu.xlsx',
