@@ -390,26 +390,43 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                 loadExcelGrid();
             }
         } else if (formTitle === 'Yeni Teklif Ekle' && document.getElementById('teklif-tur')) {
-            // Eski basit form (teklif-tur selecti olan)
             const arac_id = document.getElementById('teklif-arac')?.value;
             const police_turu = document.getElementById('teklif-tur')?.value || 'Trafik';
-
-            // Firma select → cari_id + unvan
             const firmaSelect = document.getElementById('teklif-firma');
             const cari_id = firmaSelect?.value || null;
             const firma_adi = firmaSelect?.options[firmaSelect.selectedIndex]?.text?.trim() || '';
-
-            const tutar = parseFloat(document.getElementById('teklif-tutar')?.value) || 0;
+            const teklif_tarihi = document.getElementById('teklif-tarih')?.value || '';
+            const konu = document.getElementById('teklif-konu')?.value?.trim() || '';
             const taksit_sayisi = parseInt(document.getElementById('teklif-taksit')?.value) || 1;
+            const police_bitis = document.getElementById('teklif-bitis')?.value || null;
+            const totals = window.teklifToplamHesapla();
+            const kalemler = totals.lines;
 
             if (!arac_id) throw new Error('Araç seçimi zorunludur.');
-            if (!firma_adi || firma_adi === '— Sigorta Firması Seç —') throw new Error('Firma seçimi zorunludur.');
-            if (!tutar) throw new Error('Tutar girilmelidir.');
+            if (!cari_id) throw new Error('Cari / müşteri seçimi zorunludur.');
+            if (!teklif_tarihi) throw new Error('Teklif tarihi zorunludur.');
+            if (!konu) throw new Error('Teklif konusu zorunludur.');
+            if (!kalemler.length || kalemler.some(kalem => !kalem.aciklama || kalem.miktar <= 0 || kalem.birim_fiyat <= 0)) {
+                throw new Error('Her teklif kalemi için açıklama, miktar ve birim fiyat girilmelidir.');
+            }
+            if (totals.genelToplam <= 0) throw new Error('Teklif toplamı sıfırdan büyük olmalıdır.');
 
-            // Sadece tabloda olan kolonları gönder; police_turu ve taksit_sayisi → secenekler JSON
-            const secenekler = { teklif_turu: police_turu, taksit_sayisi };
-            const insertData = { arac_id, firma_adi, tutar, secenekler };
-            if (cari_id) insertData.cari_id = cari_id;
+            const createdAt = new Date().toISOString();
+            const secenekler = {
+                teklif_no: `TKL-${teklif_tarihi.replaceAll('-', '')}-${Date.now().toString().slice(-6)}`,
+                teklif_turu: police_turu,
+                teklif_tarihi,
+                police_bitis,
+                konu,
+                kalemler,
+                ara_toplam: totals.araToplam,
+                kdv_toplam: totals.kdv,
+                taksit_sayisi,
+                durum: window.TeklifManagement.STATUSES.draft,
+                son_islem: createdAt,
+                gecmis: [{ durum: window.TeklifManagement.STATUSES.draft, tarih: createdAt }]
+            };
+            const insertData = { arac_id, cari_id, firma_adi, tutar: totals.genelToplam, secenekler };
 
             const { error } = await window.supabaseClient.from('sigorta_teklifleri').insert([insertData]);
             if (error) throw error;
@@ -5993,7 +6010,7 @@ async function fetchFinansDashboard() {
     } catch (e) { console.error("fetchFinansDashboard error:", e); }
 }
 
-window.fetchTeklifler = async function fetchTeklifler() {
+async function fetchTekliflerLegacy() {
     const tbody = document.getElementById('teklifler-tbody');
     if (!tbody) return;
     tbody.innerHTML = '<tr><td colspan="8" class="py-12 text-center text-gray-500 italic"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto mb-2"></i>Teklifler güncelleniyor...</td></tr>';
@@ -6014,24 +6031,7 @@ window.fetchTeklifler = async function fetchTeklifler() {
 
         const tekliflerClean = window.sanitizeDataArray(teklifler || []);
 
-        // --- 15 DAKİKA KONTROLÜ (Otomatik Silme) ---
-        const now = Date.now();
-        const deletionPromises = [];
-        const validTeklifler = tekliflerClean.filter(t => {
-            if (t.secildi && t.secenekler && t.secenekler.secilme_zamani) {
-                const diffMin = (now - t.secenekler.secilme_zamani) / 60000;
-                if (diffMin >= 15) { // 15 dakika dolmuş
-                    deletionPromises.push(window.supabaseClient.from('sigorta_teklifleri').delete().eq('id', t.id));
-                    return false; // Listeye dahil etme
-                }
-            }
-            return true;
-        });
-
-        if (deletionPromises.length > 0) {
-
-            await Promise.all(deletionPromises);
-        }
+        const validTeklifler = tekliflerClean;
 
         window._allTeklifData = validTeklifler;
 
@@ -6096,7 +6096,7 @@ window.fetchTeklifler = async function fetchTeklifler() {
                 <td class="px-5 py-3 whitespace-nowrap text-xs text-gray-500">${t.olusturulma_tarihi ? t.olusturulma_tarihi.split('T')[0] : t.baslangic_tarihi || '-'}</td>
                 <td class="px-5 py-3 whitespace-nowrap text-right">
                     <div class="flex items-center justify-end gap-2">
-                        ${!isSelected ? `<button onclick="window.teklifSec('${t.id}')" class="text-[10px] text-green-400 hover:text-green-300 font-bold border border-green-500/30 px-2 py-1 rounded-lg">Onayla</button>` : ''}
+                        ${!isSelected ? `<button onclick="window.confirmTeklifOnay('${t.id}')" class="text-[10px] text-green-400 hover:text-green-300 font-bold border border-green-500/30 px-2 py-1 rounded-lg">Onaylandı</button>` : ''}
                         <button onclick="deleteRecord('sigorta_teklifleri', '${t.id}', 'fetchTeklifler')" class="text-red-500 hover:text-red-400 p-1.5 bg-red-500/10 rounded border border-red-500/20">
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
@@ -6118,20 +6118,93 @@ window.fetchTeklifler = async function fetchTeklifler() {
     }
 };
 
-// --- OTOMATİK TEMİZLİK ZAMANLAYICISI ---
-// Teklif sayfası açıkken her dakika kontrol et ve süresi dolanları kaldır
-if (!window._teklifCleanupInterval) {
-    window._teklifCleanupInterval = setInterval(() => {
-        const tableView = document.getElementById('teklif-table-view');
-        const compareView = document.getElementById('teklif-compare-view');
-        // Eğer teklif modülü aktifse (gizli değilse) yenileme yap
-        if ((tableView && !tableView.classList.contains('hidden')) ||
-            (compareView && !compareView.classList.contains('hidden'))) {
+window.fetchTeklifler = async function () {
+    const tbody = document.getElementById('teklifler-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="7" class="bf-table-state">Teklifler güncelleniyor...</td></tr>';
+    try {
+        const [teklifRes, cariRes] = await Promise.all([
+            window.supabaseClient.from('sigorta_teklifleri').select('*, araclar(plaka)').order('olusturulma_tarihi', { ascending: false }),
+            window.supabaseClient.from('cariler').select('id, unvan')
+        ]);
+        if (teklifRes.error) throw teklifRes.error;
+        if (cariRes.error) throw cariRes.error;
+        const cariMap = Object.fromEntries((cariRes.data || []).map(cari => [cari.id, cari.unvan]));
+        window._allTeklifData = (teklifRes.data || []).map(teklif => ({
+            ...teklif,
+            cari_unvan: cariMap[teklif.cari_id] || teklif.firma_adi || '—',
+            plaka: teklif.araclar?.plaka || '—'
+        }));
+        window.renderTeklifList();
+    } catch (error) {
+        console.error('[TEKLİFLER] Liste yüklenemedi:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="bf-table-state">Teklifler yüklenemedi. Lütfen tekrar deneyin.</td></tr>';
+    }
+};
 
-            window.fetchTeklifler();
-        }
-    }, 60000); // 1 dakikada bir kontrol
-}
+window.renderTeklifList = function () {
+    const tbody = document.getElementById('teklifler-tbody');
+    if (!tbody) return;
+    const allOffers = window._allTeklifData || [];
+    const query = (document.getElementById('teklif-filtre-ara')?.value || '').trim().toLocaleLowerCase('tr-TR');
+    const statusFilter = document.getElementById('teklif-filtre-durum')?.value || '';
+    const formatMoney = value => window.formatCurrency(Number(value) || 0);
+    const formatDate = value => value ? new Date(value).toLocaleDateString('tr-TR') : '—';
+    const formatDateTime = value => value ? new Date(value).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
+    const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+
+    const totalEl = document.getElementById('teklif-kpi-total');
+    const pendingEl = document.getElementById('teklif-kpi-pending');
+    const approvedEl = document.getElementById('teklif-kpi-approved');
+    const valueEl = document.getElementById('teklif-kpi-value');
+    if (totalEl) totalEl.textContent = allOffers.length;
+    if (pendingEl) pendingEl.textContent = allOffers.filter(item => ['Taslak', 'Gönderildi'].includes(window.TeklifManagement.getStatus(item))).length;
+    if (approvedEl) approvedEl.textContent = allOffers.filter(item => window.TeklifManagement.getStatus(item) === 'Onaylandı').length;
+    if (valueEl) valueEl.textContent = formatMoney(allOffers.reduce((sum, item) => sum + (Number(item.tutar) || 0), 0));
+
+    const offers = allOffers.filter(offer => {
+        const status = window.TeklifManagement.getStatus(offer);
+        const number = window.TeklifManagement.displayNumber(offer);
+        const subject = offer.secenekler?.konu || offer.secenekler?.teklif_turu || '';
+        const haystack = `${number} ${offer.cari_unvan} ${subject} ${offer.plaka}`.toLocaleLowerCase('tr-TR');
+        return (!query || haystack.includes(query)) && (!statusFilter || status === statusFilter);
+    });
+
+    if (!offers.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="bf-table-state">Seçilen kriterlere uygun teklif bulunamadı.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = '';
+    offers.forEach(offer => {
+        const status = window.TeklifManagement.getStatus(offer);
+        const options = offer.secenekler || {};
+        const canApprove = window.TeklifManagement.canApprove(offer);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><div class="bf-offer-number">${escapeText(window.TeklifManagement.displayNumber(offer))}</div><div class="bf-offer-subject">${escapeText(options.konu || `${offer.plaka} · ${options.teklif_turu || offer.police_turu || 'Poliçe'}`)}</div></td>
+            <td><strong class="text-gray-200">${escapeText(offer.cari_unvan)}</strong><div class="bf-offer-subject">${escapeText(offer.plaka)}</div></td>
+            <td>${escapeText(formatDate(options.teklif_tarihi || offer.olusturulma_tarihi || offer.baslangic_tarihi))}</td>
+            <td class="text-right"><strong class="text-gray-100">${escapeText(formatMoney(offer.tutar))}</strong></td>
+            <td><span class="bf-offer-status" data-status="${escapeText(status)}">${escapeText(status)}</span></td>
+            <td>${escapeText(formatDateTime(options.son_islem || offer.olusturulma_tarihi))}</td>
+            <td><div class="bf-offer-actions">
+                <button type="button" class="bf-offer-action js-offer-detail">Detay</button>
+                <select class="bf-offer-status-select js-offer-status" aria-label="Teklif durumunu değiştir" ${status === 'Onaylandı' ? 'disabled' : ''}>
+                    <option value="Taslak" ${status === 'Taslak' ? 'selected' : ''}>Taslak</option>
+                    <option value="Gönderildi" ${status === 'Gönderildi' ? 'selected' : ''}>Gönderildi</option>
+                    <option value="Reddedildi" ${status === 'Reddedildi' ? 'selected' : ''}>Reddedildi</option>
+                    <option value="İptal" ${status === 'İptal' ? 'selected' : ''}>İptal</option>
+                    ${status === 'Onaylandı' ? '<option selected>Onaylandı</option>' : ''}
+                </select>
+                <button type="button" class="bf-offer-action is-approve js-offer-approve" ${canApprove ? '' : 'disabled'}>Onaylandı</button>
+            </div></td>`;
+        row.querySelector('.js-offer-detail').addEventListener('click', () => window.openTeklifDetay(offer.id));
+        row.querySelector('.js-offer-status').addEventListener('change', event => window.updateTeklifDurum(offer.id, event.target.value));
+        if (canApprove) row.querySelector('.js-offer-approve').addEventListener('click', () => window.confirmTeklifOnay(offer.id));
+        tbody.appendChild(row);
+    });
+};
 
 
 /* ==========================================
@@ -6425,7 +6498,7 @@ window.renderTeklifCompare = function () {
                 <div class="text-sm font-bold text-center">${t.firma_adi || 'Firma?'}</div>
                 <div class="text-xl font-black text-center ${isMin ? 'text-orange-400' : 'text-white'}">${fmt(t.tutar)}</div>
                 <div class="text-[10px] text-gray-500 text-center">${t.taksit_sayisi ? t.taksit_sayisi + ' taksit' : 'Peşin'}</div>
-                ${!isSelected ? `<button onclick="window.teklifSec('${t.id}')" class="mt-2 text-[10px] font-bold border border-green-500/30 text-green-400 hover:bg-green-500/10 rounded-lg py-1.5 transition-all">Onayla</button>` : ''}
+                ${!isSelected ? `<button onclick="window.confirmTeklifOnay('${t.id}')" class="mt-2 text-[10px] font-bold border border-green-500/30 text-green-400 hover:bg-green-500/10 rounded-lg py-1.5 transition-all">Onaylandı</button>` : ''}
             </div>`;
         }).join('');
         return `<div class="dashboard-card mb-6">
@@ -6442,7 +6515,7 @@ window.renderTeklifCompare = function () {
 };
 
 
-window.teklifSec = async function (id) {
+async function teklifSecLegacy(id) {
     if (!id) return;
     try {
         const row = _allTeklifData.find(t => t.id === id);
@@ -6531,6 +6604,171 @@ window.teklifSec = async function (id) {
             .eq('id', id);
     } catch (err) {
         console.error('[TEKLİFSEC] Hata:', err);
+    }
+};
+
+// Güvenli teklif durum akışı: yalnızca koşullu olarak sahiplenilen teklif poliçeye dönüşür.
+window.confirmTeklifOnay = function (id) {
+    window.showConfirm(
+        'Bu teklifi onaylamak ve ilgili cariye işlemek istediğinize emin misiniz?',
+        () => window.teklifSec(id),
+        { title: 'Teklifi Onayla', confirmText: 'Onayla ve Cari’ye İşle', tone: 'success' }
+    );
+};
+
+window.updateTeklifDurum = async function (id, nextStatus) {
+    if (!id || nextStatus === 'Onaylandı') return window.confirmTeklifOnay(id);
+    try {
+        const { data: current, error: readError } = await window.supabaseClient
+            .from('sigorta_teklifleri').select('id, secildi, secenekler').eq('id', id).single();
+        if (readError) throw readError;
+        if (window.TeklifManagement.getStatus(current) === 'Onaylandı') {
+            throw new Error('Onaylanmış teklifin durumu değiştirilemez.');
+        }
+        const transition = window.TeklifManagement.transition(current, nextStatus, new Date().toISOString());
+        const { data: changed, error } = await window.supabaseClient.from('sigorta_teklifleri')
+            .update({ secildi: false, secenekler: transition.options })
+            .eq('id', id)
+            .or('secildi.is.null,secildi.eq.false')
+            .select('id');
+        if (error) throw error;
+        if (!changed?.length) throw new Error('Onaylanmış teklifin durumu değiştirilemez.');
+        if (window.Toast) window.Toast.success(`Teklif durumu ${transition.status} olarak güncellendi.`);
+        await window.fetchTeklifler();
+    } catch (error) {
+        console.error('[TEKLİF DURUM]', error);
+        if (window.Toast) window.Toast.error(error.message || 'Teklif durumu güncellenemedi.');
+        await window.fetchTeklifler();
+    }
+};
+
+window.openTeklifDetay = function (id) {
+    const offer = (window._allTeklifData || []).find(item => item.id === id);
+    if (!offer) return;
+    const options = offer.secenekler || {};
+    const status = window.TeklifManagement.getStatus(offer);
+    const lines = Array.isArray(options.kalemler) ? options.kalemler : [];
+    const totals = lines.length ? window.TeklifManagement.calculateTotals(lines) : {
+        araToplam: Number(options.ara_toplam ?? offer.tutar) || 0,
+        kdv: Number(options.kdv_toplam) || 0,
+        genelToplam: Number(offer.tutar) || 0,
+        lines: []
+    };
+    const escapeText = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    const formatDateTime = value => value ? new Date(value).toLocaleString('tr-TR') : '—';
+    const lineRows = totals.lines.length ? totals.lines.map(line => `
+        <tr><td>${escapeText(line.aciklama || '—')}</td><td>${line.miktar}</td><td class="text-right">${window.formatCurrency(line.birim_fiyat)}</td><td class="text-right">%${line.kdv_oran}</td><td class="text-right"><strong>${window.formatCurrency(line.toplam)}</strong></td></tr>`).join('')
+        : '<tr><td colspan="5" class="bf-table-state">Bu eski kayıtta kalem detayı bulunmuyor.</td></tr>';
+    const history = Array.isArray(options.gecmis) ? options.gecmis : [];
+    const historyHtml = history.length ? history.slice().reverse().map(item => `<li><span>${escapeText(item.durum)}</span><time>${escapeText(formatDateTime(item.tarih))}</time></li>`).join('') : '<li><span>Geçmiş aksiyon bulunmuyor.</span></li>';
+    const modalEl = document.getElementById('general-modal');
+    const body = document.getElementById('modal-dynamic-body');
+    document.getElementById('modal-title').textContent = window.TeklifManagement.displayNumber(offer);
+    modalEl.classList.add('bf-offer-modal');
+    body.innerHTML = `
+        <div class="bf-offer-detail-head"><div><span>Cari / Müşteri</span><strong>${escapeText(offer.cari_unvan)}</strong></div><div><span>Teklif Tarihi</span><strong>${escapeText(options.teklif_tarihi || String(offer.olusturulma_tarihi || '').slice(0, 10) || '—')}</strong></div><div><span>Durum</span><strong><span class="bf-offer-status" data-status="${escapeText(status)}">${escapeText(status)}</span></strong></div></div>
+        <div class="bf-offer-detail-subject"><span>Teklif Konusu</span><p>${escapeText(options.konu || options.teklif_turu || 'Poliçe teklifi')}</p></div>
+        <div class="bf-table-shell"><table class="bf-data-table"><thead><tr><th>Açıklama</th><th>Miktar</th><th class="text-right">Birim Fiyat</th><th class="text-right">KDV</th><th class="text-right">Toplam</th></tr></thead><tbody>${lineRows}</tbody></table></div>
+        <div class="bf-offer-detail-bottom"><ul class="bf-offer-history">${historyHtml}</ul><div class="bf-offer-totals"><div><span>Ara toplam</span><strong>${window.formatCurrency(totals.araToplam)}</strong></div><div><span>KDV</span><strong>${window.formatCurrency(totals.kdv)}</strong></div><div><span>Genel toplam</span><strong>${window.formatCurrency(totals.genelToplam)}</strong></div></div></div>`;
+    const saveBtn = document.getElementById('modal-save-btn');
+    if (saveBtn) saveBtn.style.display = 'none';
+    modalEl.classList.remove('hidden');
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.teklifSec = async function (id) {
+    if (!id) return;
+    let claimedOffer = null;
+    try {
+        const { data: current, error: readError } = await window.supabaseClient
+            .from('sigorta_teklifleri').select('*, araclar(plaka)').eq('id', id).single();
+        if (readError) throw readError;
+        const decision = window.TeklifManagement.transition(current, 'Onaylandı', new Date().toISOString());
+        if (!decision.shouldCreatePolicy) {
+            const message = decision.alreadyProcessed ? 'Bu teklif daha önce onaylanmış ve cariye işlenmiş.' : 'Bu teklif mevcut durumunda onaylanamaz.';
+            if (window.Toast) window.Toast.info(message);
+            await window.fetchTeklifler();
+            return;
+        }
+
+        let resolvedCariId = current.cari_id;
+        if (!resolvedCariId && current.firma_adi) {
+            const { data: matchingCari, error: cariError } = await window.supabaseClient.from('cariler').select('id').eq('unvan', current.firma_adi).limit(1).maybeSingle();
+            if (cariError) throw cariError;
+            resolvedCariId = matchingCari?.id || null;
+        }
+        if (!resolvedCariId) throw new Error('Teklifin bağlı olduğu cari bulunamadı.');
+
+        const claimOptions = { ...decision.options, onay_isleniyor: true };
+        const { data: claimed, error: claimError } = await window.supabaseClient.from('sigorta_teklifleri')
+            .update({ secildi: true, secenekler: claimOptions })
+            .eq('id', id)
+            .or('secildi.is.null,secildi.eq.false')
+            .select('id');
+        if (claimError) throw claimError;
+        if (!claimed?.length) {
+            if (window.Toast) window.Toast.info('Bu teklif başka bir işlem tarafından zaten onaylandı.');
+            await window.fetchTeklifler();
+            return;
+        }
+        claimedOffer = { current, claimOptions };
+
+        const options = current.secenekler || {};
+        const teklifTuru = options.teklif_turu || current.police_turu || 'Trafik';
+        const taksitSayisi = Number(options.taksit_sayisi || current.taksit_sayisi) || 1;
+        const baslangicTarihi = options.teklif_tarihi || current.baslangic_tarihi || new Date().toISOString().slice(0, 10);
+        let bitisTarihi = options.police_bitis || current.bitis_tarihi;
+        if (!bitisTarihi) {
+            const endDate = new Date(baslangicTarihi);
+            endDate.setFullYear(endDate.getFullYear() + 1);
+            bitisTarihi = endDate.toISOString().slice(0, 10);
+        }
+
+        const policyMarker = `[TEKLİF ID: ${id}]`;
+        const { data: existingPolicy, error: existingPolicyError } = await window.supabaseClient
+            .from('arac_policeler').select('id').ilike('aciklama', `%${policyMarker}%`).limit(1);
+        if (existingPolicyError) throw existingPolicyError;
+        if (!existingPolicy?.length) {
+            const { error: policyError } = await window.supabaseClient.from('arac_policeler').insert([{
+                arac_id: current.arac_id,
+                police_turu: teklifTuru,
+                toplam_tutar: current.tutar,
+                taksit_sayisi: taksitSayisi,
+                baslangic_tarihi: baslangicTarihi,
+                bitis_tarihi: bitisTarihi,
+                cari_id: resolvedCariId,
+                aciklama: `${policyMarker} ${options.konu || 'Onaylanan tekliften oluşturuldu.'}`
+            }]);
+            if (policyError) throw policyError;
+        }
+
+        const vehicleUpdate = {};
+        const normalizedType = String(teklifTuru).trim().toLocaleLowerCase('tr-TR');
+        if (normalizedType.includes('kasko')) vehicleUpdate.kasko_bitis = bitisTarihi;
+        else if (normalizedType.includes('trafik') || normalizedType.includes('sigort') || normalizedType.includes('zorunlu')) vehicleUpdate.sigorta_bitis = bitisTarihi;
+        else if (normalizedType.includes('koltuk')) vehicleUpdate.koltuk_bitis = bitisTarihi;
+        if (Object.keys(vehicleUpdate).length) {
+            const { error: vehicleError } = await window.supabaseClient.from('araclar').update(vehicleUpdate).eq('id', current.arac_id);
+            if (vehicleError) console.warn('[TEKLİF ONAY] Araç tarihi güncellenemedi:', vehicleError);
+        }
+
+        const finalOptions = { ...claimOptions, onay_isleniyor: false, police_olusturuldu: true, onaylandi_at: new Date().toISOString() };
+        const { error: finalError } = await window.supabaseClient.from('sigorta_teklifleri').update({ secildi: true, secenekler: finalOptions }).eq('id', id);
+        if (finalError) console.warn('[TEKLİF ONAY] İzleme bilgisi tamamlanamadı:', finalError);
+        claimedOffer = null;
+        if (window.Toast) window.Toast.success('Teklif onaylandı ve ilgili cariye işlendi.');
+        await window.fetchTeklifler();
+        if (typeof window.fetchCariler === 'function') window.fetchCariler();
+    } catch (error) {
+        console.error('[TEKLİF ONAY]', error);
+        if (claimedOffer) {
+            await window.supabaseClient.from('sigorta_teklifleri').update({
+                secildi: claimedOffer.current.secildi ?? false,
+                secenekler: claimedOffer.current.secenekler || {}
+            }).eq('id', id);
+        }
+        if (window.Toast) window.Toast.error(error.message || 'Teklif onaylanamadı.');
+        await window.fetchTeklifler();
     }
 };
 

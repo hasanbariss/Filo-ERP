@@ -2537,85 +2537,61 @@
                 </div>
             </div> <!-- module-raporlar KAPANISI -->
 <!-- 7. TEKLİF YÖNETİMİ MODÜLÜ -->
-            <div id="module-teklifler" class="main-module hidden stagger-in">
-                <!-- Başlık -->
-                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+            <div id="module-teklifler" class="main-module hidden stagger-in bf-offers-page">
+                <div class="bf-page-header">
                     <div>
-                        <h2 class="text-xl font-bold">Teklif Karşılaştırma</h2>
-                        <p class="text-sm text-gray-500">Farklı firmalardan aldığınız teklifleri karşılaştırın ve en
-                            iyisini seçin.</p>
+                        <span class="bf-page-eyebrow">SATIN ALMA &amp; SİGORTA</span>
+                        <h2>Teklif Yönetimi</h2>
+                        <p>Teklifleri kaydedin, durumlarını izleyin ve yalnızca onaylanan teklifi ilgili cariye işleyin.</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <button onclick="window.exportTableToExcel('teklifler-table', 'Teklifler')"
-                            class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl transition-all"
-                            title="Excel İndir">
-                            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    <div class="bf-page-actions">
+                        <button onclick="window.exportTableToExcel('teklifler-table', 'Teklifler')" class="btn-secondary" title="Excel indir">
+                            <i data-lucide="file-spreadsheet"></i><span>Excel</span>
                         </button>
-                        <button onclick="openModal('Yeni Teklif Ekle')"
-                            class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-xl text-sm flex items-center gap-2 shadow-lg shadow-orange-500/20 transition-all">
-                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Teklif Ekle
+                        <button onclick="openModal('Yeni Teklif Ekle')" class="btn-primary">
+                            <i data-lucide="plus"></i><span>Yeni Teklif</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Filtre Çubuğu -->
-                <div class="flex items-center gap-3 mb-5 flex-wrap">
-                    <select id="teklif-filtre-arac" onchange="window.fetchTeklifler()"
-                        class="bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-orange-500 transition-all">
-                        <option value="">Tüm Araçlar</option>
-                    </select>
-                    <select id="teklif-filtre-tur" onchange="window.fetchTeklifler()"
-                        class="bg-black/30 border border-white/10 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-orange-500 transition-all">
-                        <option value="">Tüm Türler</option>
-                        <option value="Trafik">Trafik</option>
-                        <option value="Kasko">Kasko</option>
-                        <option value="Sigorta">Sigorta</option>
-                    </select>
-                    <div class="flex items-center bg-black/30 p-1 rounded-xl border border-white/5 gap-1 ml-auto">
-                        <button id="teklif-view-table" onclick="window.setTeklifView('table')"
-                            class="px-3 py-1 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">
-                            <i data-lucide="table-2" class="w-3.5 h-3.5 inline mr-1"></i>Liste
-                        </button>
-                        <button id="teklif-view-compare" onclick="window.setTeklifView('compare')"
-                            class="px-3 py-1 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">
-                            <i data-lucide="columns-2" class="w-3.5 h-3.5 inline mr-1"></i>Karşılaştır
-                        </button>
-                    </div>
+                <div class="bf-offer-kpis" aria-label="Teklif özeti">
+                    <div><span>Tüm Teklifler</span><strong id="teklif-kpi-total">0</strong></div>
+                    <div><span>Bekleyen</span><strong id="teklif-kpi-pending">0</strong></div>
+                    <div><span>Onaylanan</span><strong id="teklif-kpi-approved">0</strong></div>
+                    <div><span>Toplam Değer</span><strong id="teklif-kpi-value">₺0</strong></div>
                 </div>
 
-                <!-- Liste Görünümü -->
-                <div id="teklif-table-view">
-                    <div class="dashboard-card overflow-hidden">
-                        <table class="w-full" id="teklifler-table">
-                            <thead>
-                                <tr
-                                    class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5">
-                                    <th class="p-3 text-left">Araç (Plaka)</th>
-                                    <th class="p-3 text-left">Poliçe Türü</th>
-                                    <th class="p-3 text-left">Firma</th>
-                                    <th class="p-3 text-right">Toplam Tutar</th>
-                                    <th class="p-3 text-center">Ödeme & Taksit</th>
-                                    <th class="p-3 text-left">Teminatlar</th>
-                                    <th class="p-3 text-left">Tarih</th>
-                                    <th class="p-3 text-right">İşlemler</th>
-                                </tr>
-                            </thead>
-                            <tbody id="teklifler-tbody" class="divide-y divide-white/5">
-                                <tr>
-                                    <td colspan="7" class="py-12 text-center text-gray-500 italic">Yükleniyor...</td>
-                                </tr>
+                <div class="bf-offer-toolbar">
+                    <label class="bf-search-field">
+                        <i data-lucide="search"></i>
+                        <input id="teklif-filtre-ara" type="search" placeholder="Teklif no, cari veya konu ara" oninput="window.renderTeklifList()">
+                    </label>
+                    <select id="teklif-filtre-durum" onchange="window.renderTeklifList()" aria-label="Teklif durumuna göre filtrele">
+                        <option value="">Tüm durumlar</option>
+                        <option value="Taslak">Taslak</option>
+                        <option value="Gönderildi">Gönderildi</option>
+                        <option value="Onaylandı">Onaylandı</option>
+                        <option value="Reddedildi">Reddedildi</option>
+                        <option value="İptal">İptal</option>
+                    </select>
+                </div>
+
+                <div id="teklif-table-view" class="bf-table-shell">
+                    <div class="overflow-x-auto">
+                        <table class="bf-data-table" id="teklifler-table">
+                            <thead><tr>
+                                <th>Teklif No</th>
+                                <th>Cari / Müşteri</th>
+                                <th>Tarih</th>
+                                <th class="text-right">Teklif Tutarı</th>
+                                <th>Durum</th>
+                                <th>Son İşlem</th>
+                                <th class="text-right">Aksiyonlar</th>
+                            </tr></thead>
+                            <tbody id="teklifler-tbody">
+                                <tr><td colspan="7" class="bf-table-state">Teklifler yükleniyor...</td></tr>
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <!-- Karşılaştırma Görünümü -->
-                <div id="teklif-compare-view" class="hidden">
-                    <div id="teklif-compare-container" class="space-y-6">
-                        <div class="dashboard-card py-12 text-center text-gray-500">
-                            <i data-lucide="columns-2" class="w-8 h-8 mx-auto mb-2 opacity-30"></i>
-                            <p>Karşılaştırma görünümü yükleniyor...</p>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -2919,7 +2895,7 @@
                             class="px-5 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 text-sm font-bold transition-all">İptal</button>
                         <button type="button" id="btn-save-continue" onclick="saveDataAndClose(event, true)"
                             class="hidden px-5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all">Kaydet & Yeni Ekle</button>
-                        <button type="button" onclick="saveDataAndClose(event)"
+                        <button type="button" id="modal-save-btn" onclick="saveDataAndClose(event)"
                             class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">Kaydet</button>
                     </div>
                 </div>
@@ -2932,10 +2908,10 @@
             <div
                 class="bg-[#1a1c1e] border border-white/10 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden transform transition-all stagger-in">
                 <div class="p-8 text-center">
-                    <div class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6 mx-auto">
+                    <div id="confirm-modal-icon" class="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-6 mx-auto">
                         <i data-lucide="alert-triangle" class="text-red-500 w-8 h-8"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Emin misiniz?</h3>
+                    <h3 id="confirm-modal-title" class="text-xl font-bold text-white mb-2">Emin misiniz?</h3>
                     <p id="confirm-modal-message" class="text-sm text-gray-400">Bu işlem geri alınamaz. Devam etmek
                         istiyor musunuz?</p>
                 </div>
@@ -3131,6 +3107,7 @@
 <script defer src="config.js"></script>
 <script defer src="company-branding.js"></script>
 <script defer src="hakedis-calculations.js"></script>
+<script defer src="teklif-management.js"></script>
 <script defer src="data-services.js"></script>
 <script defer src="ui-manager.js"></script>
 

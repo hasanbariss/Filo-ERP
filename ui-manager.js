@@ -748,6 +748,7 @@ window.openModal = function (title, id = null, extra = null) {
     const receivablesModalTitles = ['Yeni Cari Hesap', 'Cari Güncelle', 'Yeni Ödeme Kaydı', 'Yeni Fatura Kaydı', 'Yeni Bakım/Parça Kaydı'];
     modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     modal.classList.toggle('bf-receivables-modal', receivablesModalTitles.includes(title));
+    modal.classList.toggle('bf-offer-modal', title === 'Yeni Teklif Ekle');
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');
     
@@ -921,59 +922,57 @@ window.openModal = function (title, id = null, extra = null) {
                     </div>
                 `;
     } else if (title === 'Yeni Teklif Ekle') {
-        // Dinamik araç ve cari listesi bekleyelim
         content = `
-            <p class="text-xs text-gray-400 mb-5">Farklı firmalardan alınan teklifleri karşılaştırmak için kaydedin.</p>
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Araç *</label>
-                        <select id="teklif-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all"><option value="">Yükleniyor...</option></select>
+            <div class="bf-offer-form">
+                <div class="bf-offer-form-grid">
+                    <label>Cari / Müşteri *
+                        <select id="teklif-firma"><option value="">Cariler yükleniyor...</option></select>
+                    </label>
+                    <label>Teklif Tarihi *
+                        <input type="date" id="teklif-tarih" value="${new Date().toISOString().split('T')[0]}">
+                    </label>
+                </div>
+                <div class="bf-offer-form-grid">
+                    <label>Araç *<select id="teklif-arac"><option value="">Araçlar yükleniyor...</option></select></label>
+                    <label>Poliçe Türü *<select id="teklif-tur"><option value="Trafik">Trafik Sigortası</option><option value="Kasko">Kasko</option><option value="Koltuk Sigortası">Koltuk Sigortası</option><option value="Diğer">Diğer</option></select></label>
+                </div>
+                <label>Teklif Konusu / Açıklaması *
+                    <textarea id="teklif-konu" placeholder="Örn: 35 ABC 123 plakalı araç için yıllık trafik sigortası"></textarea>
+                </label>
+                <section>
+                    <div class="flex items-center justify-between mb-2">
+                        <div><h4 class="text-sm font-bold">Teklif Kalemleri</h4><p class="text-xs text-gray-500 mt-1">Miktar, birim fiyat ve KDV üzerinden otomatik hesaplanır.</p></div>
+                        <button type="button" class="btn-secondary" onclick="window.teklifKalemEkle()"><i data-lucide="plus"></i>Satır Ekle</button>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Poliçe Türü *</label>
-                        <select id="teklif-tur" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="Trafik">Trafik Sigortası</option>
-                            <option value="Kasko">Kasko</option>
-                            <option value="Koltuk Sigortası">Koltuk Sigortası</option>
-                            <option value="Diğer">Diğer</option>
-                        </select>
+                    <div class="bf-offer-lines">
+                        <div class="bf-offer-lines-head"><span>Açıklama</span><span>Miktar</span><span>Birim Fiyat</span><span>KDV</span><span class="text-right">Toplam</span><span></span></div>
+                        <div id="teklif-kalemler"></div>
+                    </div>
+                </section>
+                <div class="bf-offer-form-footer">
+                    <p class="text-xs text-gray-500 max-w-xs">Kaydetmek cari hesabını etkilemez. Finansal kayıt yalnızca “Onaylandı” aksiyonundan sonra oluşur.</p>
+                    <div class="bf-offer-totals">
+                        <div><span>Ara toplam</span><strong id="teklif-ara-toplam">₺0,00</strong></div>
+                        <div><span>KDV</span><strong id="teklif-kdv-toplam">₺0,00</strong></div>
+                        <div><span>Genel toplam</span><strong id="teklif-genel-toplam">₺0,00</strong></div>
                     </div>
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Sigorta Firması (Cari) *</label>
-                    <select id="teklif-firma" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                        <option value="">— Cari Yükleniyor —</option>
-                    </select>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Fiyat (₺) *</label>
-                        <input type="number" id="teklif-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all" placeholder="0.00">
+                <details class="bf-offer-details">
+                    <summary>Ek poliçe ve ödeme bilgileri</summary>
+                    <div class="bf-offer-details-content">
+                        <label>Taksit Sayısı<select id="teklif-taksit"><option value="1">Peşin</option><option value="2">2 Taksit</option><option value="3">3 Taksit</option><option value="4">4 Taksit</option><option value="6">6 Taksit</option><option value="9">9 Taksit</option><option value="12">12 Taksit</option></select></label>
+                        <label>Poliçe Bitiş Tarihi<input type="date" id="teklif-bitis"></label>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Taksit Sayısı</label>
-                        <select id="teklif-taksit" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-all">
-                            <option value="1">Peşin (Tek Çekim)</option>
-                            <option value="2">2 Taksit</option>
-                            <option value="3">3 Taksit</option>
-                            <option value="4">4 Taksit</option>
-                            <option value="6">6 Taksit</option>
-                            <option value="9">9 Taksit</option>
-                            <option value="12">12 Taksit</option>
-                        </select>
-                    </div>
-                </div>
+                </details>
             </div>
         `;
         setTimeout(async () => {
             loadSelectOptions('teklif-arac', 'araclar', 'id', 'plaka');
-            // Sigortacı carilerini yükle
             const firmaSelect = document.getElementById('teklif-firma');
             if (firmaSelect && window.supabaseClient && window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
                 const { data: cariler } = await window.supabaseClient
                     .from('cariler').select('id, unvan').order('unvan');
-                firmaSelect.innerHTML = '<option value="">— Sigorta Firması Seç —</option>';
+                firmaSelect.innerHTML = '<option value="">Cari / müşteri seçin</option>';
                 (cariler || []).forEach(c => {
                     const opt = document.createElement('option');
                     opt.value = c.id;
@@ -981,6 +980,7 @@ window.openModal = function (title, id = null, extra = null) {
                     firmaSelect.appendChild(opt);
                 });
             }
+            window.teklifKalemEkle({ aciklama: '', miktar: 1, birim_fiyat: 0, kdv_oran: 20 });
         }, 50);
     } else if (title === 'Yeni Puantaj Gir') {
         content = `
@@ -2590,14 +2590,66 @@ async function loadSelectOptions(selectId, table, valueField, textField, filterC
 }
 window.closeModal = function () {
     modal.classList.add('hidden');
+    modal.classList.remove('bf-offer-modal');
+    const saveBtn = document.getElementById('modal-save-btn');
+    if (saveBtn) saveBtn.style.display = '';
 }
 
+window.teklifToplamHesapla = function () {
+    const rows = [...document.querySelectorAll('#teklif-kalemler .bf-offer-line')];
+    const lines = rows.map(row => ({
+        aciklama: row.querySelector('.teklif-kalem-aciklama')?.value || '',
+        miktar: row.querySelector('.teklif-kalem-miktar')?.value,
+        birim_fiyat: row.querySelector('.teklif-kalem-fiyat')?.value,
+        kdv_oran: row.querySelector('.teklif-kalem-kdv')?.value
+    }));
+    const totals = window.TeklifManagement.calculateTotals(lines);
+    rows.forEach((row, index) => {
+        const totalEl = row.querySelector('.bf-offer-line-total');
+        if (totalEl) totalEl.textContent = window.formatCurrency(totals.lines[index]?.toplam || 0);
+    });
+    const araEl = document.getElementById('teklif-ara-toplam');
+    const kdvEl = document.getElementById('teklif-kdv-toplam');
+    const totalEl = document.getElementById('teklif-genel-toplam');
+    if (araEl) araEl.textContent = window.formatCurrency(totals.araToplam);
+    if (kdvEl) kdvEl.textContent = window.formatCurrency(totals.kdv);
+    if (totalEl) totalEl.textContent = window.formatCurrency(totals.genelToplam);
+    return totals;
+};
+
+window.teklifKalemEkle = function (line = {}) {
+    const container = document.getElementById('teklif-kalemler');
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'bf-offer-line';
+    row.innerHTML = `
+        <input class="teklif-kalem-aciklama" type="text" placeholder="Kalem açıklaması">
+        <input class="teklif-kalem-miktar" type="number" min="0" step="0.01" value="${line.miktar ?? 1}">
+        <input class="teklif-kalem-fiyat" type="number" min="0" step="0.01" value="${line.birim_fiyat || ''}" placeholder="0,00">
+        <select class="teklif-kalem-kdv"><option value="0" ${Number(line.kdv_oran) === 0 ? 'selected' : ''}>%0</option><option value="10" ${Number(line.kdv_oran) === 10 ? 'selected' : ''}>%10</option><option value="20" ${Number(line.kdv_oran ?? 20) === 20 ? 'selected' : ''}>%20</option></select>
+        <span class="bf-offer-line-total">₺0,00</span>
+        <button type="button" class="bf-offer-line-remove" title="Satırı kaldır" aria-label="Teklif kalemini kaldır"><i data-lucide="x"></i></button>`;
+    row.querySelector('.teklif-kalem-aciklama').value = line.aciklama || '';
+    row.querySelectorAll('input, select').forEach(input => input.addEventListener('input', window.teklifToplamHesapla));
+    row.querySelector('.bf-offer-line-remove').addEventListener('click', () => {
+        if (container.children.length === 1) {
+            row.querySelectorAll('input').forEach(input => { input.value = input.classList.contains('teklif-kalem-miktar') ? '1' : ''; });
+        } else row.remove();
+        window.teklifToplamHesapla();
+    });
+    container.appendChild(row);
+    window.teklifToplamHesapla();
+    if (window.lucide) window.lucide.createIcons();
+};
+
 // Özel Onay Modalı Fonksiyonu
-window.showConfirm = function (message, onConfirm) {
+window.showConfirm = function (message, onConfirm, options = {}) {
     const modal = document.getElementById('confirm-modal');
     const msgEl = document.getElementById('confirm-modal-message');
     const confirmBtn = document.getElementById('confirm-modal-ok');
     const cancelBtn = document.getElementById('confirm-modal-cancel');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const iconEl = document.getElementById('confirm-modal-icon');
 
     if (!modal || !msgEl || !confirmBtn || !cancelBtn) {
         // Modal yoksa native confirm'e düş
@@ -2606,6 +2658,13 @@ window.showConfirm = function (message, onConfirm) {
     }
 
     msgEl.innerText = message;
+    if (titleEl) titleEl.textContent = options.title || 'Emin misiniz?';
+    confirmBtn.textContent = options.confirmText || 'Evet, Sil';
+    const isSuccess = options.tone === 'success';
+    confirmBtn.className = `w-full ${isSuccess ? 'bg-green-600 hover:bg-green-700 shadow-green-500/20' : 'bg-red-500 hover:bg-red-600 shadow-red-500/20'} text-white font-bold py-3 rounded-xl shadow-lg transition-all`;
+    if (iconEl) iconEl.className = `w-16 h-16 ${isSuccess ? 'bg-green-500/10' : 'bg-red-500/10'} rounded-full flex items-center justify-center mb-6 mx-auto`;
+    const iconSymbol = iconEl?.querySelector('svg, i');
+    if (iconSymbol) iconSymbol.setAttribute('class', `${isSuccess ? 'text-green-500' : 'text-red-500'} w-8 h-8`);
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
