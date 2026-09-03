@@ -257,22 +257,18 @@ function initMobilePreviewToggle() {
 // ============================================================
 function initPersonelModule() {
     window.switchPersonelTab = function (tab) {
-        ['puantaj', 'bordro', 'avans'].forEach(function (t) {
+        ['kadro', 'puantaj', 'bordro', 'avans'].forEach(function (t) {
             const btn = document.getElementById('per-tab-' + t);
             const content = document.getElementById('per-content-' + t);
             if (btn) {
-                if (t === tab) {
-                    btn.classList.add('bg-orange-500', 'text-white', 'shadow-lg');
-                    btn.classList.remove('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
-                } else {
-                    btn.classList.remove('bg-orange-500', 'text-white', 'shadow-lg');
-                    btn.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
-                }
+                btn.classList.toggle('is-active', t === tab);
             }
             if (content) { content.classList.toggle('hidden', t !== tab); content.classList.toggle('block', t === tab); }
         });
 
-        if (tab === 'puantaj') {
+        if (tab === 'kadro') {
+            if (typeof fetchSoforler === 'function') fetchSoforler();
+        } else if (tab === 'puantaj') {
             syncPersonelAyInputs();
             if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
             setTimeout(mirrorPuantajToPersonel, 1500);

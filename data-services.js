@@ -2325,6 +2325,14 @@ window.filterTaseronCards = function(q) {
 /* =====================================================
    ŞOFÖR DETAY OVERLAY — ŞOför kartına tıklayınca açılır
    ===================================================== */
+window.filterPersonnelRoster = function (value) {
+    const query = String(value || '').trim().toLocaleLowerCase('tr-TR');
+    document.querySelectorAll('#personnel-cards-grid [data-personnel-search], #personnel-list-tbody [data-personnel-search]').forEach(item => {
+        const content = String(item.dataset.personnelSearch || '').toLocaleLowerCase('tr-TR');
+        item.hidden = query.length > 0 && !content.includes(query);
+    });
+};
+
 window.openSoforDetay = async function(soforId, ev) {
     if (ev && ev.target && (ev.target.tagName === 'BUTTON' || ev.target.tagName === 'A' || ev.target.closest('button') || ev.target.closest('a'))) return;
 
@@ -2342,7 +2350,7 @@ window.openSoforDetay = async function(soforId, ev) {
                     <div class="p-2 bg-blue-500/10 rounded-xl text-blue-400"><i data-lucide="user" class="w-5 h-5"></i></div>
                     <div id="sofor-detay-isim" class="text-lg font-black text-white">Yükleniyor...</div>
                 </div>
-                <button onclick="document.getElementById('sofor-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg">
+                <button onclick="document.getElementById('sofor-detay-overlay').remove()" class="text-gray-500 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-lg" aria-label="Personel detayını kapat">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -2438,7 +2446,12 @@ async function fetchSoforler(sirketFilter) {
     const grid = document.getElementById('sofor-cards-grid');
     const listBody = document.getElementById('sofor-list-tbody');
     const tbody = document.getElementById('soforler-tbody');
-    if (!grid && !tbody && !listBody) return;
+    const personnelGrid = document.getElementById('personnel-cards-grid');
+    const personnelBody = document.getElementById('personnel-list-tbody');
+    if (!grid && !tbody && !listBody && !personnelGrid && !personnelBody) return;
+
+    if (personnelGrid) personnelGrid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Personeller yükleniyor...</p></div></div>';
+    if (personnelBody) personnelBody.innerHTML = '<tr><td colspan="6"><div class="loading-state">Personeller yükleniyor...</div></td></tr>';
 
     try {
         const conn = window.checkSupabaseConnection();
@@ -2446,6 +2459,8 @@ async function fetchSoforler(sirketFilter) {
             if (grid) window.showGlobalError('sofor-cards-grid', conn.msg);
             if (listBody) listBody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">${conn.msg}</td></tr>`;
             if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">${conn.msg}</td></tr>`;
+            if (personnelGrid) personnelGrid.innerHTML = `<div class="empty-state personnel-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div>`;
+            if (personnelBody) personnelBody.innerHTML = `<tr><td colspan="6"><div class="empty-state personnel-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
             return;
         }
 
@@ -2472,10 +2487,26 @@ async function fetchSoforler(sirketFilter) {
         if (grid) grid.innerHTML = '';
         if (listBody) listBody.innerHTML = '';
         if (tbody) tbody.innerHTML = '';
+        if (personnelGrid) personnelGrid.innerHTML = '';
+        if (personnelBody) personnelBody.innerHTML = '';
+
+        const personnelSummary = {
+            'personnel-kpi-total': soforler.length,
+            'personnel-kpi-assigned': soforler.filter(sofor => Boolean(aracMap[sofor.id])).length,
+            'personnel-kpi-insured': soforler.filter(sofor => sofor.sigorta_durumu === 'SGK').length,
+            'personnel-kpi-missing': soforler.filter(sofor => !sofor.tc_no || !sofor.telefon || !sofor.sirket).length
+        };
+        Object.entries(personnelSummary).forEach(([id, value]) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = String(value);
+        });
 
         if (soforler.length === 0) {
             if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">Henüz kayıtlı şoför bulunmuyor. Yeni Şoför butonu ile ekleyin.</div>';
             if (listBody) listBody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">Kayıt bulunamadı.</td></tr>';
+            if (personnelGrid) personnelGrid.innerHTML = '<div class="empty-state personnel-empty-state"><div><span class="personnel-state-icon"><i data-lucide="users-round"></i></span><strong>Henüz personel bulunmuyor.</strong><p>İlk personel kaydını ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Şoför Ekle\')"><i data-lucide="user-plus"></i>Personel Ekle</button></div></div>';
+            if (personnelBody) personnelBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div><strong>Henüz personel bulunmuyor.</strong><p>İlk personel kaydını ekleyerek başlayabilirsiniz.</p></div></div></td></tr>';
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
 
@@ -2500,6 +2531,52 @@ async function fetchSoforler(sirketFilter) {
 
             const ehlHtml = sofor.ehliyet_sinifi ? `<span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flexitems-center gap-1"><i data-lucide="credit-card" class="w-3 h-3"></i>${sofor.ehliyet_sinifi}</span>` : '';
             const srcHtml = (sofor.src_belgesi && sofor.src_belgesi !== 'Yok') ? `<span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center gap-1"><i data-lucide="award" class="w-3 h-3"></i>${sofor.src_belgesi}</span>` : '';
+
+            const companyName = sofor.sirket ? window.CompanyBranding.companyDisplayName(sofor.sirket) : 'Birim belirtilmemiş';
+            const personnelStatusClass = sofor.sigorta_durumu === 'SGK' ? 'badge-success' : (sofor.sigorta_durumu === 'Bağkur' ? 'badge-info' : 'badge-neutral');
+            const personnelStatusText = sofor.sigorta_durumu || 'Sigorta belirtilmemiş';
+            const personnelSearch = [sofor.ad_soyad || '', sofor.telefon || '', companyName, aracMap[sofor.id] || '', personnelStatusText].join(' ');
+
+            if (personnelGrid) {
+                const personnelCard = document.createElement('article');
+                personnelCard.className = 'personnel-card';
+                personnelCard.dataset.personnelSearch = personnelSearch;
+                personnelCard.onclick = (event) => window.openSoforDetay(sofor.id, event);
+                personnelCard.innerHTML = `
+                    <div class="personnel-card-head">
+                        <span class="personnel-avatar">${initial}</span>
+                        <div><h3>${sofor.ad_soyad || 'İsimsiz personel'}</h3><p>Şoför · ${companyName}</p></div>
+                        <span class="${personnelStatusClass}">${personnelStatusText}</span>
+                    </div>
+                    <div class="personnel-card-details">
+                        <div><span><i data-lucide="phone"></i>Telefon</span><strong>${sofor.telefon || 'Belirtilmemiş'}</strong></div>
+                        <div><span><i data-lucide="truck"></i>Atanan Araç</span><strong>${aracMap[sofor.id] || 'Atanmamış'}</strong></div>
+                        <div><span><i data-lucide="credit-card"></i>Ehliyet / SRC</span><strong>${[sofor.ehliyet_sinifi, sofor.src_belgesi !== 'Yok' ? sofor.src_belgesi : ''].filter(Boolean).join(' · ') || 'Belirtilmemiş'}</strong></div>
+                    </div>
+                    <div class="personnel-card-actions">
+                        <button onclick="window.openSoforDetay('${sofor.id}')"><i data-lucide="eye"></i><span>Detay</span></button>
+                        <button onclick="openModal('Şoför Güncelle', '${sofor.id}')"><i data-lucide="edit-2"></i><span>Düzenle</span></button>
+                        <button class="is-danger" onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" aria-label="${sofor.ad_soyad || 'Personel'} kaydını sil"><i data-lucide="trash-2"></i><span>Sil</span></button>
+                    </div>`;
+                personnelGrid.appendChild(personnelCard);
+            }
+
+            if (personnelBody) {
+                const personnelRow = document.createElement('tr');
+                personnelRow.dataset.personnelSearch = personnelSearch;
+                personnelRow.innerHTML = `
+                    <td><div class="personnel-identity"><span class="personnel-avatar">${initial}</span><div><strong>${sofor.ad_soyad || 'İsimsiz personel'}</strong><span>Şoför</span></div></div></td>
+                    <td><span class="personnel-phone">${sofor.telefon || 'Belirtilmemiş'}</span></td>
+                    <td><span class="personnel-unit">${companyName}</span></td>
+                    <td><span class="personnel-vehicle"><i data-lucide="truck"></i>${aracMap[sofor.id] || 'Atanmamış'}</span></td>
+                    <td><span class="${personnelStatusClass}">${personnelStatusText}</span></td>
+                    <td><div class="personnel-row-actions">
+                        <button onclick="window.openSoforDetay('${sofor.id}')" aria-label="${sofor.ad_soyad || 'Personel'} detayını aç"><i data-lucide="eye"></i></button>
+                        <button onclick="openModal('Şoför Güncelle', '${sofor.id}')" aria-label="${sofor.ad_soyad || 'Personel'} kaydını düzenle"><i data-lucide="edit-2"></i></button>
+                        <button class="is-danger" onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" aria-label="${sofor.ad_soyad || 'Personel'} kaydını sil"><i data-lucide="trash-2"></i></button>
+                    </div></td>`;
+                personnelBody.appendChild(personnelRow);
+            }
 
             if (grid) {
                 const card = document.createElement('div');
@@ -2602,11 +2679,16 @@ async function fetchSoforler(sirketFilter) {
             }
         });
 
+        const personnelSearchInput = document.getElementById('personnel-search-input');
+        if (personnelSearchInput && typeof window.filterPersonnelRoster === 'function') window.filterPersonnelRoster(personnelSearchInput.value);
+
         if (window.lucide) window.lucide.createIcons();
 
     } catch (error) {
         if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500 font-bold">Hata: ${error.message}</div>`;
         if (listBody) listBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-500">Hata: ${error.message}</td></tr>`;
+        if (personnelGrid) personnelGrid.innerHTML = `<div class="empty-state personnel-error-state"><div><strong>Personeller yüklenemedi.</strong><p>${error.message}</p></div></div>`;
+        if (personnelBody) personnelBody.innerHTML = `<tr><td colspan="6"><div class="empty-state personnel-error-state"><div><strong>Personeller yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
     }
 }
 

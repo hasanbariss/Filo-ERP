@@ -132,6 +132,7 @@ navButtons.forEach(btn => {
                 ['filter-bordro-ay','filter-bordro-ay-p'].forEach(function(id) { const el = document.getElementById(id); if(el) el.value = ayEl.value; });
             }
             if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
+            if (typeof fetchSoforler === 'function') fetchSoforler();
         }
 
         // Active tab stili resetlemeyi garantilemek için nav tetiklendiğinde ilgili modülün varsayılan tab'ini (varsa) active yapma
@@ -743,7 +744,7 @@ const modalTitle = document.getElementById('modal-title');
 
 window.openModal = function (title, id = null, extra = null) {
     modalTitle.textContent = title;
-    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı', 'Yeni Taşeron Kaydı', 'Yeni Sefer Hakedişi Ekle'];
+    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı', 'Yeni Taşeron Kaydı', 'Yeni Sefer Hakedişi Ekle', 'Yeni Şoför Ekle', 'Şoför Güncelle'];
     modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');
@@ -3681,6 +3682,10 @@ window.filterSoforler = function (sirket) {
     });
 
     const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : (sirket === 'M.K.' ? 'mk' : 'hepsi'));
+    ['hepsi', 'ideol', 'dikkan', 'mk'].forEach(key => {
+        const personnelButton = document.getElementById(`personnel-filter-btn-${key}`);
+        if (personnelButton) personnelButton.classList.toggle('is-active', key === activeKey);
+    });
     const btn = document.getElementById(`filter-sofor-btn-${activeKey}`);
     if (btn) {
         const bgClass = sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-emerald-500' : (sirket === 'M.K.' ? 'bg-red-500' : 'bg-blue-500'));

@@ -1543,73 +1543,90 @@
 
             <!-- 4. FİNANS VE HAKEDİŞ MODÜLÜ -->
                         <!-- PERSONEL YONETIMI MODULU -->
-            <div id="module-personel" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
-                    <div>
-                        <h2 class="text-2xl font-bold">Personel Yonetimi</h2>
-                        <p class="text-sm text-gray-500 mt-1">Puantaj, maas bordrosu, avans ve kesinti islemleri.</p>
+            <div id="module-personel" class="main-module hidden stagger-in bf-personnel-module">
+                <div class="page-header personnel-page-header">
+                    <div class="page-header-identity">
+                        <p class="personnel-eyebrow"><span data-company-name>Şirket</span> çalışanları</p>
+                        <h1 class="page-title">Personel</h1>
+                        <p class="page-subtitle">Çalışanları, görev bilgilerini ve personel kayıtlarını yönetin.</p>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <input type="month" id="personel-ay" onchange="window.syncPersonelAy()" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold">
+                    <div class="page-actions personnel-page-actions">
+                        <button onclick="window.exportTableToExcel('sofor-table', 'Sofor_Listesi')" class="btn-ghost">
+                            <i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Excel</span>
+                        </button>
+                        <button onclick="window.exportTableToPDF('sofor-table', 'Sofor Listesi')" class="btn-ghost">
+                            <i data-lucide="file-type-pdf" aria-hidden="true"></i><span>PDF</span>
+                        </button>
+                        <button onclick="openModal('Yeni Şoför Ekle')" class="btn-primary">
+                            <i data-lucide="user-plus" aria-hidden="true"></i><span>Personel Ekle</span>
+                        </button>
                     </div>
                 </div>
 
-                <!-- KPI Kartlari -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 px-2">
-                    <div class="dashboard-card border-none bg-blue-500/5 hover:bg-blue-500/10 transition-all p-4 rounded-3xl border border-blue-500/20">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
-                                <i data-lucide="wallet" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Net Maaş</span>
-                        </div>
-                        <div class="text-xl font-black text-blue-500" id="per-kpi-maas">--</div>
-                    </div>
-                    <div class="dashboard-card border-none bg-orange-500/5 hover:bg-orange-500/10 transition-all p-4 rounded-3xl border border-orange-500/20">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
-                                <i data-lucide="minus-circle" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Avans / Kesinti</span>
-                        </div>
-                        <div class="text-xl font-black text-orange-500" id="per-kpi-avans">--</div>
-                    </div>
-                    <div class="dashboard-card border-none bg-green-500/5 hover:bg-green-500/10 transition-all p-4 rounded-3xl border border-green-500/20">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
-                                <i data-lucide="landmark" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Banka Transferi</span>
-                        </div>
-                        <div class="text-xl font-black text-green-500" id="per-kpi-banka">--</div>
-                    </div>
-                    <div class="dashboard-card border-none bg-yellow-500/5 hover:bg-yellow-500/10 transition-all p-4 rounded-3xl border border-yellow-500/20">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-8 h-8 rounded-xl bg-yellow-500/20 flex items-center justify-center text-yellow-500">
-                                <i data-lucide="banknote" class="w-4 h-4"></i>
-                            </div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Elden Ödeme</span>
-                        </div>
-                        <div class="text-xl font-black text-yellow-500" id="per-kpi-elden">--</div>
-                    </div>
-                </div>
+                <section class="personnel-kpi-grid" aria-label="Personel özeti">
+                    <article class="personnel-kpi-card"><span class="personnel-kpi-icon"><i data-lucide="users-round"></i></span><div><span>Toplam Personel</span><strong id="personnel-kpi-total">—</strong></div></article>
+                    <article class="personnel-kpi-card"><span class="personnel-kpi-icon is-info"><i data-lucide="truck"></i></span><div><span>Araç Atanmış</span><strong id="personnel-kpi-assigned">—</strong></div></article>
+                    <article class="personnel-kpi-card"><span class="personnel-kpi-icon is-success"><i data-lucide="shield-check"></i></span><div><span>SGK Kayıtlı</span><strong id="personnel-kpi-insured">—</strong></div></article>
+                    <article class="personnel-kpi-card"><span class="personnel-kpi-icon is-danger"><i data-lucide="circle-alert"></i></span><div><span>Eksik Bilgi</span><strong id="personnel-kpi-missing">—</strong></div></article>
+                </section>
 
                 <!-- Tab Sistemi -->
-                <div class="dashboard-card p-0 overflow-hidden">
-                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;">
-                        <button id="per-tab-puantaj" onclick="window.switchPersonelTab('puantaj')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="calendar-days" class="w-4 h-4"></i>Gunluk Puantaj
+                <div class="personnel-workspace">
+                    <div class="personnel-tabs" aria-label="Personel modülleri">
+                        <button id="per-tab-kadro" onclick="window.switchPersonelTab('kadro')" class="personnel-tab is-active">
+                            <i data-lucide="contact"></i>Personel Listesi
                         </button>
-                        <button id="per-tab-bordro" onclick="window.switchPersonelTab('bordro')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="receipt" class="w-4 h-4"></i>Maas Bordrosu
+                        <button id="per-tab-puantaj" onclick="window.switchPersonelTab('puantaj')" class="personnel-tab">
+                            <i data-lucide="calendar-days"></i>Günlük Puantaj
                         </button>
-                        <button id="per-tab-avans" onclick="window.switchPersonelTab('avans')" class="per-tab-btn px-5 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="minus-circle" class="w-4 h-4"></i>Avans &amp; Kesintiler
+                        <button id="per-tab-bordro" onclick="window.switchPersonelTab('bordro')" class="personnel-tab">
+                            <i data-lucide="receipt"></i>Maaş Bordrosu
                         </button>
+                        <button id="per-tab-avans" onclick="window.switchPersonelTab('avans')" class="personnel-tab">
+                            <i data-lucide="minus-circle"></i>Avans &amp; Kesintiler
+                        </button>
+                        <label class="personnel-period" for="personel-ay">
+                            <span>Dönem</span>
+                            <input type="month" id="personel-ay" onchange="window.syncPersonelAy()">
+                        </label>
+                    </div>
+
+                    <!-- TAB: PERSONEL KADROSU -->
+                    <div id="per-content-kadro" class="block personnel-roster-content">
+                        <div class="personnel-toolbar">
+                            <label class="personnel-search" for="personnel-search-input">
+                                <i data-lucide="search" aria-hidden="true"></i>
+                                <input id="personnel-search-input" type="search" placeholder="Ad, telefon, şirket veya araç ara" autocomplete="off" oninput="window.filterPersonnelRoster(this.value)">
+                            </label>
+                            <details class="personnel-filter-disclosure" open>
+                                <summary><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Filtreler</summary>
+                                <div class="personnel-filter-group" aria-label="Şirket filtresi">
+                                    <button id="personnel-filter-btn-hepsi" onclick="window.filterSoforler('hepsi')" class="is-active">Hepsi</button>
+                                    <button id="personnel-filter-btn-ideol" onclick="window.filterSoforler(window.CompanyBranding.currentCompany.name)" data-company-name>Şirket</button>
+                                    <button id="personnel-filter-btn-dikkan" onclick="window.filterSoforler('DİKKAN')">DİKKAN</button>
+                                    <button id="personnel-filter-btn-mk" onclick="window.filterSoforler('M.K.')">M.K.</button>
+                                </div>
+                            </details>
+                        </div>
+                        <div id="personnel-cards-grid" class="personnel-card-grid">
+                            <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Personeller yükleniyor...</p></div></div>
+                        </div>
+                        <div class="personnel-table-wrap">
+                            <table class="personnel-table">
+                                <thead><tr><th>Personel</th><th>Telefon</th><th>Bağlı Birim</th><th>Atanan Araç</th><th>Durum</th><th class="personnel-actions-heading">İşlemler</th></tr></thead>
+                                <tbody id="personnel-list-tbody"><tr><td colspan="6"><div class="loading-state">Personeller yükleniyor...</div></td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- TAB: PUANTAJ (mirrors existing content-sofor-puantaj) -->
-                    <div id="per-content-puantaj" class="block">
+                    <div id="per-content-puantaj" class="hidden personnel-finance-content">
+                        <div class="personnel-finance-summary" aria-label="Dönem ödeme özeti">
+                            <article><span>Net Maaş</span><strong id="per-kpi-maas">--</strong></article>
+                            <article><span>Avans / Kesinti</span><strong id="per-kpi-avans">--</strong></article>
+                            <article><span>Banka Transferi</span><strong id="per-kpi-banka">--</strong></article>
+                            <article><span>Elden Ödeme</span><strong id="per-kpi-elden">--</strong></article>
+                        </div>
                         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 border-b border-white/5">
                             <div class="flex items-center gap-3">
                                 <div class="p-2 bg-orange-500/10 rounded-xl">
@@ -1621,11 +1638,11 @@
                                 </div>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <button onclick="puantajMonthPrev()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                                <button onclick="puantajMonthPrev()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white" aria-label="Önceki ay"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
                                 <input type="month" id="filter-bordro-ay-p" onchange="document.getElementById('filter-bordro-ay').value=this.value; fetchSoforMaasBordro();" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold">
-                                <button onclick="puantajMonthNext()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                                <button onclick="puantajMonthNext()" class="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all text-gray-400 hover:text-white" aria-label="Sonraki ay"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
                                 <button onclick="openModal('Yeni Maas Kaydi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20 flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i> Maas Ekle</button>
-                                <button onclick="puantajExport()" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-xl transition-all" title="Excel'e Aktar"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
+                                <button onclick="puantajExport()" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-xl transition-all" title="Excel'e Aktar" aria-label="Puantajı Excel'e aktar"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></button>
                             </div>
                         </div>
                         <!-- Totals Bar (linked to same IDs) -->
@@ -2857,7 +2874,7 @@
                     <!-- Header -->
                     <div class="ios-modal-header general-modal-header bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
                         <h3 class="text-lg font-bold text-white" id="modal-title">Yeni Kayıt Ekle</h3>
-                        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-all">
+                        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-all" aria-label="Modalı kapat">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
