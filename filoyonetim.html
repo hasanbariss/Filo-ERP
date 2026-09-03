@@ -1043,120 +1043,126 @@
             </div>
 
             <!-- 2. TAŞERON YÖNETİMİ MODÜLÜ (YENİ ANA MODÜL) -->
-            <div id="module-taseron" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 px-2">
-                    <div>
-                        <h2 class="text-2xl font-bold">Taşeron Yönetimi</h2>
-                        <p class="text-sm text-gray-500">Dış tedarikçi araçlarını, hakedişlerini ve dökümanlarını
-                            buradan yönetin.</p>
+            <div id="module-taseron" class="main-module hidden stagger-in bf-contractor-module">
+                <div class="page-header contractor-page-header">
+                    <div class="page-header-identity">
+                        <p class="contractor-eyebrow">İş ortakları</p>
+                        <h1 class="page-title">Taşeron Yönetimi</h1>
+                        <p class="page-subtitle">Taşeron firmaları, araçları, hakedişleri ve operasyon bilgilerini yönetin.</p>
                     </div>
-                    <div class="flex gap-3">
-                        <button onclick="window.exportTaseronData()"
-                            class="p-2.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl transition-all border border-green-500/20"
-                            title="Excel Dışa Aktar">
-                            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                    <div class="page-actions contractor-page-actions">
+                        <button onclick="window.exportTaseronData()" class="btn-ghost" title="Excel dışa aktar">
+                            <i data-lucide="file-spreadsheet"></i>
+                            <span>Dışa Aktar</span>
                         </button>
-                        <button onclick="openModal('Yeni Taşeron Kaydı')"
-                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Yeni Taşeron Ekle
+                        <button onclick="openModal('Yeni Taşeron Kaydı')" class="btn-primary">
+                            <i data-lucide="plus"></i> Taşeron Ekle
                         </button>
                     </div>
                 </div>
 
+                <section class="contractor-kpi-grid" aria-label="Taşeron özeti">
+                    <article class="contractor-kpi-card"><span class="contractor-kpi-icon"><i data-lucide="building-2"></i></span><div><span>Taşeron Firma</span><strong id="contractor-kpi-firms">—</strong></div></article>
+                    <article class="contractor-kpi-card"><span class="contractor-kpi-icon is-info"><i data-lucide="truck"></i></span><div><span>Taşeron Araç</span><strong id="contractor-kpi-vehicles">—</strong></div></article>
+                    <article class="contractor-kpi-card"><span class="contractor-kpi-icon is-success"><i data-lucide="user-check"></i></span><div><span>Şoför Atanmış</span><strong id="contractor-kpi-assigned">—</strong></div></article>
+                    <article class="contractor-kpi-card"><span class="contractor-kpi-icon is-danger"><i data-lucide="circle-alert"></i></span><div><span>Eksik Bilgi</span><strong id="contractor-kpi-missing">—</strong></div></article>
+                </section>
+
                 <!-- Taşeron Alt Menüleri -->
-                <div class="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 rounded-xl w-fit mx-2">
+                <div class="contractor-tabs" aria-label="Taşeron modülleri">
                     <button id="taseron-tab-liste" onclick="switchTaseronTab('liste')"
-                        class="px-6 py-2 text-sm font-semibold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2">
+                        class="contractor-tab is-active">
                         <i data-lucide="truck" class="w-4 h-4"></i> Araç & Firma
                     </button>
                     <button id="taseron-tab-hakedis" onclick="switchTaseronTab('hakedis')"
-                        class="px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                        class="contractor-tab">
                         <i data-lucide="calculator" class="w-4 h-4"></i> Hakediş Takibi
                     </button>
                     <button id="taseron-tab-sefer" onclick="switchTaseronTab('sefer')"
-                        class="px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                        class="contractor-tab">
                         <i data-lucide="route" class="w-4 h-4"></i> Sefer Raporları
                     </button>
                     <button id="taseron-tab-evrak" onclick="switchTaseronTab('evrak')"
-                        class="px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                        class="contractor-tab">
                         <i data-lucide="files" class="w-4 h-4"></i> Sözleşme & Evrak
                     </button>
                 </div>
 
                 <!-- 1. ARAÇ & FİRMA LİSTESİ -->
-                <div id="taseron-content-liste" class="block space-y-6 px-2">
-                    <div class="flex items-center justify-between gap-4 mb-2">
-                        <p class="text-xs text-gray-500">Sadece <span class="text-pink-400 font-bold">TAŞERON</span> olarak işaretlenen araçlar listelenmektedir.</p>
-                        <input type="search" id="search-taseron" oninput="window.filterTaseronCards(this.value)" placeholder="Plaka veya Firma Ara..."
-                            class="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-pink-500 w-48 transition-colors">
+                <div id="taseron-content-liste" class="block contractor-list-content">
+                    <div class="contractor-surface">
+                    <div class="contractor-toolbar">
+                        <label class="contractor-search" for="search-taseron">
+                            <i data-lucide="search" aria-hidden="true"></i>
+                            <input type="search" id="search-taseron" oninput="window.filterTaseronCards(this.value)" placeholder="Plaka, firma veya sürücü ara" autocomplete="off">
+                        </label>
+                        <p><span class="badge-info">Taşeron</span> olarak işaretlenen araçlar listelenir.</p>
                     </div>
-                    <div id="taseron-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-                        <div class="col-span-full py-16 text-center">
-                            <div class="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <i data-lucide="loader-2" class="w-8 h-8 text-gray-600 animate-spin"></i>
-                            </div>
-                            <p class="text-gray-500 font-medium">Taşeron araçlar yükleniyor...</p>
+                    <div id="taseron-cards-grid" class="contractor-card-grid">
+                        <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Taşeron araçlar yükleniyor...</p></div></div>
+                    </div>
+                    <div id="taseron-list-container" class="contractor-table-wrap">
+                        <table class="contractor-table">
+                            <thead><tr><th>Firma / Sahip</th><th>Araç</th><th>Şoför</th><th class="contractor-money">Kira Bedeli</th><th>Durum</th><th class="contractor-actions-heading">İşlemler</th></tr></thead>
+                            <tbody id="taseron-tbody">
+                                <tr><td colspan="6"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Taşeron araçlar yükleniyor...</p></div></div></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                         </div>
                     </div>
-                </div>
 
                 <!-- 2. HAKEDİŞ TAKİBİ -->
-                <div id="taseron-content-hakedis" class="hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="dashboard-card border-none bg-orange-500/5 hover:bg-orange-500/10 transition-all p-5 rounded-3xl border border-orange-500/20">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-500">
-                                    <i data-lucide="clock" class="w-4 h-4"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bekleyen Hakediş</span>
+                <div id="taseron-content-hakedis" class="hidden contractor-section-stack">
+                    <div class="contractor-finance-kpis">
+                        <div class="contractor-finance-card is-warning">
+                            <div class="contractor-finance-head">
+                                <span class="contractor-finance-icon"><i data-lucide="clock"></i></span>
+                                <span>Bekleyen Hakediş</span>
                             </div>
-                            <p class="text-2xl font-black text-orange-500" id="taseron-hakedis-pending">0 ₺</p>
+                            <p id="taseron-hakedis-pending">0 ₺</p>
                         </div>
-                        <div class="dashboard-card border-none bg-green-500/5 hover:bg-green-500/10 transition-all p-5 rounded-3xl border border-green-500/20">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-xl bg-green-500/20 flex items-center justify-center text-green-500">
-                                    <i data-lucide="check-circle" class="w-4 h-4"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bu Ay Ödenen</span>
+                        <div class="contractor-finance-card is-success">
+                            <div class="contractor-finance-head">
+                                <span class="contractor-finance-icon"><i data-lucide="check-circle"></i></span>
+                                <span>Bu Ay Ödenen</span>
                             </div>
-                            <p class="text-2xl font-black text-green-500" id="taseron-hakedis-paid">0 ₺</p>
+                            <p id="taseron-hakedis-paid">0 ₺</p>
                         </div>
-                        <div class="dashboard-card border-none bg-blue-500/5 hover:bg-blue-500/10 transition-all p-5 rounded-3xl border border-blue-500/20">
-                            <div class="flex items-center gap-3 mb-2">
-                                <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
-                                    <i data-lucide="truck" class="w-4 h-4"></i>
-                                </div>
-                                <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Taşeron Araç</span>
+                        <div class="contractor-finance-card is-info">
+                            <div class="contractor-finance-head">
+                                <span class="contractor-finance-icon"><i data-lucide="truck"></i></span>
+                                <span>Taşeron Araç</span>
                             </div>
-                            <p class="text-2xl font-black text-blue-500" id="taseron-total-count">0</p>
+                            <p id="taseron-total-count">0</p>
                         </div>
                     </div>
-                    <div class="bg-[#1a1c1e] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
-                        <div class="p-6 border-b border-white/5 flex justify-between items-center flex-wrap gap-4">
-                            <h3 class="font-bold">Aylık Hakediş Detayları</h3>
-                            <div class="flex items-center gap-2 flex-wrap">
+                    <div class="contractor-data-panel">
+                        <div class="contractor-panel-head">
+                            <h3>Aylık Hakediş Detayları</h3>
+                            <div class="contractor-filter-row">
                                 <input type="text" id="taseron-hakedis-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis()"
-                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
+                                    class="contractor-control contractor-control-search">
                                 <select id="taseron-hakedis-month" onchange="fetchTaseronHakedis()" aria-label="Hakediş dönemi"
-                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
+                                    class="contractor-control">
                                     <option value="">Dönem seçin</option>
                                 </select>
                                 <!-- Bölge Filtresi -->
-                                <select id="taseron-hakedis-bolge" onchange="fetchTaseronHakedis()"
-                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
+                                <select id="taseron-hakedis-bolge" onchange="fetchTaseronHakedis()" aria-label="Hakediş bölgesi"
+                                    class="contractor-control">
                                     <option value="">🌍 Tüm Bölgeler</option>
                                     <option value="İzmir">🔵 İzmir</option>
                                     <option value="Manisa">🟠 Manisa</option>
                                 </select>
                                 <button onclick="document.getElementById('yakit-excel-input').click()"
-                                    class="bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 font-bold py-2 px-4 rounded-lg text-sm border border-orange-500/20 transition-all flex items-center gap-2" title="Araç Yakıt verilerini Excel'den içe aktar">
-                                    <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                                    class="btn-secondary contractor-import-btn" title="Araç Yakıt verilerini Excel'den içe aktar">
+                                    <i data-lucide="file-spreadsheet"></i>
                                     Yakıt Excel Yükle
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="taseron-hakedis-table">
+                        <div class="contractor-table-wrap">
+                            <table class="premium-table contractor-table" id="taseron-hakedis-table">
                                 <thead>
                                     <tr>
                                         <th>Firma/Sahip</th>
@@ -1169,7 +1175,7 @@
                                 </thead>
                                 <tbody id="taseron-hakedis-tbody">
                                     <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Dönem seçiniz.
+                                        <td colspan="6" class="contractor-table-message">Dönem seçiniz.
                                         </td>
                                     </tr>
                                 </tbody>
@@ -1179,16 +1185,16 @@
                 </div>
 
                 <!-- 3. SEFER RAPORLARI -->
-                <div id="taseron-content-sefer" class="hidden space-y-6">
-                    <div class="bg-[#1a1c1e] border border-white/5 rounded-2xl overflow-hidden shadow-2xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="font-bold text-lg">Taşeron Sefer Hareketleri</h3>
+                <div id="taseron-content-sefer" class="hidden contractor-section-stack">
+                    <div class="contractor-data-panel contractor-panel-padded">
+                        <div class="contractor-section-head">
+                            <h3>Taşeron Sefer Hareketleri</h3>
                             <button onclick="window.exportTableToExcel('taseron-sefer-table', 'Taseron_Seferler')"
-                                class="p-2 bg-green-500/10 text-green-500 rounded-lg"><i data-lucide="download"
+                                class="btn-icon" aria-label="Sefer raporunu Excel olarak indir"><i data-lucide="download"
                                     class="w-4 h-4"></i></button>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="taseron-sefer-table">
+                        <div class="contractor-table-wrap">
+                            <table class="premium-table contractor-table" id="taseron-sefer-table">
                                 <thead>
                                     <tr>
                                         <th>Tarih</th>
@@ -1201,7 +1207,7 @@
                                 </thead>
                                 <tbody id="taseron-sefer-tbody">
                                     <tr>
-                                        <td colspan="5" class="py-12 text-center text-gray-500 italic">Sefer verisi
+                                        <td colspan="6" class="contractor-table-message">Sefer verisi
                                             bulunmamaktadır.</td>
                                     </tr>
                                 </tbody>
@@ -1211,22 +1217,21 @@
                 </div>
 
                 <!-- 4. SÖZLEŞME & EVRAK -->
-                <div id="taseron-content-evrak" class="hidden space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="dashboard-card">
-                            <h3 class="font-bold mb-4">Sözleşme Hatırlatıcıları</h3>
+                <div id="taseron-content-evrak" class="hidden contractor-section-stack">
+                    <div class="contractor-document-grid">
+                        <div class="contractor-data-panel contractor-panel-padded">
+                            <h3 class="contractor-document-title">Sözleşme Hatırlatıcıları</h3>
                             <div class="space-y-3" id="taseron-contract-alerts">
-                                <p class="text-sm text-gray-500 italic text-center py-8">Yaklaşan sözleşme bitişi
+                                <p class="contractor-placeholder-copy">Yaklaşan sözleşme bitişi
                                     bulunmuyor.</p>
                             </div>
                         </div>
-                        <div class="dashboard-card">
-                            <h3 class="font-bold mb-4">Yeni Evrak Yükle</h3>
-                            <div class="flex flex-col gap-4">
-                                <input type="text" placeholder="Evrak Başlığı"
-                                    class="bg-white/5 border border-white/10 rounded-lg p-3 text-white">
-                                <input type="file" class="text-sm text-gray-400">
-                                <button class="bg-orange-500 py-3 rounded-lg font-bold">Yükle</button>
+                        <div class="contractor-data-panel contractor-panel-padded">
+                            <h3 class="contractor-document-title">Yeni Evrak Yükle</h3>
+                            <div class="contractor-document-form">
+                                <input type="text" placeholder="Evrak Başlığı" aria-label="Evrak başlığı">
+                                <input type="file" aria-label="Yüklenecek evrak">
+                                <button class="btn-primary">Yükle</button>
                             </div>
                         </div>
                     </div>

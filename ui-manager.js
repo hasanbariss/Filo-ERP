@@ -303,8 +303,8 @@ window.initCariHakedisMonth = function () {
 
 window.switchTaseronTab = function (tabName) {
     const tabs = ['liste', 'hakedis', 'sefer', 'evrak'];
-    const inactiveClass = "px-6 py-2 text-sm font-semibold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2";
-    const activeClass = "px-6 py-2 text-sm font-semibold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2";
+    const inactiveClass = "contractor-tab";
+    const activeClass = "contractor-tab is-active";
 
     tabs.forEach(t => {
         const btn = document.getElementById(`taseron-tab-${t}`);
@@ -743,7 +743,7 @@ const modalTitle = document.getElementById('modal-title');
 
 window.openModal = function (title, id = null, extra = null) {
     modalTitle.textContent = title;
-    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı'];
+    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı', 'Yeni Taşeron Kaydı', 'Yeni Sefer Hakedişi Ekle'];
     modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');

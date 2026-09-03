@@ -1672,6 +1672,152 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     .bf-dashboard button > span { font-size: 12px; }
 }
 
+/* Baris.Flow 2.0 — Contractor management */
+.bf-contractor-module { gap: var(--bf-space-6); color: var(--bf-text-primary); }
+.bf-contractor-module:not(.hidden) { display: grid; }
+.contractor-page-header { align-items: flex-start; }
+.contractor-eyebrow { margin: 0 0 var(--bf-space-1); color: var(--bf-flow-coral-600); font-size: var(--bf-text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.contractor-page-actions { flex-wrap: wrap; }
+
+.contractor-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.contractor-kpi-card { display: flex; align-items: center; min-width: 0; padding: var(--bf-space-4); gap: var(--bf-space-3); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.contractor-kpi-card > div { display: grid; min-width: 0; gap: 2px; }
+.contractor-kpi-card > div > span { color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 600; }
+.contractor-kpi-card strong { color: var(--bf-text-primary); font-size: 1.45rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.contractor-kpi-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.contractor-kpi-icon.is-info { color: var(--bf-info); background: rgba(47,111,237,.1); }
+.contractor-kpi-icon.is-success { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.contractor-kpi-icon.is-danger { color: var(--bf-danger); background: rgba(197,59,72,.1); }
+.contractor-kpi-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+
+.contractor-tabs { display: inline-flex; width: fit-content; align-items: center; padding: var(--bf-space-1); gap: var(--bf-space-1); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.contractor-tab { display: inline-flex; min-height: var(--bf-control-height); align-items: center; padding: 0 var(--bf-space-4); gap: var(--bf-space-2); border: 0; border-radius: calc(var(--bf-radius-control) - 2px); color: var(--bf-text-secondary); background: transparent; font-size: var(--bf-text-sm); font-weight: 650; cursor: pointer; transition: color var(--bf-transition), background-color var(--bf-transition), box-shadow var(--bf-transition); }
+.contractor-tab:hover { color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.contractor-tab.is-active { color: #fff; background: var(--bf-brand-navy-700); box-shadow: var(--bf-shadow-xs); }
+.contractor-tab svg { width: 16px; height: 16px; }
+
+.contractor-list-content { min-width: 0; }
+.contractor-surface, .contractor-data-panel { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.contractor-toolbar { display: flex; align-items: center; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-4); border-bottom: 1px solid var(--bf-border); background: color-mix(in srgb, var(--bf-surface) 94%, var(--bf-surface-subtle)); }
+.contractor-toolbar > p { display: flex; align-items: center; margin: 0; gap: var(--bf-space-2); color: var(--bf-text-secondary); font-size: var(--bf-text-xs); }
+.contractor-search { position: relative; display: flex; width: min(360px, 100%); align-items: center; }
+.contractor-search > svg { position: absolute; left: 12px; width: 17px; height: 17px; color: var(--bf-text-muted); pointer-events: none; }
+.contractor-search input { width: 100%; min-height: var(--bf-control-height); padding: 0 38px; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); outline: none; color: var(--bf-text-primary); background: var(--bf-surface); font-size: var(--bf-text-sm); }
+.contractor-search input:focus { border-color: var(--bf-brand-navy-700); box-shadow: 0 0 0 3px rgba(29,77,106,.12); }
+
+.contractor-card-grid { display: none; }
+.contractor-table-wrap { max-width: 100%; overflow: auto; }
+.contractor-table { width: 100%; min-width: 880px; border-collapse: separate; border-spacing: 0; color: var(--bf-text-primary); text-align: left; }
+.contractor-table thead { position: sticky; top: 0; z-index: 2; }
+#module-taseron .contractor-table th { height: 44px; padding: 0 var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-muted); background: var(--bf-surface-subtle); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+#module-taseron .contractor-table td { padding: var(--bf-space-3) var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); vertical-align: middle; }
+#module-taseron .contractor-table tbody tr:last-child td { border-bottom: 0; }
+#module-taseron .contractor-table tbody tr:hover { background: color-mix(in srgb, var(--bf-surface) 72%, var(--bf-surface-subtle)); }
+.contractor-company-cell { display: flex; align-items: center; gap: var(--bf-space-3); }
+.contractor-company-cell > div, .contractor-vehicle-cell { display: grid; min-width: 0; gap: 2px; }
+.contractor-company-cell strong, .contractor-vehicle-cell strong { color: var(--bf-text-primary); font-size: var(--bf-text-sm); }
+.contractor-company-cell span, .contractor-vehicle-cell span { color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+.contractor-company-icon { display: grid; width: 36px; height: 36px; flex: 0 0 36px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.contractor-company-icon svg { width: 17px; height: 17px; }
+.contractor-driver-cell { display: flex; align-items: center; gap: var(--bf-space-2); }
+.contractor-driver-cell svg { width: 15px; height: 15px; color: var(--bf-text-muted); }
+.contractor-money { text-align: right; font-variant-numeric: tabular-nums; }
+.contractor-actions-heading { width: 112px; text-align: right; }
+.contractor-row-actions { display: flex; justify-content: flex-end; gap: var(--bf-space-1); }
+.contractor-row-actions button { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid transparent; border-radius: var(--bf-radius-sm); color: var(--bf-text-secondary); background: transparent; cursor: pointer; }
+.contractor-row-actions button:hover { border-color: var(--bf-border); color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.contractor-row-actions button.is-danger { color: var(--bf-danger); }
+.contractor-row-actions svg { width: 16px; height: 16px; }
+
+.contractor-section-stack { min-width: 0; gap: var(--bf-space-6); }
+.contractor-section-stack:not(.hidden) { display: grid; }
+.contractor-finance-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.contractor-finance-card { padding: var(--bf-space-4); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.contractor-finance-head { display: flex; align-items: center; margin-bottom: var(--bf-space-2); gap: var(--bf-space-2); color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 700; }
+.contractor-finance-icon { display: grid; width: 32px; height: 32px; place-items: center; border-radius: var(--bf-radius-control); color: currentColor; background: var(--bf-surface-subtle); }
+.contractor-finance-icon svg { width: 16px; height: 16px; }
+.contractor-finance-card.is-warning .contractor-finance-icon { color: var(--bf-warning); background: rgba(183,110,0,.1); }
+.contractor-finance-card.is-success .contractor-finance-icon { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.contractor-finance-card.is-info .contractor-finance-icon { color: var(--bf-info); background: rgba(47,111,237,.1); }
+.contractor-finance-card > p { margin: 0; color: var(--bf-text-primary); font-size: 1.4rem; font-weight: 750; font-variant-numeric: tabular-nums; }
+.contractor-finance-card.is-warning > p { color: var(--bf-warning); }
+.contractor-finance-card.is-success > p { color: var(--bf-success); }
+.contractor-finance-card.is-info > p { color: var(--bf-info); }
+.contractor-panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-4); border-bottom: 1px solid var(--bf-border); }
+.contractor-panel-head h3 { margin: 0; color: var(--bf-text-primary); }
+.contractor-filter-row { display: flex; align-items: center; flex-wrap: wrap; gap: var(--bf-space-2); }
+.contractor-control { min-width: 140px; padding: 0 var(--bf-space-3); outline: none; font-weight: 600; cursor: pointer; }
+.contractor-control-search { width: 160px; cursor: text; }
+.contractor-control:focus { border-color: var(--bf-brand-navy-700); box-shadow: 0 0 0 3px rgba(29,77,106,.12); }
+.contractor-import-btn { min-height: var(--bf-control-height); }
+.contractor-import-btn svg { width: 16px; height: 16px; }
+.contractor-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--bf-space-6); gap: var(--bf-space-3); }
+.contractor-section-head h3, .contractor-document-title { margin: 0; color: var(--bf-text-primary); font-size: var(--bf-text-lg); font-weight: 700; }
+.contractor-table-message { padding: var(--bf-space-8); color: var(--bf-text-muted); text-align: center; }
+#module-taseron input:not([type="file"]), #module-taseron select { min-height: var(--bf-control-height); color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface); font-size: var(--bf-text-sm); }
+.contractor-panel-padded { padding: var(--bf-space-6); }
+.contractor-document-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.contractor-document-title { margin-bottom: var(--bf-space-4); }
+.contractor-placeholder-copy { padding: var(--bf-space-8) 0; color: var(--bf-text-muted); font-size: var(--bf-text-sm); font-style: italic; text-align: center; }
+.contractor-document-form { display: grid; gap: var(--bf-space-4); }
+.contractor-document-form input { width: 100%; padding: 0 var(--bf-space-3); }
+.contractor-document-form input[type="file"] { min-height: var(--bf-touch-target); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.contractor-empty-state strong, .contractor-error-state strong { display: block; margin-top: var(--bf-space-3); color: var(--bf-text-primary); font-size: var(--bf-text-lg); }
+.contractor-empty-state p, .contractor-error-state p { margin: var(--bf-space-1) 0 var(--bf-space-4); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.bf-contractor-module .loading-state-spinner { display: block; width: 22px; height: 22px; margin: 0 auto var(--bf-space-2); border: 2px solid var(--bf-border); border-top-color: var(--bf-flow-coral-600); border-radius: 50%; animation: bf-dashboard-spin .8s linear infinite; }
+.contractor-state-icon { display: grid; width: 48px; height: 48px; place-items: center; margin: 0 auto; border-radius: var(--bf-radius-pill); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.contractor-state-icon svg { width: 22px; height: 22px; }
+.contractor-error-state svg { color: var(--bf-danger); }
+
+@media (max-width: 1180px) {
+    .contractor-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .contractor-tabs { max-width: 100%; overflow-x: auto; }
+    .contractor-panel-head { align-items: stretch; flex-direction: column; }
+}
+
+@media (max-width: 600px) {
+    .bf-contractor-module { gap: var(--bf-space-4); }
+    .contractor-page-header { align-items: stretch; flex-direction: column; }
+    .contractor-page-actions { width: 100%; }
+    .contractor-page-actions .btn-ghost, .contractor-page-actions .btn-primary { flex: 1; min-height: var(--bf-touch-target); }
+    .contractor-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bf-space-2); }
+    .contractor-kpi-card { padding: var(--bf-space-3); }
+    .contractor-kpi-icon { width: 34px; height: 34px; flex-basis: 34px; }
+    .contractor-kpi-card strong { font-size: 1.25rem; }
+    .contractor-tabs { display: flex; width: 100%; }
+    .contractor-tab { min-height: var(--bf-touch-target); flex: 0 0 auto; padding: 0 var(--bf-space-3); }
+    .contractor-toolbar { align-items: stretch; flex-direction: column; padding: var(--bf-space-3); }
+    .contractor-toolbar > p { align-items: flex-start; }
+    .contractor-search { width: 100%; }
+    .contractor-search input { min-height: var(--bf-touch-target); }
+    #taseron-list-container { display: none; }
+    .contractor-card-grid { display: grid; grid-template-columns: minmax(0, 1fr); padding: var(--bf-space-3); gap: var(--bf-space-3); }
+    .contractor-card-grid > .empty-state, .contractor-card-grid > .loading-state { grid-column: 1 / -1; }
+    .contractor-card { overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+    .contractor-card-head { display: flex; align-items: flex-start; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-3); }
+    .contractor-card-identity { display: flex; min-width: 0; align-items: center; gap: var(--bf-space-3); }
+    .contractor-card-icon { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+    .contractor-card-icon svg { width: 18px; height: 18px; }
+    .contractor-card-identity h3 { margin: 0; overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-lg); text-overflow: ellipsis; white-space: nowrap; }
+    .contractor-card-identity p { margin: 2px 0 0; color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .contractor-card-details { display: grid; padding: 0 var(--bf-space-4) var(--bf-space-4); gap: var(--bf-space-3); }
+    .contractor-card-details > div { display: grid; grid-template-columns: 90px minmax(0,1fr); align-items: center; gap: var(--bf-space-2); }
+    .contractor-card-details span { display: inline-flex; align-items: center; gap: var(--bf-space-1); color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .contractor-card-details strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); text-overflow: ellipsis; white-space: nowrap; }
+    .contractor-card-details small { grid-column: 2; color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .contractor-card-details svg { width: 14px; height: 14px; }
+    .contractor-card-actions { display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--bf-border); }
+    .contractor-card-actions button { display: flex; min-height: var(--bf-touch-target); align-items: center; justify-content: center; gap: var(--bf-space-2); border: 0; border-right: 1px solid var(--bf-border); color: var(--bf-text-secondary); background: transparent; font-size: var(--bf-text-xs); font-weight: 650; }
+    .contractor-card-actions button:last-child { border-right: 0; }
+    .contractor-card-actions button.is-danger { color: var(--bf-danger); }
+    .contractor-card-actions svg { width: 16px; height: 16px; }
+    .contractor-finance-kpis, .contractor-document-grid { grid-template-columns: minmax(0, 1fr); }
+    .contractor-filter-row, .contractor-filter-row > * { width: 100%; }
+    .contractor-panel-padded { padding: var(--bf-space-4); }
+    #module-taseron button { min-height: var(--bf-touch-target); }
+    #general-modal.bf-fleet-modal #modal-dynamic-body .grid-cols-2 { grid-template-columns: minmax(0, 1fr); }
+}
+
 .fleet-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: var(--bf-space-4); gap: var(--bf-space-4); }
 .fleet-surface[data-view-mode="list"] .fleet-card-grid { display: none; }
 .fleet-surface[data-view-mode="grid"] .fleet-table-wrap { display: none; }
