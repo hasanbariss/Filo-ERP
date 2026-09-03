@@ -71,6 +71,72 @@
     --bf-transition: 180ms ease;
 }
 
+/* Baris.Flow 2.0 — Owned fleet */
+.bf-fleet-module { color: var(--bf-text-primary); }
+
+.bf-fleet-tabs {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: var(--bf-space-6);
+    padding: var(--bf-space-1);
+    gap: var(--bf-space-1);
+    border: 1px solid var(--bf-border);
+    border-radius: var(--bf-radius-control);
+    background: var(--bf-surface);
+    box-shadow: var(--bf-shadow-xs);
+}
+
+.bf-fleet-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--bf-control-height);
+    padding: 0 var(--bf-space-4);
+    gap: var(--bf-space-2);
+    border: 0;
+    border-radius: calc(var(--bf-radius-control) - 2px);
+    color: var(--bf-text-secondary);
+    background: transparent;
+    font-size: var(--bf-text-sm);
+    font-weight: 650;
+    cursor: pointer;
+    transition: color var(--bf-transition), background-color var(--bf-transition), box-shadow var(--bf-transition);
+}
+
+.bf-fleet-tab:hover { color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.bf-fleet-tab.is-active { color: #fff; background: var(--bf-brand-navy-700); box-shadow: var(--bf-shadow-xs); }
+.bf-fleet-tab svg { width: 16px; height: 16px; }
+.bf-owned-fleet { display: grid; gap: var(--bf-space-6); }
+.owned-fleet-page-header { align-items: flex-start; }
+.owned-fleet-eyebrow { margin: 0 0 var(--bf-space-1); color: var(--bf-flow-coral-600); font-size: var(--bf-text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+
+.fleet-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--bf-space-4); }
+.fleet-kpi-card { display: flex; align-items: center; min-width: 0; padding: var(--bf-space-4); gap: var(--bf-space-3); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.fleet-kpi-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.fleet-kpi-icon.is-success { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.fleet-kpi-icon.is-warning { color: var(--bf-warning); background: rgba(183,110,0,.1); }
+.fleet-kpi-icon.is-danger { color: var(--bf-danger); background: rgba(197,59,72,.1); }
+.fleet-kpi-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.fleet-kpi-card > div { display: grid; min-width: 0; gap: 2px; }
+.fleet-kpi-card span { color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 600; }
+.fleet-kpi-card strong { color: var(--bf-text-primary); font-size: 1.45rem; line-height: 1.15; font-variant-numeric: tabular-nums; }
+
+.fleet-surface { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.fleet-toolbar { display: flex; align-items: center; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-4); border-bottom: 1px solid var(--bf-border); background: color-mix(in srgb, var(--bf-surface) 94%, var(--bf-surface-subtle)); }
+.fleet-toolbar-controls { display: flex; align-items: center; min-width: 0; gap: var(--bf-space-3); }
+.fleet-search { position: relative; display: flex; flex: 0 1 300px; min-width: 220px; align-items: center; }
+.fleet-search > svg { position: absolute; left: 12px; width: 17px; height: 17px; color: var(--bf-text-muted); pointer-events: none; }
+.fleet-search input { width: 100%; min-height: var(--bf-control-height); padding: 0 38px; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); outline: none; color: var(--bf-text-primary); background: var(--bf-surface); font-size: var(--bf-text-sm); }
+.fleet-search input:focus { border-color: var(--bf-brand-navy-700); box-shadow: 0 0 0 3px rgba(29,77,106,.12); }
+.fleet-filter-group, .fleet-view-toggle { display: flex; align-items: center; padding: 3px; gap: 2px; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface-subtle); }
+.fleet-filter-group { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+.fleet-filter-group::-webkit-scrollbar { display: none; }
+.fleet-filter-group button, .fleet-view-toggle button { min-height: 34px; flex: 0 0 auto; padding: 0 var(--bf-space-3); border: 0; border-radius: var(--bf-radius-sm); color: var(--bf-text-secondary); background: transparent; font-size: var(--bf-text-xs); font-weight: 650; white-space: nowrap; cursor: pointer; box-shadow: none; }
+.fleet-filter-group button.text-white, .fleet-view-toggle button.text-white { color: #fff; background: var(--bf-brand-navy-700); }
+.fleet-filter-divider { width: 1px; height: 18px; flex: 0 0 1px; margin: 0 3px; background: var(--bf-border); }
+.fleet-view-toggle { flex: 0 0 auto; }
+.fleet-view-toggle button { display: grid; width: 34px; padding: 0; place-items: center; }
+.fleet-view-toggle svg { width: 16px; height: 16px; }
+
 :root.dark {
     --bf-canvas: #0d1820;
     --bf-surface: #14232d;
@@ -1604,4 +1670,128 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     .bf-dashboard input:not([type="file"]) { min-height: var(--bf-touch-target); }
     .bf-dashboard .import-calendar-open { width: var(--bf-touch-target); height: var(--bf-touch-target); }
     .bf-dashboard button > span { font-size: 12px; }
+}
+
+.fleet-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: var(--bf-space-4); gap: var(--bf-space-4); }
+.fleet-surface[data-view-mode="list"] .fleet-card-grid { display: none; }
+.fleet-surface[data-view-mode="grid"] .fleet-table-wrap { display: none; }
+.fleet-card-grid > .empty-state, .fleet-card-grid > .loading-state { grid-column: 1 / -1; }
+.fleet-vehicle-card { display: flex; min-width: 0; flex-direction: column; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); transition: border-color var(--bf-transition), box-shadow var(--bf-transition), transform var(--bf-transition); }
+.fleet-vehicle-card:hover { border-color: rgba(29,77,106,.38); box-shadow: var(--bf-shadow-sm); transform: translateY(-1px); }
+.fleet-vehicle-summary { flex: 1; padding: var(--bf-space-4); cursor: pointer; }
+.fleet-vehicle-head, .fleet-vehicle-identity { display: flex; align-items: flex-start; }
+.fleet-vehicle-head { justify-content: space-between; gap: var(--bf-space-3); }
+.fleet-vehicle-identity { min-width: 0; gap: var(--bf-space-3); }
+.fleet-vehicle-icon { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.fleet-vehicle-icon svg { width: 18px; height: 18px; }
+.fleet-vehicle-identity h3 { margin: 0; color: var(--bf-text-primary); font-size: var(--bf-text-lg); font-weight: 750; letter-spacing: .015em; }
+.fleet-vehicle-identity p { margin: 2px 0 0; overflow: hidden; color: var(--bf-text-secondary); font-size: var(--bf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.fleet-vehicle-badges { display: flex; flex-wrap: wrap; margin-top: var(--bf-space-2); gap: var(--bf-space-1); }
+.fleet-company-badge, .fleet-license-badge { min-height: 20px; font-size: 10px; }
+.fleet-vehicle-meta { margin-top: var(--bf-space-4); padding-top: var(--bf-space-3); border-top: 1px solid var(--bf-border); }
+.fleet-driver-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--bf-space-3); gap: var(--bf-space-3); }
+.fleet-driver-row > span { display: inline-flex; align-items: center; gap: var(--bf-space-1); color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+.fleet-driver-row svg { width: 14px; height: 14px; }
+.fleet-driver-row strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+.fleet-document-list { display: flex; flex-wrap: wrap; gap: var(--bf-space-1); }
+.fleet-document-badge { display: inline-flex; min-height: 24px; align-items: center; padding: 0 var(--bf-space-2); gap: 4px; border: 1px solid transparent; border-radius: var(--bf-radius-pill); font-size: 10px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.fleet-document-badge svg { width: 11px; height: 11px; }
+.fleet-document-badge.is-success { color: var(--bf-success); background: rgba(22,134,90,.1); border-color: rgba(22,134,90,.18); }
+.fleet-document-badge.is-warning { color: var(--bf-warning); background: rgba(183,110,0,.1); border-color: rgba(183,110,0,.2); }
+.fleet-document-badge.is-danger { color: var(--bf-danger); background: rgba(197,59,72,.1); border-color: rgba(197,59,72,.2); }
+.fleet-document-badge.is-missing { color: var(--bf-neutral); background: var(--bf-surface-subtle); border-color: var(--bf-border); border-style: dashed; }
+.fleet-card-actions { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--bf-border); }
+.fleet-card-actions button { display: flex; min-width: 0; min-height: 44px; align-items: center; justify-content: center; padding: var(--bf-space-2); gap: 5px; border: 0; border-right: 1px solid var(--bf-border); color: var(--bf-text-secondary); background: transparent; font-size: 10px; font-weight: 650; cursor: pointer; }
+.fleet-card-actions button:last-child { border-right: 0; }
+.fleet-card-actions button:hover { color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.fleet-card-actions button.is-danger { color: var(--bf-danger); }
+.fleet-card-actions svg { width: 14px; height: 14px; }
+
+.fleet-table-wrap { max-width: 100%; overflow: auto; }
+.fleet-table { width: 100%; min-width: 760px; border-collapse: separate; border-spacing: 0; color: var(--bf-text-primary); text-align: left; }
+.fleet-table thead { position: sticky; top: 0; z-index: 2; }
+.fleet-table th { height: 44px; padding: 0 var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-muted); background: var(--bf-surface-subtle); font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.fleet-table td { min-height: 52px; padding: var(--bf-space-3) var(--bf-space-4); border-bottom: 1px solid var(--bf-border); vertical-align: middle; }
+.fleet-table tbody tr:last-child td { border-bottom: 0; }
+.fleet-table tbody tr:hover { background: color-mix(in srgb, var(--bf-surface) 72%, var(--bf-surface-subtle)); }
+.fleet-table-vehicle { display: flex; align-items: center; gap: var(--bf-space-3); cursor: pointer; }
+.fleet-table-vehicle > div:last-child { display: grid; min-width: 0; }
+.fleet-table-vehicle strong { color: var(--bf-text-primary); font-size: var(--bf-text-sm); }
+.fleet-table-vehicle > div > span { color: var(--bf-text-secondary); font-size: var(--bf-text-xs); }
+.fleet-driver-name { color: var(--bf-text-secondary); font-size: var(--bf-text-sm); font-weight: 550; }
+.fleet-actions-heading { width: 224px; text-align: right; }
+.fleet-row-actions { display: flex; justify-content: flex-end; gap: var(--bf-space-1); }
+.fleet-row-actions button { display: grid; width: 34px; height: 34px; place-items: center; border: 1px solid transparent; border-radius: var(--bf-radius-sm); color: var(--bf-text-secondary); background: transparent; cursor: pointer; }
+.fleet-row-actions button:hover { border-color: var(--bf-border); color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.fleet-row-actions button.is-danger { color: var(--bf-danger); }
+.fleet-row-actions svg { width: 15px; height: 15px; }
+.fleet-empty-state strong, .fleet-error-state strong { display: block; margin-top: var(--bf-space-3); color: var(--bf-text-primary); font-size: var(--bf-text-lg); }
+.fleet-empty-state p, .fleet-error-state p { margin: var(--bf-space-1) 0 var(--bf-space-4); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.fleet-state-icon { display: grid; width: 48px; height: 48px; place-items: center; margin: 0 auto; border-radius: var(--bf-radius-pill); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.fleet-state-icon svg { width: 22px; height: 22px; }
+.fleet-error-state svg { color: var(--bf-danger); }
+
+/* Vehicle forms and detail overlays keep their existing behavior. */
+#general-modal.bf-fleet-modal .general-modal-sheet,
+#arac-detay-overlay .ios-modal-sheet,
+#policy-detail-overlay .ios-modal-sheet { color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-modal); }
+#general-modal.bf-fleet-modal .general-modal-header,
+#arac-detay-overlay .ios-modal-header,
+#policy-detail-overlay .ios-modal-header { color: var(--bf-text-primary); border-color: var(--bf-border); background: var(--bf-surface); }
+#general-modal.bf-fleet-modal #modal-title,
+#arac-detay-overlay #arac-detay-plaka-header,
+#policy-detail-overlay .ios-modal-header h3 { color: var(--bf-text-primary); font-family: var(--bf-font-ui); text-transform: none; letter-spacing: normal; }
+#general-modal.bf-fleet-modal .general-modal-footer,
+#policy-detail-overlay .ios-modal-footer { border-color: var(--bf-border); background: var(--bf-surface-subtle); }
+#general-modal.bf-fleet-modal #modal-dynamic-body { color: var(--bf-text-primary); background: var(--bf-surface); }
+#general-modal.bf-fleet-modal #modal-dynamic-body label { color: var(--bf-text-secondary); font-size: var(--bf-text-sm); letter-spacing: normal; text-transform: none; }
+#general-modal.bf-fleet-modal #modal-dynamic-body input,
+#general-modal.bf-fleet-modal #modal-dynamic-body select,
+#general-modal.bf-fleet-modal #modal-dynamic-body textarea { min-height: var(--bf-touch-target); color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+#general-modal.bf-fleet-modal .general-modal-footer button { min-height: var(--bf-control-height); border-radius: var(--bf-radius-control); box-shadow: none; }
+#general-modal.bf-fleet-modal .general-modal-footer button:last-child { background: var(--bf-flow-coral-600); }
+#arac-detay-overlay .ios-modal-body,
+#policy-detail-overlay .ios-modal-body { color: var(--bf-text-primary); background: var(--bf-surface); }
+#arac-detay-overlay .ios-modal-body > .grid > div,
+#arac-detay-overlay .ios-modal-body .bg-white\/5,
+#arac-detay-overlay .ios-modal-body .bg-black\/40 { color: var(--bf-text-primary); border-color: var(--bf-border); background: var(--bf-surface-subtle); }
+
+@media (max-width: 1180px) {
+    .fleet-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fleet-toolbar { align-items: stretch; flex-direction: column; }
+    .fleet-search { flex-basis: auto; width: 100%; }
+    .fleet-toolbar-controls { justify-content: space-between; }
+    .fleet-filter-group { flex: 1; }
+    .fleet-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+    .bf-fleet-tabs { display: flex; width: 100%; margin-bottom: var(--bf-space-4); overflow-x: auto; }
+    .bf-fleet-tab { min-height: var(--bf-touch-target); flex: 0 0 auto; padding: 0 var(--bf-space-3); }
+    .bf-owned-fleet { gap: var(--bf-space-4); }
+    .bf-owned-fleet button { min-height: var(--bf-touch-target); }
+    .owned-fleet-page-header { align-items: stretch; flex-direction: column; }
+    .owned-fleet-page-header .page-actions,
+    .owned-fleet-page-header .btn-primary { width: 100%; }
+    .fleet-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bf-space-2); }
+    .fleet-kpi-card { padding: var(--bf-space-3); }
+    .fleet-kpi-icon { width: 34px; height: 34px; flex-basis: 34px; }
+    .fleet-kpi-card strong { font-size: 1.25rem; }
+    .fleet-toolbar { padding: var(--bf-space-3); }
+    .fleet-toolbar-controls { align-items: stretch; flex-direction: column; }
+    .fleet-filter-group { width: 100%; }
+    .fleet-filter-group button,
+    .fleet-view-toggle button { min-height: var(--bf-touch-target); }
+    .fleet-view-toggle { display: none; }
+    #arac-cards-grid { display: grid; }
+    #arac-list-container { display: none; }
+    .fleet-card-grid { grid-template-columns: minmax(0, 1fr); padding: var(--bf-space-3); gap: var(--bf-space-3); }
+    .fleet-card-actions button span { display: none; }
+    .fleet-card-actions svg { width: 17px; height: 17px; }
+    .fleet-vehicle-summary { padding: var(--bf-space-4); }
+    #general-modal.bf-fleet-modal .ios-modal-sheet,
+    #arac-detay-overlay .ios-modal-sheet { max-height: calc(100dvh - var(--bf-safe-top) - var(--bf-safe-bottom) - 16px); border-radius: var(--bf-radius-panel); }
+    #general-modal.bf-fleet-modal #modal-dynamic-body .grid-cols-2,
+    #arac-detay-overlay .ios-modal-body > .grid { grid-template-columns: minmax(0, 1fr); }
+    #arac-detay-overlay .ios-modal-body > .flex.gap-2 { flex-direction: column; }
 }

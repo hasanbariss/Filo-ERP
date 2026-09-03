@@ -1451,11 +1451,15 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
     if (!grid && !listBody) return;
 
     // Loading state
-    if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto"></i><p class="mt-2 text-xs">Araçlar yükleniyor...</p></div>';
+    if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div>';
+    if (listBody && document.getElementById('arac-list-container') && !document.getElementById('arac-list-container').classList.contains('hidden')) {
+        listBody.innerHTML = '<tr><td colspan="4"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
+    }
 
     const conn = window.checkSupabaseConnection();
     if (!conn.ok) {
         window.showGlobalError('arac-cards-grid', conn.msg);
+        if (listBody) listBody.innerHTML = `<tr><td colspan="4"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
         return;
     }
 
@@ -1511,13 +1515,45 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         const soforMap = {};
         if (tumSoforler) tumSoforler.forEach(s => soforMap[s.id] = s.ad_soyad);
 
+        const documentFields = ['vize_bitis', 'sigorta_bitis', 'kasko_bitis', 'koltuk_bitis'];
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const documentState = (arac) => documentFields.reduce((state, field) => {
+            if (!arac[field]) {
+                state.missing = true;
+                return state;
+            }
+            const days = Math.ceil((new Date(arac[field]) - todayStart) / 86400000);
+            if (days < 0) state.expired = true;
+            else if (days <= 30) state.upcoming = true;
+            return state;
+        }, { missing: false, expired: false, upcoming: false });
+        const fleetSummary = araclar.reduce((summary, arac) => {
+            const state = documentState(arac);
+            if (arac.sofor_id) summary.assigned += 1;
+            if (state.upcoming) summary.upcoming += 1;
+            if (state.missing || state.expired) summary.critical += 1;
+            return summary;
+        }, { assigned: 0, upcoming: 0, critical: 0 });
+        const summaryValues = {
+            'fleet-kpi-total': araclar.length,
+            'fleet-kpi-assigned': fleetSummary.assigned,
+            'fleet-kpi-upcoming': fleetSummary.upcoming,
+            'fleet-kpi-critical': fleetSummary.critical
+        };
+        Object.entries(summaryValues).forEach(([elementId, value]) => {
+            const element = document.getElementById(elementId);
+            if (element) element.textContent = String(value);
+        });
+
         // Tabloyu temizle
         if (grid) grid.innerHTML = '';
         if (listBody) listBody.innerHTML = '';
 
         if (araclar.length === 0) {
-            if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">Henüz kayıtlı özmal araç bulunmuyor.</div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-gray-500 italic">Kayıt bulunamadı.</td></tr>';
+            if (grid) grid.innerHTML = '<div class="empty-state fleet-empty-state"><div><span class="fleet-state-icon"><i data-lucide="truck"></i></span><strong>Henüz araç bulunmuyor.</strong><p>Filonuza ilk aracı ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Araç Ekle\')"><i data-lucide="plus"></i>Araç Ekle</button></div></div>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
 
@@ -1527,13 +1563,8 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const shortLabel = label === 'Sigorta' ? 'SİG' : (label === 'Kasko' ? 'KSK' : (label === 'Koltuk' ? 'KLT' : 'VİZE'));
 
             if (!dateString) {
-                // "Yok" — zarif dashed border badge
-                return `<span onclick="openModal('Yeni Poliçe Kaydı', '${aracId}')"
-                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;border:1.5px dashed hsl(var(--border-strong));color:hsl(var(--surface-muted));font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px;transition:all 0.15s ease;background:hsl(var(--surface-alt))"
-                            onmouseover="this.style.borderColor='hsl(var(--accent))';this.style.color='hsl(var(--accent))'"
-                            onmouseout="this.style.borderColor='hsl(var(--border-strong))';this.style.color='hsl(var(--surface-muted))'">
-                            <svg style="width:9px;height:9px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                            ${shortLabel}
+                return `<span class="fleet-document-badge is-missing" onclick="openModal('Yeni Poliçe Kaydı', '${aracId}')">
+                            <i data-lucide="plus"></i>${shortLabel} Eksik
                         </span>`;
             }
 
@@ -1542,22 +1573,16 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             const diffTime = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
 
             if (diffTime < 0) {
-                return `<span onclick="showPolicyDetails('${aracId}', '${tur}')"
-                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:rgba(220,38,68,0.12);border:1px solid rgba(220,38,68,0.35);color:#e03050;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px">
-                            <svg style="width:9px;height:9px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                            ${shortLabel} Bitti
+                return `<span class="fleet-document-badge is-danger" onclick="showPolicyDetails('${aracId}', '${tur}')">
+                            <i data-lucide="circle-x"></i>${shortLabel} Bitti
                         </span>`;
-            } else if (diffTime <= 15) {
-                return `<span onclick="showPolicyDetails('${aracId}', '${tur}')"
-                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);color:#d97706;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px;animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite">
-                            <svg style="width:9px;height:9px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01"/></svg>
-                            ${shortLabel} ${diffTime}g
+            } else if (diffTime <= 30) {
+                return `<span class="fleet-document-badge is-warning" onclick="showPolicyDetails('${aracId}', '${tur}')">
+                            <i data-lucide="clock-3"></i>${shortLabel} ${diffTime}g
                         </span>`;
             } else {
-                return `<span onclick="showPolicyDetails('${aracId}', '${tur}')"
-                            style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#16a34a;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;margin-right:4px">
-                            <svg style="width:9px;height:9px" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                            ${shortLabel} OK
+                return `<span class="fleet-document-badge is-success" onclick="showPolicyDetails('${aracId}', '${tur}')">
+                            <i data-lucide="circle-check"></i>${shortLabel} Güncel
                         </span>`;
             }
         }
@@ -1689,9 +1714,8 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             // Şirket badge
             let sirketBadgeHtml = '';
             if (arac.sirket && arac.sirket !== 'Belirtilmemiş') {
-                const sirketColor = arac.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : (arac.sirket === 'DİKKAN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
                 sirketBadgeHtml = `
-                    <span class="inline-flex items-center px-1.5 py-0.5 rounded border ${sirketColor} text-[9px] font-bold uppercase tracking-wider">
+                    <span class="badge-info fleet-company-badge">
                         ${window.CompanyBranding.companyDisplayName(arac.sirket)}
                     </span>
                 `;
@@ -1700,45 +1724,46 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             // Belge türü badge (D2, D4S vs)
             let belgeBadgeHtml = '';
             if (arac.belge_turu && arac.belge_turu !== 'Yok') {
-                const badgeColor = arac.belge_turu === 'D2' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
-                    (arac.belge_turu === 'D4S' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' : 'bg-gray-500/10 text-gray-400 border-gray-500/30');
                 belgeBadgeHtml = `
-                    <span class="inline-flex items-center px-1.5 py-0.5 rounded border ${badgeColor} text-[9px] font-bold uppercase tracking-wider">
+                    <span class="badge-neutral fleet-license-badge">
                         ${arac.belge_turu}
                     </span>
                 `;
             }
 
+            const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', mulkiyet, arac.belge_turu || ''].join(' ');
+
             // Supabase'den gelen veriye göre modern card oluştur
             if (grid) {
                 const card = document.createElement('div');
-                card.className = "dashboard-card hover:border-orange-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer";
+                card.className = "fleet-vehicle-card";
+                card.dataset.fleetSearch = searchText;
 
                 card.innerHTML = `
-                    <div onclick="window.openAracDetay('${arac.id}')" style="cursor:pointer">
-                        <div class="flex justify-between items-start mb-4 border-b border-white/5 pb-3">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2.5 bg-orange-500/10 rounded-xl text-orange-500">
-                                    <i data-lucide="truck" class="w-5 h-5"></i>
+                    <div class="fleet-vehicle-summary" onclick="window.openAracDetay('${arac.id}')">
+                        <div class="fleet-vehicle-head">
+                            <div class="fleet-vehicle-identity">
+                                <div class="fleet-vehicle-icon">
+                                    <i data-lucide="truck"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-bold text-lg text-white tracking-wide">${plaka}</h3>
-                                    <div class="flex items-center gap-2 flex-wrap mt-1">
-                                        <p class="text-xs text-gray-500 uppercase tracking-wider">${marka}</p>
+                                    <h3>${plaka}</h3>
+                                    <p>${marka}</p>
+                                    <div class="fleet-vehicle-badges">
                                         ${sirketBadgeHtml}
                                         ${belgeBadgeHtml}
                                     </div>
                                 </div>
                             </div>
-                            <span class="px-2 py-1 text-[9px] uppercase tracking-wider font-bold rounded-md ${arac.mulkiyet_durumu === 'ÖZMAL' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}">${mulkiyet}</span>
+                            <span class="${arac.mulkiyet_durumu === 'ÖZMAL' ? 'badge-success' : 'badge-neutral'}">${mulkiyet}</span>
                         </div>
 
-                        <div class="space-y-3 mb-4">
-                            <div class="flex justify-between items-center bg-black/20 p-2.5 rounded-xl border border-white/5">
-                                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i>Sürücü</span>
-                                <span class="text-sm font-semibold text-gray-300">${sofor}</span>
+                        <div class="fleet-vehicle-meta">
+                            <div class="fleet-driver-row">
+                                <span><i data-lucide="user"></i>Sürücü</span>
+                                <strong>${sofor}</strong>
                             </div>
-                            <div class="flex flex-wrap gap-2 mt-2 pt-2 border-t border-white/5">
+                            <div class="fleet-document-list">
                                 ${vizeHtml}
                                 ${sigortaHtml}
                                 ${kaskoHtml}
@@ -1747,12 +1772,12 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between mt-auto pt-4 border-t border-white/5 gap-2">
-                        <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="text-[10px] font-bold text-gray-400 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="user-plus" class="w-3 h-3"></i>Şoför Eşleştir</button>
-                        <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="file-text" class="w-3 h-3"></i>Poliçe/Evrak</button>
-                        <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" class="text-[10px] font-bold text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="history" class="w-3 h-3"></i>Geçmiş</button>
-                        <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="text-[10px] font-bold text-orange-500 hover:text-orange-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="edit-2" class="w-3 h-3"></i>Düzenle</button>
-                        <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="text-[10px] font-bold text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Sil</button>
+                    <div class="fleet-card-actions">
+                        <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" title="Şoför eşleştir"><i data-lucide="user-plus"></i><span>Şoför</span></button>
+                        <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" title="Poliçe ve evrak"><i data-lucide="file-text"></i><span>Evrak</span></button>
+                        <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" title="Bakım geçmişi"><i data-lucide="history"></i><span>Geçmiş</span></button>
+                        <button onclick="openModal('Araç Güncelle', '${arac.id}')" title="Aracı düzenle"><i data-lucide="edit-2"></i><span>Düzenle</span></button>
+                        <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" title="Aracı sil"><i data-lucide="trash-2"></i><span>Sil</span></button>
                     </div>
                 `;
                 grid.appendChild(card);
@@ -1761,41 +1786,38 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
             if (listBody) {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-white/5 transition-colors group";
+                tr.dataset.fleetSearch = searchText;
                 tr.innerHTML = `
-                    <td class="p-4 border-b border-white/5">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500">
-                                <i data-lucide="truck" class="w-4 h-4"></i>
+                    <td>
+                        <div class="fleet-table-vehicle" onclick="window.openAracDetay('${arac.id}')">
+                            <div class="fleet-vehicle-icon">
+                                <i data-lucide="truck"></i>
                             </div>
                             <div>
-                                <div class="font-bold text-white text-sm flex items-center gap-2">
-                                    ${plaka}
-                                    ${sirketBadgeHtml}
-                                    ${belgeBadgeHtml}
-                                </div>
-                                <div class="text-[10px] text-gray-500 uppercase mt-0.5">${marka} (${mulkiyet})</div>
+                                <strong>${plaka}</strong>
+                                <span>${marka} · ${mulkiyet}</span>
+                                <div class="fleet-vehicle-badges">${sirketBadgeHtml}${belgeBadgeHtml}</div>
                             </div>
                         </div>
                     </td>
-                    <td class="p-4 border-b border-white/5">
-                        <div class="text-sm text-gray-300 font-medium">${sofor}</div>
+                    <td>
+                        <div class="fleet-driver-name">${sofor}</div>
                     </td>
-                    <td class="p-4 border-b border-white/5 hidden md:table-cell">
-                        <div class="flex gap-2">
+                    <td class="hidden md:table-cell">
+                        <div class="fleet-document-list">
                             ${vizeHtml}
                             ${sigortaHtml}
                             ${kaskoHtml}
                             ${koltukHtml}
                         </div>
                     </td>
-                    <td class="p-4 border-b border-white/5 text-right w-32">
-                        <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                            <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="Şoför Ata"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Evrak/Poliçe"><i data-lucide="file-text" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" class="p-1.5 text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-all" title="Bakım Geçmişi"><i data-lucide="history" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="openModal('Araç Güncelle', '${arac.id}')" class="p-1.5 text-orange-400 hover:text-orange-300 bg-orange-500/10 hover:bg-orange-500/20 rounded-lg transition-all" title="Düzenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" class="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all" title="Sil"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <td>
+                        <div class="fleet-row-actions">
+                            <button onclick="openModal('Araç Şoför Ata', '${arac.id}')" title="Şoför Ata"><i data-lucide="user-plus"></i></button>
+                            <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" title="Evrak/Poliçe"><i data-lucide="file-text"></i></button>
+                            <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" title="Bakım Geçmişi"><i data-lucide="history"></i></button>
+                            <button onclick="openModal('Araç Güncelle', '${arac.id}')" title="Düzenle"><i data-lucide="edit-2"></i></button>
+                            <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" title="Sil"><i data-lucide="trash-2"></i></button>
                         </div>
                     </td>
                 `;
@@ -1805,12 +1827,16 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         });
 
+        const searchInput = document.getElementById('fleet-search-input');
+        if (searchInput && typeof window.filterOwnedFleetSearch === 'function') window.filterOwnedFleetSearch(searchInput.value);
+
         if (window.lucide) window.lucide.createIcons();
 
     } catch (error) {
         console.error("Araçları çekerken hata:", error);
-        if (grid) grid.innerHTML = `<div class="col-span-full py-12 text-center text-red-500">Veriler yüklenemedi: ${error.message}</div>`;
-        if (listBody) listBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">Hata: ${error.message}</td></tr>`;
+        if (grid) grid.innerHTML = `<div class="empty-state fleet-error-state"><div><i data-lucide="circle-alert"></i><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div>`;
+        if (listBody) listBody.innerHTML = `<tr><td colspan="4"><div class="empty-state fleet-error-state"><div><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 

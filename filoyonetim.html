@@ -715,41 +715,72 @@
                 </div>
 
                 <!-- 1. FİLO VE KADRO BİRLEŞİK MODÜLÜ -->
-                <div id="module-filo" class="main-module hidden stagger-in">
+                <div id="module-filo" class="main-module hidden stagger-in bf-fleet-module">
 
                     <!-- Alt Sekmeler -->
-                    <div class="flex flex-wrap gap-2 mb-8 p-1 bg-white/5 rounded-xl w-fit">
+                    <div class="bf-fleet-tabs" aria-label="Filo modülleri">
                         <button id="tab-btn-araclar" onclick="switchFiloTab('araclar')"
-                            class="px-6 py-2 text-sm font-semibold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2">
+                            class="bf-fleet-tab is-active">
                             <i data-lucide="truck" class="w-4 h-4"></i>
                             Özmal Envanteri
                         </button>
                         <button id="tab-btn-soforler" onclick="switchFiloTab('soforler')"
-                            class="px-6 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                            class="bf-fleet-tab">
                             <i data-lucide="users" class="w-4 h-4"></i>
                             Şoför Kadrosu
                         </button>
                         <!-- Yeni Çizelge Sekmesi -->
                         <button id="tab-btn-cizelge" onclick="switchFiloTab('cizelge')"
-                            class="px-6 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                            class="bf-fleet-tab">
                             <i data-lucide="calendar-days" class="w-4 h-4"></i>
                             Özmal Çizelge
                         </button>
                     </div>
 
                     <!-- 1.A. ARAÇLAR ALT MODÜLÜ -->
-                    <div id="sub-araclar" class="block">
-                        <div class="dashboard-card overflow-hidden">
-                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
-                                <div>
-                                    <h2 class="text-xl font-bold">Filo Araç Envanteri</h2>
-                                    <p class="text-sm text-gray-500">Tüm araçların durumunu ve bakım süreçlerini
-                                        yönetin.</p>
-                                </div>
-                                <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
+                    <div id="sub-araclar" class="block bf-owned-fleet">
+                        <div class="page-header owned-fleet-page-header">
+                            <div class="page-header-identity">
+                                <p class="owned-fleet-eyebrow" data-company-name>Şirket filosu</p>
+                                <h1 class="page-title">Özmal Filo</h1>
+                                <p class="page-subtitle">Şirketinize ait araçları, durumlarını ve operasyon bilgilerini yönetin.</p>
+                            </div>
+                            <div class="page-actions">
+                                <button onclick="openModal('Yeni Araç Ekle')" class="btn-primary">
+                                    <i data-lucide="plus" aria-hidden="true"></i>
+                                    Araç Ekle
+                                </button>
+                            </div>
+                        </div>
+
+                        <section class="fleet-kpi-grid" aria-label="Filo özeti">
+                            <article class="fleet-kpi-card">
+                                <span class="fleet-kpi-icon is-primary"><i data-lucide="truck"></i></span>
+                                <div><span>Toplam Araç</span><strong id="fleet-kpi-total">—</strong></div>
+                            </article>
+                            <article class="fleet-kpi-card">
+                                <span class="fleet-kpi-icon is-success"><i data-lucide="user-check"></i></span>
+                                <div><span>Şoför Atanmış</span><strong id="fleet-kpi-assigned">—</strong></div>
+                            </article>
+                            <article class="fleet-kpi-card">
+                                <span class="fleet-kpi-icon is-warning"><i data-lucide="clock-3"></i></span>
+                                <div><span>Yaklaşan Evrak</span><strong id="fleet-kpi-upcoming">—</strong></div>
+                            </article>
+                            <article class="fleet-kpi-card">
+                                <span class="fleet-kpi-icon is-danger"><i data-lucide="shield-alert"></i></span>
+                                <div><span>Kritik / Eksik</span><strong id="fleet-kpi-critical">—</strong></div>
+                            </article>
+                        </section>
+
+                        <div class="fleet-surface" data-view-mode="list">
+                            <div class="fleet-toolbar">
+                                <label class="fleet-search" for="fleet-search-input">
+                                    <i data-lucide="search" aria-hidden="true"></i>
+                                    <input id="fleet-search-input" type="search" placeholder="Plaka, araç veya sürücü ara" autocomplete="off" oninput="window.filterOwnedFleetSearch(this.value)">
+                                </label>
+                                <div class="fleet-toolbar-controls">
                                     <!-- Filtre butonları -->
-                                    <div
-                                        class="flex items-center bg-black/30 p-1 rounded-xl border border-white/5 gap-1">
+                                    <div class="fleet-filter-group" aria-label="Araç filtreleri">
                                         <button id="filter-btn-hepsi" onclick="window.filterAraclar('hepsi')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
                                         <button id="filter-btn-ozmal" onclick="window.filterAraclar('ÖZMAL')"
@@ -758,14 +789,14 @@
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Taşeron</button>
                                         <button id="filter-btn-kiralik" onclick="window.filterAraclar('KİRALIK')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Kiralık</button>
-                                        <div class="w-px h-4 bg-white/10 mx-1"></div>
+                                        <span class="fleet-filter-divider" aria-hidden="true"></span>
                                         <button id="filter-btn-d2" onclick="window.filterAraclar('D2')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-blue-400 hover:bg-blue-500/20 transition-all">D2
                                             Belgeli</button>
                                         <button id="filter-btn-d4s" onclick="window.filterAraclar('D4S')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all">D4S
                                             Belgeli</button>
-                                        <div class="w-px h-4 bg-white/10 mx-1"></div>
+                                        <span class="fleet-filter-divider" aria-hidden="true"></span>
                                         <button id="filter-btn-ideol" onclick="window.filterAraclarBySirket('IDEOL')"
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all" data-company-name>IDEOL</button>
                                         <button id="filter-btn-dikkan" onclick="window.filterAraclarBySirket('DİKKAN')"
@@ -774,52 +805,45 @@
                                             class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">M.K.</button>
                                     </div>
                                     <!-- Görünüm Türü -->
-                                    <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5">
+                                    <div class="fleet-view-toggle" aria-label="Görünüm seçimi">
                                         <button id="btn-arac-grid"
                                             onclick="window.toggleViewMode('arac', 'grid', 'bg-orange-500')"
-                                            class="p-2 rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all"
+                                            class="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all"
                                             title="Kart Görünümü">
                                             <i data-lucide="layout-grid" class="w-4 h-4"></i>
                                         </button>
                                         <button id="btn-arac-list"
                                             onclick="window.toggleViewMode('arac', 'list', 'bg-orange-500')"
-                                            class="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all"
+                                            class="p-2 rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all"
                                             title="Liste Görünümü">
                                             <i data-lucide="list" class="w-4 h-4"></i>
                                         </button>
                                     </div>
-                                    <button onclick="openModal('Yeni Araç Ekle')"
-                                        class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                                        <i data-lucide="plus-circle" class="w-4 h-4"></i> Yeni Araç
-                                    </button>
                                 </div>
                             </div>
                             <div id="arac-cards-grid"
-                                class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 py-4">
-                                <div class="col-span-full py-8 text-center text-gray-500 italic">
-                                    <div class="flex flex-col items-center gap-2">
+                                class="fleet-card-grid">
+                                <div class="loading-state">
+                                    <div>
                                         <i data-lucide="loader-2" class="animate-spin w-6 h-6"></i>
-                                        Veriler yükleniyor...
+                                        <p>Araçlar yükleniyor...</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div id="arac-list-container" class="hidden py-4">
-                                <div class="bg-black/20 rounded-2xl border border-white/5 overflow-hidden">
-                                    <table class="w-full text-left border-collapse">
+                            <div id="arac-list-container" class="fleet-table-wrap">
+                                    <table class="fleet-table">
                                         <thead>
-                                            <tr
-                                                class="bg-white/5 text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5">
-                                                <th class="p-4 font-bold">Araç</th>
-                                                <th class="p-4 font-bold">Şoför</th>
-                                                <th class="p-4 font-bold hidden md:table-cell">Evrak / Bakım</th>
-                                                <th class="p-4 font-bold text-right w-32">İşlemler</th>
+                                            <tr>
+                                                <th>Araç</th>
+                                                <th>Şoför</th>
+                                                <th class="hidden md:table-cell">Evrak / Bakım</th>
+                                                <th class="fleet-actions-heading">İşlemler</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="arac-list-tbody" class="divide-y divide-white/5">
+                                        <tbody id="arac-list-tbody">
                                         </tbody>
                                     </table>
-                                </div>
                             </div>
 
                         </div>

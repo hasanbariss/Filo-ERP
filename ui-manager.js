@@ -226,8 +226,8 @@ function switchFiloTab(tabName) {
     const cizelgeSub = document.getElementById('sub-cizelge');
 
     // Reset styles
-    const inactiveClass = "px-6 py-2 text-sm font-semibold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2";
-    const activeClass = "px-6 py-2 text-sm font-semibold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all flex items-center gap-2";
+    const inactiveClass = "bf-fleet-tab";
+    const activeClass = "bf-fleet-tab is-active";
 
     if (aracBtn) aracBtn.className = inactiveClass;
     if (soforBtn) soforBtn.className = inactiveClass;
@@ -743,6 +743,8 @@ const modalTitle = document.getElementById('modal-title');
 
 window.openModal = function (title, id = null, extra = null) {
     modalTitle.textContent = title;
+    const fleetModalTitles = ['Yeni Araç Ekle', 'Araç Güncelle', 'Araç Şoför Ata', 'Araç Evrak Güncelle', 'Araç Bakım Geçmişi', 'Yeni Poliçe Kaydı'];
+    modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');
     
@@ -3661,6 +3663,14 @@ window.filterAraclarBySirket = function (sirket) {
     if (typeof fetchAraclar === 'function') fetchAraclar('hepsi', sirket);
 };
 
+window.filterOwnedFleetSearch = function (value) {
+    const normalizedQuery = String(value || '').toLocaleLowerCase('tr-TR').trim();
+    document.querySelectorAll('#arac-cards-grid [data-fleet-search], #arac-list-tbody [data-fleet-search]').forEach(item => {
+        const haystack = String(item.dataset.fleetSearch || '').toLocaleLowerCase('tr-TR');
+        item.hidden = normalizedQuery.length > 0 && !haystack.includes(normalizedQuery);
+    });
+};
+
 window.filterSoforler = function (sirket) {
     ['hepsi', 'ideol', 'mk', 'dikkan'].forEach(key => {
         const btn = document.getElementById(`filter-sofor-btn-${key}`);
@@ -3688,6 +3698,8 @@ window.toggleViewMode = function (module, mode, colorClass) {
     const listContainer = document.getElementById(`${module}-list-container`);
 
     if (!gridContainer || !listContainer) return;
+    const viewSurface = gridContainer.closest('.fleet-surface');
+    if (viewSurface) viewSurface.dataset.viewMode = mode;
 
     if (mode === 'grid') {
         gridBtn.classList.add(colorClass, 'text-white');
