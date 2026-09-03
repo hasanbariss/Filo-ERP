@@ -25,6 +25,65 @@ function _fmtDate(str) {
     try { return new Date(str).toLocaleDateString('tr-TR'); } catch(e) { return str; }
 }
 
+function _dashboardMonthValue(date) {
+    const source = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
+    return `${source.getFullYear()}-${String(source.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function _dashboardDefaultMonth(now = new Date()) {
+    return _dashboardMonthValue(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+}
+
+function _dashboardMonthBounds(value, now = new Date()) {
+    const safeValue = /^\d{4}-\d{2}$/.test(String(value || '')) ? String(value) : _dashboardDefaultMonth(now);
+    const [year, month] = safeValue.split('-').map(Number);
+    const start = `${year}-${String(month).padStart(2, '0')}-01`;
+    const end = `${year}-${String(month).padStart(2, '0')}-${String(new Date(year, month, 0).getDate()).padStart(2, '0')}`;
+    const previousDate = new Date(year, month - 2, 1);
+    const previousValue = _dashboardMonthValue(previousDate);
+    const [previousYear, previousMonth] = previousValue.split('-').map(Number);
+    return {
+        value: safeValue,
+        start,
+        end,
+        infoStart: start + ' 00:00',
+        infoEnd: end + ' 23:59',
+        previousStart: `${previousYear}-${String(previousMonth).padStart(2, '0')}-01`,
+        previousEnd: `${previousYear}-${String(previousMonth).padStart(2, '0')}-${String(new Date(previousYear, previousMonth, 0).getDate()).padStart(2, '0')}`,
+        label: new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1))
+    };
+}
+
+function _dashboardShiftMonth(value, direction, now = new Date()) {
+    const bounds = _dashboardMonthBounds(value, now);
+    const [year, month] = bounds.value.split('-').map(Number);
+    return _dashboardMonthValue(new Date(year, month - 1 + Number(direction || 0), 1));
+}
+
+function _dashboardRowsInPeriod(rows, fields, bounds) {
+    return (rows || []).filter(row => {
+        const field = fields.find(candidate => row?.[candidate]);
+        const value = field ? String(row[field]).slice(0, 10) : '';
+        return value >= bounds.start && value <= bounds.end;
+    });
+}
+
+window.shiftDashboardReportingPeriod = function (direction) {
+    const input = document.getElementById('dashboard-reporting-period');
+    if (!input) return;
+    input.value = _dashboardShiftMonth(input.value, direction);
+    window.fetchDashboardData();
+};
+
+window.openFuelAnalyticsForDashboardPeriod = function () {
+    const periodInput = document.getElementById('dashboard-reporting-period');
+    const period = _dashboardMonthBounds(periodInput?.value);
+    const fuelAnchor = document.getElementById('fuel-period-anchor');
+    if (fuelAnchor) fuelAnchor.value = period.start;
+    document.querySelector('#main-nav-buttons [data-target="module-yakit-km"]')?.click();
+    if (typeof window.setFuelAnalyticsPeriod === 'function') window.setFuelAnalyticsPeriod('month');
+};
+
 // ─── Global: Poliçe verisi cache ─────────────────────────────
 window._dashboardPolicelerCache = [];
 // ─── Evrak toast sadece bir kez gösterilsin ───────────────────
@@ -59,14 +118,13 @@ window.fetchDashboardData = async function () {
         const past90Str = new Date(today.getTime() - 90 * 864e5).toISOString().split('T')[0];
         const future90Str = new Date(today.getTime() + 90 * 864e5).toISOString().split('T')[0];
 
-        const y = today.getFullYear(), m = String(today.getMonth() + 1).padStart(2,'0');
-        const monthStart = `${y}-${m}-01`;
-        const monthEnd = `${y}-${m}-${new Date(y, today.getMonth()+1, 0).getDate()}`;
-        const previousMonthDate = new Date(y, today.getMonth() - 1, 1);
-        const previousYear = previousMonthDate.getFullYear();
-        const previousMonth = String(previousMonthDate.getMonth() + 1).padStart(2, '0');
-        const previousMonthStart = `${previousYear}-${previousMonth}-01`;
-        const previousMonthEnd = `${previousYear}-${previousMonth}-${new Date(previousYear, previousMonthDate.getMonth() + 1, 0).getDate()}`;
+        const periodInput = document.getElementById('dashboard-reporting-period');
+        const period = _dashboardMonthBounds(periodInput?.value, today);
+        if (periodInput && !periodInput.value) periodInput.value = period.value;
+        const monthStart = period.start;
+        const monthEnd = period.end;
+        const previousMonthStart = period.previousStart;
+        const previousMonthEnd = period.previousEnd;
 
         // ── Paralel veri çekimi ──────────────────────────────
         const [
@@ -147,25 +205,16 @@ window.fetchDashboardData = async function () {
             setTimeout(() => window.Toast.warning(`⚠️ Dikkat: ${expiring15Days} aracınızın vize, kasko veya sigorta süresi bitmek üzere (15 günden az) ya da dolmuş!`), 2000);
         }
 
-        const isInRange = (row, fields, start, end) => {
-            const field = fields.find(candidate => row?.[candidate]);
-            const value = field ? String(row[field]).slice(0, 10) : '';
-            return value >= start && value <= end;
-        };
+        const isInRange = (row, fields, start, end) => _dashboardRowsInPeriod(row ? [row] : [], fields, { start, end }).length > 0;
         const isCurrentMonth = (row, fields) => isInRange(row, fields, monthStart, monthEnd);
         const aylikYakitlar = yakitlar.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
-        const oncekiAyYakitlar = yakitlar.filter(row => isInRange(row, ['tarih', 'created_at'], previousMonthStart, previousMonthEnd));
         const aylikBakimlar = bakimlar.filter(row => isCurrentMonth(row, ['islem_tarihi', 'tarih', 'created_at']));
         const aylikTaseronHakedis = hakedisTaseron.filter(row => isCurrentMonth(row, ['sefer_tarihi', 'tarih', 'created_at']));
         const aylikServisHakedis = hakedisServis.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
         const currentFuelSummary = window.FuelAnalytics
             ? window.FuelAnalytics.summarizeFuelRows(aylikYakitlar)
             : { cost: aylikYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0), liters: aylikYakitlar.reduce((s, y) => s + (Number(y.litre) || 0), 0) };
-        const previousFuelSummary = window.FuelAnalytics
-            ? window.FuelAnalytics.summarizeFuelRows(oncekiAyYakitlar)
-            : { cost: oncekiAyYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0) };
         const sumYakit = currentFuelSummary.cost;
-        const sumOncekiAyYakit = previousFuelSummary.cost;
         const sumYakitLitre = currentFuelSummary.liters;
         const sumBakim = aylikBakimlar.reduce((s, b) => s + (Number(b.toplam_tutar) || 0), 0);
         const sumHakedisTaseron = aylikTaseronHakedis.reduce((s, h) => s + (Number(h.net_hakedis || h.anlasilan_tutar) || 0), 0);
@@ -187,6 +236,31 @@ window.fetchDashboardData = async function () {
         const sumCiro = ozmalServisGeliri;
         const sumFiloGider = sumYakit + sumBakim;
         const sumHakedis = sumHakedisTaseron + sumHakedisServis;
+
+        let dashboardKm = 0;
+        let dashboardConsumption = null;
+        if (window.fetchInfoMobileMileage && window.FuelAnalytics && araclar.length) {
+            try {
+                const previousInfo = { infoStart: previousMonthStart + ' 00:00', infoEnd: previousMonthEnd + ' 23:59' };
+                const infoPayload = await window.fetchInfoMobileMileage(
+                    araclar.map(vehicle => vehicle.plaka),
+                    { infoStart: period.infoStart, infoEnd: period.infoEnd },
+                    previousInfo
+                );
+                const mileageByPlate = {};
+                (infoPayload.results || []).forEach(row => {
+                    if (row.status === 'ready') mileageByPlate[row.plate] = Number(row.currentKm) || 0;
+                });
+                const analyticsRows = window.FuelAnalytics.aggregateByVehicle(aylikYakitlar, araclar, mileageByPlate, [], {});
+                dashboardKm = analyticsRows.reduce((sum, row) => sum + (Number(row.km) || 0), 0);
+                const comparableRows = analyticsRows.filter(row => row.km > 0 && row.receiptCount > 0);
+                const comparableKm = comparableRows.reduce((sum, row) => sum + row.km, 0);
+                const comparableLitres = comparableRows.reduce((sum, row) => sum + row.liters, 0);
+                dashboardConsumption = window.FuelAnalytics.metrics(comparableLitres, 0, comparableKm).litersPer100Km;
+            } catch (infoError) {
+                console.warn('[DASHBOARD] InfoMobil dönem özeti alınamadı:', infoError.message || infoError);
+            }
+        }
 
         const maintenanceAlerts = araclar.map(vehicle => {
             const currentKm = Number(vehicle.guncel_km) || 0;
@@ -213,21 +287,23 @@ window.fetchDashboardData = async function () {
         setEl('kpi-bakim-yag', Math.max(0, maintenanceAlerts.length - overdueMaintenance));
         setEl('kpi-bakim-gecmis', overdueMaintenance);
 
-        setEl('kpi-finans-main', _fmt(sumFiloGider));
-        setEl('kpi-finans-gelir', _fmt(ozmalServisGeliri));
-        setEl('kpi-finans-yakit', _fmt(sumYakit));
-        setEl('kpi-finans-bakim', _fmt(sumBakim));
+        setEl('kpi-finans-main', _fmt(sumYakit));
+        setEl('kpi-fuel-litres', `${sumYakitLitre.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L`);
+        setEl('kpi-fuel-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
         setEl('kpi-hakedis-main', _fmt(sumHakedis));
         setEl('kpi-hakedis-taseron', _fmt(sumHakedisTaseron));
         setEl('kpi-hakedis-servis', _fmt(sumHakedisServis));
-        setEl('kpi-card-main', _fmt(totalCardDebt));
-        setEl('kpi-card-count', kartlar.length);
-        setEl('kpi-card-limit', _fmt(totalCardLimit));
+        document.querySelectorAll('.dashboard-period-badge').forEach(element => { element.textContent = period.label; });
+        setEl('dashboard-period-label', period.label);
+        setEl('dashboard-period-fuel', _fmt(sumYakit));
+        setEl('dashboard-period-maintenance', _fmt(sumBakim));
+        setEl('dashboard-period-fleet-expense', _fmt(sumFiloGider));
 
         setEl('fuel-month-total', _fmt(sumYakit));
+        setEl('fuel-month-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
         setEl('fuel-month-litres', `${sumYakitLitre.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L`);
+        setEl('fuel-month-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L` : '—');
         setEl('fuel-month-average', sumYakitLitre > 0 ? _fmtFull(sumYakit / sumYakitLitre) : '—');
-        setEl('fuel-month-change', sumOncekiAyYakit > 0 ? `${sumYakit >= sumOncekiAyYakit ? '+' : ''}${(((sumYakit - sumOncekiAyYakit) / sumOncekiAyYakit) * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%` : '—');
 
         setEl('accrual-month-total', _fmt(sumHakedis));
         setEl('accrual-taseron-total', _fmt(sumHakedisTaseron));
@@ -272,14 +348,6 @@ window.fetchDashboardData = async function () {
         // ── Poliçe lookup tablosu (plaka map) ──────────────
         const plakaMap = {};
         araclar.forEach(a => { plakaMap[a.id] = a.plaka; });
-
-        const fuelByVehicle = {};
-        aylikYakitlar.forEach(row => {
-            if (!row.arac_id) return;
-            fuelByVehicle[row.arac_id] = (fuelByVehicle[row.arac_id] || 0) + (Number(row.toplam_tutar) || 0);
-        });
-        const topFuelVehicle = Object.entries(fuelByVehicle).sort((a, b) => b[1] - a[1])[0];
-        setEl('fuel-top-vehicle', topFuelVehicle ? `${plakaMap[topFuelVehicle[0]] || 'Araç'} · ${_fmt(topFuelVehicle[1])}` : '—');
 
         const customerMap = {};
         musteriler.forEach(item => { customerMap[item.id] = item.ad || 'Müşteri'; });
@@ -340,6 +408,11 @@ window.fetchDashboardData = async function () {
             if (b.days === null) return -1;
             return a.days - b.days;
         });
+
+        const currentPolicyItems = policelerEnriched.filter(item => item.days !== null && item.days >= 0 && item.days <= 30);
+        setEl('kpi-policy-main', currentPolicyItems.length);
+        setEl('kpi-policy-critical', currentPolicyItems.filter(item => item.days <= 7).length);
+        setEl('kpi-policy-upcoming', currentPolicyItems.length);
 
         // Cache'e yaz ve tabloyu render et
         window._dashboardPolicelerCache = policelerEnriched;
@@ -570,7 +643,7 @@ window.renderDashboardAccruals = function (accrualByParty) {
     const rows = Object.entries(accrualByParty || {}).sort((a, b) => b[1] - a[1]).slice(0, 4);
     container.innerHTML = rows.length ? rows.map(([name, total], index) => `<div class="dashboard-compact-row">
         <span class="dashboard-rank">${index + 1}</span><div><strong>${_escapeDashboard(name)}</strong><small>Dönem toplamı</small></div><span>${_fmt(total)}</span>
-    </div>`).join('') : '<div class="management-attention-empty"><i data-lucide="circle-minus"></i><p>Bu ay hakediş kaydı bulunmuyor.</p></div>';
+    </div>`).join('') : '<div class="management-attention-empty"><i data-lucide="circle-minus"></i><p>Seçilen dönemde hakediş kaydı bulunmuyor.</p></div>';
 };
 
 window.renderDashboardCards = function (cards, spendById) {
@@ -1463,3 +1536,12 @@ window.sifirlaTaseronRapor = function() {
         }, 100);
     }
 };
+
+if (typeof module === 'object' && module.exports) {
+    module.exports._internals = {
+        dashboardDefaultMonth: _dashboardDefaultMonth,
+        dashboardMonthBounds: _dashboardMonthBounds,
+        dashboardShiftMonth: _dashboardShiftMonth,
+        dashboardRowsInPeriod: _dashboardRowsInPeriod
+    };
+}

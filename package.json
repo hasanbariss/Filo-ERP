@@ -12,6 +12,7 @@
     "test:hakedis": "node scripts/test-hakedis-calculations.cjs",
     "test:teklif": "node scripts/test-teklif-management.cjs",
     "test:fuel": "node scripts/test-fuel-analytics.cjs",
+    "test:dashboard": "node scripts/test-dashboard-period.cjs",
     "ios:prepare": "node scripts/prepare-ios.mjs",
     "ios:add": "npm run ios:prepare && cap add ios",
     "ios:sync": "npm run ios:prepare && cap sync ios",

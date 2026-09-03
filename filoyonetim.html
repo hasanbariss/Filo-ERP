@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Baris.Flow Drive">
-    <meta name="theme-color" content="#0d0f11">
+    <meta name="theme-color" content="#f5f7f9">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
@@ -80,7 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.4">
+    <link rel="stylesheet" href="design-system.css?v=2.0.5">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -341,7 +341,15 @@
                         <p class="page-subtitle">Filo sağlığı, yaklaşan yükümlülükler ve finansal görünüm.</p>
                         <p class="dashboard-updated-at" id="dashboard-date-label" aria-live="polite">Yükleniyor...</p>
                     </div>
-                    <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
+                    <div class="dashboard-page-actions">
+                        <div class="dashboard-reporting-period" aria-label="Dashboard raporlama dönemi">
+                            <span>Raporlama Dönemi</span>
+                            <button type="button" class="btn-icon" onclick="window.shiftDashboardReportingPeriod(-1)" aria-label="Önceki aya git"><i data-lucide="chevron-left"></i></button>
+                            <label><span class="sr-only">Ay ve yıl seçin</span><input type="month" id="dashboard-reporting-period" class="form-control" onchange="window.fetchDashboardData()"></label>
+                            <button type="button" class="btn-icon" onclick="window.shiftDashboardReportingPeriod(1)" aria-label="Sonraki aya git"><i data-lucide="chevron-right"></i></button>
+                        </div>
+                        <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
+                    </div>
                 </header>
 
                 <section class="dashboard-kpi-grid" aria-label="Yönetim özet metrikleri">
@@ -355,22 +363,24 @@
                         <h3>Yaklaşan Bakım</h3><strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
                         <div class="dashboard-kpi-meta"><span>Yaklaşan <strong id="kpi-bakim-yag">0</strong></span><span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-finance">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wallet-cards"></i></span><span class="badge-info">Bu ay</span></div>
-                        <h3>Toplam Filo Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
-                        <div class="dashboard-kpi-meta"><span>Yakıt <strong id="kpi-finans-yakit">₺0</strong></span><span>Bakım <strong id="kpi-finans-bakim">₺0</strong></span></div>
+                    <article class="kpi-card dashboard-kpi-card is-policy">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="shield-check"></i></span><span class="badge-neutral">Güncel</span></div>
+                        <h3>Yaklaşan Poliçe / Muayene</h3><strong class="dashboard-kpi-value" id="kpi-policy-main">0</strong>
+                        <div class="dashboard-kpi-meta"><span>Kritik <strong id="kpi-policy-critical">0</strong></span><span>30 gün içinde <strong id="kpi-policy-upcoming">0</strong></span></div>
+                    </article>
+                    <article class="kpi-card dashboard-kpi-card is-fuel">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="fuel"></i></span><span class="badge-warning dashboard-period-badge">Dönem</span></div>
+                        <h3>Yakıt Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
+                        <div class="dashboard-kpi-meta"><span>Toplam litre <strong id="kpi-fuel-litres">0 L</strong></span><span>Toplam KM <strong id="kpi-fuel-km">—</strong></span></div>
                     </article>
                     <article class="kpi-card dashboard-kpi-card is-accrual">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="badge-turkish-lira"></i></span><span class="badge-info">Bu ay</span></div>
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="badge-turkish-lira"></i></span><span class="badge-success dashboard-period-badge">Dönem</span></div>
                         <h3>Dağıtılan Hakediş</h3><strong class="dashboard-kpi-value is-currency" id="kpi-hakedis-main">₺0</strong>
                         <div class="dashboard-kpi-meta"><span>Taşeron <strong id="kpi-hakedis-taseron">₺0</strong></span><span>Servis <strong id="kpi-hakedis-servis">₺0</strong></span></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-credit-card">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="credit-card"></i></span><span class="badge-neutral">Güncel</span></div>
-                        <h3>Toplam Kart Borcu</h3><strong class="dashboard-kpi-value is-currency" id="kpi-card-main">₺0</strong>
-                        <div class="dashboard-kpi-meta"><span>Kart <strong id="kpi-card-count">0</strong></span><span>Toplam Limit <strong id="kpi-card-limit">₺0</strong></span></div>
-                    </article>
                 </section>
+
+                <div class="dashboard-scope-heading is-current"><div><span>Güncel Durum</span><h2>Uyarılar ve yükümlülükler</h2></div><p>Raporlama dönemi değişse de güncel filo sağlığı ve yaklaşan tarihler korunur.</p></div>
 
                 <section id="dashboard-policy-card" class="data-section dashboard-policy dashboard-domain-card is-policy-domain" aria-labelledby="dashboard-policy-title">
                     <div class="dashboard-policy-head">
@@ -393,10 +403,11 @@
                 </section>
 
                 <section class="dashboard-finance-zone" aria-labelledby="dashboard-finance-zone-title">
-                    <div class="dashboard-zone-head"><div><p class="dashboard-eyebrow">Finans</p><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p>Hakediş, yakıt, kart ve iş ortağı bakiyeleri tek yönetici görünümünde.</p></div><span class="dashboard-section-icon"><i data-lucide="landmark"></i></span></div>
+                    <div class="dashboard-zone-head"><div><p class="dashboard-eyebrow">Dönemsel Finans</p><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p id="dashboard-finance-period-copy">Seçilen aya ait hakediş, yakıt ve filo giderleri; güncel borç ve bakiyelerle birlikte gösterilir.</p></div><div class="dashboard-zone-period"><span id="dashboard-period-label">—</span><small>Dönemsel veriler</small></div></div>
+                    <div class="dashboard-period-totals"><span>Yakıt <strong id="dashboard-period-fuel">₺0</strong></span><span>Bakım / servis gideri <strong id="dashboard-period-maintenance">₺0</strong></span><span>Dönem filo gideri <strong id="dashboard-period-fleet-expense">₺0</strong></span></div>
                     <div class="dashboard-finance-grid">
                         <article class="data-section dashboard-domain-card is-accrual-domain" aria-labelledby="dashboard-accrual-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Hakediş</p><h3 id="dashboard-accrual-title">Cari Hakediş</h3><p>Bu ay sisteme dağıtılan hakedişlerin özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="hand-coins"></i></span></div>
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Hakediş</p><h3 id="dashboard-accrual-title">Cari Hakediş</h3><p>Seçilen dönemde sisteme dağıtılan hakedişlerin özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-period">Dönemsel</span><span class="dashboard-section-icon"><i data-lucide="hand-coins"></i></span></div></div>
                             <strong class="dashboard-primary-total" id="accrual-month-total">₺0</strong><span class="dashboard-primary-label">Toplam dağıtılan hakediş</span>
                             <div class="dashboard-stat-grid"><div><span>Taşeron</span><strong id="accrual-taseron-total">₺0</strong></div><div><span>Servis puantajı</span><strong id="accrual-service-total">₺0</strong></div><div><span>Dönem kaydı</span><strong id="accrual-record-count">0</strong></div><div><span>Cari / müşteri</span><strong id="accrual-party-count">0</strong></div></div>
                             <div class="dashboard-subsection"><h4>En yüksek hakedişler</h4><div id="dashboard-accrual-top-list" class="dashboard-compact-list"><div class="loading-state">Hakedişler hazırlanıyor...</div></div></div>
@@ -404,14 +415,14 @@
                         </article>
 
                         <article class="data-section dashboard-domain-card is-fuel-domain" aria-labelledby="dashboard-fuel-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Yakıt</p><h3 id="dashboard-fuel-title">Bu Ay Yakıt</h3><p>Mevcut Yakıt &amp; KM kayıtlarından hesaplanan dönem özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="fuel"></i></span></div>
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Yakıt</p><h3 id="dashboard-fuel-title">Yakıt Performansı</h3><p>Yakıt kayıtları ve aynı döneme ait InfoMobil kilometre özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-period">Dönemsel</span><span class="dashboard-section-icon"><i data-lucide="fuel"></i></span></div></div>
                             <strong class="dashboard-primary-total" id="fuel-month-total">₺0</strong><span class="dashboard-primary-label">Toplam yakıt harcaması</span>
-                            <div class="dashboard-stat-grid"><div><span>Toplam litre</span><strong id="fuel-month-litres">0 L</strong></div><div><span>Ortalama litre</span><strong id="fuel-month-average">₺0</strong></div><div><span>Geçen aya göre</span><strong id="fuel-month-change">—</strong></div><div><span>En yüksek araç</span><strong id="fuel-top-vehicle">—</strong></div></div>
-                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-yakit-km\']').click()">Yakıt &amp; KM'ye Git <i data-lucide="arrow-right"></i></button>
+                            <div class="dashboard-stat-grid"><div><span>Toplam KM</span><strong id="fuel-month-km">—</strong></div><div><span>Toplam litre</span><strong id="fuel-month-litres">0 L</strong></div><div><span>Ortalama L/100 KM</span><strong id="fuel-month-consumption">—</strong></div><div><span>Ortalama litre</span><strong id="fuel-month-average">—</strong></div></div>
+                            <button type="button" class="btn-ghost dashboard-card-action" onclick="window.openFuelAnalyticsForDashboardPeriod()">Yakıt &amp; KM'ye Git <i data-lucide="arrow-right"></i></button>
                         </article>
 
                         <article class="data-section dashboard-domain-card is-card-domain" aria-labelledby="dashboard-card-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Borçlar</p><h3 id="dashboard-card-title">Kredi Kartları</h3><p>Kart modülündeki mevcut borç hesabının kompakt özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="credit-card"></i></span></div>
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Borçlar</p><h3 id="dashboard-card-title">Kredi Kartları</h3><p>Kart modülündeki mevcut borç hesabının kompakt özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-current">Güncel</span><span class="dashboard-section-icon"><i data-lucide="credit-card"></i></span></div></div>
                             <strong class="dashboard-primary-total" id="cards-total-debt">₺0</strong><span class="dashboard-primary-label">Toplam güncel borç</span>
                             <div class="dashboard-inline-meta"><span><strong id="cards-count">0</strong> kart</span><span>Toplam limit <strong id="cards-total-limit">₺0</strong></span></div>
                             <div id="dashboard-card-list" class="dashboard-compact-list"><div class="loading-state">Kartlar hazırlanıyor...</div></div>
@@ -420,7 +431,7 @@
                         </article>
 
                         <article class="data-section dashboard-domain-card is-partner-domain" aria-labelledby="dashboard-partner-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">İş Ortakları</p><h3 id="dashboard-partner-title">Servis &amp; Sigorta</h3><p>Yalnızca kayıtlı cari türlerine göre hesaplanan bakiye görünümü.</p></div><span class="dashboard-section-icon"><i data-lucide="handshake"></i></span></div>
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">İş Ortakları</p><h3 id="dashboard-partner-title">Servis &amp; Sigorta</h3><p>Yalnızca kayıtlı cari türlerine göre hesaplanan güncel bakiye görünümü.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-current">Güncel</span><span class="dashboard-section-icon"><i data-lucide="handshake"></i></span></div></div>
                             <div class="dashboard-partner-grid"><div><span>Tamirci / Servis açık bakiye</span><strong id="partner-service-balance">₺0</strong><small><b id="partner-service-count">0</b> açık cari</small></div><div><span>Sigortacı açık bakiye</span><strong id="partner-insurance-balance">₺0</strong><small><b id="partner-insurance-count">0</b> açık cari</small></div></div>
                             <div class="dashboard-inline-meta"><span>Toplam ödeme <strong id="partner-total-payments">₺0</strong></span><span>Kategorili cari <strong id="partner-total-count">0</strong></span></div>
                             <p class="dashboard-data-note">Kategori dışındaki cariler bu özete dahil edilmez.</p>
@@ -2897,8 +2908,8 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
 <script defer src="data-services.js?v=2.0.3"></script>
-<script defer src="ui-manager.js?v=2.0.3"></script>
-<script defer src="fuel-analytics-ui.js?v=2.0.2"></script>
+<script defer src="ui-manager.js?v=2.0.4"></script>
+<script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 
 
 <!-- 3. FEATURE MODULES -->
@@ -2921,7 +2932,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.3"></script>
+<script defer src="dashboard-funcs.js?v=2.0.4"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

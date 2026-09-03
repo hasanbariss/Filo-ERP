@@ -2717,7 +2717,7 @@ window.toggleDarkMode = function () {
 window.addEventListener('DOMContentLoaded', () => {
     // Tema tercihi
     const saved = localStorage.getItem('ideol-theme-v2');
-    const prefDark = saved ? saved === 'dark' : true;
+    const prefDark = saved ? saved === 'dark' : false;
     applyTheme(prefDark);
 
     const searchInput = document.getElementById('top-search');

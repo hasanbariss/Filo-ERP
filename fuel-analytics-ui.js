@@ -80,6 +80,8 @@
         return { results: allResults, unmatched: unmatched };
     }
 
+    window.fetchInfoMobileMileage = fetchInfoMobile;
+
     function mileageMaps(payload) {
         var current = {};
         var previous = {};
