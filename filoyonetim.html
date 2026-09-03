@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
-    <title>Baris.Flow Drive</title>
+    <title>Baris.Flow</title>
     <meta name="google" content="notranslate">
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Baris.Flow Drive">
+    <meta name="apple-mobile-web-app-title" content="Baris.Flow">
     <meta name="theme-color" content="#080d12">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
@@ -81,7 +81,7 @@
     <link rel="stylesheet" href="style.css?v=2.0.6">
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
-    <link rel="stylesheet" href="web-premium.css?v=3.0.0">
+    <link rel="stylesheet" href="web-premium.css?v=3.1.0">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -149,7 +149,7 @@
         <div class="auth-orb auth-orb-one" aria-hidden="true"></div>
         <div class="auth-orb auth-orb-two" aria-hidden="true"></div>
         <div class="auth-shell">
-            <section class="auth-story" aria-label="Baris.Flow Drive">
+            <section class="auth-story" aria-label="Baris.Flow">
                 <div class="auth-story-grid" aria-hidden="true"></div>
                 <img class="auth-brand-logo platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
                 <div class="auth-story-copy">
@@ -240,7 +240,6 @@
             </section>
             <section class="nav-section nav-section-secondary" aria-labelledby="nav-other-label">
                 <h2 class="nav-section-label" id="nav-other-label">Diğer</h2>
-                <button data-target="module-gps" class="nav-link"><i data-lucide="map-pin"></i><span>Canlı Takip</span></button>
                 <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span>Operasyon Takvimi</span></button>
             </section>
         </nav>
@@ -1145,7 +1144,7 @@
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-white text-lg">Genel Günlük İçe Aktar</h3>
-                                    <p class="text-xs text-gray-500">Standart Baris.Flow Drive puantaj formatı.</p>
+                                    <p class="text-xs text-gray-500">Standart Baris.Flow puantaj formatı.</p>
                                 </div>
                             </div>
                         </div>
@@ -1957,25 +1956,37 @@
                     </div>
 
                     <!-- Bakım -->
-                    <div id="content-bakim" class="hidden p-6">
-                        <div class="flex justify-between items-center mb-8">
-                            <h3 class="text-lg font-bold">Bakım ve Onarım Geçmişi</h3>
-                            <div class="flex gap-2">
+                    <div id="content-bakim" class="hidden maintenance-workspace">
+                        <div class="maintenance-toolbar">
+                            <div class="maintenance-heading">
+                                <span class="maintenance-eyebrow">Filo Sağlığı</span>
+                                <h3>Bakım ve Onarım Geçmişi</h3>
+                                <p>Servis hareketlerini, kilometre eşiklerini ve maliyetleri tek görünümde izleyin.</p>
+                            </div>
+                            <div class="maintenance-toolbar-actions">
                                 <input type="month" id="filter-bakim-ay" onchange="fetchBakimlar()"
-                                    class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
+                                    class="form-control" aria-label="Bakım kayıt dönemi">
                                 <button onclick="openModal('Yeni Bakım/Parça Kaydı')"
-                                    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-orange-500/20">
-                                    + Kayıt Ekle
+                                    class="btn-primary">
+                                    <i data-lucide="plus"></i> Bakım Ekle
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="bakim-table">
+                        <div class="maintenance-summary" aria-label="Bakım özeti">
+                            <div><span>Görüntülenen Kayıt</span><strong id="bakim-summary-count">0</strong></div>
+                            <div><span>Bu Ay Yapılan</span><strong id="bakim-summary-month">0</strong></div>
+                            <div><span>Yaklaşan</span><strong id="bakim-summary-due">0</strong></div>
+                            <div><span>Gecikmiş</span><strong id="bakim-summary-overdue">0</strong></div>
+                            <div class="is-cost"><span>Toplam Maliyet</span><strong id="bakim-summary-cost">₺0</strong></div>
+                        </div>
+                        <div class="maintenance-table-wrap">
+                            <table class="premium-table maintenance-table" id="bakim-table">
                                 <thead>
                                     <tr>
                                         <th>Tarih</th>
                                         <th>Araç</th>
                                         <th>İşlem / Açıklama</th>
+                                        <th>KM Durumu</th>
                                         <th>Tedarikçi & Tutar</th>
                                         <th class="text-right">İşlemler</th>
                                     </tr>
@@ -2916,12 +2927,12 @@
 
 <!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
 <script defer src="config.js"></script>
-<script defer src="company-branding.js"></script>
+<script defer src="company-branding.js?v=2.0.1"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
-<script defer src="data-services.js?v=2.0.3"></script>
-<script defer src="ui-manager.js?v=2.0.6"></script>
+<script defer src="data-services.js?v=2.0.4"></script>
+<script defer src="ui-manager.js?v=2.0.7"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 
 

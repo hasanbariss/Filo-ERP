@@ -14,7 +14,7 @@ app.whenReady().then(() => {
         height: 900,
         minWidth: 1024,
         minHeight: 600,
-        title: 'Baris.Flow Drive',
+        title: 'Baris.Flow',
         icon: path.join(__dirname, 'icon.png'),
         webPreferences: {
             nodeIntegration: false,

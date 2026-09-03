@@ -9,7 +9,7 @@
 
     const platform = Object.freeze({
         name: 'Baris.Flow',
-        productName: 'Baris.Flow Drive',
+        productName: 'Baris.Flow',
         tagline: 'Filonuz. Tek akışta.',
         logoDarkBackground: './icons/baris-flow-logo.png',
         logoLightBackground: './icons/baris-flow-logo.png'

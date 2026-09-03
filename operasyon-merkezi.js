@@ -425,7 +425,7 @@
             optionalRows('arac_policeler', '*'),
         ]);
         return {
-            metadata: { exported_at: new Date().toISOString(), scope: full ? 'tam' : month, application: 'Baris.Flow Drive' },
+            metadata: { exported_at: new Date().toISOString(), scope: full ? 'tam' : month, application: 'Baris.Flow' },
             araclar: results[0], soforler: results[1], fabrikalar: results[2], fabrika_arac_tanimlari: results[3],
             puantaj: results[4], yakit: results[5], bakim: results[6], taseron_hakedis: results[7], policeler: results[8],
         };

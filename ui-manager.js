@@ -1528,9 +1528,11 @@ window.openModal = function (title, id = null, extra = null) {
                 `;
     } else if (title === 'Yeni Bakım/Parça Kaydı') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Araç bakım ve onarım işlemlerini detaylandırarak teknik geçmiş oluşturun.</p>
-                    <div class="space-y-6">
-                        <div class="grid grid-cols-2 gap-4">
+                    <div class="maintenance-form-intro"><span class="maintenance-form-icon"><i data-lucide="wrench"></i></span><div><strong>Bakım kaydı</strong><p>Araç ve işlem bilgileriyle hızlı başlayın; ödeme ve belge detaylarını gerektiğinde tamamlayın.</p></div></div>
+                    <div class="maintenance-form">
+                        <section class="maintenance-form-section">
+                            <div class="maintenance-form-section-head"><span>01</span><div><h3>Araç ve tarih</h3><p>Bakım kaydının temel bilgileri</p></div></div>
+                            <div class="maintenance-form-grid">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Tarihi</label>
                                 <input type="date" id="bakim-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
@@ -1540,7 +1542,10 @@ window.openModal = function (title, id = null, extra = null) {
                                 <select id="bakim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        </section>
+                        <section class="maintenance-form-section">
+                            <div class="maintenance-form-section-head"><span>02</span><div><h3>Bakım işlemi</h3><p>Tür, servis, kilometre ve açıklama</p></div></div>
+                            <div class="maintenance-form-grid">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">İşlem Türü</label>
                                 <select id="bakim-tur" onchange="if(window.handleBakimTurChange) window.handleBakimTurChange(this.value)" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
@@ -1560,8 +1565,8 @@ window.openModal = function (title, id = null, extra = null) {
                         <div id="bakim-dinamik-alanlar" class="hidden bg-black/20 p-4 rounded-xl border border-white/5 space-y-4">
                         </div>
 
-                        <div class="grid grid-cols-3 gap-4">
-                            <div class="col-span-2">
+                        <div class="maintenance-form-grid is-description">
+                            <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Açıklama</label>
                                 <input type="text" id="bakim-aciklama" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="Örn: 10.000 Bakımı, Yağ Değişimi">
                             </div>
@@ -1570,8 +1575,10 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="number" id="bakim-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Örn: 125000">
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-2 gap-4">
+                        </section>
+                        <section class="maintenance-form-section">
+                            <div class="maintenance-form-section-head"><span>03</span><div><h3>Finans ve belge</h3><p>Maliyet, ödeme yöntemi ve destekleyici belge</p></div></div>
+                        <div class="maintenance-form-grid">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
                                 <input type="number" step="0.01" id="bakim-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
@@ -1582,7 +1589,7 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-gray-500/5 border border-gray-500/10">
+                        <div class="maintenance-payment-grid">
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödeme Türü</label>
                                 <select id="bakim-odeme-turu" onchange="if(window.handleOdemeTuruChange) window.handleOdemeTuruChange(this.value, 'bakim')" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
@@ -1601,7 +1608,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <select id="bakim-odeme-cari" class="w-full bg-blue-500/10 border border-blue-500/30 rounded-xl px-4 py-3 text-blue-400 focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
-
+                        </section>
                     </div>
                 `;
         setTimeout(() => {
@@ -3417,7 +3424,7 @@ window.printCariKart = function(plaka, month) {
 + '.mono{font-variant-numeric:tabular-nums}'
 + '.fw{font-weight:800;color:#0f172a}'
 + '.kdv-col{color:#0891b2;font-weight:600}'
-+ '.tev-col{color:#dc2626;font-weight:600}'
++ '.tev-col{color:#b7791f;font-weight:600}'
 + '.net-col{font-weight:700;color:#0f172a}'
 + '.text-right{text-align:right}.text-center{text-align:center}'
 + '.fg{display:grid;grid-template-columns:1fr 258px;gap:28px;margin-top:14px}'
@@ -3457,10 +3464,10 @@ window.printCariKart = function(plaka, month) {
 + '<div class="scard">'
 + '<div class="sr"><span>Fatura Matrahi</span><b>' + fmt(invoiceTotals.matrah) + '</b></div>'
 + '<div class="sr"><span style="color:#0891b2">KDV Toplami</span><b style="color:#0891b2">' + (invoiceTotals.kdv >= 0 ? '+' : '-') + fmt(Math.abs(invoiceTotals.kdv)) + '</b></div>'
-+ '<div class="sr"><span style="color:#dc2626">TEV (Stopaj)</span><b style="color:#dc2626">' + (invoiceTotals.tev >= 0 ? '-' : '+') + fmt(Math.abs(invoiceTotals.tev)) + '</b></div>'
++ '<div class="sr"><span style="color:#b7791f">TEV (Stopaj)</span><b style="color:#b7791f">' + (invoiceTotals.tev >= 0 ? '-' : '+') + fmt(Math.abs(invoiceTotals.tev)) + '</b></div>'
 + '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
 + (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
-+ '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#16a34a') + '">' + fmt(netTop) + '</span></div>'
++ '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#b7791f') + '">' + fmt(netTop) + '</span></div>'
 + '</div></div>'
 + branding.getPrintFooter(new Date().toLocaleString('tr-TR'))
 + '</body></html>');

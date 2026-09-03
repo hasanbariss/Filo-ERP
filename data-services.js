@@ -3103,37 +3103,37 @@ async function fetchTaseronFinans() {
             ).join('');
 
             const tr = document.createElement('tr');
-            tr.className = `cari-hakedis-card hover:bg-gray-50/5 transition-colors border-b border-gray-100/10 group${isSingle ? ' cursor-pointer' : ''}`;
+            tr.className = `cari-hakedis-card${isSingle ? ' is-interactive' : ''}`;
             if (isSingle) tr.onclick = () => window.openCariHakedisDetay(group.plakaList[0].arac_id);
 
             tr.innerHTML = `
                 <td class="cari-card-identity px-6 py-4" data-label="Firma / Araç">
-                    <div class="text-sm font-bold ${isSingle ? 'text-primary group-hover:text-orange-500' : 'text-white'} transition-colors leading-tight">${group.label}</div>
-                    ${!isSingle ? `<div class="flex flex-wrap gap-1 mt-1.5">${plakaHTML}</div>` : ''}
+                    <div class="cari-card-name">${group.label}</div>
+                    ${!isSingle ? `<div class="cari-card-plates">${plakaHTML}</div>` : '<span class="cari-card-context">Tek araç hakedişi</span>'}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center" data-label="Seferler">
-                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${group.vardiya} V</span>
-                    <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${group.tek} T</span>
-                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold" title="Mesai">${group.mesai} M</span>
+                <td class="cari-card-services" data-label="Seferler">
+                    <span class="service-pill is-shift" title="Vardiya"><strong>${group.vardiya}</strong> Vardiya</span>
+                    <span class="service-pill is-single" title="Tek Sefer"><strong>${group.tek}</strong> Tek</span>
+                    <span class="service-pill is-overtime" title="Mesai"><strong>${group.mesai}</strong> Mesai</span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700" data-label="Brüt">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500" data-label="Yakıt">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="cari-card-net px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-orange-500'}" data-label="Net Hakediş">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="cari-card-detail px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors" data-label="Detaylar">
-                    ${isSingle ? 'Detay Gör &rarr;' : `<span class="text-[10px] text-gray-600 font-bold">${group.plakaList.length} Araç</span>`}
+                <td class="cari-card-money is-gross" data-label="Brüt"><span>Hizmet</span><strong>₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-money is-deduction" data-label="Yakıt"><span>Yakıt kesintisi</span><strong>-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-money cari-card-net${net < 0 ? ' is-negative' : ''}" data-label="Net Hakediş"><span>Net hakediş</span><strong>₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-detail" data-label="Detaylar">
+                    ${isSingle ? '<span class="hakedis-detail-action">Detayı aç <i data-lucide="arrow-up-right"></i></span>' : `<span class="cari-card-count">${group.plakaList.length} araç</span>`}
                 </td>
             `;
             tbody.appendChild(tr);
         });
         
         const tfoot = document.createElement('tr');
-        tfoot.className = "cari-hakedis-total bg-white/5 border-t-2 border-gray-200 shadow-sm";
+        tfoot.className = "cari-hakedis-total";
         tfoot.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-primary" data-label="Toplam">GENEL TOPLAM</td>
-            <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700" data-label="Seferler">${totalVardiya} V - ${totalTek} T - ${totalMesai} M</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800" data-label="Brüt">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600" data-label="Yakıt">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-orange-600'}" data-label="Net">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+            <td data-label="Toplam"><span>Seçili dönem</span><strong>GENEL TOPLAM</strong></td>
+            <td data-label="Seferler"><span>${totalVardiya} Vardiya · ${totalTek} Tek · ${totalMesai} Mesai</span></td>
+            <td data-label="Brüt"><span>Brüt</span><strong>₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+            <td data-label="Yakıt"><span>Yakıt</span><strong>-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+            <td data-label="Net"><span>Net Hakediş</span><strong class="${totalNet < 0 ? 'is-negative' : ''}">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
             <td class="cari-card-detail"></td>
         `;
         tbody.appendChild(tfoot);
@@ -3142,6 +3142,7 @@ async function fetchTaseronFinans() {
         const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(totalBrut);
         const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(totalYakit);
         const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(totalNet);
+        if (window.lucide) window.lucide.createIcons();
 
     } catch (e) {
         console.error("fetchTaseronFinans error:", e);
@@ -4904,7 +4905,7 @@ window.fetchCariler = async function() {
                 if (e.target.tagName !== 'BUTTON') window.openCariDetail(c.id);
             };
             tr.innerHTML = `
-                <td class="cari-list-name" data-label="Cari"><div class="receivables-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><strong>${c.unvan || '-'}</strong><span>Ekstreyi görüntüle</span></div></div></td>
+                <td class="cari-list-name" data-label="Cari"><div class="receivables-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><strong>${c.unvan || '-'}</strong><button type="button" class="bf-statement-action" onclick="event.stopPropagation(); window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstreyi Göster<i data-lucide="arrow-up-right"></i></button></div></div></td>
                 <td class="cari-list-type" data-label="Tür"><span class="badge-neutral">${c.tur || c.isletme_turu || 'Cari'}</span></td>
                 <td class="cari-list-phone" data-label="İletişim">${c.telefon || 'Belirtilmemiş'}</td>
                 <td class="receivables-money" data-label="Borç">${window.formatCurrency(totalBorc)}</td>
@@ -4917,7 +4918,7 @@ window.fetchCariler = async function() {
             if (cards) {
                 const card = document.createElement('article');
                 card.className = 'receivables-card';
-                card.innerHTML = `<div class="receivables-card-head"><div class="receivables-card-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><h3>${c.unvan || '-'}</h3><p>${c.tur || c.isletme_turu || 'Cari'} · ${c.telefon || 'Telefon belirtilmemiş'}</p></div></div><span class="${bakiye > 0 ? 'badge-warning' : bakiye < 0 ? 'badge-info' : 'badge-success'}">${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span></div><div class="receivables-card-balance"><span>Güncel bakiye</span><strong>${window.formatCurrency(bakiye)}</strong><small>${bakiye > 0 ? 'Ödenecek borç' : bakiye < 0 ? 'Cari alacağı' : 'Hesap dengede'}</small></div><div class="receivables-card-summary"><div><span>Toplam borç</span><strong>${window.formatCurrency(totalBorc)}</strong></div><div><span>Toplam ödeme</span><strong>${window.formatCurrency(totalOdeme)}</strong></div></div><div class="receivables-card-actions"><button onclick="window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstre</button><button onclick="openModal('Cari Güncelle', '${c.id}')"><i data-lucide="pencil"></i>Düzenle</button><button onclick="openModal('Yeni Fatura Kaydı', '${c.id}')"><i data-lucide="file-plus-2"></i>Fatura</button></div>`;
+                card.innerHTML = `<div class="receivables-card-head"><div class="receivables-card-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><h3>${c.unvan || '-'}</h3><p>${c.tur || c.isletme_turu || 'Cari'} · ${c.telefon || 'Telefon belirtilmemiş'}</p></div></div><span class="${bakiye > 0 ? 'badge-warning' : bakiye < 0 ? 'badge-info' : 'badge-success'}">${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span></div><div class="receivables-card-balance"><span>Güncel bakiye</span><strong>${window.formatCurrency(bakiye)}</strong><small>${bakiye > 0 ? 'Ödenecek borç' : bakiye < 0 ? 'Cari alacağı' : 'Hesap dengede'}</small></div><div class="receivables-card-summary"><div><span>Toplam borç</span><strong>${window.formatCurrency(totalBorc)}</strong></div><div><span>Toplam ödeme</span><strong>${window.formatCurrency(totalOdeme)}</strong></div></div><div class="receivables-card-actions"><button class="is-primary-action" onclick="window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstreyi Göster<i data-lucide="arrow-up-right"></i></button><button onclick="openModal('Cari Güncelle', '${c.id}')"><i data-lucide="pencil"></i>Düzenle</button><button onclick="openModal('Yeni Fatura Kaydı', '${c.id}')"><i data-lucide="file-plus-2"></i>Fatura</button></div>`;
                 cards.appendChild(card);
             }
         });
@@ -5827,7 +5828,7 @@ async function fetchBakimlar() {
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
-        let query = window.supabaseClient.from('arac_bakimlari').select('*, araclar:araclar(plaka), cariler:cariler(unvan)').order('islem_tarihi', { ascending: false });
+        let query = window.supabaseClient.from('arac_bakimlari').select('*, araclar:araclar(plaka, guncel_km, son_yag_km), cariler:cariler(unvan)').order('islem_tarihi', { ascending: false });
 
         const filterVal = document.getElementById('filter-bakim-ay')?.value;
         if (filterVal) {
@@ -5841,29 +5842,53 @@ async function fetchBakimlar() {
         tbody.innerHTML = '';
         let totalGider = 0;
         if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Bakım kaydı bulunmuyor.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state maintenance-empty"><i data-lucide="wrench"></i><strong>Bakım kaydı bulunmuyor</strong><p>Seçili dönem için kayıt bulunamadı.</p></div></td></tr>';
             const ozet = document.getElementById('ozet-bakim');
             if (ozet) ozet.textContent = "0 ₺";
+            ['bakim-summary-count', 'bakim-summary-month', 'bakim-summary-due', 'bakim-summary-overdue'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
+            const summaryCost = document.getElementById('bakim-summary-cost');
+            if (summaryCost) summaryCost.textContent = '₺0';
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
+        const dueVehicles = new Set();
+        const overdueVehicles = new Set();
+        const now = new Date();
+        const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        let currentMonthCount = 0;
         data.forEach(b => {
-            totalGider += (b.toplam_tutar || 0);
+            totalGider += Number(b.toplam_tutar) || 0;
+            if (String(b.islem_tarihi || '').startsWith(currentMonthKey)) currentMonthCount++;
+            const currentKm = Number(b.araclar?.guncel_km) || 0;
+            const lastOilKm = Number(b.araclar?.son_yag_km) || 0;
+            const remainingKm = currentKm > 0 && lastOilKm > 0 ? 10000 - (currentKm - lastOilKm) : null;
+            let maintenanceState = { label: 'Kayıt yok', className: 'is-unknown', detail: 'KM eşiği hesaplanamadı' };
+            if (remainingKm !== null && remainingKm < 0) {
+                overdueVehicles.add(b.arac_id || b.araclar?.plaka);
+                maintenanceState = { label: 'Gecikmiş', className: 'is-overdue', detail: `${Math.abs(remainingKm).toLocaleString('tr-TR')} km geçti` };
+            } else if (remainingKm !== null && remainingKm <= 1200) {
+                dueVehicles.add(b.arac_id || b.araclar?.plaka);
+                maintenanceState = { label: 'Yaklaşıyor', className: 'is-due', detail: `${remainingKm.toLocaleString('tr-TR')} km kaldı` };
+            } else if (remainingKm !== null) {
+                maintenanceState = { label: 'Güncel', className: 'is-current', detail: `${remainingKm.toLocaleString('tr-TR')} km kaldı` };
+            }
             const tr = document.createElement('tr');
-            tr.className = "hover:bg-gray-50 transition-colors";
+            tr.className = "maintenance-row";
             tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${b.islem_tarihi}</td>
-                        <td class="px-6 py-4 whitespace-nowrap font-bold text-primary">${b.araclar ? b.araclar.plaka : '-'}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="block text-xs font-bold text-gray-600 uppercase mb-1">${b.islem_turu}</span>
-                            <span class="block text-xs text-gray-500">${b.aciklama}</span>
+                        <td class="maintenance-date" data-label="Tarih">${b.islem_tarihi}</td>
+                        <td class="maintenance-vehicle" data-label="Araç"><strong>${b.araclar ? b.araclar.plaka : '-'}</strong><span>${currentKm ? `${currentKm.toLocaleString('tr-TR')} km` : 'KM bilgisi yok'}</span></td>
+                        <td class="maintenance-operation" data-label="İşlem / Açıklama">
+                            <strong>${b.islem_turu || 'Bakım'}</strong>
+                            <span>${b.aciklama || 'Açıklama girilmemiş'}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-primary">₺${(b.toplam_tutar || 0).toLocaleString('tr-TR')}</div>
-                            <div class="text-[10px] text-gray-400 uppercase mt-0.5">${b.cariler ? b.cariler.unvan : '-'}</div>
+                        <td class="maintenance-status-cell" data-label="KM Durumu"><span class="maintenance-status ${maintenanceState.className}">${maintenanceState.label}</span><small>${maintenanceState.detail}</small></td>
+                        <td class="maintenance-cost" data-label="Tedarikçi & Tutar">
+                            <strong>₺${(b.toplam_tutar || 0).toLocaleString('tr-TR')}</strong>
+                            <span>${b.cariler ? b.cariler.unvan : 'Servis belirtilmemiş'}</span>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                            ${b.dosya_url ? `<a href="${b.dosya_url}" target="_blank" class="inline-flex items-center text-blue-600 hover:text-blue-800" title="Dosyayı Gör"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg></a>` : ''}
-                            <button onclick="deleteRecord('arac_bakimlari', '${b.id}', 'fetchBakimlar')" class="text-danger hover:text-red-800 text-xs font-semibold uppercase tracking-wider">Sil</button>
+                        <td class="maintenance-actions" data-label="İşlemler">
+                            ${b.dosya_url ? `<a href="${b.dosya_url}" target="_blank" rel="noopener" class="table-action" title="Dosyayı Gör" aria-label="Bakım belgesini görüntüle"><i data-lucide="file-search"></i></a>` : ''}
+                            <button onclick="deleteRecord('arac_bakimlari', '${b.id}', 'fetchBakimlar')" class="table-action is-danger" title="Kaydı sil" aria-label="Bakım kaydını sil"><i data-lucide="trash-2"></i></button>
                         </td>
                     `;
             tbody.appendChild(tr);
@@ -5872,11 +5897,24 @@ async function fetchBakimlar() {
         if (ozet) ozet.textContent = totalGider.toLocaleString('tr-TR') + " ₺";
         const ozetAdet = document.getElementById('ozet-bakim-adet');
         if (ozetAdet) ozetAdet.textContent = data.length;
+        const summaryValues = {
+            'bakim-summary-count': data.length,
+            'bakim-summary-month': currentMonthCount,
+            'bakim-summary-due': dueVehicles.size,
+            'bakim-summary-overdue': overdueVehicles.size,
+            'bakim-summary-cost': `₺${totalGider.toLocaleString('tr-TR')}`
+        };
+        Object.entries(summaryValues).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
+        if (window.lucide) window.lucide.createIcons();
         
         if (typeof window.makeTableSortable === 'function') {
             window.makeTableSortable(tbody.closest('table'));
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="6"><div class="error-state maintenance-empty"><i data-lucide="triangle-alert"></i><strong>Bakım kayıtları yüklenemedi</strong><p>Lütfen bağlantıyı kontrol edip tekrar deneyin.</p></div></td></tr>';
+        if (window.lucide) window.lucide.createIcons();
+    }
 }
 
 window.currentPoliceFilter = 'HEPSİ';
@@ -8354,9 +8392,9 @@ window.fetchRaporlar = async function() {
                     data: {
                         labels: top10.map(a => a.plaka),
                         datasets: [
-                            { label: 'Yakit', data: top10.map(a => a.yakit), backgroundColor: '#3b82f6' },
-                            { label: 'Bakim', data: top10.map(a => a.bakim||0), backgroundColor: '#f97316' },
-                            { label: 'Police', data: top10.map(a => a.police), backgroundColor: '#ec4899' }
+                            { label: 'Yakit', data: top10.map(a => a.yakit), backgroundColor: '#ee8b35' },
+                            { label: 'Bakim', data: top10.map(a => a.bakim||0), backgroundColor: '#42bbaa' },
+                            { label: 'Police', data: top10.map(a => a.police), backgroundColor: '#a98bea' }
                         ]
                     },
                     options: {
