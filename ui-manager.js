@@ -119,7 +119,7 @@ navButtons.forEach(btn => {
         } else if (targetId === 'module-teklifler') {
             if (typeof fetchTeklifler === 'function') fetchTeklifler();
         } else if (targetId === 'module-yakit-km') {
-            if (typeof window.fetchManuelYakitFisleri === 'function') window.fetchManuelYakitFisleri();
+            if (typeof window.fetchFuelAnalytics === 'function') window.fetchFuelAnalytics();
         } else if (targetId === 'module-operasyon-merkezi') {
             if (typeof window.renderOperasyonMerkezi === 'function') window.renderOperasyonMerkezi();
         } else if (targetId === 'module-is-emirleri') {
@@ -753,6 +753,7 @@ window.openModal = function (title, id = null, extra = null) {
     modal.classList.toggle('bf-fleet-modal', fleetModalTitles.includes(title));
     modal.classList.toggle('bf-receivables-modal', receivablesModalTitles.includes(title));
     modal.classList.toggle('bf-offer-modal', title === 'Yeni Teklif Ekle');
+    modal.classList.toggle('bf-fuel-modal', title === 'Yeni Yakıt Kaydı');
     const dynamicBody = document.getElementById('modal-dynamic-body');
     const btnSaveContinue = document.getElementById('btn-save-continue');
     
@@ -1423,26 +1424,26 @@ window.openModal = function (title, id = null, extra = null) {
 
     } else if (title === 'Yeni Yakıt Kaydı') {
         content = `
-                    <p class="text-sm text-gray-400 mb-8">Araç yakıt alımlarını takip ederek işletme maliyetlerini optimize edin.</p>
+                    <p class="text-sm text-gray-400 mb-8">Manuel kayıtlar Excel kayıtlarıyla aynı yakıt_takip kaynağına yazılır.</p>
                     <div class="space-y-6">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarih</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarih *</label>
                                 <input type="date" id="yakit-tarih" value="${new Date().toISOString().split('T')[0]}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçin</label>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç / Plaka *</label>
                                 <select id="yakit-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Alınan Litre</label>
-                                <input type="number" step="0.01" id="yakit-litre" oninput="hesaplaYakit()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Alınan Litre *</label>
+                                <input type="number" step="0.01" min="0" id="yakit-litre" oninput="hesaplaYakit('litre')" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0,00">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Birim Fiyat (₺)</label>
-                                <input type="number" step="0.01" id="yakit-fiyat" oninput="hesaplaYakit()" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0.00">
+                                <input type="number" step="0.01" min="0" id="yakit-fiyat" oninput="hesaplaYakit('fiyat')" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium" placeholder="0,00">
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
@@ -1451,12 +1452,13 @@ window.openModal = function (title, id = null, extra = null) {
                                 <input type="number" id="yakit-km" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-mono" placeholder="Örn: 125000">
                             </div>
                             <div>
-                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺)</label>
-                                <input type="number" step="0.01" id="yakit-tutar" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none transition-all font-bold" readonly>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Toplam Tutar (₺) *</label>
+                                <input type="number" step="0.01" min="0" id="yakit-tutar" oninput="hesaplaYakit('tutar')" class="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none transition-all font-bold" placeholder="0,00">
                             </div>
                         </div>
                     </div>
                 `;
+        window.yakitManualCalcState = { fiyatManual: false, tutarManual: false };
         setTimeout(() => loadSelectOptions('yakit-arac', 'araclar', 'id', 'plaka'), 50);
     } else if (title === 'Yeni Yakıt/KM Fişi') {
         content = `
@@ -2595,6 +2597,7 @@ async function loadSelectOptions(selectId, table, valueField, textField, filterC
 window.closeModal = function () {
     modal.classList.add('hidden');
     modal.classList.remove('bf-offer-modal');
+    modal.classList.remove('bf-fuel-modal');
     const saveBtn = document.getElementById('modal-save-btn');
     if (saveBtn) saveBtn.style.display = '';
 }

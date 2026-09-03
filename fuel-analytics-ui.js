@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var state = { period: 'week', tab: 'analysis', rows: [], fuelRows: [], manualRows: [], bounds: null };
+    var state = { period: 'week', tab: 'analysis', rows: [], fuelRows: [], vehicles: [], bounds: null };
 
     function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
@@ -104,57 +104,71 @@
             return;
         }
         var tableRows = visible.map(function (row) {
-            var change = row.changePercent;
-            var changeClass = change === null ? 'is-neutral' : change > 10 ? 'is-danger' : change > 0 ? 'is-warning' : 'is-success';
-            var changeLabel = change === null ? '—' : (change > 0 ? '+' : '') + fmtNumber(change, 1) + '%';
+            function changeBadge(change) {
+                var changeClass = change === null ? 'is-neutral' : change > 10 ? 'is-danger' : change > 0 ? 'is-warning' : 'is-success';
+                var changeLabel = change === null ? '—' : (change > 0 ? '+' : '') + fmtNumber(change, 1) + '%';
+                return '<span class="fuel-change ' + changeClass + '">' + changeLabel + '</span>';
+            }
+            var consumption = row.km <= 0 && row.receiptCount > 0 ? '<span class="badge badge-warning">KM verisi yok</span>' : row.receiptCount === 0 ? '<span class="badge badge-neutral">Kayıt yok</span>' : fmtNumber(row.litersPer100Km, 2);
             return '<tr>' +
                 '<td><strong class="fuel-plate">' + esc(row.plate) + '</strong></td>' +
                 '<td class="is-number">' + (row.km > 0 ? fmtNumber(row.km, 1) + ' km' : '—') + '</td>' +
                 '<td class="is-number">' + fmtNumber(row.liters, 2) + ' L</td>' +
                 '<td class="is-number">' + fmtMoney(row.cost) + '</td>' +
                 '<td class="is-number">' + (row.averageUnitPrice !== null ? fmtMoney(row.averageUnitPrice) : '—') + '</td>' +
-                '<td class="is-number is-emphasis">' + (row.litersPer100Km !== null ? fmtNumber(row.litersPer100Km, 2) : '—') + '</td>' +
+                '<td class="is-number is-emphasis">' + consumption + '</td>' +
                 '<td class="is-number">' + (row.costPerKm !== null ? fmtMoney(row.costPerKm) : '—') + '</td>' +
                 '<td class="is-number">' + row.receiptCount + '</td>' +
-                '<td class="is-number"><span class="fuel-change ' + changeClass + '">' + changeLabel + '</span></td>' +
+                '<td class="is-number">' + changeBadge(row.kmChangePercent) + '</td>' +
+                '<td class="is-number">' + changeBadge(row.consumptionChangePercent) + '</td>' +
                 '</tr>';
         }).join('');
-        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Plaka</th><th class="is-number">Toplam KM</th><th class="is-number">Litre</th><th class="is-number">Yakıt Maliyeti</th><th class="is-number">Ort. Litre</th><th class="is-number">L/100 KM</th><th class="is-number">TL/KM</th><th class="is-number">Kayıt</th><th class="is-number">Önceki Dönem</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
+        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Plaka</th><th class="is-number">Toplam KM</th><th class="is-number">Litre</th><th class="is-number">Yakıt Maliyeti</th><th class="is-number">Ort. Litre</th><th class="is-number">L/100 KM</th><th class="is-number">TL/KM</th><th class="is-number">Kayıt</th><th class="is-number">KM Değişimi</th><th class="is-number">Tüketim Değişimi</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
     }
 
     function renderKpis(rows, fuelRows) {
         var summary = window.FuelAnalytics.summarizeFuelRows(fuelRows);
         var totalKm = rows.reduce(function (sum, row) { return sum + Number(row.km || 0); }, 0);
-        var consumption = window.FuelAnalytics.metrics(summary.liters, summary.cost, totalKm).litersPer100Km;
+        var comparable = rows.filter(function (row) { return row.km > 0 && row.receiptCount > 0; });
+        var comparableKm = comparable.reduce(function (sum, row) { return sum + row.km; }, 0);
+        var comparableLiters = comparable.reduce(function (sum, row) { return sum + row.liters; }, 0);
+        var comparableCost = comparable.reduce(function (sum, row) { return sum + row.cost; }, 0);
+        var fleetMetrics = window.FuelAnalytics.metrics(comparableLiters, comparableCost, comparableKm);
         var topKm = rows.filter(function (row) { return row.km > 0; }).sort(function (a, b) { return b.km - a.km; })[0];
         var topCost = rows.filter(function (row) { return row.cost > 0; }).sort(function (a, b) { return b.cost - a.cost; })[0];
         var topConsumption = rows.filter(function (row) { return row.litersPer100Km !== null; }).sort(function (a, b) { return b.litersPer100Km - a.litersPer100Km; })[0];
+        var lowConsumption = rows.filter(function (row) { return row.litersPer100Km !== null; }).sort(function (a, b) { return a.litersPer100Km - b.litersPer100Km; })[0];
         setText('fuel-kpi-km', totalKm > 0 ? fmtNumber(totalKm, 1) + ' km' : '—');
         setText('fuel-kpi-litres', fmtNumber(summary.liters, 1) + ' L');
         setText('fuel-kpi-cost', fmtMoney(summary.cost));
-        setText('fuel-kpi-consumption', consumption !== null ? fmtNumber(consumption, 2) + ' L' : '—');
+        setText('fuel-kpi-consumption', fleetMetrics.litersPer100Km !== null ? fmtNumber(fleetMetrics.litersPer100Km, 2) + ' L' : '—');
+        setText('fuel-kpi-cost-per-km', fleetMetrics.costPerKm !== null ? fmtMoney(fleetMetrics.costPerKm) : '—');
         setText('fuel-kpi-top-km', topKm ? topKm.plate + ' · ' + fmtNumber(topKm.km, 0) + ' km' : '—');
         setText('fuel-kpi-top-cost', topCost ? topCost.plate + ' · ' + fmtMoney(topCost.cost) : '—');
         setText('fuel-kpi-top-consumption', topConsumption ? topConsumption.plate + ' · ' + fmtNumber(topConsumption.litersPer100Km, 1) + ' L' : '—');
+        setText('fuel-kpi-low-consumption', lowConsumption ? lowConsumption.plate + ' · ' + fmtNumber(lowConsumption.litersPer100Km, 1) + ' L' : '—');
     }
 
-    function renderRecords(fuelRows, manualRows, vehicles) {
+    function renderRecords(fuelRows, vehicles) {
         var vehicleMap = new Map((vehicles || []).map(function (vehicle) { return [String(vehicle.id), vehicle.plaka]; }));
-        setText('fuel-record-count', fuelRows.length + ' kayıt');
+        var query = String(document.getElementById('yakit-km-search')?.value || '').toLocaleLowerCase('tr-TR');
+        var selectedVehicle = String(document.getElementById('fuel-record-vehicle')?.value || '');
+        var visible = (fuelRows || []).filter(function (row) {
+            var plate = vehicleMap.get(String(row.arac_id)) || row.araclar?.plaka || '';
+            return (!query || String(plate).toLocaleLowerCase('tr-TR').includes(query)) && (!selectedVehicle || String(row.arac_id) === selectedVehicle);
+        });
+        setText('fuel-record-count', visible.length + ' kayıt');
         var container = document.getElementById('fuel-records-container');
         if (!container) return;
-        var fuelHtml = fuelRows.length ? '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Tarih</th><th>Plaka</th><th class="is-number">Litre</th><th class="is-number">Litre Fiyatı</th><th class="is-number">Toplam</th><th class="is-number">İşlem</th></tr></thead><tbody>' + fuelRows.map(function (row) {
+        var fuelHtml = visible.length ? '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Tarih</th><th>Plaka</th><th class="is-number">Litre</th><th class="is-number">Litre Fiyatı</th><th class="is-number">Toplam</th><th class="is-number">İşlem</th></tr></thead><tbody>' + visible.map(function (row) {
             return '<tr><td>' + fmtDate(row.tarih) + '</td><td><strong class="fuel-plate">' + esc(vehicleMap.get(String(row.arac_id)) || row.araclar?.plaka || '—') + '</strong></td><td class="is-number">' + fmtNumber(row.litre, 2) + ' L</td><td class="is-number">' + fmtMoney(row.birim_fiyat) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.toplam_tutar) + '</td><td class="is-number"><button class="btn-icon is-danger" onclick="deleteRecord(\'yakit_takip\', \'' + esc(row.id) + '\', \'fetchFuelAnalytics\')" aria-label="Yakıt kaydını sil"><i data-lucide="trash-2"></i></button></td></tr>';
         }).join('') + '</tbody></table></div>' : '<div class="empty-state compact"><strong>Bu dönemde yakıt kaydı yok</strong><p>Yeni kayıt ekleyebilir veya Excel’den aktarabilirsiniz.</p></div>';
-        var manualHtml = manualRows.length ? '<div class="fuel-manual-block"><div class="fuel-section-head"><div><h3>Manuel KM Fişleri</h3><p>Eski manuel takip kayıtları korunur; tüketim hesabında InfoMobil KM kullanılır.</p></div><span class="badge badge-neutral">' + manualRows.length + ' kayıt</span></div><div class="fuel-manual-list">' + manualRows.map(function (row) {
-            return '<div><span><strong>' + esc(row.araclar?.plaka || vehicleMap.get(String(row.arac_id)) || '—') + '</strong><small>' + fmtDate(row.tarih) + ' · ' + esc(row.sofor_adi || 'Şoför belirtilmemiş') + '</small></span><b>' + fmtNumber(row.kilometre, 0) + ' km</b></div>';
-        }).join('') + '</div></div>' : '';
-        container.innerHTML = fuelHtml + manualHtml;
+        container.innerHTML = fuelHtml;
         if (window.lucide) window.lucide.createIcons();
     }
 
     window.switchFuelAnalyticsTab = function (tab) {
-        state.tab = ['analysis', 'records', 'receipts'].includes(tab) ? tab : 'analysis';
+        state.tab = ['analysis', 'records', 'entry'].includes(tab) ? tab : 'analysis';
         document.querySelectorAll('[data-fuel-tab]').forEach(function (button) { button.classList.toggle('is-active', button.dataset.fuelTab === state.tab); });
         document.querySelectorAll('.fuel-panel').forEach(function (panel) { panel.classList.toggle('is-active', panel.id === 'fuel-panel-' + state.tab); });
     };
@@ -165,7 +179,26 @@
         window.fetchFuelAnalytics();
     };
 
-    window.filterYakitKm = function () { renderAnalysis(state.rows); };
+    window.shiftFuelAnalyticsPeriod = function (direction) {
+        var anchor = document.getElementById('fuel-period-anchor');
+        var value = anchor && anchor.value ? anchor.value : window.FuelAnalytics.todayIstanbul();
+        var date = new Date(value + 'T12:00:00Z');
+        if (state.period === 'week') date.setUTCDate(date.getUTCDate() + Number(direction || 0) * 7);
+        else date.setUTCMonth(date.getUTCMonth() + Number(direction || 0));
+        if (anchor) anchor.value = date.toISOString().slice(0, 10);
+        window.fetchFuelAnalytics();
+    };
+
+    window.filterYakitKm = function () { renderAnalysis(state.rows); renderRecords(state.fuelRows, state.vehicles); };
+    window.filterFuelRecords = function () { renderRecords(state.fuelRows, state.vehicles); };
+    window.clearFuelRecordFilters = function () {
+        var search = document.getElementById('yakit-km-search');
+        var vehicle = document.getElementById('fuel-record-vehicle');
+        if (search) search.value = '';
+        if (vehicle) vehicle.value = '';
+        renderAnalysis(state.rows);
+        renderRecords(state.fuelRows, state.vehicles);
+    };
 
     window.fetchFuelAnalytics = async function () {
         var container = document.getElementById('yakit-km-container');
@@ -182,21 +215,25 @@
             var results = await Promise.all([
                 safeQuery(window.supabaseClient.from('araclar').select('id, plaka').order('plaka')),
                 safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', bounds.start).lte('tarih', bounds.end).order('tarih', { ascending: false })),
-                safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', previous.start).lte('tarih', previous.end)),
-                safeQuery(window.supabaseClient.from('manuel_yakit_fisleri').select('*, araclar(plaka)').gte('tarih', bounds.start).lte('tarih', bounds.end).order('tarih', { ascending: false }), true)
+                safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', previous.start).lte('tarih', previous.end))
             ]);
             var vehicles = results[0];
             var fuelRows = results[1];
             var previousFuelRows = results[2];
-            var manualRows = results[3];
             state.fuelRows = fuelRows;
-            state.manualRows = manualRows;
-            window.allYakitKmRecords = manualRows;
+            state.vehicles = vehicles;
+            var vehicleSelect = document.getElementById('fuel-record-vehicle');
+            if (vehicleSelect) {
+                var selectedVehicle = vehicleSelect.value;
+                vehicleSelect.innerHTML = '<option value="">Tüm araçlar</option>' + vehicles.map(function (vehicle) { return '<option value="' + esc(vehicle.id) + '">' + esc(vehicle.plaka) + '</option>'; }).join('');
+                vehicleSelect.value = selectedVehicle;
+            }
             var infoPayload = null;
             try {
                 infoPayload = await fetchInfoMobile(vehicles.map(function (vehicle) { return vehicle.plaka; }), bounds, previous);
                 var ready = infoPayload.results.filter(function (row) { return row.status === 'ready'; }).length;
-                setProviderStatus(ready > 0 ? 'ready' : 'warning', ready + ' araç eşleşti');
+                var unmatchedCount = (infoPayload.unmatched || []).length;
+                setProviderStatus(ready > 0 ? 'ready' : 'warning', ready + ' araç eşleşti · InfoMobil eşleşmesi olmayan araçlar: ' + unmatchedCount);
             } catch (infoError) {
                 setProviderStatus('warning', infoError.message || 'InfoMobil kullanılamıyor');
             }
@@ -204,7 +241,7 @@
             var rows = window.FuelAnalytics.aggregateByVehicle(fuelRows, vehicles, maps.current, previousFuelRows, maps.previous);
             renderKpis(rows, fuelRows);
             renderAnalysis(rows);
-            renderRecords(fuelRows, manualRows, vehicles);
+            renderRecords(fuelRows, vehicles);
             if (window.lucide) window.lucide.createIcons();
         } catch (error) {
             console.error('[FUEL ANALYTICS]', error);

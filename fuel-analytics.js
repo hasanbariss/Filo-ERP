@@ -100,6 +100,44 @@
         ].join('|');
     }
 
+    function validateFuelRow(row) {
+        var errors = [];
+        if (!row || !row.arac_id) errors.push('Plaka mevcut araçlarla eşleşmedi.');
+        var dateValue = String(row && row.tarih || '');
+        var dateMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        var parsedDate = dateMatch ? new Date(dateValue + 'T12:00:00Z') : null;
+        if (!dateMatch || !parsedDate || Number.isNaN(parsedDate.getTime()) || isoDate(parsedDate) !== dateValue) errors.push('Tarih geçersiz.');
+        if (number(row && row.litre) <= 0) errors.push('Litre sıfırdan büyük olmalı.');
+        if (number(row && row.toplam_tutar) <= 0) errors.push('Toplam tutar sıfırdan büyük olmalı.');
+        if (number(row && row.birim_fiyat) <= 0) errors.push('Litre fiyatı sıfırdan büyük olmalı.');
+        return errors;
+    }
+
+    function planImport(rows, existingRows) {
+        var fileFingerprints = new Set();
+        var databaseFingerprints = new Set((existingRows || []).map(fingerprint));
+        var result = { valid: [], invalid: [], fileDuplicates: [], databaseDuplicates: [] };
+        (rows || []).forEach(function (row) {
+            var errors = validateFuelRow(row);
+            if (errors.length) return result.invalid.push({ row: row, errors: errors });
+            var key = fingerprint(row);
+            if (fileFingerprints.has(key)) return result.fileDuplicates.push(row);
+            fileFingerprints.add(key);
+            if (databaseFingerprints.has(key)) return result.databaseDuplicates.push(row);
+            result.valid.push(row);
+        });
+        return result;
+    }
+
+    function similarFuelRecords(rows, candidate) {
+        return (rows || []).filter(function (row) {
+            return String(row.arac_id || '') === String(candidate && candidate.arac_id || '') &&
+                String(row.tarih || '').slice(0, 10) === String(candidate && candidate.tarih || '').slice(0, 10) &&
+                Math.abs(number(row.litre) - number(candidate && candidate.litre)) <= 0.01 &&
+                Math.abs(number(row.toplam_tutar) - number(candidate && candidate.toplam_tutar)) <= 0.01;
+        });
+    }
+
     function percentChange(current, previous) {
         var now = number(current);
         var before = number(previous);
@@ -133,8 +171,8 @@
             var previous = summarizeFuelRows(group.previous);
             var km = number(mileageByPlate && mileageByPlate[normalized]);
             var previousKm = number(previousMileageByPlate && previousMileageByPlate[normalized]);
-            var currentMetrics = metrics(current.liters, current.cost, km);
-            var previousMetrics = metrics(previous.liters, previous.cost, previousKm);
+            var currentMetrics = current.count > 0 ? metrics(current.liters, current.cost, km) : { litersPer100Km: null, costPerKm: null };
+            var previousMetrics = previous.count > 0 ? metrics(previous.liters, previous.cost, previousKm) : { litersPer100Km: null, costPerKm: null };
             return {
                 plate: group.plate,
                 normalizedPlate: normalized,
@@ -146,9 +184,9 @@
                 receiptCount: current.count,
                 litersPer100Km: currentMetrics.litersPer100Km,
                 costPerKm: currentMetrics.costPerKm,
-                changePercent: currentMetrics.litersPer100Km !== null && previousMetrics.litersPer100Km !== null
-                    ? percentChange(currentMetrics.litersPer100Km, previousMetrics.litersPer100Km)
-                    : percentChange(current.cost, previous.cost)
+                kmChangePercent: km > 0 && previousKm > 0 ? percentChange(km, previousKm) : null,
+                consumptionChangePercent: currentMetrics.litersPer100Km !== null && previousMetrics.litersPer100Km !== null
+                    ? percentChange(currentMetrics.litersPer100Km, previousMetrics.litersPer100Km) : null
             };
         }).sort(function (a, b) { return b.cost - a.cost; });
     }
@@ -161,6 +199,9 @@
         metrics: metrics,
         summarizeFuelRows: summarizeFuelRows,
         fingerprint: fingerprint,
+        validateFuelRow: validateFuelRow,
+        planImport: planImport,
+        similarFuelRecords: similarFuelRecords,
         percentChange: percentChange,
         aggregateByVehicle: aggregateByVehicle
     };

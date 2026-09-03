@@ -1,7 +1,20 @@
-window.hesaplaYakit = function () {
-    const litre = parseFloat(document.getElementById('yakit-litre').value) || 0;
-    const fiyat = parseFloat(document.getElementById('yakit-fiyat').value) || 0;
-    document.getElementById('yakit-tutar').value = (litre * fiyat).toFixed(2);
+window.hesaplaYakit = function (changedField) {
+    const litreEl = document.getElementById('yakit-litre');
+    const fiyatEl = document.getElementById('yakit-fiyat');
+    const tutarEl = document.getElementById('yakit-tutar');
+    if (!litreEl || !fiyatEl || !tutarEl) return;
+    const state = window.yakitManualCalcState || (window.yakitManualCalcState = { fiyatManual: false, tutarManual: false });
+    if (changedField === 'fiyat') state.fiyatManual = fiyatEl.value !== '';
+    if (changedField === 'tutar') state.tutarManual = tutarEl.value !== '';
+    const litre = Number(litreEl.value) || 0;
+    const fiyat = Number(fiyatEl.value) || 0;
+    const tutar = Number(tutarEl.value) || 0;
+    if (litre <= 0) return;
+    if ((changedField === 'fiyat' || changedField === 'litre') && fiyat > 0 && !state.tutarManual) {
+        tutarEl.value = (litre * fiyat).toFixed(2);
+    } else if ((changedField === 'tutar' || changedField === 'litre') && tutar > 0 && !state.fiyatManual) {
+        fiyatEl.value = (tutar / litre).toFixed(4);
+    }
 }
 async function loadExcelGrid() {
     const musteriId = document.getElementById('excel-musteri-sec').value;

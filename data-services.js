@@ -60,6 +60,39 @@ window.uploadDosya = async function (file, folder = 'common') {
     return publicUrl;
 };
 
+window.createFuelRecord = async function (payload, currentKm, options = {}) {
+    const litre = Number(payload && payload.litre);
+    const toplamTutar = Number(payload && payload.toplam_tutar);
+    if (!payload || !payload.tarih || !payload.arac_id || !Number.isFinite(litre) || litre <= 0 || !Number.isFinite(toplamTutar) || toplamTutar <= 0) {
+        throw new Error('Tarih, araç, litre ve toplam tutar alanları zorunludur.');
+    }
+    const insertData = {
+        tarih: payload.tarih,
+        arac_id: payload.arac_id,
+        litre,
+        birim_fiyat: Number(payload.birim_fiyat) > 0 ? Number(payload.birim_fiyat) : Number((toplamTutar / litre).toFixed(4)),
+        toplam_tutar: toplamTutar
+    };
+    if (!options.skipDuplicateCheck) {
+        const { data: similarRows, error: similarError } = await window.supabaseClient.from('yakit_takip').select('arac_id, tarih, litre, toplam_tutar').eq('arac_id', insertData.arac_id).eq('tarih', insertData.tarih);
+        if (similarError) throw similarError;
+        const similar = window.FuelAnalytics ? window.FuelAnalytics.similarFuelRecords(similarRows || [], insertData) : [];
+        if (similar.length && !window.confirm('Benzer bir yakıt kaydı zaten mevcut. Yine de kaydetmek istiyor musunuz?')) throw new Error('Yakıt kaydı kullanıcı tarafından iptal edildi.');
+    }
+    const { error } = await window.supabaseClient.from('yakit_takip').insert([insertData]);
+    if (error) throw error;
+    const parsedKm = parseInt(currentKm, 10) || null;
+    if (parsedKm) {
+        const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', payload.arac_id).single();
+        if (!arac || parsedKm > (arac.guncel_km || 0)) await window.supabaseClient.from('araclar').update({ guncel_km: parsedKm }).eq('id', payload.arac_id);
+    }
+    if (typeof fetchYakitlar === 'function') fetchYakitlar();
+    if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
+    if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+    if (typeof window.fetchFuelAnalytics === 'function') window.fetchFuelAnalytics();
+    return insertData;
+};
+
 window.saveDataAndClose = async function (event, keepOpen = false) {
     const btn = event.currentTarget;
     const originalHTML = btn.innerHTML;
@@ -442,20 +475,7 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
 
             if (!tarih || !arac_id || !litre) throw new Error("Lütfen zorunlu yakıt bilgilerini giriniz.");
 
-            const insertData = { tarih, arac_id, litre, birim_fiyat, toplam_tutar };
-            const { error } = await window.supabaseClient.from('yakit_takip').insert([insertData]);
-            if (error) throw error;
-
-            if (anlik_km && arac_id) {
-                const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km').eq('id', arac_id).single();
-                if (!arac || anlik_km > (arac.guncel_km || 0)) {
-                    await window.supabaseClient.from('araclar').update({ guncel_km: anlik_km }).eq('id', arac_id);
-                }
-            }
-
-            if (typeof fetchYakitlar === 'function') fetchYakitlar();
-            if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
-            if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+            await window.createFuelRecord({ tarih, arac_id, litre, birim_fiyat, toplam_tutar }, anlik_km);
         } else if (formTitle === 'Yeni Yakıt/KM Fişi') {
             const arac_id = document.getElementById('manuel-yakit-arac').value;
             const tarih = document.getElementById('manuel-yakit-tarih').value;
@@ -5176,7 +5196,9 @@ function formatTurkishDate(iso) {
 // Plaka formatlama yardımcısı (0 siral, boşluklu)
 function formatPlakaForDB(p) {
     if (!p) return "";
-    let clean = String(p).replace(/\s+/g, '').toUpperCase();
+    let clean = window.FuelAnalytics
+        ? window.FuelAnalytics.normalizePlate(p)
+        : String(p).replace(/[^A-Z0-9ÇĞİÖŞÜ]/gi, '').toLocaleUpperCase('tr-TR');
     clean = clean.replace(/^0+/, ''); 
     const m = clean.match(/^(\d+)([A-Z]+)(\d+)$/);
     if (m) return `${m[1]} ${m[2]} ${m[3]}`;
@@ -5255,7 +5277,7 @@ window.importYakitExcel = async function(event) {
                 const idx = {
                     tarih: findIdx(['tarih', 'gün', 'date']),
                     plaka: findIdx(['plaka', 'araç', 'plate']),
-                    litre: findIdx(['litre', 'miktar', 'vol', 'qty', 'quantity']),
+                    litre: findIdx(['litre', 'lt', 'miktar', 'vol', 'qty', 'quantity']),
                     tutar: idxTutar,
                     birim: findIdx(['birim', 'fiyat', 'price'])
                 };
@@ -5269,19 +5291,24 @@ window.importYakitExcel = async function(event) {
                     birim: idx.birim !== -1 ? headers[idx.birim] : "Otomatik"
                 };
 
-                if (idx.tarih === -1 || idx.plaka === -1) {
+                if (idx.tarih === -1 || idx.plaka === -1 || idx.litre === -1) {
                     throw new Error("Gerekli sütunlar (Tarih, Plaka, Litre) bulunamadı. Lütfen başlıkları kontrol edin.");
                 }
 
                 const range = XLSX.utils.decode_range(ws['!ref']);
                 const { data: araclar } = await window.supabaseClient.from('araclar').select('id, plaka');
-                const cleanPlaka = (p) => String(p || "").replace(/\s+/g, '').replace(/^0+/, '').toUpperCase();
+                const cleanPlaka = (p) => {
+                    const normalized = window.FuelAnalytics
+                        ? window.FuelAnalytics.normalizePlate(p)
+                        : String(p || "").replace(/[^A-Z0-9ÇĞİÖŞÜ]/gi, '').toLocaleUpperCase('tr-TR');
+                    return normalized.replace(/^0+/, '');
+                };
                 const aracMap = {};
                 (araclar || []).forEach(a => { aracMap[cleanPlaka(a.plaka)] = { id: a.id, plaka: a.plaka }; });
 
                 const parseTrNumber = (valStr) => {
                     if (valStr === null || valStr === undefined) return 0;
-                    let s = String(valStr).trim().replace(/\s+/g, '');
+                    let s = String(valStr).trim().replace(/\s+/g, '').replace(/[^0-9,.-]/g, '');
                     if (s === "") return 0;
 
                     // Eğer Excel'den 4.406,25 gibi gelmişse
@@ -5296,6 +5323,7 @@ window.importYakitExcel = async function(event) {
                     if (s.includes(',') || s.includes('.')) {
                         const sep = s.includes(',') ? ',' : '.';
                         const parts = s.split(sep);
+                        if (sep === ',' || (parts.length === 2 && parts[0].length <= 2)) return parseFloat(s.replace(',', '.')) || 0;
                         if (parts.length === 2 && parts[1].length === 3) return parseFloat(s.replace(/[,\.]/g, '')) || 0;
                         return parseFloat(s.replace(',', '.')) || 0;
                     }
@@ -5351,8 +5379,11 @@ window.importYakitExcel = async function(event) {
                                     y = d; d = parseInt(parts[2]); // 2026/01/15 formatı
                                 }
                                 
-                                dt = new Date(y, m - 1, d, 0, 0, 0);
-                                parsed = true;
+                                const candidateDate = new Date(y, m - 1, d, 0, 0, 0);
+                                if (candidateDate.getFullYear() === y && candidateDate.getMonth() === m - 1 && candidateDate.getDate() === d) {
+                                    dt = candidateDate;
+                                    parsed = true;
+                                }
                             }
                         }
                     }
@@ -5363,15 +5394,17 @@ window.importYakitExcel = async function(event) {
                         else if (cellT && typeof cellT.v === 'number') dt = new Date(Math.round((cellT.v - 25569) * 86400 * 1000));
                     }
                     
-                    if (!dt || isNaN(dt.getTime())) continue;
-                    dt.setHours(0,0,0,0); // Garanti
+                    const hasValidDate = dt && !isNaN(dt.getTime());
+                    if (hasValidDate) dt.setHours(0,0,0,0); // Garanti
 
-                    const displayTarih = `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`;
+                    const displayTarih = hasValidDate
+                        ? `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')}.${dt.getFullYear()}`
+                        : (textVal || 'Geçersiz tarih');
                     
                     const addrL = XLSX.utils.encode_cell({ r: R, c: idx.litre }), cellL = ws[addrL];
                     const rawL = cellL ? (cellL.w || String(cellL.v || "0")) : "0";
-                    let lText = rawL.replace(/\D/g, '');
-                    let displayLitre = lText.length > 2 ? lText.slice(0, -2) + "," + lText.slice(-2) + "LT" : "0," + lText.padStart(2, '0') + "LT";
+                    const pLitre = parseTrNumber(rawL);
+                    const displayLitre = pLitre.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 3 }) + 'LT';
                     
                     const addrTur = idx.tutar !== -1 ? XLSX.utils.encode_cell({ r: R, c: idx.tutar }) : null;
                     const cellTur = addrTur ? ws[addrTur] : null;
@@ -5382,7 +5415,6 @@ window.importYakitExcel = async function(event) {
                     const displayBirim = cellBir ? (cellBir.w || String(cellBir.v || "0")) : "0";
 
                     // Sadece string parsing'e güveniyoruz çünkü numeric cell logic locale bağımlı sapıtabiliyor
-                    const pLitre = parseTrNumber(displayLitre.replace('LT',''));
                     const pTutar = parseTrNumber(displayTutar);
                     let pBirim = parseTrNumber(displayBirim);
 
@@ -5391,10 +5423,10 @@ window.importYakitExcel = async function(event) {
                         pBirim = parseFloat((pTutar / pLitre).toFixed(4));
                     }
 
-                    const yyyy = dt.getFullYear();
-                    const mm = String(dt.getMonth() + 1).padStart(2, '0');
-                    const dd = String(dt.getDate()).padStart(2, '0');
-                    const localISODate = `${yyyy}-${mm}-${dd}`;
+                    const yyyy = hasValidDate ? dt.getFullYear() : '';
+                    const mm = hasValidDate ? String(dt.getMonth() + 1).padStart(2, '0') : '';
+                    const dd = hasValidDate ? String(dt.getDate()).padStart(2, '0') : '';
+                    const localISODate = hasValidDate ? `${yyyy}-${mm}-${dd}` : '';
 
                     rawRecords.push({
                         displayTarih: displayTarih,
@@ -5404,11 +5436,29 @@ window.importYakitExcel = async function(event) {
                         tarih: localISODate,
                         formattedPlaka: formatted,
                         aracId: vehicle ? vehicle.id : null,
+                        arac_id: vehicle ? vehicle.id : null,
                         litre: pLitre,
                         tutar: pTutar,
-                        birim: pBirim
+                        toplam_tutar: pTutar,
+                        birim: pBirim,
+                        birim_fiyat: pBirim
                     });
                 }
+
+                const vehicleIds = [...new Set(rawRecords.map(r => r.arac_id).filter(Boolean))];
+                const importDates = rawRecords.map(r => r.tarih).filter(Boolean).sort();
+                let existingRows = [];
+                if (vehicleIds.length && importDates.length) {
+                    const { data: databaseRows, error: duplicateError } = await window.supabaseClient.from('yakit_takip')
+                        .select('arac_id, tarih, litre, birim_fiyat, toplam_tutar')
+                        .in('arac_id', vehicleIds).gte('tarih', importDates[0]).lte('tarih', importDates[importDates.length - 1]);
+                    if (duplicateError) throw duplicateError;
+                    existingRows = databaseRows || [];
+                }
+                const importPlan = window.FuelAnalytics.planImport(rawRecords, existingRows);
+                importPlan.invalid.forEach(item => { item.row._importErrors = item.errors; });
+                importPlan.fileDuplicates.forEach(item => { item._fileDuplicate = true; });
+                importPlan.databaseDuplicates.forEach(item => { item._databaseDuplicate = true; });
 
                 const groupedMap = {};
                 rawRecords.forEach(r => {
@@ -5422,10 +5472,10 @@ window.importYakitExcel = async function(event) {
 
                 const finalGroups = Object.values(groupedMap).sort((a,b) => a.plaka.localeCompare(b.plaka));
                 finalGroups.forEach(g => {
-                    g.items.sort((a,b) => a.sortableDT.localeCompare(b.sortableDT)); // Kronolojik sıralama
+                    g.items.sort((a,b) => String(a.sortableDT || '').localeCompare(String(b.sortableDT || ''))); // Kronolojik sıralama
                 });
 
-                showYakitImportPreview(finalGroups, null, detectedHeaders);
+                showYakitImportPreview(finalGroups, null, detectedHeaders, importPlan);
                 event.target.value = ""; 
             } catch (err) { updateYakitImportStatus("Hata: " + err.message, true); }
         };
@@ -5435,7 +5485,7 @@ window.importYakitExcel = async function(event) {
 
 
 
-window.showYakitImportPreview = function(groups, initialStatus = null, detectedHeaders = null) {
+window.showYakitImportPreview = function(groups, initialStatus = null, detectedHeaders = null, importPlan = null) {
     try {
         const existing = document.getElementById('yakit-import-preview-overlay');
         if (existing) existing.remove();
@@ -5471,6 +5521,11 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                                 <span class="text-white font-black">${groups.length}</span>
                                 <span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Plaka</span> 
                             </div>
+                            <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
+                            <div><span class="text-emerald-400 font-black">${importPlan ? importPlan.valid.length : totalRows}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Geçerli</span></div>
+                            <div><span class="text-red-400 font-black">${importPlan ? importPlan.invalid.length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Hatalı</span></div>
+                            <div><span class="text-amber-400 font-black">${importPlan ? importPlan.fileDuplicates.length + importPlan.databaseDuplicates.length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Duplicate</span></div>
+                            <div><span class="text-orange-400 font-black">${importPlan ? importPlan.invalid.filter(x => !x.row.arac_id).length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Eşleşmeyen</span></div>
                             <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
                             <div class="flex items-center gap-2" title="Toplam Kayıt Sayısı">
                                 <i data-lucide="list" class="w-4 h-4 text-gray-400"></i>
@@ -5509,7 +5564,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                                             <span class="text-lg font-black font-mono text-white bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">${g.plaka}</span>
                                             ${g.aracId 
                                                 ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20 font-black tracking-widest uppercase">MEVCUT ARAÇ</span>'
-                                                : '<span class="text-[10px] bg-orange-500/10 text-orange-400 px-3 py-1 rounded-full border border-orange-500/20 font-black tracking-widest uppercase animate-pulse">YENİ ARAÇ EKLENECEK</span>'
+                                                : '<span class="text-[10px] bg-red-500/10 text-red-400 px-3 py-1 rounded-full border border-red-500/20 font-black tracking-widest uppercase">EŞLEŞMEYEN PLAKA</span>'
                                             }
                                         </div>
                                         <div class="text-right">
@@ -5525,7 +5580,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                                     <div class="divide-y divide-white/5 px-4">
                                         ${g.items.map(r => `
                                             <div class="py-3 flex justify-between items-center text-sm">
-                                                <span class="text-gray-400 font-medium">${r.displayTarih}</span>
+                                                <span class="text-gray-400 font-medium">${r.displayTarih}${r._importErrors ? `<small class="block text-red-400 mt-1">${r._importErrors.join(' · ')}</small>` : r._fileDuplicate ? '<small class="block text-amber-400 mt-1">Dosya içinde duplicate</small>' : r._databaseDuplicate ? '<small class="block text-amber-400 mt-1">Veritabanında mevcut</small>' : ''}</span>
                                                 <div class="flex items-center gap-6">
                                                     <span class="text-gray-300 font-mono w-28 text-right">${r.displayLitre}</span>
                                                     <span class="text-orange-400 font-mono font-black w-32 text-right">₺${r.tutar.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -5542,7 +5597,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                 <div class="ios-modal-footer p-8 border-t border-white/10 bg-white/[0.03] flex justify-between items-center">
                     <button onclick="document.getElementById('yakit-import-preview-overlay').remove()" class="px-8 py-3 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition-all border border-white/10 hover:bg-white/5">İptal Et</button>
                     ${!isLoading ? `
-                        <button onclick="confirmYakitImport()" class="px-10 py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
+                        <button onclick="confirmYakitImport()" ${importPlan && !importPlan.valid.length ? 'disabled' : ''} class="px-10 py-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
                             <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                             Verileri Onayla ve Kaydet
                         </button>
@@ -5555,7 +5610,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
         if (window.lucide) window.lucide.createIcons();
         if (!isLoading) {
             // Flatten back for confirm function but keep the objects
-            window.allYakitRecordsToProcess = groups.flatMap(g => g.items);
+            window.yakitImportPlan = importPlan;
         }
     } catch (err) { alert("Hata: " + err.message); }
 };
@@ -5575,7 +5630,7 @@ function updateYakitImportStatus(message, isError = false) {
 }
 
 window.confirmYakitImport = async function() {
-    const records = window.allYakitRecordsToProcess;
+    const records = window.yakitImportPlan?.valid || [];
     if (!records || !records.length) {
         alert("İşlenecek kayıt bulunamadı.");
         return;
@@ -5587,51 +5642,17 @@ window.confirmYakitImport = async function() {
     btn.innerHTML = '<i class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></i> İşleniyor...';
 
     try {
-        // 1. Yeni araçları belirle ve oluştur
-        const newPlates = [...new Set(records.filter(r => !r.aracId).map(r => r.formattedPlaka))];
-        const plateToIdMap = {};
-
-        if (newPlates.length > 0) {
-            console.log("Yeni araçlar oluşturuluyor:", newPlates);
-            for (const plaka of newPlates) {
-                // Önce DB'de var mı diye tekrar kontrol (yarış durumunu önlemek için)
-                const { data: existing } = await window.supabaseClient.from('araclar').select('id').eq('plaka', plaka).single();
-                if (existing) {
-                    plateToIdMap[plaka] = existing.id;
-                } else {
-                    const { data: inserted, error: insErr } = await window.supabaseClient.from('araclar').insert([{
-                        plaka: plaka,
-                        mulkiyet_durumu: 'DIŞ ARAÇ (YENİ)',
-                        sirket: 'BİLİNMİYOR'
-                    }]).select();
-                    if (insErr) throw insErr;
-                    plateToIdMap[plaka] = inserted[0].id;
-                }
-            }
-        }
-
-        // 2. Payload hazırla (aracId'leri güncelle)
+        // Yalnızca önizlemede doğrulanan ve mevcut araçla eşleşen kayıtları hazırla.
         const candidatePayload = records.map(r => ({
             tarih: r.sortableDT,
-            arac_id: r.aracId || plateToIdMap[r.formattedPlaka],
+            arac_id: r.aracId,
             litre: r.litre,
             birim_fiyat: r.birim,
             toplam_tutar: r.tutar
         }));
 
-        // Aynı dosyadaki ve veritabanındaki eş kayıtları dönemsel parmak iziyle ele.
-        const fileFingerprints = new Set();
-        const uniqueCandidates = candidatePayload.filter(row => {
-            const fingerprint = window.FuelAnalytics
-                ? window.FuelAnalytics.fingerprint(row)
-                : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`;
-            if (fileFingerprints.has(fingerprint)) return false;
-            fileFingerprints.add(fingerprint);
-            return true;
-        });
-
-        const vehicleIds = [...new Set(uniqueCandidates.map(row => row.arac_id).filter(Boolean))];
-        const dates = uniqueCandidates.map(row => row.tarih).filter(Boolean).sort();
+        const vehicleIds = [...new Set(candidatePayload.map(row => row.arac_id).filter(Boolean))];
+        const dates = candidatePayload.map(row => row.tarih).filter(Boolean).sort();
         let existingRows = [];
         if (vehicleIds.length && dates.length) {
             const { data: currentRows, error: duplicateError } = await window.supabaseClient
@@ -5643,13 +5664,9 @@ window.confirmYakitImport = async function() {
             if (duplicateError) throw duplicateError;
             existingRows = currentRows || [];
         }
-        const existingFingerprints = new Set(existingRows.map(row => window.FuelAnalytics
-            ? window.FuelAnalytics.fingerprint(row)
-            : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`));
-        const payload = uniqueCandidates.filter(row => !existingFingerprints.has(window.FuelAnalytics
-            ? window.FuelAnalytics.fingerprint(row)
-            : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`));
-        const duplicateCount = candidatePayload.length - payload.length;
+        const finalPlan = window.FuelAnalytics.planImport(candidatePayload, existingRows);
+        const payload = finalPlan.valid;
+        const duplicateCount = finalPlan.fileDuplicates.length + finalPlan.databaseDuplicates.length;
 
         // 3. Yakıt kayıtlarını ekle
         if (payload.length) {
@@ -5659,7 +5676,7 @@ window.confirmYakitImport = async function() {
 
         if (window.Toast) {
             const duplicateLabel = duplicateCount ? ` ${duplicateCount} mükerrer kayıt atlandı.` : '';
-            window.Toast.success(`${payload.length} adet yakıt kaydı ve ${newPlates.length} yeni araç işlendi.${duplicateLabel}`);
+            window.Toast.success(`${payload.length} adet yakıt kaydı işlendi.${duplicateLabel}`);
         }
         overlay.remove();
         fetchYakitlar();
