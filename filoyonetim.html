@@ -80,7 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.3">
+    <link rel="stylesheet" href="design-system.css?v=2.0.4">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -438,36 +438,63 @@
 
                 <div id="module-operasyon-merkezi" class="main-module hidden stagger-in"></div>
 
-                <!-- YAKIT & KM TAKİP MODÜLÜ (LOKAL/HARİCİ) -->
-                <div id="module-yakit-km" class="main-module hidden stagger-in">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                        <div>
-                            <h2 class="text-3xl font-black tracking-tight text-white mb-1">Yakıt & KM Takip</h2>
-                            <p class="text-sm font-medium text-gray-400">Filo araçlarının güncel kilometrelerini ve fişlerini buradan takip edin (Finansal tarafa işlemez).</p>
+                <!-- YAKIT & KM — InfoMobil destekli ortak analiz yüzeyi -->
+                <div id="module-yakit-km" class="main-module hidden stagger-in bf-fuel-module">
+                    <div class="page-header fuel-page-header">
+                        <div class="page-header-identity">
+                            <p class="fuel-eyebrow">Filo Verimliliği</p>
+                            <h1 class="page-title">Yakıt &amp; KM</h1>
+                            <p class="page-subtitle">Yakıt kayıtlarını ve aynı döneme ait InfoMobil kilometrelerini tek kaynaktan karşılaştırın.</p>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <input type="month" id="filter-yakit-km-ay" onchange="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 outline-none focus:border-orange-500 transition-all shadow-xl">
-                            <div class="relative w-full max-w-xs md:w-64">
-                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                                <input type="text" id="yakit-km-search" placeholder="Plaka veya Şoför Ara..." oninput="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-orange-500 transition-all shadow-xl w-full">
-                            </div>
-                            <button onclick="if(window.fetchManuelYakitFisleri) window.fetchManuelYakitFisleri()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold transition-all shadow-xl shadow-black/20">
-                                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="if(window.printManuelYakitRaporu) window.printManuelYakitRaporu()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                                <i data-lucide="printer" class="w-4 h-4"></i> Rapor Al
-                            </button>
-                            <button onclick="openModal('Yeni Yakıt/KM Fişi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Fiş Ekle
-                            </button>
+                        <div class="page-actions fuel-page-actions">
+                            <button type="button" class="btn-secondary" onclick="document.getElementById('yakit-excel-input').click()"><i data-lucide="sheet"></i>Excel'den Aktar</button>
+                            <button type="button" class="btn-secondary" onclick="openModal('Yeni Yakıt Kaydı')"><i data-lucide="fuel"></i>Yakıt Ekle</button>
+                            <button type="button" class="btn-primary fuel-primary-action" onclick="openModal('Yeni Yakıt/KM Fişi')"><i data-lucide="gauge"></i>KM Fişi Ekle</button>
                         </div>
                     </div>
 
-                    <!-- Araç bazlı gruplanmış listelerin ekleneceği ana kapsayıcı -->
-                    <div id="yakit-km-container" class="space-y-6">
-                        <div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 shadow-2xl">
-                            Veriler yükleniyor veya kayıt yok...
+                    <div class="fuel-workspace">
+                        <div class="fuel-tabs" role="tablist" aria-label="Yakıt ve kilometre bölümleri">
+                            <button type="button" class="fuel-tab is-active" data-fuel-tab="analysis" onclick="window.switchFuelAnalyticsTab('analysis')"><i data-lucide="chart-no-axes-combined"></i>Yakıt Analizi</button>
+                            <button type="button" class="fuel-tab" data-fuel-tab="records" onclick="window.switchFuelAnalyticsTab('records')"><i data-lucide="list-filter"></i>Yakıt Kayıtları</button>
+                            <button type="button" class="fuel-tab" data-fuel-tab="receipts" onclick="window.switchFuelAnalyticsTab('receipts')"><i data-lucide="receipt-text"></i>Yakıt Fişleri</button>
                         </div>
+
+                        <div class="fuel-toolbar">
+                            <div class="fuel-period-toggle" aria-label="Dönem tipi">
+                                <button type="button" class="is-active" data-fuel-period="week" onclick="window.setFuelAnalyticsPeriod('week')">Haftalık</button>
+                                <button type="button" data-fuel-period="month" onclick="window.setFuelAnalyticsPeriod('month')">Aylık</button>
+                            </div>
+                            <label class="fuel-date-control"><span>Referans tarih</span><input type="date" id="fuel-period-anchor" onchange="window.fetchFuelAnalytics()"></label>
+                            <label class="fuel-search"><i data-lucide="search"></i><input type="search" id="yakit-km-search" placeholder="Plaka ara" oninput="window.filterYakitKm()"></label>
+                            <button type="button" class="btn-icon" onclick="window.fetchFuelAnalytics()" title="Verileri yenile" aria-label="Yakıt verilerini yenile"><i data-lucide="refresh-cw"></i></button>
+                            <div class="fuel-provider-status" id="fuel-provider-status"><span class="status-dot"></span><span>InfoMobil bekleniyor</span></div>
+                        </div>
+
+                        <section id="fuel-panel-analysis" class="fuel-panel is-active" aria-label="Yakıt analizi">
+                            <div class="fuel-period-summary"><div><span>Seçili dönem</span><strong id="fuel-period-label">—</strong></div><small>Yakıt ve GPS kilometresi aynı tarih aralığından hesaplanır.</small></div>
+                            <div class="fuel-kpi-grid">
+                                <article><span class="fuel-kpi-icon"><i data-lucide="route"></i></span><div><small>Toplam KM</small><strong id="fuel-kpi-km">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="droplets"></i></span><div><small>Toplam Litre</small><strong id="fuel-kpi-litres">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="wallet-cards"></i></span><div><small>Yakıt Gideri</small><strong id="fuel-kpi-cost">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="gauge"></i></span><div><small>Ort. Tüketim</small><strong id="fuel-kpi-consumption">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="trophy"></i></span><div><small>En Çok KM</small><strong id="fuel-kpi-top-km">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="circle-dollar-sign"></i></span><div><small>En Yüksek Gider</small><strong id="fuel-kpi-top-cost">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="activity"></i></span><div><small>En Yüksek Tüketim</small><strong id="fuel-kpi-top-consumption">—</strong></div></article>
+                            </div>
+                            <div class="fuel-analysis-surface">
+                                <div class="fuel-section-head"><div><h2>Araç Bazlı Analiz</h2><p>L/100 KM ve TL/KM yalnızca geçerli GPS kilometresi olduğunda hesaplanır.</p></div><span id="fuel-analysis-count" class="badge badge-neutral">0 araç</span></div>
+                                <div id="yakit-km-container" class="fuel-table-state"><div class="loading-state">Veriler hazırlanıyor...</div></div>
+                            </div>
+                        </section>
+
+                        <section id="fuel-panel-records" class="fuel-panel" aria-label="Yakıt kayıtları">
+                            <div class="fuel-analysis-surface"><div class="fuel-section-head"><div><h2>Dönem Yakıt Kayıtları</h2><p>Mevcut yakıt_takip kayıtları; yeni finans formülü oluşturulmaz.</p></div><span id="fuel-record-count" class="badge badge-neutral">0 kayıt</span></div><div id="fuel-records-container" class="fuel-table-state"></div></div>
+                        </section>
+
+                        <section id="fuel-panel-receipts" class="fuel-panel" aria-label="Yakıt fişleri">
+                            <div class="fuel-receipt-placeholder"><span><i data-lucide="scan-line"></i></span><h2>Yakıt Fişleri</h2><p>Görsel/PDF yükleme, OCR doğrulama ve kayıt eşleştirme Aşama 3’te güvenli storage altyapısıyla etkinleştirilecek.</p></div>
+                        </section>
                     </div>
                 </div>
 
@@ -2869,8 +2896,10 @@
 <script defer src="company-branding.js"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
-<script defer src="data-services.js?v=2.0.1"></script>
+<script defer src="fuel-analytics.js?v=2.0.0"></script>
+<script defer src="data-services.js?v=2.0.2"></script>
 <script defer src="ui-manager.js?v=2.0.2"></script>
+<script defer src="fuel-analytics-ui.js?v=2.0.0"></script>
 
 
 <!-- 3. FEATURE MODULES -->
@@ -2893,7 +2922,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.2"></script>
+<script defer src="dashboard-funcs.js?v=2.0.3"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

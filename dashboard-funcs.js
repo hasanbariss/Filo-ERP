@@ -158,9 +158,15 @@ window.fetchDashboardData = async function () {
         const aylikBakimlar = bakimlar.filter(row => isCurrentMonth(row, ['islem_tarihi', 'tarih', 'created_at']));
         const aylikTaseronHakedis = hakedisTaseron.filter(row => isCurrentMonth(row, ['sefer_tarihi', 'tarih', 'created_at']));
         const aylikServisHakedis = hakedisServis.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
-        const sumYakit = aylikYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0);
-        const sumOncekiAyYakit = oncekiAyYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0);
-        const sumYakitLitre = aylikYakitlar.reduce((s, y) => s + (Number(y.litre) || 0), 0);
+        const currentFuelSummary = window.FuelAnalytics
+            ? window.FuelAnalytics.summarizeFuelRows(aylikYakitlar)
+            : { cost: aylikYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0), liters: aylikYakitlar.reduce((s, y) => s + (Number(y.litre) || 0), 0) };
+        const previousFuelSummary = window.FuelAnalytics
+            ? window.FuelAnalytics.summarizeFuelRows(oncekiAyYakitlar)
+            : { cost: oncekiAyYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0) };
+        const sumYakit = currentFuelSummary.cost;
+        const sumOncekiAyYakit = previousFuelSummary.cost;
+        const sumYakitLitre = currentFuelSummary.liters;
         const sumBakim = aylikBakimlar.reduce((s, b) => s + (Number(b.toplam_tutar) || 0), 0);
         const sumHakedisTaseron = aylikTaseronHakedis.reduce((s, h) => s + (Number(h.net_hakedis || h.anlasilan_tutar) || 0), 0);
         const sumHakedisServis = aylikServisHakedis.reduce((s, h) => s + (Number(h.gunluk_ucret) || 0), 0);

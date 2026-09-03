@@ -22,6 +22,8 @@ const webFiles = [
   'company-branding.js',
   'hakedis-calculations.js',
   'teklif-management.js',
+  'fuel-analytics.js',
+  'fuel-analytics-ui.js',
   'dashboard-funcs.js',
   'data-services.js',
   'dikkan-import.js',

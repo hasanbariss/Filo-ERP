@@ -5611,7 +5611,7 @@ window.confirmYakitImport = async function() {
         }
 
         // 2. Payload hazırla (aracId'leri güncelle)
-        const payload = records.map(r => ({
+        const candidatePayload = records.map(r => ({
             tarih: r.sortableDT,
             arac_id: r.aracId || plateToIdMap[r.formattedPlaka],
             litre: r.litre,
@@ -5619,13 +5619,51 @@ window.confirmYakitImport = async function() {
             toplam_tutar: r.tutar
         }));
 
-        // 3. Yakıt kayıtlarını ekle
-        const { error: yakitErr } = await window.supabaseClient.from('yakit_takip').insert(payload);
-        if (yakitErr) throw yakitErr;
+        // Aynı dosyadaki ve veritabanındaki eş kayıtları dönemsel parmak iziyle ele.
+        const fileFingerprints = new Set();
+        const uniqueCandidates = candidatePayload.filter(row => {
+            const fingerprint = window.FuelAnalytics
+                ? window.FuelAnalytics.fingerprint(row)
+                : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`;
+            if (fileFingerprints.has(fingerprint)) return false;
+            fileFingerprints.add(fingerprint);
+            return true;
+        });
 
-        if (window.Toast) window.Toast.success(`${payload.length} adet yakıt kaydı ve ${newPlates.length} yeni araç başarıyla eklendi.`);
+        const vehicleIds = [...new Set(uniqueCandidates.map(row => row.arac_id).filter(Boolean))];
+        const dates = uniqueCandidates.map(row => row.tarih).filter(Boolean).sort();
+        let existingRows = [];
+        if (vehicleIds.length && dates.length) {
+            const { data: currentRows, error: duplicateError } = await window.supabaseClient
+                .from('yakit_takip')
+                .select('arac_id, tarih, litre, birim_fiyat, toplam_tutar')
+                .in('arac_id', vehicleIds)
+                .gte('tarih', dates[0])
+                .lte('tarih', dates[dates.length - 1]);
+            if (duplicateError) throw duplicateError;
+            existingRows = currentRows || [];
+        }
+        const existingFingerprints = new Set(existingRows.map(row => window.FuelAnalytics
+            ? window.FuelAnalytics.fingerprint(row)
+            : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`));
+        const payload = uniqueCandidates.filter(row => !existingFingerprints.has(window.FuelAnalytics
+            ? window.FuelAnalytics.fingerprint(row)
+            : `${row.arac_id}|${row.tarih}|${Number(row.litre).toFixed(3)}|${Number(row.toplam_tutar).toFixed(2)}|${Number(row.birim_fiyat).toFixed(3)}`));
+        const duplicateCount = candidatePayload.length - payload.length;
+
+        // 3. Yakıt kayıtlarını ekle
+        if (payload.length) {
+            const { error: yakitErr } = await window.supabaseClient.from('yakit_takip').insert(payload);
+            if (yakitErr) throw yakitErr;
+        }
+
+        if (window.Toast) {
+            const duplicateLabel = duplicateCount ? ` ${duplicateCount} mükerrer kayıt atlandı.` : '';
+            window.Toast.success(`${payload.length} adet yakıt kaydı ve ${newPlates.length} yeni araç işlendi.${duplicateLabel}`);
+        }
         overlay.remove();
         fetchYakitlar();
+        if (typeof window.fetchFuelAnalytics === 'function') window.fetchFuelAnalytics();
         if (typeof fetchAraclar === 'function') fetchAraclar();
         if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
         if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
