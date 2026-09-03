@@ -2711,13 +2711,14 @@ window.toggleDarkMode = function () {
     const isDark = !document.documentElement.classList.contains('dark');
     localStorage.setItem('ideol-theme', isDark ? 'dark' : 'light');
     localStorage.setItem('ideol-theme-v2', isDark ? 'dark' : 'light');
+    localStorage.setItem('baris-flow-web-theme-v3', isDark ? 'dark' : 'light');
     applyTheme(isDark);
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Tema tercihi
-    const saved = localStorage.getItem('ideol-theme-v2');
-    const prefDark = saved ? saved === 'dark' : false;
+    // Night Transit web dili ilk açılışta koyudur; sonraki seçim kullanıcıya aittir.
+    const saved = localStorage.getItem('baris-flow-web-theme-v3');
+    const prefDark = saved ? saved === 'dark' : true;
     applyTheme(prefDark);
 
     const searchInput = document.getElementById('top-search');

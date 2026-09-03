@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" class="dark">
 
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Baris.Flow Drive">
-    <meta name="theme-color" content="#f5f7f9">
+    <meta name="theme-color" content="#080d12">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
@@ -80,7 +80,8 @@
     </script>
     <link rel="stylesheet" href="style.css?v=2.0.6">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.6">
+    <link rel="stylesheet" href="design-system.css?v=2.0.7">
+    <link rel="stylesheet" href="web-premium.css?v=3.0.0">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -375,7 +376,10 @@
                     </article>
                 </section>
 
-                <div class="dashboard-scope-heading is-current"><div><span>Güncel Durum</span><h2>Uyarılar ve yükümlülükler</h2></div><p>Raporlama dönemi değişse de güncel filo sağlığı ve yaklaşan tarihler korunur.</p></div>
+                <section class="dashboard-live-zone" aria-labelledby="dashboard-live-title">
+                <div class="dashboard-scope-heading is-current"><div><span>Güncel Durum</span><h2 id="dashboard-live-title">Uyarılar ve yükümlülükler</h2></div><p>Raporlama dönemi değişse de güncel filo sağlığı ve yaklaşan tarihler korunur.</p></div>
+
+                <div class="dashboard-live-grid">
 
                 <section id="dashboard-policy-card" class="data-section dashboard-policy dashboard-domain-card is-policy-domain" aria-labelledby="dashboard-policy-title">
                     <div class="dashboard-policy-head">
@@ -397,6 +401,10 @@
                     </div>
                 </section>
 
+                </div>
+                </section>
+
+                <div class="dashboard-dual-finance">
                 <section class="dashboard-finance-zone" aria-labelledby="dashboard-finance-zone-title">
                     <div class="dashboard-zone-head"><div><p class="dashboard-eyebrow">Dönemsel Finans</p><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p id="dashboard-finance-period-copy">Seçilen aya ait hakediş, yakıt ve filo giderleri birlikte gösterilir.</p></div><div class="dashboard-zone-period"><span id="dashboard-period-label">—</span><small>Dönemsel veriler</small></div></div>
                     <div class="dashboard-period-totals"><span>Yakıt <strong id="dashboard-period-fuel">₺0</strong></span><span>Bakım / servis gideri <strong id="dashboard-period-maintenance">₺0</strong></span><span>Dönem filo gideri <strong id="dashboard-period-fleet-expense">₺0</strong></span></div>
@@ -418,6 +426,7 @@
                     </div>
                 </section>
 
+                <div class="dashboard-current-column">
                 <div class="dashboard-scope-heading is-finance-current"><div><span>Güncel Finans</span><h2>Mevcut borç ve açık bakiyeler</h2></div><p>Bu değerler raporlama ayından bağımsız, güncel hesap durumunu gösterir.</p></div>
 
                 <section class="dashboard-current-finance" aria-label="Güncel finansal durum">
@@ -441,6 +450,8 @@
                         </article>
                     </div>
                 </section>
+                </div>
+                </div>
             </div>
 
 
@@ -2857,7 +2868,7 @@
     <!-- Cache Manager (Supabase quota korumasÄ±) -->
     <script src="cache-manager.js"></script>
     <!-- Toast Manager (alert() yerine) -->
-    <script src="toast-manager.js"></script>
+    <script src="toast-manager.js?v=3.0.0"></script>
     <!-- Keyboard Shortcuts (Desktop UX) -->
     <script src="keyboard-shortcuts.js"></script>
     <!-- Swipe Gestures + Pull-to-Refresh (Mobile UX) -->
@@ -2910,7 +2921,7 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
 <script defer src="data-services.js?v=2.0.3"></script>
-<script defer src="ui-manager.js?v=2.0.5"></script>
+<script defer src="ui-manager.js?v=2.0.6"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 
 

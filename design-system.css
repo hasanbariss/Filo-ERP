@@ -95,7 +95,7 @@
     html { overflow-y: auto; }
     body.bf-app { overflow-y: auto; overscroll-behavior-y: auto; }
     body.bf-app > .bf-main-shell { min-width: 0; }
-    .bf-content { max-width: 1540px !important; }
+    .bf-content { max-width: 1540px; }
 }
 
 .bf-sidebar {
