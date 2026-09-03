@@ -93,8 +93,7 @@
         width: var(--bf-sidebar-width);
         height: auto;
         padding: 18px 12px 12px;
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow: hidden;
         border: 1px solid rgba(255, 255, 255, .075);
         border-radius: 22px;
         background:
@@ -134,7 +133,20 @@
 
     .bf-company-context span { color: var(--bf-text-muted); font-size: 9px; letter-spacing: .13em; }
     .bf-company-context strong { color: var(--bf-text); font-size: 12px; letter-spacing: .035em; }
-    .bf-sidebar-nav { gap: 10px; }
+    .bf-sidebar-nav {
+        display: grid;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding-right: 3px;
+        gap: 10px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+    }
+    .bf-sidebar-nav::-webkit-scrollbar { width: 4px; }
+    .bf-sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+    .bf-sidebar-nav::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(145, 162, 173, .24); }
     .bf-sidebar .nav-section { gap: 1px; }
     .bf-sidebar .nav-section-label {
         margin: 5px 0 3px;
@@ -184,18 +196,27 @@
     .bf-sidebar .nav-link svg { width: 17px; min-width: 17px; height: 17px; stroke-width: 1.7; }
     .bf-sidebar-footer { margin-top: 14px; padding-top: 11px; border-top-color: rgba(255, 255, 255, .07); }
 
-    .sidebar-collapse-toggle {
-        top: 28px;
-        left: 231px;
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
-        min-height: 30px;
+    .bf-topbar .sidebar-collapse-toggle {
+        position: static;
+        top: auto;
+        left: auto;
+        display: inline-flex;
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
+        min-height: 34px;
+        margin-right: 4px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
         color: var(--bf-text-secondary);
         border-color: var(--bf-border);
         background: var(--bf-surface-raised);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, .32);
+        box-shadow: none;
     }
+    .bf-topbar .sidebar-collapse-toggle:hover { color: var(--bf-primary); border-color: rgba(255, 107, 85, .28); background: var(--bf-surface-hover); }
+    .bf-topbar .sidebar-collapse-toggle::after { position: absolute; width: 1px; height: 28px; margin-left: 50px; content: ""; background: var(--bf-border); pointer-events: none; }
+    .bf-topbar .sidebar-collapse-toggle + .page-header-identity { margin-left: 10px; }
 
     body.bf-app > .bf-main-shell {
         min-height: 100vh;
@@ -205,7 +226,50 @@
     }
 
     body.sidebar-collapsed > .bf-main-shell { margin-left: 106px; }
-    body.sidebar-collapsed .sidebar-collapse-toggle { left: 75px; }
+    .bf-sidebar.is-collapsed,
+    :root.dark body.bf-app .bf-sidebar.is-collapsed {
+        width: var(--bf-sidebar-collapsed-width);
+        padding: 14px 8px 12px;
+    }
+    .bf-sidebar.is-collapsed .bf-sidebar-brand {
+        display: grid;
+        width: 52px;
+        height: 50px;
+        min-height: 50px;
+        margin: 0 1px 12px;
+        padding: 0;
+        place-items: center;
+        border-bottom-color: rgba(255,255,255,.06);
+    }
+    .bf-sidebar.is-collapsed .sidebar-brand-logo { display: none; }
+    .bf-sidebar.is-collapsed .bf-sidebar-brand::before {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid rgba(255,107,85,.24);
+        border-radius: 11px;
+        color: var(--bf-text);
+        content: "b.";
+        background: linear-gradient(145deg, rgba(255,107,85,.14), rgba(61,199,223,.055));
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -.08em;
+    }
+    .bf-sidebar.is-collapsed .bf-sidebar-nav { width: 100%; padding-right: 0; overflow-x: visible; }
+    .bf-sidebar.is-collapsed .nav-section { gap: 4px; }
+    .bf-sidebar.is-collapsed .nav-link,
+    :root.dark body.bf-app .bf-sidebar.is-collapsed .nav-link {
+        width: 54px;
+        min-height: 42px;
+        padding: 0;
+        justify-content: center;
+        gap: 0;
+        font-size: 0;
+    }
+    .bf-sidebar.is-collapsed .nav-link svg { width: 18px; min-width: 18px; height: 18px; }
+    .bf-sidebar.is-collapsed .nav-link::before { left: 1px; }
+    .bf-sidebar.is-collapsed .bf-sidebar-footer { margin-top: 8px; padding-top: 8px; }
 
     .bf-topbar {
         min-height: var(--bf-topbar-height);
@@ -855,7 +919,7 @@
     @media (max-width: 1450px) {
         :root, :root.dark { --bf-sidebar-width: 220px; }
         body.bf-app > .bf-main-shell { margin-left: 247px; padding-right: 16px; }
-        .sidebar-collapse-toggle { left: 215px; }
+        body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 106px; }
         .dashboard-live-grid { grid-template-columns: minmax(0, 1.42fr) minmax(300px, .78fr); }
         .dashboard-dual-finance { grid-template-columns: minmax(0, 1.18fr) minmax(360px, .82fr); }
         .bf-management-dashboard { gap: 32px; }
@@ -864,6 +928,24 @@
         .dashboard-live-grid, .dashboard-dual-finance { gap: 18px; }
         .maintenance-summary { grid-template-columns: repeat(5, minmax(112px, 1fr)); }
         #taseron-finans-table tbody .cari-hakedis-card td { padding-inline: 10px; }
+    }
+
+    /* 2K desktop: use the extra canvas without stretching financial records indefinitely. */
+    @media (min-width: 2000px) {
+        :root, :root.dark {
+            --bf-sidebar-width: 252px;
+            --bf-sidebar-collapsed-width: 76px;
+        }
+        .bf-sidebar,
+        :root.dark .bf-sidebar { top: 22px; bottom: 22px; left: 22px; padding: 21px 14px 14px; }
+        body.bf-app > .bf-main-shell { margin-left: 302px; padding: 22px 30px 52px 0; }
+        body.sidebar-collapsed > .bf-main-shell { margin-left: 126px; }
+        .bf-content { max-width: 1960px; }
+        .bf-topbar { min-height: 68px; margin-bottom: 28px; padding-inline: 18px; }
+        .bf-management-dashboard { gap: 40px; }
+        .bf-management-dashboard .dashboard-kpi-card { min-height: 154px; padding: 24px 25px; }
+        .dashboard-live-grid, .dashboard-dual-finance { gap: 26px; }
+        .dashboard-domain-card { padding: 26px; }
     }
 
     @media (max-width: 1180px) {

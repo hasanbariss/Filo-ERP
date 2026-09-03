@@ -1,5 +1,5 @@
 /**
- * app-fixes.js — Baris.Flow Drive
+ * app-fixes.js — Baris.Flow
  * Sidebar collapse, mobile toggle, personel tabs, PDF font, searchable dropdowns, quick search
  * All code runs AFTER DOMContentLoaded to avoid conflicts with ui-manager.js
  */
@@ -181,9 +181,11 @@ function initMobileSidebar() {
 // ============================================================
 function initSidebarCollapse() {
     const sidebar = document.getElementById('main-sidebar');
-    if (!sidebar) return;
+    const topbar = document.querySelector('.bf-topbar');
+    if (!sidebar || !topbar || document.getElementById('sidebar-collapse-btn')) return;
 
-    // Inject collapse toggle button into sidebar top
+    // Keep the desktop control inside the command bar so it cannot drift away
+    // from the shell while the sidebar width changes.
     const collapseBtn = document.createElement('button');
     collapseBtn.id = 'sidebar-collapse-btn';
     collapseBtn.type = 'button';
@@ -192,31 +194,45 @@ function initSidebarCollapse() {
     collapseBtn.setAttribute('aria-label', 'Menüyü daralt');
     collapseBtn.setAttribute('aria-controls', 'main-sidebar');
     collapseBtn.setAttribute('aria-expanded', 'true');
-    collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
-    document.body.appendChild(collapseBtn);
+    topbar.insertBefore(collapseBtn, topbar.firstChild);
 
-    function checkWidth() {
-        if(window.innerWidth <= 768) collapseBtn.style.display = 'none';
-        else collapseBtn.style.display = 'flex';
-    }
-    window.addEventListener('resize', checkWidth);
-    checkWidth();
+    sidebar.querySelectorAll('.nav-link').forEach(function (link) {
+        const label = link.querySelector('span')?.textContent?.trim() || link.textContent.trim();
+        if (label && !link.title) link.title = label;
+    });
 
-    let collapsed = false;
-    collapseBtn.addEventListener('click', function () {
-        collapsed = !collapsed;
+    const storageKey = 'baris-flow-sidebar-collapsed';
+    let collapsed = localStorage.getItem(storageKey) === 'true';
+
+    function renderCollapseState() {
         document.body.classList.toggle('sidebar-collapsed', collapsed);
         sidebar.classList.toggle('is-collapsed', collapsed);
         collapseBtn.setAttribute('aria-expanded', String(!collapsed));
-        if (collapsed) {
-            collapseBtn.title = 'Menüyü genişlet';
-            collapseBtn.setAttribute('aria-label', 'Menüyü genişlet');
-            collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+        collapseBtn.title = collapsed ? 'Menüyü genişlet' : 'Menüyü daralt';
+        collapseBtn.setAttribute('aria-label', collapseBtn.title);
+        collapseBtn.innerHTML = collapsed
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg>';
+    }
+
+    function checkWidth() {
+        const isMobile = window.innerWidth <= 768;
+        collapseBtn.style.display = isMobile ? 'none' : 'inline-flex';
+        if (isMobile) {
+            document.body.classList.remove('sidebar-collapsed');
+            sidebar.classList.remove('is-collapsed');
         } else {
-            collapseBtn.title = 'Menüyü daralt';
-            collapseBtn.setAttribute('aria-label', 'Menüyü daralt');
-            collapseBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+            renderCollapseState();
         }
+    }
+    window.addEventListener('resize', checkWidth);
+    renderCollapseState();
+    checkWidth();
+
+    collapseBtn.addEventListener('click', function () {
+        collapsed = !collapsed;
+        localStorage.setItem(storageKey, String(collapsed));
+        renderCollapseState();
     });
 }
 
