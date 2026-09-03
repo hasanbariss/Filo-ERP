@@ -80,7 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.1">
+    <link rel="stylesheet" href="design-system.css?v=2.0.2">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -351,56 +351,83 @@
                         <h3>Toplam Araç</h3><strong class="dashboard-kpi-value" id="kpi-arac-main">0</strong>
                         <div class="dashboard-kpi-meta"><span>Özmal <strong id="kpi-arac-ozmal">0</strong></span><span>Taşeron <strong id="kpi-arac-taseron">0</strong></span><span>Kiralık <strong id="kpi-arac-kiralik">0</strong></span></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-policy">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="shield-alert"></i></span><span class="badge-warning">30 gün</span></div>
-                        <h3>Kritik Evrak</h3><strong class="dashboard-kpi-value" id="kpi-police-main">0</strong>
-                        <div class="dashboard-kpi-meta"><span>Trafik <strong id="kpi-police-trafik">0</strong></span><span>Kasko <strong id="kpi-police-kasko">0</strong></span><span>Koltuk <strong id="kpi-police-koltuk">0</strong></span></div>
-                    </article>
                     <article class="kpi-card dashboard-kpi-card is-maintenance">
                         <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wrench"></i></span><span class="badge-danger">Kontrol</span></div>
                         <h3>Yaklaşan Bakım</h3><strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
-                        <div class="dashboard-kpi-meta"><span>Muayene <strong id="kpi-bakim-vize">0</strong></span><span>Bakım <strong id="kpi-bakim-yag">0</strong></span><span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span></div>
+                        <div class="dashboard-kpi-meta"><span>Yaklaşan <strong id="kpi-bakim-yag">0</strong></span><span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span></div>
                     </article>
                     <article class="kpi-card dashboard-kpi-card is-finance">
                         <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wallet-cards"></i></span><span class="badge-info">Bu ay</span></div>
-                        <h3>Filo Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
+                        <h3>Toplam Filo Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
                         <div class="dashboard-kpi-meta"><span>Yakıt <strong id="kpi-finans-yakit">₺0</strong></span><span>Bakım <strong id="kpi-finans-bakim">₺0</strong></span></div>
+                    </article>
+                    <article class="kpi-card dashboard-kpi-card is-accrual">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="badge-turkish-lira"></i></span><span class="badge-info">Bu ay</span></div>
+                        <h3>Dağıtılan Hakediş</h3><strong class="dashboard-kpi-value is-currency" id="kpi-hakedis-main">₺0</strong>
+                        <div class="dashboard-kpi-meta"><span>Taşeron <strong id="kpi-hakedis-taseron">₺0</strong></span><span>Servis <strong id="kpi-hakedis-servis">₺0</strong></span></div>
+                    </article>
+                    <article class="kpi-card dashboard-kpi-card is-credit-card">
+                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="credit-card"></i></span><span class="badge-neutral">Güncel</span></div>
+                        <h3>Toplam Kart Borcu</h3><strong class="dashboard-kpi-value is-currency" id="kpi-card-main">₺0</strong>
+                        <div class="dashboard-kpi-meta"><span>Kart <strong id="kpi-card-count">0</strong></span><span>Toplam Limit <strong id="kpi-card-limit">₺0</strong></span></div>
                     </article>
                 </section>
 
-                <section class="data-section dashboard-attention" aria-labelledby="management-attention-title">
-                    <div class="dashboard-section-head">
-                        <div><p class="dashboard-eyebrow">Öncelik Sırası</p><h3 id="management-attention-title">Yaklaşanlar / Dikkat Gerektirenler</h3><p>Poliçe, muayene, bakım ve eksik evraklar tek listede.</p></div>
-                        <span class="dashboard-section-icon"><i data-lucide="circle-alert"></i></span>
-                    </div>
-                    <div id="management-attention-list" class="management-attention-list" aria-live="polite"><div class="loading-state">Kritik kayıtlar hazırlanıyor...</div></div>
-                </section>
-
-                <div class="dashboard-management-grid">
-                    <section class="data-section dashboard-finance-summary" aria-labelledby="finance-summary-title">
-                        <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Finans</p><h3 id="finance-summary-title">Finansal Özet</h3><p>Bu ayın filo giderleri ve hakediş görünümü.</p></div><span class="dashboard-section-icon"><i data-lucide="landmark"></i></span></div>
-                        <div class="finance-summary-list">
-                            <div><span>Toplam filo gideri</span><strong id="finance-month-total">₺0</strong></div>
-                            <div><span>Yakıt gideri</span><strong id="finance-month-fuel">₺0</strong></div>
-                            <div><span>Bakım gideri</span><strong id="finance-month-maintenance">₺0</strong></div>
-                            <div><span>Hakediş hacmi</span><strong id="finance-month-accrual">₺0</strong></div>
-                        </div>
-                        <button type="button" class="btn-ghost finance-summary-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-finans\']').click()">Hakedişe Git <i data-lucide="arrow-right"></i></button>
-                    </section>
-                    <section class="app-card dashboard-chart-card" aria-labelledby="fleet-chart-title">
-                        <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Dağılım</p><h3 id="fleet-chart-title">Filo Yapısı</h3><p>Özmal, taşeron ve kiralık araçlar.</p></div><span class="dashboard-section-icon"><i data-lucide="pie-chart"></i></span></div>
-                        <div class="dashboard-chart-frame"><canvas id="fleetDonutChart" role="img" aria-label="Araç sahiplik dağılımı"></canvas><div class="dashboard-chart-total"><strong id="donut-total">0</strong><span>Araç</span></div></div>
-                        <div class="dashboard-chart-legend"><span class="is-owned"><i></i>Özmal <strong id="fleet-ozmal-count">0</strong></span><span class="is-contractor"><i></i>Taşeron <strong id="fleet-taseron-count">0</strong></span><span class="is-rental"><i></i>Kiralık <strong id="fleet-kiralik-count">0</strong></span></div>
-                    </section>
-                </div>
-
-                <section id="dashboard-policy-card" class="data-section dashboard-policy" aria-labelledby="dashboard-policy-title">
+                <section id="dashboard-policy-card" class="data-section dashboard-policy dashboard-domain-card is-policy-domain" aria-labelledby="dashboard-policy-title">
                     <div class="dashboard-policy-head">
                         <div><span class="dashboard-section-icon"><i data-lucide="shield-check"></i></span><div><h3 id="dashboard-policy-title">Poliçe ve Muayene Takvimi</h3><p>Biten ve önümüzdeki 90 gün içinde yaklaşan kayıtlar.</p></div></div>
                         <div><div id="police-ozet-badges"></div><select id="police-filtre" aria-label="Kayıtları duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter"><option value="tumu">Tüm Kayıtlar</option><option value="gecmis">Süresi Geçen</option><option value="kritik">Kritik (0–7 Gün)</option><option value="yaklasan">Yaklaşan (8–30 Gün)</option><option value="normal">Planlı (31–90 Gün)</option></select></div>
                     </div>
                     <div class="dashboard-table-wrap custom-scrollbar"><table class="dashboard-policy-table"><caption class="sr-only">Biten ve yaklaşan filo kayıtları</caption><thead><tr><th>Durum</th><th>Plaka</th><th>Konu</th><th>Firma</th><th>Başlangıç</th><th>Bitiş</th><th class="text-center">Kalan</th><th class="text-right">Tutar</th><th class="text-center">Ödeme</th></tr></thead><tbody id="police-dashboard-tbody"><tr><td colspan="9"><div class="loading-state">Kayıtlar yükleniyor...</div></td></tr></tbody></table></div>
                     <div id="police-dashboard-footer" class="dashboard-policy-footer hidden"><span id="police-gosterilen-sayi"></span><button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="btn-ghost">Tümünü Göster <i data-lucide="arrow-right"></i></button></div>
+                </section>
+
+                <section class="data-section dashboard-domain-card is-maintenance-domain" aria-labelledby="maintenance-service-title">
+                    <div class="dashboard-section-head">
+                        <div><p class="dashboard-eyebrow">Filo Sağlığı</p><h3 id="maintenance-service-title">Bakım ve Servis</h3><p>Periyodik bakım eşiğine yaklaşan araçlar ve son servis hareketleri.</p></div>
+                        <span class="dashboard-section-icon"><i data-lucide="wrench"></i></span>
+                    </div>
+                    <div class="dashboard-maintenance-layout">
+                        <div><h4>Bakım Uyarıları</h4><div id="management-attention-list" class="management-attention-list" aria-live="polite"><div class="loading-state">Bakım kayıtları hazırlanıyor...</div></div></div>
+                        <div><h4>Son Servis İşlemleri</h4><div id="dashboard-last-service-list" class="dashboard-compact-list" aria-live="polite"><div class="loading-state">Servis geçmişi hazırlanıyor...</div></div></div>
+                    </div>
+                </section>
+
+                <section class="dashboard-finance-zone" aria-labelledby="dashboard-finance-zone-title">
+                    <div class="dashboard-zone-head"><div><p class="dashboard-eyebrow">Finans</p><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p>Hakediş, yakıt, kart ve iş ortağı bakiyeleri tek yönetici görünümünde.</p></div><span class="dashboard-section-icon"><i data-lucide="landmark"></i></span></div>
+                    <div class="dashboard-finance-grid">
+                        <article class="data-section dashboard-domain-card is-accrual-domain" aria-labelledby="dashboard-accrual-title">
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Hakediş</p><h3 id="dashboard-accrual-title">Cari Hakediş</h3><p>Bu ay sisteme dağıtılan hakedişlerin özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="hand-coins"></i></span></div>
+                            <strong class="dashboard-primary-total" id="accrual-month-total">₺0</strong><span class="dashboard-primary-label">Toplam dağıtılan hakediş</span>
+                            <div class="dashboard-stat-grid"><div><span>Taşeron</span><strong id="accrual-taseron-total">₺0</strong></div><div><span>Servis puantajı</span><strong id="accrual-service-total">₺0</strong></div><div><span>Dönem kaydı</span><strong id="accrual-record-count">0</strong></div><div><span>Cari / müşteri</span><strong id="accrual-party-count">0</strong></div></div>
+                            <div class="dashboard-subsection"><h4>En yüksek hakedişler</h4><div id="dashboard-accrual-top-list" class="dashboard-compact-list"><div class="loading-state">Hakedişler hazırlanıyor...</div></div></div>
+                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-finans\']').click()">Hakedişe Git <i data-lucide="arrow-right"></i></button>
+                        </article>
+
+                        <article class="data-section dashboard-domain-card is-fuel-domain" aria-labelledby="dashboard-fuel-title">
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Yakıt</p><h3 id="dashboard-fuel-title">Bu Ay Yakıt</h3><p>Mevcut Yakıt &amp; KM kayıtlarından hesaplanan dönem özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="fuel"></i></span></div>
+                            <strong class="dashboard-primary-total" id="fuel-month-total">₺0</strong><span class="dashboard-primary-label">Toplam yakıt harcaması</span>
+                            <div class="dashboard-stat-grid"><div><span>Toplam litre</span><strong id="fuel-month-litres">0 L</strong></div><div><span>Ortalama litre</span><strong id="fuel-month-average">₺0</strong></div><div><span>Geçen aya göre</span><strong id="fuel-month-change">—</strong></div><div><span>En yüksek araç</span><strong id="fuel-top-vehicle">—</strong></div></div>
+                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-yakit-km\']').click()">Yakıt &amp; KM'ye Git <i data-lucide="arrow-right"></i></button>
+                        </article>
+
+                        <article class="data-section dashboard-domain-card is-card-domain" aria-labelledby="dashboard-card-title">
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Borçlar</p><h3 id="dashboard-card-title">Kredi Kartları</h3><p>Kart modülündeki mevcut borç hesabının kompakt özeti.</p></div><span class="dashboard-section-icon"><i data-lucide="credit-card"></i></span></div>
+                            <strong class="dashboard-primary-total" id="cards-total-debt">₺0</strong><span class="dashboard-primary-label">Toplam güncel borç</span>
+                            <div class="dashboard-inline-meta"><span><strong id="cards-count">0</strong> kart</span><span>Toplam limit <strong id="cards-total-limit">₺0</strong></span></div>
+                            <div id="dashboard-card-list" class="dashboard-compact-list"><div class="loading-state">Kartlar hazırlanıyor...</div></div>
+                            <p class="dashboard-data-note">Son ödeme tarihi mevcut kart veri modelinde tutulmadığı için tahmin edilmez.</p>
+                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-cari\']').click()">Kartları Gör <i data-lucide="arrow-right"></i></button>
+                        </article>
+
+                        <article class="data-section dashboard-domain-card is-partner-domain" aria-labelledby="dashboard-partner-title">
+                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">İş Ortakları</p><h3 id="dashboard-partner-title">Servis &amp; Sigorta</h3><p>Yalnızca kayıtlı cari türlerine göre hesaplanan bakiye görünümü.</p></div><span class="dashboard-section-icon"><i data-lucide="handshake"></i></span></div>
+                            <div class="dashboard-partner-grid"><div><span>Tamirci / Servis açık bakiye</span><strong id="partner-service-balance">₺0</strong><small><b id="partner-service-count">0</b> açık cari</small></div><div><span>Sigortacı açık bakiye</span><strong id="partner-insurance-balance">₺0</strong><small><b id="partner-insurance-count">0</b> açık cari</small></div></div>
+                            <div class="dashboard-inline-meta"><span>Toplam ödeme <strong id="partner-total-payments">₺0</strong></span><span>Kategorili cari <strong id="partner-total-count">0</strong></span></div>
+                            <p class="dashboard-data-note">Kategori dışındaki cariler bu özete dahil edilmez.</p>
+                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-cari\']').click()">Carilere Git <i data-lucide="arrow-right"></i></button>
+                        </article>
+                    </div>
                 </section>
             </div>
 
@@ -2867,7 +2894,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.1"></script>
+<script defer src="dashboard-funcs.js?v=2.0.2"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

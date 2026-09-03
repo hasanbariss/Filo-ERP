@@ -4812,7 +4812,9 @@ window.fetchCariler = async function() {
         if (carilerRes.error) throw carilerRes.error;
         
         // Fetch cards to map kart_id to cari_id for balance calc
-        const { data: kartlar } = await window.supabaseClient.from('kredi_kartlari').select('id, cari_id');
+        // Legacy şemalarda cari_id bulunmayabilir; select('*') eksik sütun nedeniyle
+        // dashboard açılışında gereksiz 400 üretmeden aynı eşlemeyi güvenle no-op bırakır.
+        const { data: kartlar } = await window.supabaseClient.from('kredi_kartlari').select('*');
         const kartToCari = {};
         (kartlar || []).forEach(k => { if(k.cari_id) kartToCari[k.id] = k.cari_id; });
 
