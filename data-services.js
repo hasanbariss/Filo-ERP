@@ -3094,11 +3094,11 @@ async function fetchTaseronFinans() {
                 <td class="px-6 py-4 whitespace-nowrap text-center" data-label="Seferler">
                     <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-bold mr-1" title="Vardiya">${group.vardiya} V</span>
                     <span class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-xs font-bold mr-1" title="Tek Sefer">${group.tek} T</span>
-                    <span class="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold" title="Mesai">${group.mesai} M</span>
+                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 rounded text-xs font-bold" title="Mesai">${group.mesai} M</span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700" data-label="Brüt">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500" data-label="Yakıt">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="cari-card-net px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}" data-label="Net Hakediş">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+                <td class="cari-card-net px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-orange-500'}" data-label="Net Hakediş">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="cari-card-detail px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors" data-label="Detaylar">
                     ${isSingle ? 'Detay Gör &rarr;' : `<span class="text-[10px] text-gray-600 font-bold">${group.plakaList.length} Araç</span>`}
                 </td>
@@ -3113,7 +3113,7 @@ async function fetchTaseronFinans() {
             <td class="px-6 py-4 whitespace-nowrap text-center text-xs font-black text-gray-700" data-label="Seferler">${totalVardiya} V - ${totalTek} T - ${totalMesai} M</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800" data-label="Brüt">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600" data-label="Yakıt">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}" data-label="Net">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-orange-600'}" data-label="Net">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="cari-card-detail"></td>
         `;
         tbody.appendChild(tfoot);
@@ -3292,7 +3292,7 @@ async function fetchTaseronAylikRapor() {
                 <td class="px-6 py-4 text-right font-bold text-gray-300" data-label="Brüt Kazanç">₺${row.brut.toLocaleString('tr-TR')}</td>
                 <td class="px-6 py-4 text-right font-bold text-orange-400" data-label="Yakıt">₺${row.yakit.toLocaleString('tr-TR')}</td>
                 <td class="px-6 py-4 text-right font-bold text-red-400" data-label="Servis">₺${row.servis.toLocaleString('tr-TR')}</td>
-                <td class="px-6 py-4 text-right font-black text-green-400" data-label="Net Ödenecek">₺${row.net.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-black text-orange-400" data-label="Net Ödenecek">₺${row.net.toLocaleString('tr-TR')}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -3391,7 +3391,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                             <i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i> ${unvan}
                         </div>
                         <div class="cari-rate-grid grid grid-cols-2 gap-4">
-                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
+                            <div class="cari-rate-item is-shift bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Vardiya</span>
@@ -3406,7 +3406,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-vardiya-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.vardiya_fiyat}">
                                 </div>
                             </div>
-                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
+                            <div class="cari-rate-item is-single bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-blue-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Tek Sefer</span>
@@ -3454,12 +3454,12 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <!-- Mesai Row -->
-                            <div class="cari-rate-item bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-emerald-500/50 transition-colors col-span-2">
+                            <div class="cari-rate-item is-overtime bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-indigo-500/50 transition-colors col-span-2">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>Mesai (Dikkan Özel)</span>
                                         <div class="flex items-center gap-1">
-                                            <input type="number" min="0" step="1" class="calc-mesai-count w-14 bg-white/10 text-emerald-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-emerald-500 transition-colors" value="${md.override_mesai !== null && md.override_mesai !== undefined ? md.override_mesai : (md.mesai || 0)}" data-puantaj="${md.mesai || 0}" data-period-override="${md.override_mesai !== null && md.override_mesai !== undefined}" title="Puantaj: ${md.mesai || 0}">
+                                            <input type="number" min="0" step="1" class="calc-mesai-count w-14 bg-white/10 text-indigo-300 text-xs font-black border border-white/20 rounded-md px-1 py-0.5 text-right focus:outline-none focus:border-indigo-500 transition-colors" value="${md.override_mesai !== null && md.override_mesai !== undefined ? md.override_mesai : (md.mesai || 0)}" data-puantaj="${md.mesai || 0}" data-period-override="${md.override_mesai !== null && md.override_mesai !== undefined}" title="Puantaj: ${md.mesai || 0}">
                                             <span class="text-gray-600 text-[9px] whitespace-nowrap">/ ${md.mesai || 0}</span>
                                         </div>
                                     </div>
@@ -3471,14 +3471,14 @@ window.openCariHakedisDetay = async function(arac_id) {
                             </div>
                         </div>
                         <div class="cari-tax-grid grid grid-cols-2 gap-3 mt-3">
-                            <div class="bg-white/5 p-3 rounded-xl border border-emerald-500/20 focus-within:border-emerald-500/50 transition-colors">
-                                <div class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-2">KDV %</div>
+                            <div class="cari-tax-item is-vat bg-white/5 p-3 rounded-xl border border-blue-500/20 focus-within:border-blue-500/50 transition-colors">
+                                <div class="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-2">KDV %</div>
                                 <div class="flex items-center gap-1">
-                                    <input type="number" min="0" max="100" step="1" class="calc-kdv-oran w-full bg-transparent text-emerald-300 text-sm font-black border-none focus:outline-none py-1" value="${md.kdv_oran || 0}">
+                                    <input type="number" min="0" max="100" step="1" class="calc-kdv-oran w-full bg-transparent text-blue-300 text-sm font-black border-none focus:outline-none py-1" value="${md.kdv_oran || 0}">
                                     <span class="text-gray-500 text-xs font-bold">%</span>
                                 </div>
                             </div>
-                            <div class="bg-white/5 p-3 rounded-xl border border-yellow-500/20 focus-within:border-yellow-500/50 transition-colors">
+                            <div class="cari-tax-item is-withholding bg-white/5 p-3 rounded-xl border border-yellow-500/20 focus-within:border-yellow-500/50 transition-colors">
                                 <div class="text-[10px] text-yellow-400 font-bold uppercase tracking-wider mb-2">TEV %</div>
                                 <div class="flex items-center gap-1">
                                     <input type="number" min="0" max="100" step="1" class="calc-tev-oran w-full bg-transparent text-yellow-300 text-sm font-black border-none focus:outline-none py-1" value="${md.tev_oran || 0}">
@@ -3492,8 +3492,8 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 <span class="text-white font-black text-sm row-toplam">₺0,00</span>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-[10px] text-emerald-400 uppercase font-bold tracking-widest">+ KDV:</span>
-                                <span class="text-emerald-300 font-bold text-xs row-kdv-tutar">+₺0,00</span>
+                                <span class="text-[10px] text-blue-400 uppercase font-bold tracking-widest">+ KDV:</span>
+                                <span class="text-blue-300 font-bold text-xs row-kdv-tutar">+₺0,00</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="text-[10px] text-yellow-400 uppercase font-bold tracking-widest">- TEV:</span>
@@ -3603,7 +3603,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 <i data-lucide="plus-minus" class="w-4 h-4 text-purple-400"></i> Manuel Gelir / Gider Kalemleri
                             </h3>
                             <div class="flex items-center gap-2">
-                                <button onclick="window.addManuelKalem('gelir')" class="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-400 border border-green-500/30 rounded-lg text-[11px] font-bold transition-all">
+                                <button onclick="window.addManuelKalem('gelir')" class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500/15 hover:bg-orange-500/25 text-orange-400 border border-orange-500/30 rounded-lg text-[11px] font-bold transition-all">
                                     <i data-lucide="plus" class="w-3 h-3"></i> Gelir Ekle
                                 </button>
                                 <button onclick="window.addManuelKalem('gider')" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 rounded-lg text-[11px] font-bold transition-all">
@@ -3620,29 +3620,29 @@ window.openCariHakedisDetay = async function(arac_id) {
 
                 <div class="cari-card-summary p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
                     <div class="flex flex-col gap-2.5">
-                        <div class="flex justify-between items-center">
+                        <div class="cari-summary-row is-base flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Fatura Matrahı</span>
                             <span class="text-lg text-gray-300 font-black" id="modal-brut-total">₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-sm text-emerald-400 font-bold">+ Toplam KDV</span>
-                            <span class="text-base text-emerald-300 font-black" id="modal-kdv-total">+₺0,00</span>
+                        <div class="cari-summary-row is-vat flex justify-between items-center">
+                            <span class="text-sm text-blue-400 font-bold">+ Toplam KDV</span>
+                            <span class="text-base text-blue-300 font-black" id="modal-kdv-total">+₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="cari-summary-row is-withholding flex justify-between items-center">
                             <span class="text-sm text-yellow-400 font-bold">- Toplam TEV (Stopaj)</span>
                             <span class="text-base text-yellow-300 font-black" id="modal-tev-total">-₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="cari-summary-row is-fuel flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Toplam Yakıt Kesintisi</span>
                             <span class="text-base text-orange-500 font-black" id="modal-yakit-total" data-val="${totalYakit}">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</span>
                         </div>
-                        <div class="flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-auto-gider-row" style="display:none!important">
+                        <div class="cari-summary-row is-expense flex justify-between items-center pb-3 border-b border-dashed border-white/10" id="modal-auto-gider-row" style="display:none!important">
                             <span class="text-sm text-amber-400 font-bold">- Bakım &amp; Sigorta</span>
                             <span class="text-base text-amber-300 font-black" id="modal-auto-gider">-₺0,00</span>
                         </div>
-                        <div class="flex justify-between items-center pt-2">
+                        <div class="cari-summary-row is-net flex justify-between items-center pt-2">
                             <span class="text-xl text-white font-black uppercase tracking-widest">NET HAKEDİŞ</span>
-                            <span class="text-3xl text-green-400 font-black drop-shadow-[0_0_15px_rgba(74,222,128,0.3)]" id="modal-net-total">₺0,00</span>
+                            <span class="text-3xl text-orange-400 font-black" id="modal-net-total">₺0,00</span>
                         </div>
                     </div>
                 </div>
@@ -3724,7 +3724,7 @@ window.openCariHakedisDetay = async function(arac_id) {
             const netEl = document.getElementById('modal-net-total');
             if (netEl) {
                 netEl.innerText = '₺' + totals.net.toLocaleString('tr-TR', {minimumFractionDigits:2});
-                netEl.classList.toggle('text-green-400', totals.net >= 0);
+                netEl.classList.toggle('text-orange-400', totals.net >= 0);
                 netEl.classList.toggle('text-red-500', totals.net < 0);
             }
         };
@@ -3762,12 +3762,12 @@ window.openCariHakedisDetay = async function(arac_id) {
             const row = document.createElement('div');
             row.className = 'manuel-kalem-row flex flex-wrap items-center gap-2 p-3 rounded-xl border transition-all ' +
                 (isGelir
-                    ? 'bg-green-500/5 border-green-500/20 hover:border-green-500/40'
+                    ? 'bg-orange-500/5 border-orange-500/20 hover:border-orange-500/40'
                     : 'bg-red-500/5   border-red-500/20   hover:border-red-500/40');
             row.setAttribute('data-kid', kalem.id);
             row.setAttribute('data-tip', kalem.tip);
             row.innerHTML = `
-                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black ${isGelir ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}">
+                <div class="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-black ${isGelir ? 'bg-orange-500/20 text-orange-400' : 'bg-red-500/20 text-red-400'}">
                     ${isGelir ? '+' : '−'}
                 </div>
                 <input type="text"
@@ -3778,7 +3778,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                 <div class="flex items-center gap-1">
                     <span class="text-gray-500 text-xs font-bold">₺</span>
                     <input type="number" step="0.01" min="0" placeholder="0,00"
-                        class="manuel-tutar w-28 bg-transparent text-xs font-black border-none outline-none text-right ${isGelir ? 'text-green-300' : 'text-red-300'}"
+                        class="manuel-tutar w-28 bg-transparent text-xs font-black border-none outline-none text-right ${isGelir ? 'text-orange-300' : 'text-red-300'}"
                         value="${kalem.tutar || ''}"
                     />
                 </div>
@@ -3857,7 +3857,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                     <div class="text-[10px] text-gray-500">${item.tarih} &nbsp;·&nbsp; <span class="uppercase tracking-wide">${item.tur}</span></div>
                 </div>
                 <div class="text-xs font-black text-amber-300 flex-shrink-0">-₺${(item.tutar||0).toLocaleString('tr-TR',{minimumFractionDigits:2})}</div>
-                <button class="auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${dismissed.has(item.id) ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}" title="${dismissed.has(item.id) ? 'Geri Ekle' : 'Gideri Kaldır'}">
+                <button class="auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${dismissed.has(item.id) ? 'bg-slate-500/20 text-slate-400 hover:bg-slate-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}" title="${dismissed.has(item.id) ? 'Geri Ekle' : 'Gideri Kaldır'}">
                     ${dismissed.has(item.id)
                         ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'
                         : '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>'
@@ -3880,7 +3880,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                 // Dismiss butonu ikonunu ve rengini güncelle
                 const newDismissed = d.has(item.id);
                 const btn = row.querySelector('.auto-dismiss-btn');
-                btn.className = `auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${newDismissed ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}`;
+                btn.className = `auto-dismiss-btn flex-shrink-0 p-1.5 rounded-lg transition-all ${newDismissed ? 'bg-slate-500/20 text-slate-400 hover:bg-slate-500/30' : 'bg-white/5 text-gray-500 hover:bg-red-500/20 hover:text-red-400'}`;
                 btn.title = newDismissed ? 'Geri Ekle' : 'Gideri Kaldır';
                 btn.innerHTML = newDismissed
                     ? '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>'

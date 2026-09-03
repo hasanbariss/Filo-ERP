@@ -1465,30 +1465,30 @@ window.openModal = function (title, id = null, extra = null) {
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Seçimi *</label>
-                        <select id="manuel-yakit-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium appearance-none">
+                        <select id="manuel-yakit-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium appearance-none">
                             <option value="">-- Araç Seçin --</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tarih *</label>
-                        <input type="date" id="manuel-yakit-tarih" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium" value="${new Date().toISOString().split('T')[0]}">
+                        <input type="date" id="manuel-yakit-tarih" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" value="${new Date().toISOString().split('T')[0]}">
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Adı</label>
-                        <input type="text" id="manuel-yakit-sofor" placeholder="İsteğe bağlı" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium">
+                        <input type="text" id="manuel-yakit-sofor" placeholder="İsteğe bağlı" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tutar (TL)</label>
-                        <input type="number" id="manuel-yakit-tutar" step="0.01" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-medium">
+                        <input type="number" id="manuel-yakit-tutar" step="0.01" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Güncel Kilometre (KM) *</label>
-                    <input type="number" id="manuel-yakit-km" placeholder="Araç ekranındaki KM'yi yazın" class="w-full bg-emerald-500/10 border-2 border-emerald-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500 transition-all font-black text-lg">
+                    <label class="block text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Güncel Kilometre (KM) *</label>
+                    <input type="number" id="manuel-yakit-km" placeholder="Araç ekranındaki KM'yi yazın" class="w-full bg-orange-500/10 border-2 border-orange-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-black text-lg">
                     <p class="text-[10px] text-gray-500 mt-2">NOT: Bu değer aracın ana "Güncel KM" değerini değiştirecektir, böylece yağ bakımı takip edilebilir.</p>
                 </div>
             </div>

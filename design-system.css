@@ -2788,6 +2788,120 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #arac-detay-overlay .ios-modal-body .bg-white\/5,
 #arac-detay-overlay .ios-modal-body .bg-black\/40 { color: var(--bf-text-primary); border-color: var(--bf-border); background: var(--bf-surface-subtle); }
 
+/* Final desktop cleanup — navigation accents and Cari Hakediş detail hierarchy */
+.bf-sidebar .nav-section[aria-labelledby="nav-fleet-label"] .nav-link:hover svg { color: #42a5cf; }
+.bf-sidebar .nav-section[aria-labelledby="nav-finance-label"] .nav-link:hover svg { color: var(--bf-flow-coral-500); }
+.bf-sidebar .nav-section[aria-labelledby="nav-operation-label"] .nav-link:hover svg { color: #818cf8; }
+.bf-sidebar .nav-section[aria-labelledby="nav-other-label"] .nav-link:hover svg { color: #94a3b8; }
+
+#cari-kart-modal-overlay {
+    padding: var(--bf-space-4) !important;
+    color: var(--bf-text-primary);
+    background: rgba(4, 18, 27, .72) !important;
+    backdrop-filter: blur(10px);
+}
+#cari-kart-modal-overlay .cari-card-sheet {
+    color: var(--bf-text-primary);
+    border-color: var(--bf-border) !important;
+    border-radius: var(--bf-radius-panel) !important;
+    background: var(--bf-surface) !important;
+    box-shadow: var(--bf-shadow-modal) !important;
+}
+#cari-kart-modal-overlay .cari-card-header {
+    border-color: var(--bf-border) !important;
+    background: color-mix(in srgb, var(--bf-flow-coral-500) 5%, var(--bf-surface)) !important;
+}
+#cari-kart-modal-overlay .cari-card-header h2,
+#cari-kart-modal-overlay .cari-card-header .text-white { color: var(--bf-text-primary) !important; }
+#cari-kart-modal-overlay .cari-card-header .text-gray-400,
+#cari-kart-modal-overlay .cari-card-header .text-gray-600 { color: var(--bf-text-secondary) !important; }
+#cari-kart-modal-overlay .cari-card-body { background: var(--bf-canvas); }
+#cari-kart-modal-overlay .cari-card-section {
+    padding: var(--bf-space-4);
+    border: 1px solid var(--bf-border);
+    border-left: 3px solid var(--section-accent, var(--bf-brand-navy-700));
+    border-radius: var(--bf-radius-card);
+    background: var(--bf-surface);
+    box-shadow: var(--bf-shadow-xs);
+}
+#cari-kart-modal-overlay .cari-service-section { --section-accent: var(--bf-brand-navy-700); }
+#cari-kart-modal-overlay .cari-fuel-section { --section-accent: #c87416; }
+#cari-kart-modal-overlay .cari-auto-expense-section { --section-accent: #7557a8; }
+#cari-kart-modal-overlay .cari-manual-section { --section-accent: var(--bf-flow-coral-500); }
+#cari-kart-modal-overlay .cari-card-section > h3,
+#cari-kart-modal-overlay .cari-card-section > div > h3 { color: var(--bf-text-secondary) !important; }
+#cari-kart-modal-overlay .cari-card-section > h3 svg,
+#cari-kart-modal-overlay .cari-card-section > div > h3 svg { color: var(--section-accent) !important; }
+#cari-kart-modal-overlay .cari-factory-card {
+    padding: var(--bf-space-4) !important;
+    border-color: var(--bf-border) !important;
+    background: var(--bf-surface-subtle) !important;
+    box-shadow: none !important;
+}
+#cari-kart-modal-overlay .cari-factory-title { color: var(--bf-text-primary) !important; }
+#cari-kart-modal-overlay .cari-rate-item,
+#cari-kart-modal-overlay .cari-tax-item {
+    position: relative;
+    border-color: var(--bf-border) !important;
+    background: var(--bf-surface) !important;
+    box-shadow: var(--bf-shadow-xs) !important;
+}
+#cari-kart-modal-overlay .cari-rate-item::before,
+#cari-kart-modal-overlay .cari-tax-item::before {
+    position: absolute;
+    top: var(--bf-space-2);
+    bottom: var(--bf-space-2);
+    left: 0;
+    width: 2px;
+    border-radius: var(--bf-radius-pill);
+    content: "";
+    background: var(--item-accent, var(--bf-neutral));
+}
+#cari-kart-modal-overlay .cari-rate-item.is-shift { --item-accent: var(--bf-flow-coral-500); }
+#cari-kart-modal-overlay .cari-rate-item.is-single { --item-accent: var(--bf-info); }
+#cari-kart-modal-overlay .cari-rate-item.is-overtime { --item-accent: #6366f1; }
+#cari-kart-modal-overlay .cari-tax-item.is-vat { --item-accent: var(--bf-info); }
+#cari-kart-modal-overlay .cari-tax-item.is-withholding { --item-accent: var(--bf-warning); }
+#cari-kart-modal-overlay input,
+#cari-kart-modal-overlay select {
+    color: var(--bf-text-primary) !important;
+    border-color: var(--bf-border) !important;
+    background: var(--bf-surface) !important;
+}
+#cari-kart-modal-overlay .cari-factory-total { border-color: var(--bf-border) !important; }
+#cari-kart-modal-overlay .cari-factory-total .text-white,
+#cari-kart-modal-overlay .row-toplam { color: var(--bf-text-primary) !important; }
+#cari-kart-modal-overlay #yakitlar-list-container > div,
+#cari-kart-modal-overlay .manuel-kalem-row,
+#cari-kart-modal-overlay .auto-gider-row { border-color: var(--bf-border) !important; background: var(--bf-surface-subtle) !important; }
+#cari-kart-modal-overlay #yakitlar-list-container .text-white { color: var(--bf-text-primary) !important; }
+#cari-kart-modal-overlay .cari-card-summary {
+    padding: var(--bf-space-4) var(--bf-space-6) !important;
+    border-color: var(--bf-border) !important;
+    background: var(--bf-surface) !important;
+    box-shadow: 0 -8px 24px rgba(16, 47, 70, .08) !important;
+}
+#cari-kart-modal-overlay .cari-summary-row {
+    min-height: 38px;
+    padding: 0 var(--bf-space-3);
+    gap: var(--bf-space-3);
+    border-left: 2px solid var(--summary-accent, var(--bf-neutral));
+    border-radius: var(--bf-radius-sm);
+    background: var(--bf-surface-subtle);
+}
+#cari-kart-modal-overlay .cari-summary-row > span:last-child { white-space: nowrap; }
+#cari-kart-modal-overlay .cari-summary-row.is-vat { --summary-accent: var(--bf-info); }
+#cari-kart-modal-overlay .cari-summary-row.is-withholding { --summary-accent: var(--bf-warning); }
+#cari-kart-modal-overlay .cari-summary-row.is-fuel { --summary-accent: #c87416; }
+#cari-kart-modal-overlay .cari-summary-row.is-expense { --summary-accent: var(--bf-danger); }
+#cari-kart-modal-overlay .cari-summary-row.is-net {
+    --summary-accent: var(--bf-flow-coral-500);
+    min-height: 52px;
+    background: color-mix(in srgb, var(--bf-flow-coral-500) 8%, var(--bf-surface));
+}
+#cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { color: var(--bf-text-primary) !important; }
+#cari-kart-modal-overlay #modal-net-total { color: var(--bf-flow-coral-500) !important; filter: none; }
+
 @media (max-width: 1180px) {
     .fleet-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .fleet-toolbar { align-items: stretch; flex-direction: column; }

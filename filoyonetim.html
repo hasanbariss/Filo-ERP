@@ -80,7 +80,7 @@
     </script>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.2">
+    <link rel="stylesheet" href="design-system.css?v=2.0.3">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -225,18 +225,17 @@
                 <button data-target="module-personel" class="nav-link"><i data-lucide="user-round-cog"></i><span>Personel</span></button>
                 <button data-target="module-yakit-km" class="nav-link"><i data-lucide="fuel"></i><span>Yakıt &amp; KM</span></button>
             </section>
-            <section class="nav-section" aria-labelledby="nav-operation-label">
-                <h2 class="nav-section-label" id="nav-operation-label">Operasyon</h2>
-                <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
-                <button data-target="module-is-emirleri" class="nav-link"><i data-lucide="clipboard-list"></i><span>İş Emirleri</span></button>
-                <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
-            </section>
             <section class="nav-section" aria-labelledby="nav-finance-label">
                 <h2 class="nav-section-label" id="nav-finance-label">Finans</h2>
                 <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span>Cariler</span></button>
                 <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span>Hakediş</span></button>
                 <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span>Teklifler</span></button>
                 <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Raporlar</span></button>
+            </section>
+            <section class="nav-section" aria-labelledby="nav-operation-label">
+                <h2 class="nav-section-label" id="nav-operation-label">Operasyon</h2>
+                <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
+                <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
             </section>
             <section class="nav-section nav-section-secondary" aria-labelledby="nav-other-label">
                 <h2 class="nav-section-label" id="nav-other-label">Diğer</h2>
@@ -447,10 +446,10 @@
                             <p class="text-sm font-medium text-gray-400">Filo araçlarının güncel kilometrelerini ve fişlerini buradan takip edin (Finansal tarafa işlemez).</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <input type="month" id="filter-yakit-km-ay" onchange="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 outline-none focus:border-emerald-500 transition-all shadow-xl">
+                            <input type="month" id="filter-yakit-km-ay" onchange="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl px-4 py-2.5 outline-none focus:border-orange-500 transition-all shadow-xl">
                             <div class="relative w-full max-w-xs md:w-64">
                                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                                <input type="text" id="yakit-km-search" placeholder="Plaka veya Şoför Ara..." oninput="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-emerald-500 transition-all shadow-xl w-full">
+                                <input type="text" id="yakit-km-search" placeholder="Plaka veya Şoför Ara..." oninput="if(window.filterYakitKm) window.filterYakitKm()" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-orange-500 transition-all shadow-xl w-full">
                             </div>
                             <button onclick="if(window.fetchManuelYakitFisleri) window.fetchManuelYakitFisleri()" class="px-4 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl font-bold transition-all shadow-xl shadow-black/20">
                                 <i data-lucide="refresh-cw" class="w-4 h-4"></i>
@@ -458,7 +457,7 @@
                             <button onclick="if(window.printManuelYakitRaporu) window.printManuelYakitRaporu()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
                                 <i data-lucide="printer" class="w-4 h-4"></i> Rapor Al
                             </button>
-                            <button onclick="openModal('Yeni Yakıt/KM Fişi')" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+                            <button onclick="openModal('Yeni Yakıt/KM Fişi')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
                                 <i data-lucide="plus-circle" class="w-4 h-4"></i> Fiş Ekle
                             </button>
                         </div>
@@ -1609,7 +1608,7 @@
                                         <th class="text-center">Toplam Sefer (Vardiya / Tek)</th>
                                         <th class="text-right">Geçici Brüt (₺)</th>
                                         <th class="text-right text-orange-400">Yakıt Toplamı (₺)</th>
-                                        <th class="text-right text-green-400">Net Hakediş (₺)</th>
+                                        <th class="text-right text-orange-400">Net Hakediş (₺)</th>
                                         <th class="text-right">Detaylar</th>
                                     </tr>
                                 </thead>
@@ -1648,7 +1647,7 @@
                                         <th class="text-right">Brüt Kazanç</th>
                                         <th class="text-right text-orange-400">Yakıt Kesintisi</th>
                                         <th class="text-right text-red-500">Servis Gideri</th>
-                                        <th class="text-right text-green-400">Net Ödenecek</th>
+                                        <th class="text-right text-orange-400">Net Ödenecek</th>
                                     </tr>
                                 </thead>
                                 <tbody id="taseron-rapor-tbody">
@@ -1666,7 +1665,7 @@
                         </td>
                         <td class="px-5 py-3 text-right text-red-500" id="total-taseron-servis" data-label="Servis">-
                         </td>
-                        <td class="px-5 py-3 text-right text-green-400" id="total-taseron-net" data-label="Net Ödenecek">-
+                        <td class="px-5 py-3 text-right text-orange-400" id="total-taseron-net" data-label="Net Ödenecek">-
                         </td>
                                     </tr>
                                 </tfoot>
@@ -2870,8 +2869,8 @@
 <script defer src="company-branding.js"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
-<script defer src="data-services.js"></script>
-<script defer src="ui-manager.js?v=2.0.1"></script>
+<script defer src="data-services.js?v=2.0.1"></script>
+<script defer src="ui-manager.js?v=2.0.2"></script>
 
 
 <!-- 3. FEATURE MODULES -->
