@@ -1747,61 +1747,64 @@
                     </div>
                 </div>
             </div>
-            <div id="module-finans" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
-                    <div>
-                        <h2 class="text-2xl font-bold">Taşeron Hakediş Merkezi</h2>
-                        <p class="text-sm text-gray-500 mt-1">Özmal ve taşeron araçların hakediş ve yakıt takibi.</p>
+            <div id="module-finans" class="main-module hidden stagger-in bf-progress-module">
+                <div class="page-header progress-page-header">
+                    <div class="page-header-identity">
+                        <p class="progress-eyebrow">Finansal operasyon</p>
+                        <h1 class="page-title">Hakediş</h1>
+                        <p class="page-subtitle">Dönemsel araç ve operasyon hakedişlerini inceleyin ve yönetin.</p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="page-actions progress-page-actions">
+                        <label class="progress-owner-filter" for="fin-filter-owner"><span>Filo türü</span>
                         <select id="fin-filter-owner" onchange="fetchFinansDashboard(); if(typeof fetchTaseronFinans === 'function') fetchTaseronFinans(); if(typeof fetchTaseronAylikRapor === 'function') fetchTaseronAylikRapor(); if(typeof fetchYakitlar === 'function') fetchYakitlar();" class="bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold shadow-lg">
                             <option value="Tümü">Tümü (Özmal + Taşeron)</option>
                             <option value="ÖZMAL">Sadece Özmal Filo</option>
                             <option value="TAŞERON">Sadece Taşeron Filo</option>
                         </select>
+                        </label>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 px-2">
-                    <div class="dashboard-card border-none bg-orange-500/5 hover:bg-orange-500/10 transition-all p-5 rounded-3xl border border-orange-500/20">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-10 h-10 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-500 shadow-lg shadow-orange-500/10">
+                <div class="progress-kpi-grid">
+                    <div class="progress-kpi-card">
+                        <div class="progress-kpi-head">
+                            <div class="progress-kpi-icon">
                                 <i id="fin-kpi1-icon" data-lucide="trending-up" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <span id="fin-kpi1-title" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Brüt Hakediş</span>
-                                <div id="fin-kpi1-desc" class="text-[10px] text-orange-500 font-bold">Toplam Kazanç</div>
+                                <span id="fin-kpi1-title">Brüt Hakediş</span>
+                                <div id="fin-kpi1-desc">Toplam Kazanç</div>
                             </div>
                         </div>
-                        <p class="text-2xl font-black text-orange-500" id="fin-kpi-brut">—</p>
+                        <p id="fin-kpi-brut">—</p>
                     </div>
-                    <div class="dashboard-card border-none bg-blue-500/5 hover:bg-blue-500/10 transition-all p-5 rounded-3xl border border-blue-500/20">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shadow-lg shadow-blue-500/10">
+                    <div class="progress-kpi-card is-info">
+                        <div class="progress-kpi-head">
+                            <div class="progress-kpi-icon">
                                 <i id="fin-kpi2-icon" data-lucide="fuel" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <span id="fin-kpi2-title" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Yakıt Kesintisi</span>
-                                <div id="fin-kpi2-desc" class="text-[10px] text-blue-500 font-bold">Mazot Mahsubu</div>
+                                <span id="fin-kpi2-title">Yakıt Kesintisi</span>
+                                <div id="fin-kpi2-desc">Mazot Mahsubu</div>
                             </div>
                         </div>
-                        <p class="text-2xl font-black text-blue-500" id="fin-kpi-yakit">—</p>
+                        <p id="fin-kpi-yakit">—</p>
                     </div>
-                    <div class="dashboard-card border-none bg-green-500/5 hover:bg-green-500/10 transition-all p-5 rounded-3xl border border-green-500/20 shadow-xl shadow-green-500/5">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="w-10 h-10 rounded-2xl bg-green-500/20 flex items-center justify-center text-green-500 shadow-lg shadow-green-500/10">
+                    <div class="progress-kpi-card is-success">
+                        <div class="progress-kpi-head">
+                            <div class="progress-kpi-icon">
                                 <i id="fin-kpi3-icon" data-lucide="banknote" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <span id="fin-kpi3-title" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Net Hakediş</span>
-                                <div id="fin-kpi3-desc" class="text-[10px] text-green-500 font-bold">Ödenmesi Gereken</div>
+                                <span id="fin-kpi3-title">Net Hakediş</span>
+                                <div id="fin-kpi3-desc">Ödenmesi Gereken</div>
                             </div>
                         </div>
-                        <p class="text-3xl font-black text-green-500" id="fin-kpi-net">—</p>
+                        <p id="fin-kpi-net">—</p>
                     </div>
                 </div>
 
-                <div class="dashboard-card p-0 overflow-hidden">
-                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" id="finans-tabs-nav" style="scrollbar-width:none;">
+                <div class="progress-workspace">
+                    <div class="progress-tabs" id="finans-tabs-nav">
                         <button onclick="switchTab('finans', 'taseron-finans', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all whitespace-nowrap flex items-center gap-2">
                             <i data-lucide="truck" class="w-4 h-4"></i>Cari Hakedis</button>
@@ -1819,31 +1822,29 @@
 
 
                     <!-- Taşeron Hakediş -->
-                    <div id="content-taseron-finans" class="block p-6">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+                    <div id="content-taseron-finans" class="block progress-content">
+                        <div class="progress-panel-head">
                             <div>
                                 <h3 class="text-lg font-bold">Taşeron Cari Hakediş (Özet)</h3>
                                 <p class="text-xs text-gray-500">Puantajdan çekilen aylık araç bazlı hakediş tablosu.</p>
                             </div>
-                            <div class="cari-hakedis-controls flex gap-2 items-center">
+                            <div class="cari-hakedis-controls progress-toolbar">
                                 <input type="text" id="taseron-finans-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronFinans === 'function') fetchTaseronFinans()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
                                 <select id="filter-cari-hakedis-ay" onchange="fetchTaseronFinans()" aria-label="Cari hakediş dönemi"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
                                     <option value="">Dönem seçin</option>
                                 </select>
-                                <button onclick="window.openDetayliTaseronRaporu()"
-                                    class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                                <button onclick="window.openDetayliTaseronRaporu()" class="btn-secondary">
                                     <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor (Excel Formu)
                                 </button>
-                                <button onclick="window.CompanyBranding.printElement('#content-taseron-finans .overflow-x-auto', { title: 'Cari Hakediş Özeti', subtitle: 'Aktif dönem hakediş dökümü' })"
-                                    class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                                <button onclick="window.CompanyBranding.printElement('#content-taseron-finans .overflow-x-auto', { title: 'Cari Hakediş Özeti', subtitle: 'Aktif dönem hakediş dökümü' })" class="btn-ghost">
                                     <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table">
+                        <div class="progress-table-wrap">
+                            <table class="premium-table progress-table">
                                 <thead>
                                     <tr>
                                         <th>Araç Plakası</th>
@@ -1865,24 +1866,23 @@
                     </div>
 
                     <!-- Taşeron Ay Sonu Özeti -->
-                    <div id="content-taseron-rapor" class="hidden p-6">
-                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-8 gap-4">
+                    <div id="content-taseron-rapor" class="hidden progress-content">
+                        <div class="progress-panel-head">
                             <div>
                                 <h3 class="text-lg font-bold">Taşeron Ay Sonu Hesap Özeti</h3>
                                 <p class="text-xs text-gray-500">Araç bazlı brüt kazanç, yakıt ve servis gideri
                                     mahsuplaşılmış net hakedişler.</p>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="progress-toolbar">
                                 <input type="month" id="filter-taseron-rapor-ay" onchange="fetchTaseronAylikRapor()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
-                                <button onclick="printTaseronRapor()"
-                                    class="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-2 border border-white/5">
+                                <button onclick="printTaseronRapor()" class="btn-ghost">
                                     <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table">
+                        <div class="progress-table-wrap">
+                            <table class="premium-table progress-table">
                                 <thead>
                                     <tr>
                                         <th>Araç / Plaka</th>
@@ -1901,15 +1901,15 @@
                                 </tbody>
                                 <tfoot id="taseron-rapor-tfoot" class="hidden">
                                     <tr class="bg-white/5 font-bold border-t border-white/10">
-                                        <td class="px-5 py-3">TOPLAM</td>
-                                        <td class="px-5 py-3 text-center" id="total-taseron-sefer">-</td>
-                                        <td class="px-5 py-3 text-right" id="total-taseron-brut">-</td>
-                                        <td class="px-5 py-3 text-right text-orange-400" id="total-taseron-yakit">-
-                                        </td>
-                                        <td class="px-5 py-3 text-right text-red-500" id="total-taseron-servis">-
-                                        </td>
-                                        <td class="px-5 py-3 text-right text-green-400" id="total-taseron-net">-
-                                        </td>
+                        <td class="px-5 py-3" data-label="Özet">TOPLAM</td>
+                        <td class="px-5 py-3 text-center" id="total-taseron-sefer" data-label="Sefer">-</td>
+                        <td class="px-5 py-3 text-right" id="total-taseron-brut" data-label="Brüt Kazanç">-</td>
+                        <td class="px-5 py-3 text-right text-orange-400" id="total-taseron-yakit" data-label="Yakıt">-
+                        </td>
+                        <td class="px-5 py-3 text-right text-red-500" id="total-taseron-servis" data-label="Servis">-
+                        </td>
+                        <td class="px-5 py-3 text-right text-green-400" id="total-taseron-net" data-label="Net Ödenecek">-
+                        </td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -2035,9 +2035,27 @@
             </div>
 
             <!-- 5. CARİ & BAKIM MODÜLÜ -->
-            <div id="module-cari" class="main-module hidden stagger-in">
-                <!-- Özet Kartları -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 px-2">
+            <div id="module-cari" class="main-module hidden stagger-in bf-receivables-module">
+                <div class="page-header receivables-page-header">
+                    <div class="page-header-identity">
+                        <p class="receivables-eyebrow">Ticari hesaplar</p>
+                        <h1 class="page-title">Cariler</h1>
+                        <p class="page-subtitle">Müşteri hesaplarını, bakiye durumlarını ve finansal hareketleri yönetin.</p>
+                    </div>
+                    <div class="page-actions receivables-page-actions">
+                        <button onclick="openModal('Yeni Ödeme Kaydı')" class="btn-secondary"><i data-lucide="circle-dollar-sign"></i><span>Ödeme Ekle</span></button>
+                        <button onclick="openModal('Yeni Cari Hesap')" class="btn-primary"><i data-lucide="plus"></i><span>Cari Ekle</span></button>
+                    </div>
+                </div>
+                <section class="receivables-kpi-grid" aria-label="Cari hesap özeti">
+                    <article class="receivables-kpi-card"><span class="receivables-kpi-icon"><i data-lucide="building-2"></i></span><div><span>Toplam Cari</span><strong id="cari-kpi-total">—</strong></div></article>
+                    <article class="receivables-kpi-card is-danger"><span class="receivables-kpi-icon"><i data-lucide="arrow-up-right"></i></span><div><span>Toplam Borç</span><strong id="cari-kpi-debt">—</strong></div></article>
+                    <article class="receivables-kpi-card is-success"><span class="receivables-kpi-icon"><i data-lucide="arrow-down-left"></i></span><div><span>Toplam Ödeme</span><strong id="cari-kpi-credit">—</strong></div></article>
+                    <article class="receivables-kpi-card is-warning"><span class="receivables-kpi-icon"><i data-lucide="scale"></i></span><div><span>Açık Bakiye</span><strong id="cari-kpi-balance">—</strong></div></article>
+                </section>
+
+                <!-- Existing cross-module summary hooks remain available to their fetch functions. -->
+                <div class="receivables-legacy-summary" aria-hidden="true">
                     <div class="dashboard-card border-l-4 border-orange-500">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="p-2 bg-orange-500/10 rounded-lg text-orange-500">
@@ -2083,8 +2101,8 @@
                     </div>
                 </div>
 
-                <div class="dashboard-card p-0 overflow-hidden">
-                    <div class="flex flex-wrap gap-2 p-4 bg-white/5 border-b border-white/10" id="cari-tabs-nav">
+                <div class="receivables-workspace">
+                    <div class="receivables-tabs" id="cari-tabs-nav">
                         <button id="tab-cariler" onclick="switchTab('cari', 'cariler', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all">Cari
                             Kartlar</button>
@@ -2106,22 +2124,23 @@
                     </div>
 
                     <!-- Cari Kartlar -->
-                    <div id="content-cariler" class="block p-6 cari-list-content">
-                        <div class="flex justify-between items-center mb-8 cari-list-header">
-                            <h3 class="text-lg font-bold">Cari Hesap Listesi</h3>
-                            <button onclick="openModal('Yeni Cari Hesap')"
-                                class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20">
-                                + Cari Ekle
-                            </button>
+                    <div id="content-cariler" class="block cari-list-content receivables-content">
+                        <div class="cari-list-header receivables-panel-head">
+                            <div><h3>Cari Hesap Listesi</h3><p>Borç, ödeme ve güncel bakiye durumlarını karşılaştırın.</p></div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="premium-table" id="cari-table">
+                        <div id="cari-cards-grid" class="receivables-card-grid">
+                            <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Cariler yükleniyor...</p></div></div>
+                        </div>
+                        <div class="receivables-table-wrap">
+                            <table class="premium-table receivables-table" id="cari-table">
                                 <thead>
                                     <tr>
                                         <th>Unvan / Firma</th>
                                         <th>İşletme Türü</th>
                                         <th>İletişim</th>
-                                        <th>Güncel Bakiye</th>
+                                        <th class="receivables-money">Borç</th>
+                                        <th class="receivables-money">Ödeme</th>
+                                        <th class="receivables-money">Bakiye</th>
                                         <th class="text-right">İşlemler</th>
                                     </tr>
                                 </thead>
@@ -2748,7 +2767,7 @@
                             <button onclick="printCariEkstre()" class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 transition-all" title="Ekstreyi PDF Olarak Yazdır / Kaydet">
                                 <i data-lucide="printer" class="w-4 h-4"></i> YAZDIR / PDF
                             </button>
-                            <button onclick="closeCariDetail()"
+                            <button onclick="closeCariDetail()" aria-label="Cari detayını kapat"
                             class="p-2 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all">
                             <i data-lucide="x" class="w-6 h-6"></i>
                         </button>

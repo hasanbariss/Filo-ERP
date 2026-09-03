@@ -2736,7 +2736,8 @@ async function fetchTaseronFinans() {
     if (!tbody) return;
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
-        tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Veriler hesaplanıyor...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6"><div class="progress-state"><i data-lucide="loader-2" class="animate-spin"></i><strong>Hakedişler hesaplanıyor</strong><p>Seçili dönem verileri hazırlanıyor.</p></div></td></tr>';
+        if (window.lucide) window.lucide.createIcons();
 
         // Get Ownership Filter
         const ownerFilter = document.getElementById('fin-filter-owner')?.value || 'Tümü';
@@ -3013,11 +3014,12 @@ async function fetchTaseronFinans() {
 
         tbody.innerHTML = '';
         if (rows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">Bu dönem için kayıt bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6"><div class="progress-state"><i data-lucide="file-search"></i><strong>Seçilen kriterlere uygun hakediş kaydı bulunamadı.</strong><p>Filtreleri değiştirerek tekrar deneyin.</p></div></td></tr>';
             const fmt = v => '₺' + Number(v).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
             const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = fmt(0);
             const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = fmt(0);
             const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = fmt(0);
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
 
@@ -3077,7 +3079,7 @@ async function fetchTaseronFinans() {
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-700" data-label="Brüt">₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-orange-500" data-label="Yakıt">-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
                 <td class="cari-card-net px-6 py-4 whitespace-nowrap text-right text-sm font-black ${net < 0 ? 'text-red-500' : 'text-green-500'}" data-label="Net Hakediş">₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-                <td class="cari-card-detail px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors">
+                <td class="cari-card-detail px-6 py-4 whitespace-nowrap text-right text-sm text-gray-400 group-hover:text-orange-500 transition-colors" data-label="Detaylar">
                     ${isSingle ? 'Detay Gör &rarr;' : `<span class="text-[10px] text-gray-600 font-bold">${group.plakaList.length} Araç</span>`}
                 </td>
             `;
@@ -3092,7 +3094,7 @@ async function fetchTaseronFinans() {
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-gray-800" data-label="Brüt">₺${totalBrut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-black text-orange-600" data-label="Yakıt">-₺${totalYakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-lg font-black ${totalNet < 0 ? 'text-red-600' : 'text-green-600'}" data-label="Net">₺${totalNet.toLocaleString('tr-TR', {minimumFractionDigits:2})}</td>
-            <td></td>
+            <td class="cari-card-detail"></td>
         `;
         tbody.appendChild(tfoot);
         
@@ -3103,7 +3105,8 @@ async function fetchTaseronFinans() {
 
     } catch (e) {
         console.error("fetchTaseronFinans error:", e);
-        if(tbody) tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-red-500">Veriler yüklenirken hata oluştu.</td></tr>`;
+        if(tbody) tbody.innerHTML = `<tr><td colspan="6"><div class="progress-state is-error"><i data-lucide="triangle-alert"></i><strong>Hakedişler yüklenemedi</strong><p>Veriler yüklenirken bir hata oluştu.</p></div></td></tr>`;
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 
@@ -3114,7 +3117,8 @@ async function fetchTaseronAylikRapor() {
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
-        tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Rapor hazırlanıyor...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6"><div class="progress-state"><i data-lucide="loader-2" class="animate-spin"></i><strong>Rapor hazırlanıyor</strong><p>Seçili dönem özeti hesaplanıyor.</p></div></td></tr>';
+        if (window.lucide) window.lucide.createIcons();
         if(tfoot) tfoot.classList.add('hidden');
 
         // Get Ownership and Date Filters
@@ -3245,7 +3249,8 @@ async function fetchTaseronAylikRapor() {
         const sortedRows = Object.values(summary).sort((a,b) => a.plaka.localeCompare(b.plaka));
         
         if (sortedRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu filtrelerle kayıt bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6"><div class="progress-state"><i data-lucide="file-search"></i><strong>Seçilen kriterlere uygun hakediş kaydı bulunamadı.</strong><p>Filtreleri değiştirerek tekrar deneyin.</p></div></td></tr>';
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
 
@@ -3256,12 +3261,12 @@ async function fetchTaseronAylikRapor() {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-white/5 transition-colors border-b border-white/5";
             tr.innerHTML = `
-                <td class="px-6 py-4 font-bold text-white">${row.plaka}</td>
-                <td class="px-6 py-4 text-center text-gray-400 font-mono">${row.sefer}</td>
-                <td class="px-6 py-4 text-right font-bold text-gray-300">₺${row.brut.toLocaleString('tr-TR')}</td>
-                <td class="px-6 py-4 text-right font-bold text-orange-400">₺${row.yakit.toLocaleString('tr-TR')}</td>
-                <td class="px-6 py-4 text-right font-bold text-red-400">₺${row.servis.toLocaleString('tr-TR')}</td>
-                <td class="px-6 py-4 text-right font-black text-green-400">₺${row.net.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 font-bold text-white" data-label="Araç / Plaka">${row.plaka}</td>
+                <td class="px-6 py-4 text-center text-gray-400 font-mono" data-label="Sefer">${row.sefer}</td>
+                <td class="px-6 py-4 text-right font-bold text-gray-300" data-label="Brüt Kazanç">₺${row.brut.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-bold text-orange-400" data-label="Yakıt">₺${row.yakit.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-bold text-red-400" data-label="Servis">₺${row.servis.toLocaleString('tr-TR')}</td>
+                <td class="px-6 py-4 text-right font-black text-green-400" data-label="Net Ödenecek">₺${row.net.toLocaleString('tr-TR')}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -3285,7 +3290,8 @@ async function fetchTaseronAylikRapor() {
 
     } catch (e) {
         console.error("fetchTaseronAylikRapor error:", e);
-        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-red-500 p-8">Hata: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="progress-state is-error"><i data-lucide="triangle-alert"></i><strong>Hakediş raporu yüklenemedi</strong><p>Veriler yüklenirken bir hata oluştu.</p></div></td></tr>`;
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 
@@ -4743,8 +4749,11 @@ async function fetchMusteriServis() {
 /* === CARİ & BAKIM FETCH JS === */
 window.fetchCariler = async function() {
     const tbody = document.getElementById('cariler-tbody');
+    const cards = document.getElementById('cari-cards-grid');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400 font-medium">Güncelleniyor...</td></tr>';
+    const loadingState = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Cariler yükleniyor...</p></div></div>';
+    tbody.innerHTML = `<tr><td colspan="7">${loadingState}</td></tr>`;
+    if (cards) cards.innerHTML = loadingState;
 
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
@@ -4787,9 +4796,20 @@ window.fetchCariler = async function() {
 
         tbody.innerHTML = '';
         if (carilerClean.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-sm text-gray-400">Henüz cari hesap bulunmuyor.</td></tr>';
+            const emptyState = '<div class="receivables-empty-state"><span class="receivables-state-icon"><i data-lucide="building-2"></i></span><strong>Henüz cari kaydı bulunmuyor.</strong><p>İlk ticari hesabı ekleyerek bakiye ve hareket takibine başlayın.</p><button onclick="openModal(\'Yeni Cari Hesap\')" class="btn-primary"><i data-lucide="plus"></i>Cari Ekle</button></div>';
+            tbody.innerHTML = `<tr><td colspan="7">${emptyState}</td></tr>`;
+            if (cards) cards.innerHTML = emptyState;
+            ['cari-kpi-total', 'cari-kpi-debt', 'cari-kpi-credit', 'cari-kpi-balance'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = id === 'cari-kpi-total' ? '0' : window.formatCurrency(0);
+            });
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
+
+        if (cards) cards.innerHTML = '';
+        let portfolioDebt = 0;
+        let portfolioCredit = 0;
 
         carilerClean.forEach(c => {
             // Borç Hesabı: Faturalar + Poliçeler + Bakımlar + Kredi Kartı Harcamaları
@@ -4810,6 +4830,8 @@ window.fetchCariler = async function() {
             const totalOdeme = cariOdemeler.reduce((sum, o) => sum + (Number(o.tutar) || 0), 0);
 
             const bakiye = totalBorc - totalOdeme;
+            portfolioDebt += totalBorc;
+            portfolioCredit += totalOdeme;
 
             // Aylık taksit yükü (bilgi amaçlı kalsın veya bakiye ile yer değiştirsin)
             let aylikYuk = 0;
@@ -4820,34 +4842,32 @@ window.fetchCariler = async function() {
             });
 
             const tr = document.createElement('tr');
-            tr.className = "ios-cari-row hover:bg-gray-50 transition-colors border-b border-gray-50 cursor-pointer";
+            tr.className = "ios-cari-row receivables-row";
             tr.onclick = (e) => {
                 if (e.target.tagName !== 'BUTTON') window.openCariDetail(c.id);
             };
             tr.innerHTML = `
-                <td class="cari-list-name px-6 py-4 whitespace-nowrap text-sm font-bold text-primary hover:text-orange-500 transition-colors" data-label="Cari">
-                    <div class="flex items-center gap-2">
-                        <i data-lucide="external-link" class="w-3 h-3 text-gray-400"></i>
-                        ${c.unvan || '-'}
-                    </div>
-                </td>
-                <td class="cari-list-type px-6 py-4 whitespace-nowrap" data-label="Tür"><span class="px-2 py-0.5 bg-gray-100 text-[10px] font-bold text-gray-600 rounded uppercase">${c.tur || c.isletme_turu || 'Cari'}</span></td>
-                <td class="cari-list-phone px-6 py-4 whitespace-nowrap text-sm text-gray-500" data-label="İletişim">${c.telefon || '-'}</td>
-                <td class="cari-list-balance px-6 py-4 whitespace-nowrap text-sm" data-label="Güncel Bakiye">
-                    <div class="font-bold ${bakiye > 0 ? 'text-danger' : 'text-green-600'}">
-                        ₺${bakiye.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </div>
-                    ${aylikYuk > 0 ? `<div class="text-[10px] text-gray-400">Aylık Yük: ₺${aylikYuk.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}</div>` : ''}
-                </td>
-                <td class="cari-list-actions px-6 py-4 whitespace-nowrap text-right space-x-2" data-label="İşlemler">
-                    <button onclick="event.stopPropagation(); openModal('Yeni Bakım/Parça Kaydı', '${c.id}')" class="text-orange-600 hover:text-orange-800 text-[10px] font-bold uppercase border border-orange-200 px-2 py-1 rounded bg-orange-50">Bakım Ekle</button>
-                    <button onclick="event.stopPropagation(); openModal('Yeni Fatura Kaydı', '${c.id}')" class="text-blue-600 hover:text-blue-800 text-[10px] font-bold uppercase border border-blue-200 px-2 py-1 rounded bg-blue-50">Fatura Ekle</button>
-                    <button onclick="event.stopPropagation(); openModal('Cari Güncelle', '${c.id}')" class="text-green-600 hover:text-green-800 text-[10px] font-bold uppercase border border-green-200 px-2 py-1 rounded bg-green-50">Düzenle</button>
-                    <button onclick="event.stopPropagation(); deleteRecord('cariler', '${c.id}', 'fetchCariler')" class="text-danger hover:text-red-800 text-xs font-bold uppercase">Sil</button>
-                </td>
+                <td class="cari-list-name" data-label="Cari"><div class="receivables-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><strong>${c.unvan || '-'}</strong><span>Ekstreyi görüntüle</span></div></div></td>
+                <td class="cari-list-type" data-label="Tür"><span class="badge-neutral">${c.tur || c.isletme_turu || 'Cari'}</span></td>
+                <td class="cari-list-phone" data-label="İletişim">${c.telefon || 'Belirtilmemiş'}</td>
+                <td class="receivables-money" data-label="Borç">${window.formatCurrency(totalBorc)}</td>
+                <td class="receivables-money" data-label="Ödeme">${window.formatCurrency(totalOdeme)}</td>
+                <td class="cari-list-balance receivables-money" data-label="Güncel Bakiye"><span class="${bakiye > 0 ? 'receivables-balance is-debt' : bakiye < 0 ? 'receivables-balance is-credit' : 'receivables-balance is-settled'}"><i data-lucide="${bakiye > 0 ? 'arrow-up-right' : bakiye < 0 ? 'arrow-down-left' : 'check'}"></i>${window.formatCurrency(bakiye)} · ${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span>${aylikYuk > 0 ? `<small>Aylık yük: ${window.formatCurrency(aylikYuk)}</small>` : ''}</td>
+                <td class="cari-list-actions" data-label="İşlemler"><div class="receivables-row-actions"><button onclick="event.stopPropagation(); openModal('Yeni Bakım/Parça Kaydı', '${c.id}')" aria-label="Bakım kaydı ekle" title="Bakım ekle"><i data-lucide="wrench"></i></button><button onclick="event.stopPropagation(); openModal('Yeni Fatura Kaydı', '${c.id}')" aria-label="Fatura kaydı ekle" title="Fatura ekle"><i data-lucide="file-plus-2"></i></button><button onclick="event.stopPropagation(); openModal('Cari Güncelle', '${c.id}')" aria-label="Cari kaydını düzenle" title="Düzenle"><i data-lucide="pencil"></i></button><button class="is-danger" onclick="event.stopPropagation(); deleteRecord('cariler', '${c.id}', 'fetchCariler')" aria-label="Cari kaydını sil" title="Sil"><i data-lucide="trash-2"></i></button></div></td>
             `;
             tbody.appendChild(tr);
+
+            if (cards) {
+                const card = document.createElement('article');
+                card.className = 'receivables-card';
+                card.innerHTML = `<div class="receivables-card-head"><div class="receivables-card-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><h3>${c.unvan || '-'}</h3><p>${c.tur || c.isletme_turu || 'Cari'} · ${c.telefon || 'Telefon belirtilmemiş'}</p></div></div><span class="${bakiye > 0 ? 'badge-warning' : bakiye < 0 ? 'badge-info' : 'badge-success'}">${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span></div><div class="receivables-card-balance"><span>Güncel bakiye</span><strong>${window.formatCurrency(bakiye)}</strong><small>${bakiye > 0 ? 'Ödenecek borç' : bakiye < 0 ? 'Cari alacağı' : 'Hesap dengede'}</small></div><div class="receivables-card-summary"><div><span>Toplam borç</span><strong>${window.formatCurrency(totalBorc)}</strong></div><div><span>Toplam ödeme</span><strong>${window.formatCurrency(totalOdeme)}</strong></div></div><div class="receivables-card-actions"><button onclick="window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstre</button><button onclick="openModal('Cari Güncelle', '${c.id}')"><i data-lucide="pencil"></i>Düzenle</button><button onclick="openModal('Yeni Fatura Kaydı', '${c.id}')"><i data-lucide="file-plus-2"></i>Fatura</button></div>`;
+                cards.appendChild(card);
+            }
         });
+
+        const portfolioBalance = portfolioDebt - portfolioCredit;
+        const cariKpis = { 'cari-kpi-total': carilerClean.length, 'cari-kpi-debt': window.formatCurrency(portfolioDebt), 'cari-kpi-credit': window.formatCurrency(portfolioCredit), 'cari-kpi-balance': window.formatCurrency(portfolioBalance) };
+        Object.entries(cariKpis).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
         // Borclu cari sayisini hesapla
         const borcluEl = document.getElementById('ozet-cari-borclu');
         if (borcluEl) {
@@ -4864,7 +4884,10 @@ window.fetchCariler = async function() {
         if (window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[CARİFETCH] Error:', e);
-        tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-danger font-bold uppercase">Hata: ${e.message}</td></tr>`;
+        const errorState = `<div class="receivables-error-state"><span class="receivables-state-icon"><i data-lucide="triangle-alert"></i></span><strong>Cari kayıtları yüklenemedi</strong><p>${e.message}</p><button onclick="fetchCariler()" class="btn-secondary"><i data-lucide="refresh-cw"></i>Tekrar dene</button></div>`;
+        tbody.innerHTML = `<tr><td colspan="7">${errorState}</td></tr>`;
+        if (cards) cards.innerHTML = errorState;
+        if (window.lucide) window.lucide.createIcons();
     }
 }
 

@@ -1799,6 +1799,255 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     .bf-dashboard button > span { font-size: 12px; }
 }
 
+/* ============================================================
+   BARIS.FLOW 2.0 — CARİLER & HAKEDİŞ
+   ============================================================ */
+.bf-receivables-module,
+.bf-progress-module { min-width: 0; }
+
+.receivables-page-header,
+.progress-page-header { align-items: flex-start; }
+
+.receivables-eyebrow,
+.progress-eyebrow { margin: 0 0 var(--bf-space-1); color: var(--bf-flow-coral-600); font-size: var(--bf-text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+
+.receivables-page-actions,
+.progress-page-actions { flex-wrap: wrap; }
+
+.receivables-page-actions svg,
+.progress-page-actions svg { width: 16px; height: 16px; }
+
+.receivables-legacy-summary { display: none; }
+
+.receivables-kpi-grid,
+.progress-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--bf-space-4); }
+
+.progress-kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.receivables-kpi-card,
+.progress-kpi-card { display: flex; min-width: 0; align-items: center; padding: var(--bf-space-4); gap: var(--bf-space-3); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+
+.receivables-kpi-card > div,
+.progress-kpi-head > div:last-child { display: grid; min-width: 0; gap: 2px; }
+
+.receivables-kpi-card > div > span,
+.progress-kpi-head span { color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 650; }
+
+.receivables-kpi-card strong,
+.progress-kpi-card > p { margin: 0; color: var(--bf-text-primary); font-size: 1.4rem; font-weight: 750; line-height: 1.2; font-variant-numeric: tabular-nums; }
+
+.receivables-kpi-icon,
+.progress-kpi-icon { display: grid; width: 40px; height: 40px; flex: 0 0 40px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+
+.receivables-kpi-icon svg,
+.progress-kpi-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+
+.receivables-kpi-card.is-danger .receivables-kpi-icon { color: var(--bf-danger); background: rgba(197,59,72,.1); }
+.receivables-kpi-card.is-success .receivables-kpi-icon,
+.progress-kpi-card.is-success .progress-kpi-icon { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.receivables-kpi-card.is-warning .receivables-kpi-icon { color: var(--bf-warning); background: rgba(183,110,0,.1); }
+.progress-kpi-card.is-info .progress-kpi-icon { color: var(--bf-info); background: rgba(47,111,237,.1); }
+.progress-kpi-head { display: flex; align-items: center; gap: var(--bf-space-3); }
+.progress-kpi-head > div:last-child > div { color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+.progress-kpi-card { align-items: stretch; flex-direction: column; }
+
+.receivables-workspace,
+.progress-workspace { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+
+.receivables-tabs,
+.progress-tabs { display: flex; min-width: 0; padding: var(--bf-space-2); gap: var(--bf-space-1); overflow-x: auto; border-bottom: 1px solid var(--bf-border); background: var(--bf-surface-subtle); scrollbar-width: thin; }
+
+#cari-tabs-nav button,
+#finans-tabs-nav button { display: inline-flex; min-height: var(--bf-control-height); flex: 0 0 auto; align-items: center; padding: 0 var(--bf-space-4); border: 1px solid transparent; border-radius: var(--bf-radius-control); color: var(--bf-text-secondary); background: transparent; box-shadow: none; font-size: var(--bf-text-sm); font-weight: 650; }
+
+#cari-tabs-nav button.bg-orange-500,
+#finans-tabs-nav button.bg-orange-500 { border-color: var(--bf-border); color: var(--bf-brand-navy-900); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+
+.receivables-content,
+.progress-content { min-width: 0; }
+
+.receivables-panel-head,
+.progress-panel-head { display: flex; align-items: center; justify-content: space-between; padding: var(--bf-space-4) var(--bf-space-6); gap: var(--bf-space-4); border-bottom: 1px solid var(--bf-border); }
+
+.receivables-panel-head h3,
+.progress-panel-head h3 { margin: 0; color: var(--bf-text-primary); font-size: var(--bf-h3); font-weight: 750; }
+
+.receivables-panel-head p,
+.progress-panel-head p { margin: 2px 0 0; color: var(--bf-text-secondary); font-size: var(--bf-text-xs); }
+
+.progress-toolbar { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: var(--bf-space-2); }
+.progress-toolbar input,
+.progress-toolbar select,
+.progress-owner-filter select { min-height: var(--bf-touch-target); color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+.progress-toolbar button { min-height: var(--bf-touch-target); }
+.progress-owner-filter { display: grid; min-width: 220px; gap: var(--bf-space-1); color: var(--bf-text-secondary); font-size: var(--bf-text-xs); font-weight: 650; }
+
+.receivables-table-wrap,
+.progress-table-wrap { max-width: 100%; overflow: auto; }
+.receivables-table,
+.progress-table { width: 100%; min-width: 880px; border-collapse: separate; border-spacing: 0; color: var(--bf-text-primary); text-align: left; }
+.progress-table { min-width: 820px; }
+.receivables-table thead,
+.progress-table thead { position: sticky; top: 0; z-index: 2; }
+.receivables-table th,
+.progress-table th { height: 44px; padding: 0 var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-muted); background: var(--bf-surface-subtle); font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.receivables-table td,
+.progress-table td { padding: var(--bf-space-3) var(--bf-space-4); border-bottom: 1px solid var(--bf-border); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); vertical-align: middle; }
+.receivables-table tbody tr:last-child td,
+.progress-table tbody tr:last-child td { border-bottom: 0; }
+.receivables-table tbody tr:hover,
+.progress-table tbody tr:hover { background: color-mix(in srgb, var(--bf-surface) 72%, var(--bf-surface-subtle)); }
+.receivables-money { text-align: right; font-variant-numeric: tabular-nums; }
+.receivables-identity { display: flex; min-width: 200px; align-items: center; gap: var(--bf-space-3); }
+.receivables-identity > div { display: grid; min-width: 0; gap: 2px; }
+.receivables-identity strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.receivables-identity span { color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+.receivables-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: var(--bf-radius-control); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); font-size: var(--bf-text-sm); font-weight: 750; }
+.receivables-balance { display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--bf-space-1); color: var(--bf-text-primary); font-weight: 700; }
+.receivables-balance svg { width: 14px; height: 14px; }
+.receivables-balance.is-debt { color: var(--bf-danger); }
+.receivables-balance.is-credit { color: var(--bf-success); }
+.receivables-balance.is-settled { color: var(--bf-neutral); }
+.cari-list-balance small { display: block; margin-top: 2px; color: var(--bf-text-muted); font-size: 11px; }
+.badge-neutral,
+.badge-warning,
+.badge-info,
+.badge-success { display: inline-flex; min-height: 24px; align-items: center; padding: 0 var(--bf-space-2); border-radius: var(--bf-radius-pill); font-size: 11px; font-weight: 700; white-space: nowrap; }
+.badge-neutral { color: var(--bf-neutral); background: rgba(100,116,139,.1); }
+.badge-warning { color: var(--bf-warning); background: rgba(183,110,0,.1); }
+.badge-info { color: var(--bf-info); background: rgba(47,111,237,.1); }
+.badge-success { color: var(--bf-success); background: rgba(22,134,90,.1); }
+.receivables-row-actions { display: flex; justify-content: flex-end; gap: var(--bf-space-1); }
+.receivables-row-actions button { display: grid; width: 36px; height: 36px; place-items: center; border: 1px solid transparent; border-radius: var(--bf-radius-sm); color: var(--bf-text-secondary); background: transparent; cursor: pointer; }
+.receivables-row-actions button:hover { border-color: var(--bf-border); color: var(--bf-text-primary); background: var(--bf-surface-subtle); }
+.receivables-row-actions button.is-danger { color: var(--bf-danger); }
+.receivables-row-actions svg { width: 16px; height: 16px; pointer-events: none; }
+.receivables-card-grid { display: none; }
+.receivables-empty-state,
+.receivables-error-state { padding: var(--bf-space-10) var(--bf-space-4); color: var(--bf-text-secondary); text-align: center; }
+.receivables-empty-state strong,
+.receivables-error-state strong { display: block; margin-top: var(--bf-space-3); color: var(--bf-text-primary); font-size: var(--bf-text-lg); }
+.receivables-empty-state p,
+.receivables-error-state p { margin: var(--bf-space-1) 0 var(--bf-space-4); color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.receivables-state-icon { display: grid; width: 48px; height: 48px; place-items: center; margin: 0 auto; border-radius: var(--bf-radius-pill); color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+.receivables-error-state .receivables-state-icon { color: var(--bf-danger); background: rgba(197,59,72,.1); }
+.receivables-state-icon svg { width: 22px; height: 22px; }
+.progress-state { padding: var(--bf-space-10) var(--bf-space-4); color: var(--bf-text-secondary); text-align: center; }
+.progress-state > svg { width: 26px; height: 26px; margin: 0 auto var(--bf-space-3); color: var(--bf-brand-navy-700); }
+.progress-state strong { display: block; color: var(--bf-text-primary); font-size: var(--bf-text-lg); }
+.progress-state p { margin: var(--bf-space-1) 0 0; color: var(--bf-text-secondary); font-size: var(--bf-text-sm); }
+.progress-state.is-error > svg { color: var(--bf-danger); }
+
+/* Cari statement and forms share the same premium surface without changing handlers. */
+#general-modal.bf-receivables-modal .general-modal-sheet,
+#cari-detail-modal .cari-detail-sheet { color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-panel); background: var(--bf-surface); box-shadow: var(--bf-shadow-modal); }
+#general-modal.bf-receivables-modal .general-modal-header,
+#cari-detail-modal .cari-detail-header { color: var(--bf-text-primary); border-color: var(--bf-border); background: var(--bf-surface); }
+#general-modal.bf-receivables-modal #modal-title,
+#cari-detail-modal #cari-detail-unvan { color: var(--bf-text-primary); font-family: var(--bf-font-ui); text-transform: none; letter-spacing: normal; }
+#general-modal.bf-receivables-modal .general-modal-footer { border-color: var(--bf-border); background: var(--bf-surface-subtle); }
+#general-modal.bf-receivables-modal #modal-dynamic-body,
+#cari-detail-modal .cari-detail-scroll { color: var(--bf-text-primary); background: var(--bf-surface); }
+#general-modal.bf-receivables-modal #modal-dynamic-body label { color: var(--bf-text-secondary); font-size: var(--bf-text-sm); letter-spacing: normal; text-transform: none; }
+#general-modal.bf-receivables-modal #modal-dynamic-body input,
+#general-modal.bf-receivables-modal #modal-dynamic-body select,
+#general-modal.bf-receivables-modal #modal-dynamic-body textarea { min-height: var(--bf-touch-target); color: var(--bf-text-primary); border-color: var(--bf-border); border-radius: var(--bf-radius-control); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+#general-modal.bf-receivables-modal .general-modal-footer button { min-height: var(--bf-touch-target); border-radius: var(--bf-radius-control); box-shadow: none; }
+#general-modal.bf-receivables-modal .general-modal-footer button:last-child { background: var(--bf-flow-coral-600); }
+#cari-detail-modal .cari-detail-header > div:first-child > div:first-child { color: var(--bf-brand-navy-700); background: var(--bf-flow-mist); }
+#cari-detail-modal #cari-detail-tur,
+#cari-detail-modal .cari-detail-scroll > div:last-child > div:first-child > div { color: var(--bf-text-muted); }
+#cari-detail-modal .cari-detail-metrics > div { border-color: var(--bf-border); background: var(--bf-surface-subtle); }
+#cari-detail-modal .cari-detail-metrics p:first-child { color: var(--bf-text-muted); }
+#cari-detail-modal .cari-detail-metrics p[id] { color: var(--bf-text-primary); font-variant-numeric: tabular-nums; }
+#cari-detail-modal .cari-detail-transactions { border-color: var(--bf-border); }
+#cari-detail-modal .cari-detail-transactions thead tr { color: var(--bf-text-muted); background: var(--bf-surface-subtle); }
+#cari-detail-modal .cari-detail-transactions td { border-color: var(--bf-border); }
+
+@media (max-width: 1050px) {
+    .receivables-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .progress-panel-head { align-items: stretch; flex-direction: column; }
+    .progress-toolbar { justify-content: flex-start; }
+}
+
+@media (max-width: 700px) {
+    .receivables-page-header,
+    .progress-page-header { align-items: stretch; flex-direction: column; }
+    .receivables-page-actions { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .receivables-page-actions button,
+    .progress-page-actions select { min-height: var(--bf-touch-target); }
+    .progress-owner-filter { width: 100%; }
+    .receivables-kpi-grid,
+    .progress-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--bf-space-2); }
+    .progress-kpi-grid .progress-kpi-card:last-child { grid-column: 1 / -1; }
+    .receivables-kpi-card,
+    .progress-kpi-card { padding: var(--bf-space-3); }
+    .receivables-kpi-icon,
+    .progress-kpi-icon { width: 34px; height: 34px; flex-basis: 34px; }
+    .receivables-kpi-card strong,
+    .progress-kpi-card > p { font-size: 1.15rem; }
+    .receivables-tabs,
+    .progress-tabs { padding: var(--bf-space-1); }
+    #cari-tabs-nav button,
+    #finans-tabs-nav button { min-height: var(--bf-touch-target); padding: 0 var(--bf-space-3); }
+    .receivables-panel-head,
+    .progress-panel-head { align-items: stretch; flex-direction: column; padding: var(--bf-space-4); }
+    .progress-toolbar { align-items: stretch; flex-direction: column; }
+    .progress-toolbar input,
+    .progress-toolbar select,
+    .progress-toolbar button { width: 100%; }
+    .receivables-table-wrap { display: none; }
+    .receivables-card-grid { display: grid; grid-template-columns: minmax(0, 1fr); padding: var(--bf-space-3); gap: var(--bf-space-3); }
+    .receivables-card { min-width: 0; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+    .receivables-card-head { display: flex; align-items: flex-start; justify-content: space-between; padding: var(--bf-space-4); gap: var(--bf-space-2); }
+    .receivables-card-identity { display: flex; min-width: 0; align-items: center; gap: var(--bf-space-3); }
+    .receivables-card-identity > div { min-width: 0; }
+    .receivables-card-identity h3 { margin: 0; overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-lg); text-overflow: ellipsis; white-space: nowrap; }
+    .receivables-card-identity p { margin: 2px 0 0; overflow: hidden; color: var(--bf-text-muted); font-size: var(--bf-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+    .receivables-card-balance { display: grid; padding: 0 var(--bf-space-4) var(--bf-space-4); gap: 2px; }
+    .receivables-card-balance span,
+    .receivables-card-balance small { color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .receivables-card-balance strong { color: var(--bf-text-primary); font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+    .receivables-card-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: var(--bf-space-3) var(--bf-space-4); gap: var(--bf-space-3); border-top: 1px solid var(--bf-border); background: var(--bf-surface-subtle); }
+    .receivables-card-summary > div { display: grid; gap: 2px; }
+    .receivables-card-summary span { color: var(--bf-text-muted); font-size: var(--bf-text-xs); }
+    .receivables-card-summary strong { color: var(--bf-text-primary); font-size: var(--bf-text-sm); font-variant-numeric: tabular-nums; }
+    .receivables-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--bf-border); }
+    .receivables-card-actions button { display: flex; min-width: 0; min-height: var(--bf-touch-target); align-items: center; justify-content: center; padding: 0 var(--bf-space-1); gap: var(--bf-space-1); border: 0; border-right: 1px solid var(--bf-border); color: var(--bf-text-secondary); background: var(--bf-surface); font-size: var(--bf-text-xs); font-weight: 650; }
+    .receivables-card-actions button:last-child { border-right: 0; }
+    .receivables-card-actions svg { width: 15px; height: 15px; }
+
+    .progress-table-wrap { padding: var(--bf-space-3); overflow: visible; }
+    .progress-table { min-width: 0; }
+    .progress-table thead { display: none; }
+    .progress-table tbody { display: grid; gap: var(--bf-space-3); }
+    .progress-table tbody tr { display: block; overflow: hidden; border: 1px solid var(--bf-border); border-radius: var(--bf-radius-card); background: var(--bf-surface); box-shadow: var(--bf-shadow-xs); }
+    .progress-table tbody td { display: grid; min-height: var(--bf-touch-target); grid-template-columns: minmax(92px, .8fr) minmax(0, 1.2fr); align-items: center; padding: var(--bf-space-2) var(--bf-space-3); gap: var(--bf-space-2); border-bottom: 1px solid var(--bf-border); text-align: right; white-space: normal; }
+    .progress-table tbody td::before { content: attr(data-label); color: var(--bf-text-muted); font-size: 11px; font-weight: 700; letter-spacing: .03em; text-align: left; text-transform: uppercase; }
+    .progress-table tbody td:last-child { border-bottom: 0; }
+    .progress-table tbody td > div,
+    .progress-table tbody td > span { justify-self: end; }
+    .progress-table .cari-card-detail:empty { display: none; }
+    .progress-table .cari-hakedis-total { border-width: 2px; border-color: var(--bf-brand-navy-700); }
+    .progress-table tfoot { display: block; }
+    .progress-table tfoot tr { display: block; overflow: hidden; border: 2px solid var(--bf-brand-navy-700); border-radius: var(--bf-radius-card); }
+    .progress-table tfoot td { display: grid; min-height: var(--bf-touch-target); grid-template-columns: minmax(92px, .8fr) minmax(0, 1.2fr); align-items: center; padding: var(--bf-space-2) var(--bf-space-3); gap: var(--bf-space-2); text-align: right; }
+    .progress-table tfoot td::before { content: attr(data-label); color: var(--bf-text-muted); font-size: 11px; font-weight: 700; text-align: left; text-transform: uppercase; }
+
+    #cari-detail-modal > .flex { align-items: flex-end; min-height: 100dvh; padding: var(--bf-safe-top) var(--bf-space-2) var(--bf-safe-bottom); }
+    #cari-detail-modal .cari-detail-sheet { max-height: calc(100dvh - var(--bf-safe-top) - var(--bf-safe-bottom) - 8px); }
+    #cari-detail-modal .cari-detail-header { align-items: stretch; flex-direction: column; padding: var(--bf-space-4); gap: var(--bf-space-3); }
+    #cari-detail-modal .cari-detail-header > div:first-child > div:first-child { width: 44px; height: 44px; }
+    #cari-detail-modal #cari-detail-unvan { font-size: var(--bf-h2); }
+    #cari-detail-modal .cari-detail-header .no-print { justify-content: stretch; }
+    #cari-detail-modal .cari-detail-header .no-print button { min-height: var(--bf-touch-target); }
+    #cari-detail-modal .cari-detail-scroll { max-height: calc(100dvh - 172px); padding: var(--bf-space-4); }
+    #cari-detail-modal .cari-detail-metrics { gap: var(--bf-space-2); }
+    #cari-detail-modal .cari-detail-metrics > div { padding: var(--bf-space-4); }
+    #cari-detail-modal .cari-detail-transactions { border: 0; overflow: visible; }
+    #cari-detail-modal .cari-detail-transactions table { min-width: 720px; }
+}
+
 /* Baris.Flow 2.0 — Contractor management */
 .bf-contractor-module { gap: var(--bf-space-6); color: var(--bf-text-primary); }
 .bf-contractor-module:not(.hidden) { display: grid; }
