@@ -252,7 +252,7 @@ async function loadGridData(tanimlar, musteriAdi) {
                     isolatedGridData.push({ id: kayitlarMap[`${arac.id}_${dateCode}_${aracBolge}_id`], arac_id: arac.id, tarih: dateCode, field: 'mesai', bolge: aracBolge, val_original: safeVal, val_new: safeVal });
                     mRow += `<td><input type="text" id="cell-${arac.id}-${aracBolge}-${dateCode}-mesai" value="${safeVal}" class="puantaj-input uppercase" onchange="window.excelInputChanged('${arac.id}', 'mesai', ${i}, '${aracBolge}')"></td>`;
                 }
-                mRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-emerald-600 font-mono" id="total-${arac.id}-${aracBolge}-mesai">${rowMesaiTotal}</td></tr>`;
+                mRow += `<td class="sticky right-0 bg-slate-50 z-20 border-l-2 border-slate-200 text-center text-xs font-black text-cyan-600 font-mono" id="total-${arac.id}-${aracBolge}-mesai">${rowMesaiTotal}</td></tr>`;
                 tblHtml += mRow;
             }
         });
@@ -619,7 +619,7 @@ window.handlePrint = function() {
             tH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #ea580c;">${rT}</td></tr>`;
             c8H += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #fffbeb; color: #d97706;">${rC8}</td></tr>`;
             g2H += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #faf5ff; color: #7c3aed;">${rG2}</td></tr>`;
-            mH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #059669;">${rM}</td></tr>`;
+            mH  += `<td style="border: 1px solid #e2e8f0; text-align: center; font-weight: 800; background: #f1f5f9; color: #0891b2;">${rM}</td></tr>`;
             h += vH + tH + (isD ? c8H + g2H + mH : '');
         }
     });
@@ -656,7 +656,7 @@ window.handlePrint = function() {
     // Genel Toplam Satırı
     let gSumRow = `<tr style="background: #1e293b; color: white;"><td colspan="2" style="border: 1px solid #334155; padding: 5px; text-align: right; font-weight: 900; font-size: 8px; text-transform: uppercase; letter-spacing: 1px;">Genel Toplam:</td>`;
     for(let i=1; i<=dim; i++) { const tot = cV[i] + cT[i] + cC8[i] + cG2[i] + cM[i]; gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 800; font-size: 9px;">${tot}</td>`; sGrand += tot; }
-    gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #34d399; font-size: 10px;">${sGrand}</td></tr>`;
+    gSumRow += `<td style="border: 1px solid #334155; text-align: center; font-weight: 900; background: #0f172a; color: #67e8f9; font-size: 10px;">${sGrand}</td></tr>`;
 
     h += vSumRow + tSumRow + c8SumPrint + g2SumPrint + gSumRow + `</tbody></table>${branding.getPrintFooter()}</div>`;
 

@@ -153,7 +153,7 @@ function renderDikkanPreview(rows) {
                         <th class="p-3 font-bold text-center">Tek Sefer</th>
                         <th class="p-3 font-bold text-center text-yellow-400">8 Çıkışı</th>
                         <th class="p-3 font-bold text-center text-purple-400">20:30 Giriş</th>
-                        <th class="p-3 font-bold text-center text-emerald-400">Mesai</th>
+                        <th class="p-3 font-bold text-center text-cyan-400">Mesai</th>
                         <th class="p-3 font-bold">Durum</th>
                     </tr>
                 </thead>
@@ -164,7 +164,7 @@ function renderDikkanPreview(rows) {
                             <td class="p-3 text-center font-black text-blue-400">${r.tek}</td>
                             <td class="p-3 text-center font-black text-yellow-400">${r.cikis_8}</td>
                             <td class="p-3 text-center font-black text-purple-400">${r.giris_2030}</td>
-                            <td class="p-3 text-center font-black text-emerald-400">${r.mesai}</td>
+                            <td class="p-3 text-center font-black text-cyan-400">${r.mesai}</td>
                             <td class="p-3">
                                 ${r.durum === 'ok' ? '<span class="text-emerald-500">✓ Hazır</span>' : ''}
                                 ${r.warnings.map(w => `<div class="text-[10px] text-orange-500">⚠ ${w}</div>`).join('')}

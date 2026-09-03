@@ -11,8 +11,11 @@
     /* Light surfaces */
     --bf-canvas: #f5f7f9;
     --bf-surface: #ffffff;
-    --bf-surface-subtle: #eef2f5;
+    --bf-surface-soft: #f0f3f5;
+    --bf-surface-subtle: var(--bf-surface-soft);
+    --bf-surface-raised: #ffffff;
     --bf-border: #d8e0e7;
+    --bf-divider: #e5eaee;
     --bf-text-primary: #142632;
     --bf-text-secondary: #536773;
     --bf-text-muted: #7c8d97;
@@ -30,7 +33,10 @@
     --bf-accent-fuel: #c87416;
     --bf-accent-accrual: #247d77;
     --bf-accent-maintenance: #157f7a;
+    --bf-accent-insurance: #7557a8;
     --bf-accent-policy: #7557a8;
+    --bf-accent-operations: #596db3;
+    --bf-accent-documents: #6c63a8;
     --bf-accent-card: #6256a5;
     --bf-accent-partner: #5f7180;
 
@@ -60,12 +66,13 @@
     /* Shape and depth */
     --bf-radius-sm: 6px;
     --bf-radius-control: 10px;
-    --bf-radius-card: 12px;
-    --bf-radius-panel: 16px;
+    --bf-radius-card: 15px;
+    --bf-radius-panel: 18px;
+    --bf-radius-modal: 18px;
     --bf-radius-pill: 999px;
-    --bf-shadow-xs: 0 1px 2px rgba(16, 47, 70, 0.06);
-    --bf-shadow-sm: 0 4px 12px rgba(16, 47, 70, 0.08);
-    --bf-shadow-md: 0 12px 32px rgba(16, 47, 70, 0.12);
+    --bf-shadow-xs: 0 1px 2px rgba(16, 47, 70, 0.045);
+    --bf-shadow-sm: 0 6px 18px rgba(16, 47, 70, 0.065);
+    --bf-shadow-md: 0 16px 38px rgba(16, 47, 70, 0.09);
     --bf-shadow-modal: 0 24px 64px rgba(4, 18, 27, 0.24);
 
     /* App shell */
@@ -79,6 +86,8 @@
     --bf-safe-bottom: env(safe-area-inset-bottom, 0px);
     --bf-safe-left: env(safe-area-inset-left, 0px);
     --bf-transition: 180ms ease;
+    --bf-sidebar-bg: #112a3d;
+    --bf-sidebar-surface: #173448;
 }
 
 /* Management shell refresh — desktop first, native scrolling */
@@ -90,13 +99,13 @@
 }
 
 .bf-sidebar {
-    background: #0b1620;
+    background: var(--bf-sidebar-bg);
     border-right: 1px solid rgba(255, 255, 255, .07);
 }
 
 .bf-sidebar-brand { margin-bottom: var(--bf-space-4); }
 .bf-sidebar .platform-logo--dark-bg { box-shadow: none; }
-.bf-company-context { margin-bottom: var(--bf-space-4); background: #111f2b; border-color: rgba(255,255,255,.07); }
+.bf-company-context { margin-bottom: var(--bf-space-4); background: var(--bf-sidebar-surface); border-color: rgba(255,255,255,.08); }
 .bf-sidebar-nav { display: grid; gap: var(--bf-space-4); }
 .bf-sidebar .nav-section { display: grid; gap: 2px; }
 .bf-sidebar .nav-section-label {
@@ -111,7 +120,7 @@
 .bf-sidebar .nav-section-label::after { display: none; }
 .bf-sidebar .nav-link { min-height: 40px; margin: 0; color: rgba(226,232,240,.69); font-size: .82rem; }
 .bf-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.055); }
-.bf-sidebar .nav-link.active { color: #fff; background: #162737; }
+.bf-sidebar .nav-link.active { color: #fff; background: var(--bf-sidebar-surface); }
 :root.dark body.bf-app .bf-sidebar .nav-link:hover {
     color: #fff;
     border-color: transparent;
@@ -121,7 +130,7 @@
 :root.dark body.bf-app .bf-sidebar .nav-link.active {
     color: #fff;
     border-color: transparent;
-    background: #162737;
+    background: var(--bf-sidebar-surface);
     box-shadow: none;
 }
 :root.dark body.bf-app .bf-sidebar .nav-link.active svg { color: var(--bf-flow-coral-500); stroke: currentColor; }
@@ -135,15 +144,6 @@
 .bf-sidebar.is-collapsed .nav-section-label { display: none; }
 .bf-sidebar.is-collapsed .nav-section { gap: 4px; }
 
-.bf-management-dashboard { max-width: 1480px; gap: var(--bf-space-6); }
-.bf-management-dashboard .dashboard-eyebrow { margin: 0 0 5px; color: var(--bf-flow-coral-600); font-size: .65rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-.bf-management-dashboard .dashboard-kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.bf-management-dashboard .dashboard-kpi-card { min-height: 148px; border-top: 0; }
-.bf-management-dashboard .dashboard-kpi-card::before { display: none; }
-.bf-management-dashboard .dashboard-kpi-card h3 { margin-top: var(--bf-space-3); }
-.bf-management-dashboard .dashboard-kpi-icon { width: 32px; min-width: 32px; height: 32px; }
-.bf-management-dashboard .dashboard-kpi-meta { padding-top: var(--bf-space-2); }
-.bf-management-dashboard .dashboard-attention { padding: var(--bf-space-6); border-left: 0; }
 .management-attention-list { display: grid; margin-top: var(--bf-space-3); }
 .management-attention-row { display: grid; grid-template-columns: minmax(120px,.75fr) minmax(220px,1.5fr) minmax(120px,.75fr) auto auto; align-items: center; gap: var(--bf-space-4); min-height: 58px; padding: var(--bf-space-3) 0; border-bottom: 1px solid var(--bf-border); }
 .management-attention-row:last-child { border-bottom: 0; }
@@ -153,36 +153,10 @@
 .management-attention-time { color: var(--bf-text-secondary); font-size: .74rem; font-weight: 700; }
 .management-attention-row .btn-ghost { min-height: 32px; padding: 0 var(--bf-space-3); font-size: .7rem; }
 .management-attention-empty { padding: var(--bf-space-8); color: var(--bf-text-muted); text-align: center; }
-.dashboard-management-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr); gap: var(--bf-space-6); align-items: stretch; }
-.dashboard-finance-summary, .dashboard-chart-card { min-width: 0; }
-.finance-summary-list { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); margin-top: var(--bf-space-4); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); }
-.finance-summary-list > div { display: grid; gap: 5px; padding: var(--bf-space-4); border-right: 1px solid var(--bf-border); border-bottom: 1px solid var(--bf-border); }
-.finance-summary-list > div:nth-child(2n) { border-right: 0; }
-.finance-summary-list > div:nth-last-child(-n+2) { border-bottom: 0; }
-.finance-summary-list span { color: var(--bf-text-muted); font-size: .7rem; font-weight: 650; }
-.finance-summary-list strong { color: var(--bf-text-primary); font-size: 1.15rem; font-weight: 750; font-variant-numeric: tabular-nums; }
-.finance-summary-list > div:first-child strong { color: var(--bf-flow-coral-600); }
-.finance-summary-action { margin-top: var(--bf-space-4); }
-.bf-management-dashboard .dashboard-chart-frame { height: 168px; max-height: 168px; }
-.bf-management-dashboard .dashboard-chart-total strong { font-size: 1.6rem; }
-.bf-management-dashboard .dashboard-policy { padding: var(--bf-space-6); }
-.bf-management-dashboard .dashboard-policy-table { min-width: 900px; }
-.bf-management-dashboard .dashboard-policy-table th { padding: 0 var(--bf-space-3) var(--bf-space-3); }
-
-@media (max-width: 1100px) {
-    .bf-management-dashboard .dashboard-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .dashboard-management-grid { grid-template-columns: 1fr; }
-}
-
 @media (max-width: 768px) {
     .bf-sidebar { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
-    .bf-management-dashboard .dashboard-kpi-grid { grid-template-columns: 1fr; }
     .management-attention-row { grid-template-columns: 1fr auto; gap: var(--bf-space-2); }
     .management-attention-row > :nth-child(2), .management-attention-row > :nth-child(3) { grid-column: 1 / -1; }
-    .finance-summary-list { grid-template-columns: 1fr; }
-    .finance-summary-list > div { border-right: 0; }
-    .finance-summary-list > div:nth-last-child(-n+2) { border-bottom: 1px solid var(--bf-border); }
-    .finance-summary-list > div:last-child { border-bottom: 0; }
 }
 
 /* ============================================================
@@ -381,8 +355,11 @@
 :root.dark {
     --bf-canvas: #111416;
     --bf-surface: #191d20;
+    --bf-surface-soft: #22272b;
     --bf-surface-subtle: #22272b;
+    --bf-surface-raised: #1d2226;
     --bf-border: #343b40;
+    --bf-divider: #2b3237;
     --bf-text-primary: #f3f6f8;
     --bf-text-secondary: #b6c4cc;
     --bf-text-muted: #8496a0;
@@ -390,6 +367,9 @@
     --bf-shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.2);
     --bf-shadow-md: 0 14px 34px rgba(0, 0, 0, 0.25);
 }
+
+.ios-modal-sheet,
+.modal-content { border-radius: var(--bf-radius-modal); }
 
 body.bf-app {
     color: var(--bf-text-primary);
@@ -1314,7 +1294,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 /* Dashboard / Genel Bakış — Baris.Flow 2.0 */
 .bf-dashboard {
     display: grid;
-    gap: 28px;
+    gap: var(--bf-space-8);
     max-width: 1600px;
     margin: 0 auto;
     color: var(--bf-text-primary);
@@ -2046,14 +2026,18 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 /* ============================================================
    BARIS.FLOW 2.0 — MANAGEMENT DASHBOARD INFORMATION ARCHITECTURE
    ============================================================ */
-.bf-management-dashboard .dashboard-kpi-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.bf-management-dashboard .dashboard-kpi-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .bf-management-dashboard .dashboard-kpi-card {
     position: relative;
+    min-height: 156px;
     overflow: hidden;
     border: 1px solid var(--bf-border);
     background: var(--bf-surface);
-    box-shadow: var(--bf-shadow-xs);
+    box-shadow: var(--bf-shadow-sm);
 }
+.bf-management-dashboard .dashboard-kpi-card h3 { margin-top: var(--bf-space-3); }
+.bf-management-dashboard .dashboard-kpi-icon { width: 34px; min-width: 34px; height: 34px; }
+.bf-management-dashboard .dashboard-kpi-meta { padding-top: var(--bf-space-2); }
 .bf-management-dashboard .dashboard-kpi-card::after {
     position: absolute;
     inset: 0 auto 0 0;
@@ -2088,7 +2072,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     border-top: 3px solid var(--dashboard-accent, var(--bf-brand-navy-700));
     border-radius: var(--bf-radius-panel);
     background: var(--bf-surface);
-    box-shadow: var(--bf-shadow-xs);
+    box-shadow: var(--bf-shadow-sm);
 }
 .dashboard-domain-card .dashboard-eyebrow { color: var(--dashboard-accent, var(--bf-flow-coral-600)); }
 .dashboard-domain-card .dashboard-section-head { align-items: flex-start; }
@@ -2120,7 +2104,14 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     border: 1px solid var(--bf-border);
     border-radius: calc(var(--bf-radius-panel) + 2px);
     background: var(--bf-surface);
-    box-shadow: var(--bf-shadow-xs);
+    box-shadow: var(--bf-shadow-sm);
+}
+.dashboard-current-finance {
+    overflow: hidden;
+    border: 1px solid var(--bf-border);
+    border-radius: var(--bf-radius-panel);
+    background: var(--bf-surface-raised);
+    box-shadow: var(--bf-shadow-sm);
 }
 .dashboard-zone-head {
     display: flex;
@@ -2146,6 +2137,8 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     overflow: hidden;
     border-top: 1px solid var(--bf-border);
 }
+.dashboard-current-finance .dashboard-finance-grid { border-top: 0; }
+.dashboard-current-finance .dashboard-domain-card { border-bottom: 0; }
 .dashboard-finance-grid .dashboard-domain-card { display: flex; padding: var(--bf-space-5); flex-direction: column; border: 0; border-bottom: 1px solid var(--bf-border); border-radius: 0; background: transparent; box-shadow: none; }
 .dashboard-finance-grid .dashboard-domain-card:nth-child(odd) { border-right: 1px solid var(--bf-border); }
 .dashboard-finance-grid .dashboard-domain-card:nth-last-child(-n+2) { border-bottom: 0; }
@@ -2244,7 +2237,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 }
 
 /* Final shell color declaration kept after legacy module rules. */
-.bf-sidebar.bf-sidebar { background: #0b1620; }
+.bf-sidebar.bf-sidebar { background: var(--bf-sidebar-bg); }
 
 /* ============================================================
    BARIS.FLOW 2.0 — CARİLER & HAKEDİŞ

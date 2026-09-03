@@ -68,6 +68,26 @@ function _dashboardRowsInPeriod(rows, fields, bounds) {
     });
 }
 
+async function _dashboardFetchPeriodRows(table, columns, dateField, start, end, onPage) {
+    const pageSize = 1000;
+    const rows = [];
+    for (let from = 0; ; from += pageSize) {
+        if (onPage) onPage();
+        const response = await window.supabaseClient
+            .from(table)
+            .select(columns)
+            .gte(dateField, start)
+            .lte(dateField, end)
+            .order(dateField, { ascending: true })
+            .range(from, from + pageSize - 1);
+        if (response.error) return response;
+        const batch = response.data || [];
+        rows.push(...batch);
+        if (batch.length < pageSize) break;
+    }
+    return { data: rows, error: null };
+}
+
 window.shiftDashboardReportingPeriod = function (direction) {
     const input = document.getElementById('dashboard-reporting-period');
     if (!input) return;
@@ -92,7 +112,8 @@ window._evrakToastShown = false;
 // ════════════════════════════════════════════════════════════════
 // ANA VERİ ÇEKME FONKSİYONU
 // ════════════════════════════════════════════════════════════════
-window.fetchDashboardData = async function () {
+async function _fetchDashboardData(activeRequest) {
+    const dashboardStartedAt = performance.now();
     const conn = window.checkSupabaseConnection ? window.checkSupabaseConnection() : { ok: !!window.supabaseClient };
     if (!conn.ok) {
         console.error('[DASHBOARD] Bağlantı yok');
@@ -127,6 +148,9 @@ window.fetchDashboardData = async function () {
         const previousMonthEnd = period.previousEnd;
 
         // ── Paralel veri çekimi ──────────────────────────────
+        const databaseStartedAt = performance.now();
+        let databaseRequestCount = 11;
+        const countPeriodPage = () => { databaseRequestCount++; };
         const [
             resAraclar, resSoforler, resCariler, resMusteriler,
             resPoliceler90, resYakitlar, resBakimlar,
@@ -134,26 +158,30 @@ window.fetchDashboardData = async function () {
             resKartlar, resKartIslemleri, resCariFaturalar,
             resCariOdemeler, resCariPoliceler
         ] = await Promise.allSettled([
-            window.supabaseClient.from('araclar').select('*'),
+            window.supabaseClient.from('araclar').select('id, plaka, firma_adi, mulkiyet_durumu, guncel_km, son_yag_km, sigorta_bitis, kasko_bitis, vize_bitis, koltuk_bitis'),
             window.supabaseClient.from('soforler').select('id', { count:'exact', head:true }),
             window.supabaseClient.from('cariler').select('id, unvan, tur'),
             window.supabaseClient.from('musteriler').select('id, ad'),
             // Poliçe tablosu: geçmiş 90 + gelecek 90 gün
             window.supabaseClient.from('arac_policeler')
-                .select('*, cariler(unvan)')
+                .select('id, arac_id, cari_id, police_turu, baslangic_tarihi, bitis_tarihi, toplam_tutar, taksit_sayisi, cariler(unvan)')
                 .gte('bitis_tarihi', past90Str)
                 .lte('bitis_tarihi', future90Str)
                 .order('bitis_tarihi', { ascending: true }),
-            window.supabaseClient.from('yakit_takip').select('*'),
-            window.supabaseClient.from('arac_bakimlari').select('*'),
-            window.supabaseClient.from('taseron_hakedis').select('*'),
-            window.supabaseClient.from('musteri_servis_puantaj').select('*'),
-            window.supabaseClient.from('kredi_kartlari').select('*'),
-            window.supabaseClient.from('kredi_karti_islemleri').select('*'),
+            _dashboardFetchPeriodRows('yakit_takip', 'arac_id, tarih, litre, toplam_tutar, birim_fiyat', 'tarih', monthStart, monthEnd, countPeriodPage),
+            window.supabaseClient.from('arac_bakimlari').select('arac_id, cari_id, islem_tarihi, islem_turu, aciklama, toplam_tutar'),
+            _dashboardFetchPeriodRows('taseron_hakedis', 'arac_id, sefer_tarihi, net_hakedis, anlasilan_tutar', 'sefer_tarihi', monthStart, monthEnd, countPeriodPage),
+            _dashboardFetchPeriodRows('musteri_servis_puantaj', 'arac_id, musteri_id, tarih, gunluk_ucret', 'tarih', monthStart, monthEnd, countPeriodPage),
+            window.supabaseClient.from('kredi_kartlari').select('id, kart_adi, limit_tutari'),
+            window.supabaseClient.from('kredi_karti_islemleri').select('kart_id, toplam_tutar'),
             window.supabaseClient.from('cari_faturalar').select('cari_id, toplam_tutar'),
             window.supabaseClient.from('cari_odemeler').select('cari_id, tutar'),
             window.supabaseClient.from('arac_policeler').select('cari_id, toplam_tutar')
         ]);
+        const databaseCompletedAt = performance.now();
+
+        // Dönem seçimi sorgular sürerken değiştiyse eski yanıt yeni ekranı ezmesin.
+        if (window._dashboardActiveRequest !== activeRequest) return;
 
         const ext = (r) => (r.status==='fulfilled' && r.value?.data) ? r.value.data : [];
         const cnt = (r) => (r.status==='fulfilled' && r.value?.count != null) ? r.value.count : 0;
@@ -237,30 +265,10 @@ window.fetchDashboardData = async function () {
         const sumFiloGider = sumYakit + sumBakim;
         const sumHakedis = sumHakedisTaseron + sumHakedisServis;
 
+        // Harici InfoMobil çağrısı ana dashboard render'ını bekletmez. İlgili alanlar
+        // veritabanı özetiyle birlikte görünür, kilometre geldiğinde yerinde güncellenir.
         let dashboardKm = 0;
         let dashboardConsumption = null;
-        if (window.fetchInfoMobileMileage && window.FuelAnalytics && araclar.length) {
-            try {
-                const previousInfo = { infoStart: previousMonthStart + ' 00:00', infoEnd: previousMonthEnd + ' 23:59' };
-                const infoPayload = await window.fetchInfoMobileMileage(
-                    araclar.map(vehicle => vehicle.plaka),
-                    { infoStart: period.infoStart, infoEnd: period.infoEnd },
-                    previousInfo
-                );
-                const mileageByPlate = {};
-                (infoPayload.results || []).forEach(row => {
-                    if (row.status === 'ready') mileageByPlate[row.plate] = Number(row.currentKm) || 0;
-                });
-                const analyticsRows = window.FuelAnalytics.aggregateByVehicle(aylikYakitlar, araclar, mileageByPlate, [], {});
-                dashboardKm = analyticsRows.reduce((sum, row) => sum + (Number(row.km) || 0), 0);
-                const comparableRows = analyticsRows.filter(row => row.km > 0 && row.receiptCount > 0);
-                const comparableKm = comparableRows.reduce((sum, row) => sum + row.km, 0);
-                const comparableLitres = comparableRows.reduce((sum, row) => sum + row.liters, 0);
-                dashboardConsumption = window.FuelAnalytics.metrics(comparableLitres, 0, comparableKm).litersPer100Km;
-            } catch (infoError) {
-                console.warn('[DASHBOARD] InfoMobil dönem özeti alınamadı:', infoError.message || infoError);
-            }
-        }
 
         const maintenanceAlerts = araclar.map(vehicle => {
             const currentKm = Number(vehicle.guncel_km) || 0;
@@ -289,7 +297,7 @@ window.fetchDashboardData = async function () {
 
         setEl('kpi-finans-main', _fmt(sumYakit));
         setEl('kpi-fuel-litres', `${sumYakitLitre.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L`);
-        setEl('kpi-fuel-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
+        setEl('kpi-fuel-km', araclar.length ? 'KM yükleniyor…' : '—');
         setEl('kpi-hakedis-main', _fmt(sumHakedis));
         setEl('kpi-hakedis-taseron', _fmt(sumHakedisTaseron));
         setEl('kpi-hakedis-servis', _fmt(sumHakedisServis));
@@ -300,7 +308,7 @@ window.fetchDashboardData = async function () {
         setEl('dashboard-period-fleet-expense', _fmt(sumFiloGider));
 
         setEl('fuel-month-total', _fmt(sumYakit));
-        setEl('fuel-month-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
+        setEl('fuel-month-km', araclar.length ? 'KM yükleniyor…' : '—');
         setEl('fuel-month-litres', `${sumYakitLitre.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L`);
         setEl('fuel-month-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L` : '—');
         setEl('fuel-month-average', sumYakitLitre > 0 ? _fmtFull(sumYakit / sumYakitLitre) : '—');
@@ -418,12 +426,70 @@ window.fetchDashboardData = async function () {
         window._dashboardPolicelerCache = policelerEnriched;
         window.renderPoliceDashboardTable(policelerEnriched, 'tumu');
 
+        window._dashboardLoadMetrics = {
+            queryCount: databaseRequestCount,
+            databaseMs: Math.round(databaseCompletedAt - databaseStartedAt),
+            firstMeaningfulRenderMs: Math.round(performance.now() - dashboardStartedAt),
+            infoMobileMs: null,
+            infoMobileState: araclar.length ? 'loading' : 'not-required'
+        };
+
+        if (window.fetchInfoMobileMileage && window.FuelAnalytics && araclar.length) {
+            const infoStartedAt = performance.now();
+            const previousInfo = { infoStart: previousMonthStart + ' 00:00', infoEnd: previousMonthEnd + ' 23:59' };
+            window.fetchInfoMobileMileage(
+                araclar.map(vehicle => vehicle.plaka),
+                { infoStart: period.infoStart, infoEnd: period.infoEnd },
+                previousInfo
+            ).then(infoPayload => {
+                if (window._dashboardActiveRequest !== activeRequest) return;
+                const mileageByPlate = {};
+                (infoPayload.results || []).forEach(row => {
+                    if (row.status === 'ready') mileageByPlate[row.plate] = Number(row.currentKm) || 0;
+                });
+                const analyticsRows = window.FuelAnalytics.aggregateByVehicle(aylikYakitlar, araclar, mileageByPlate, [], {});
+                dashboardKm = analyticsRows.reduce((sum, row) => sum + (Number(row.km) || 0), 0);
+                const comparableRows = analyticsRows.filter(row => row.km > 0 && row.receiptCount > 0);
+                const comparableKm = comparableRows.reduce((sum, row) => sum + row.km, 0);
+                const comparableLitres = comparableRows.reduce((sum, row) => sum + row.liters, 0);
+                dashboardConsumption = window.FuelAnalytics.metrics(comparableLitres, 0, comparableKm).litersPer100Km;
+                setEl('kpi-fuel-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
+                setEl('fuel-month-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
+                setEl('fuel-month-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L` : '—');
+                window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
+                window._dashboardLoadMetrics.infoMobileState = 'ready';
+            }).catch(infoError => {
+                if (window._dashboardActiveRequest !== activeRequest) return;
+                setEl('kpi-fuel-km', '—');
+                setEl('fuel-month-km', '—');
+                setEl('fuel-month-consumption', '—');
+                window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
+                window._dashboardLoadMetrics.infoMobileState = 'unavailable';
+                console.warn('[DASHBOARD] InfoMobil dönem özeti alınamadı:', infoError.message || infoError);
+            });
+        }
+
     } catch(e) {
         console.error('[DASHBOARD] Kritik hata:', e);
         if (window.Toast) window.Toast.error('Dashboard yüklenirken bir hata oluştu.');
     } finally {
-        if (spinEl) spinEl.classList.add('hidden');
+        if (spinEl && window._dashboardActiveRequest === activeRequest) {
+            spinEl.classList.add('hidden');
+        }
     }
+}
+
+window.fetchDashboardData = function () {
+    const periodInput = document.getElementById('dashboard-reporting-period');
+    const requestKey = periodInput?.value || _dashboardDefaultMonth();
+    if (window._dashboardInflight?.key === requestKey) return window._dashboardInflight.promise;
+    const requestToken = `${requestKey}:${Date.now()}`;
+    window._dashboardActiveRequest = requestToken;
+    const promise = _fetchDashboardData(requestToken).finally(() => {
+        if (window._dashboardInflight?.promise === promise) window._dashboardInflight = null;
+    });
+    window._dashboardInflight = { key: requestKey, promise };
+    return promise;
 };
 
 window.fetchDashboard = window.fetchDashboardData;
@@ -858,8 +924,8 @@ function _renderYagBakimWidget(araclar, bakimlar = []) {
         const isKmCritical = i.usage >= 9500;
         const isKmWarning  = i.usage >= 8000;
         
-        let barColor = 'bg-emerald-500';
-        let textColor = 'text-emerald-400';
+        let barColor = 'bg-slate-500';
+        let textColor = 'text-slate-400';
         let statusLabel = 'TAKİP ET';
 
         if (isTimeCritical || isKmCritical) {
@@ -1085,12 +1151,12 @@ async function _renderMainChart() {
                     {
                         label: 'Ciro',
                         data: finalCiro,
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16,185,129,0.08)',
+                        borderColor: '#0891b2',
+                        backgroundColor: 'rgba(8,145,178,0.08)',
                         borderWidth: 2.5,
                         fill: true,
                         tension: 0.4,
-                        pointBackgroundColor: '#10b981',
+                        pointBackgroundColor: '#0891b2',
                         pointRadius: 4,
                         pointHoverRadius: 6
                     },
@@ -1284,7 +1350,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
                     <td class="money" contenteditable="true">${yakitFarki>0 ? _f(yakitFarki)+' ₺' : '-'}</td>
                     <td class="center" contenteditable="true"></td>
                     <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">${kesintiToplam>0 ? _f(kesintiToplam)+' ₺' : '-'}</td>
-                    <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">${_f(genelToplam)} ₺</td>
+                    <td class="money" style="font-weight:900; color:#0e7490; background:#ecfeff;" contenteditable="true">${_f(genelToplam)} ₺</td>
                     <td contenteditable="true"></td>
                     <td class="print:hidden p-0 text-center opacity-0 group-hover:opacity-100 transition-opacity w-8">
                         <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-400 p-1" title="Satırı Sil">
@@ -1298,7 +1364,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
         html += `
             <div class="flex items-center justify-between mb-2">
                 <div class="excel-rapor-header" style="margin:0;">${grup.isim}</div>
-                <button onclick="window.addTaseronRaporRow(this, '${ayText}')" class="print:hidden text-[11px] bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5">
+                <button onclick="window.addTaseronRaporRow(this, '${ayText}')" class="print:hidden text-[11px] bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20 border border-indigo-500/20 px-3 py-1.5 rounded-lg transition-all font-bold flex items-center gap-1.5">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Yeni Satır Ekle
                 </button>
@@ -1327,7 +1393,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
                         <th>MAZOT FARKI</th>
                         <th>GİB</th>
                         <th style="background:#fde68a;">TOPLAM KES.</th>
-                        <th style="background:#bbf7d0;">G.TOPLAM</th>
+                        <th style="background:#cffafe;">G.TOPLAM</th>
                         <th>AÇIKLAMA</th>
                         <th class="print:hidden"></th>
                     </tr>
@@ -1347,7 +1413,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
                         <td class="money" contenteditable="true">${sumYakitFark>0 ? _f(sumYakitFark)+' ₺' : '-'}</td>
                         <td contenteditable="true"></td>
                         <td class="money" style="background:#fef3c7;" contenteditable="true">${sumKesinti>0 ? _f(sumKesinti)+' ₺' : '-'}</td>
-                        <td class="money" style="color:#15803d; background:#dcfce3;" contenteditable="true">${_f(sumGenel)} ₺</td>
+                        <td class="money" style="color:#0e7490; background:#cffafe;" contenteditable="true">${_f(sumGenel)} ₺</td>
                         <td contenteditable="true"></td>
                         <td class="print:hidden"></td>
                     </tr>
@@ -1375,7 +1441,7 @@ window.openDetayliTaseronRaporu = function(dataOverride, ayOverride) {
                     <td class="money" style="font-size:13px; background:#e2e8f0;" contenteditable="true">${_f(grandYakitFark)} ₺</td>
                     <td style="background:#e2e8f0;" contenteditable="true"></td>
                     <td class="money" style="font-size:13px; background:#fef3c7;" contenteditable="true">${_f(grandKesinti)} ₺</td>
-                    <td class="money" style="font-size:14px; font-weight:black; color:#15803d; background:#dcfce3;" contenteditable="true">${_f(grandGenel)} ₺</td>
+                    <td class="money" style="font-size:14px; font-weight:black; color:#0e7490; background:#cffafe;" contenteditable="true">${_f(grandGenel)} ₺</td>
                     <td style="background:#e2e8f0;" contenteditable="true"></td>
                     <td class="print:hidden border-none" style="background:#fff;"></td>
                 </tr>
@@ -1457,7 +1523,7 @@ window.printRapor = function(selector) {
                     button { display: none !important; }
                     /* Özel arkaplanları biraz daha modern yapalım */
                     td[style*="background:#fffbe8"] { background-color: #fefce8 !important; }
-                    td[style*="background:#f0fdf4"] { background-color: #f0fdf4 !important; border-color: #bbf7d0 !important; color: #166534 !important; }
+                    td[style*="background:#ecfeff"] { background-color: #ecfeff !important; border-color: #a5f3fc !important; color: #155e75 !important; }
                 </style>
             </head>
             <body>
@@ -1500,7 +1566,7 @@ window.addTaseronRaporRow = function(btn, ayText) {
         <td class="money" contenteditable="true">-</td>
         <td class="center" contenteditable="true"></td>
         <td class="money" style="color:#d97706; background:#fffbe8;" contenteditable="true">-</td>
-        <td class="money" style="font-weight:900; color:#15803d; background:#f0fdf4;" contenteditable="true">0,00 ₺</td>
+        <td class="money" style="font-weight:900; color:#0e7490; background:#ecfeff;" contenteditable="true">0,00 ₺</td>
         <td contenteditable="true"></td>
         <td class="print:hidden p-0 text-center opacity-0 group-hover:opacity-100 transition-opacity w-8">
             <button onclick="this.closest('tr').remove()" class="text-red-500 hover:text-red-400 p-1" title="Satırı Sil">

@@ -312,8 +312,8 @@ function renderSummaryView(araclar = isolatedAraclar) {
 
                 <div class="group bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                            <i data-lucide="truck" class="w-6 h-6 text-emerald-600 group-hover:text-white"></i>
+                        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                            <i data-lucide="truck" class="w-6 h-6 text-amber-600 group-hover:text-white"></i>
                         </div>
                         <div>
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">FİLO GENELİ</p>
@@ -321,7 +321,7 @@ function renderSummaryView(araclar = isolatedAraclar) {
                         </div>
                     </div>
                     <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                        <div class="h-full bg-emerald-500 rounded-full" style="width: 100%"></div>
+                        <div class="h-full bg-amber-500 rounded-full" style="width: 100%"></div>
                     </div>
                 </div>
             </div>

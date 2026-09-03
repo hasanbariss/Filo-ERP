@@ -893,8 +893,8 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
 
                         <div class="flex items-center gap-2 mt-4 mb-2">
-                            <i data-lucide="banknote" class="w-4 h-4 text-green-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">Maaş & Sigorta</p>
+                            <i data-lucide="banknote" class="w-4 h-4 text-indigo-500"></i>
+                            <p class="text-xs font-bold uppercase tracking-widest text-indigo-500">Maaş & Sigorta</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -1289,8 +1289,8 @@ window.openModal = function (title, id = null, extra = null) {
                         </div>
 
                         <div class="flex items-center gap-2 mt-4 mb-2">
-                            <i data-lucide="banknote" class="w-4 h-4 text-green-500"></i>
-                            <p class="text-xs font-bold uppercase tracking-widest text-green-500">Maaş & Sigorta</p>
+                            <i data-lucide="banknote" class="w-4 h-4 text-indigo-500"></i>
+                            <p class="text-xs font-bold uppercase tracking-widest text-indigo-500">Maaş & Sigorta</p>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -2059,7 +2059,7 @@ window.openModal = function (title, id = null, extra = null) {
 
                         <!-- 3. KAPSAM VE TEMİNATLAR -->
                         <div class="bg-white/5 border border-white/10 rounded-xl p-5">
-                            <h3 class="text-xs font-bold text-green-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                                 <i data-lucide="shield-check" class="w-4 h-4"></i> Poliçe Ekstra Teminatları
                             </h3>
                             
@@ -2067,7 +2067,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <!-- İMM -->
                                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full md:w-auto">
-                                        <input type="checkbox" id="teklif-imm" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
+                                        <input type="checkbox" id="teklif-imm" class="w-5 h-5 rounded border-white/20 bg-black/20 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
                                         <div class="flex flex-col">
                                             <span class="text-sm font-bold text-gray-200">İhtiyari Mali Mesuliyet (İMM)</span>
                                             <span class="text-[10px] text-gray-500">Karşı tarafa verilecek zararlar</span>
@@ -2087,7 +2087,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <!-- İkame Araç -->
                                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full md:w-auto">
-                                        <input type="checkbox" id="teklif-ikame" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
+                                        <input type="checkbox" id="teklif-ikame" class="w-5 h-5 rounded border-white/20 bg-black/20 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
                                         <span class="text-sm font-bold text-gray-200">İkame Araç Hizmeti</span>
                                     </label>
                                     <div class="flex items-center gap-2 bg-black/30 px-3 py-2 rounded-lg border border-white/5 w-full md:w-auto">
@@ -2104,7 +2104,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <!-- Orijinal Cam Row -->
                                 <div class="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full">
-                                        <input type="checkbox" id="teklif-cam" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
+                                        <input type="checkbox" id="teklif-cam" class="w-5 h-5 rounded border-white/20 bg-black/20 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
                                         <div class="flex flex-col">
                                             <span class="text-sm font-bold text-gray-200">Orijinal Cam (Muafiyetsiz)</span>
                                             <span class="text-[10px] text-gray-500">Logolu kırılmaz parça değişimi</span>
@@ -2115,7 +2115,7 @@ window.openModal = function (title, id = null, extra = null) {
                                 <!-- Yol Yardım -->
                                 <div class="flex items-center justify-between p-4 bg-black/20 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                     <label class="flex items-center gap-3 cursor-pointer w-full">
-                                        <input type="checkbox" id="teklif-yolyardim" class="w-5 h-5 rounded border-white/20 bg-black/20 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900">
+                                        <input type="checkbox" id="teklif-yolyardim" class="w-5 h-5 rounded border-white/20 bg-black/20 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-gray-900">
                                         <span class="text-sm font-bold text-gray-200">Genişletilmiş Yol Yardım Paketi</span>
                                     </label>
                                 </div>
@@ -2195,7 +2195,7 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-green-400 uppercase tracking-widest mb-2">İDEOL Banka (₺)</label>
+                            <label class="block text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">İDEOL Banka (₺)</label>
                             <input type="number" step="0.01" id="maas-ideol-banka" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 transition-all font-medium" placeholder="0.00">
                         </div>
                         <div>
@@ -2363,7 +2363,7 @@ window.openModal = function (title, id = null, extra = null) {
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Ödenen Tutar (₺)</label>
-                                <input type="number" step="0.01" id="kart-odeme-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium text-green-400 font-bold" placeholder="0.00">
+                                <input type="number" step="0.01" id="kart-odeme-tutar" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium font-bold" placeholder="0.00">
                             </div>
                         </div>
                         <div>
@@ -2738,72 +2738,9 @@ window.addEventListener('DOMContentLoaded', () => {
     const monthInput = document.getElementById('excel-ay-sec');
     if (monthInput) monthInput.value = new Date().toISOString().slice(0, 7);
 
-    fetchDashboard();
-    fetchAraclar();
-    fetchSoforler();
-    fetchSoforPuantaj();
-    fetchSoforFinans();
-    fetchSoforMaaslar();
-    fetchFinansDashboard();
-    if (typeof window.initCariHakedisMonth === 'function') window.initCariHakedisMonth();
-    fetchTaseronFinans();
-    fetchMusteriler();
-    fetchMusteriServis();
-    fetchCariler();
-    fetchBakimlar();
-    fetchPoliceler();
-    if (typeof fetchYakitlar === 'function') fetchYakitlar();
-    if (typeof fetchRaporlar === 'function') fetchRaporlar();
+    // Girişten önce tüm modülleri topluca yüklemek ağ bağlantısını tüketiyordu.
+    // Dashboard initApp, diğer modüller kendi navigasyonları üzerinden yüklenir.
 });
-async function fetchDashboard() {
-    if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
-    try {
-        // Paralel sorgular
-        const [
-            { count: aracCount },
-            { count: soforCount },
-            { count: cariCount },
-            { data: araclar }
-        ] = await Promise.all([
-            window.supabaseClient.from('araclar').select('id', { count: 'exact', head: true }),
-            window.supabaseClient.from('soforler').select('id', { count: 'exact', head: true }),
-            window.supabaseClient.from('cariler').select('id', { count: 'exact', head: true }),
-            window.supabaseClient.from('araclar').select('vize_bitis, sigorta_bitis, kasko_bitis')
-        ]);
-
-        // KPI: Araç sayısı
-        const elArac = document.getElementById('kpi-arac');
-        if (elArac) elArac.textContent = aracCount ?? '—';
-
-        // KPI: Şoför sayısı
-        const elSofor = document.getElementById('kpi-sofor');
-        if (elSofor) elSofor.textContent = soforCount ?? '—';
-
-        // KPI: Cari hesap sayısı
-        const elCari = document.getElementById('kpi-cari');
-        if (elCari) elCari.textContent = cariCount ?? '—';
-
-        // KPI: 15 gün içinde süresi dolacak evraklar
-        if (araclar) {
-            const today = new Date();
-            const sooner = new Date(today);
-            sooner.setDate(sooner.getDate() + 15);
-            let uyariSayisi = 0;
-            araclar.forEach(a => {
-                ['vize_bitis', 'sigorta_bitis', 'kasko_bitis'].forEach(field => {
-                    if (a[field]) {
-                        const d = new Date(a[field]);
-                        if (d <= sooner) uyariSayisi++;
-                    }
-                });
-            });
-            const elEvrak = document.getElementById('kpi-evrak');
-            if (elEvrak) elEvrak.textContent = uyariSayisi;
-        }
-    } catch (e) {
-        console.error('Dashboard fetch hatası:', e);
-    }
-}
 
 // DİNAMİK FORM ALANLARI YÖNETİMİ
 window.handleOdemeTurChange = function (tur) {
@@ -2844,7 +2781,7 @@ window.handleOdemeTurChange = function (tur) {
                 <div>
                     <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fiş/Fatura Alındı mı?</label>
                     <div class="flex items-center gap-2 mt-2">
-                        <input type="checkbox" id="odeme-fis-kart" class="w-4 h-4 text-green-500 bg-black/30 border-white/20 rounded focus:ring-green-500">
+                        <input type="checkbox" id="odeme-fis-kart" class="w-4 h-4 text-indigo-500 bg-black/30 border-white/20 rounded focus:ring-indigo-500">
                         <input type="text" id="odeme-fis-no-kart" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Fiş/Fatura No">
                     </div>
                 </div>
@@ -2856,7 +2793,7 @@ window.handleOdemeTurChange = function (tur) {
             <div>
                 <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fiş / Fatura Alındı mı?</label>
                 <div class="flex items-center gap-2 mt-2">
-                    <input type="checkbox" id="odeme-fis-nakit" class="w-4 h-4 text-green-500 bg-black/30 border-white/20 rounded focus:ring-green-500">
+                    <input type="checkbox" id="odeme-fis-nakit" class="w-4 h-4 text-indigo-500 bg-black/30 border-white/20 rounded focus:ring-indigo-500">
                     <input type="text" id="odeme-fis-no-nakit" class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white focus:outline-none focus:border-blue-500 text-sm" placeholder="Fiş/Fatura No (Opsiyonel)">
                 </div>
             </div>
@@ -3323,7 +3260,7 @@ window.printCariKart = function(plaka, month) {
             { label: 'Tek Sefer',     adet: getAdet('.calc-tek-count'),        fiyat: getFiyat('.calc-tek-fiyat'),       color: '#0284c7' },
             { label: '8 Cikisi',      adet: getAdet('.calc-cikis8-count'),     fiyat: getFiyat('.calc-cikis8-fiyat'),    color: '#d97706' },
             { label: '20-30 Giris',   adet: getAdet('.calc-giris2030-count'),  fiyat: getFiyat('.calc-giris2030-fiyat'), color: '#7c3aed' },
-            { label: 'Mesai',         adet: getAdet('.calc-mesai-count'),      fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#16a34a' }
+            { label: 'Mesai',         adet: getAdet('.calc-mesai-count'),      fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#0891b2' }
         ].filter(function(s){ return s.adet > 0; });
 
         if (services.length === 0) return;
@@ -3472,13 +3409,13 @@ window.printCariKart = function(plaka, month) {
 + '.factory-header td{background:#f8fafc;font-size:10px;font-weight:800;color:#0f172a;padding:8px 9px;border-top:2px solid #e2e8f0;border-bottom:1px solid #e2e8f0}'
 + '.svc-row td{border-bottom:1px solid #f8fafc}'
 + '.grand-total td{border-top:2px solid #1e293b;border-bottom:2px solid #1e293b;background:#0f172a;color:#fff;font-weight:800;padding:9px;font-size:11.5px}'
-+ '.grand-total .kdv-col{color:#86efac}'
++ '.grand-total .kdv-col{color:#67e8f9}'
 + '.grand-total .tev-col{color:#fca5a5}'
 + '.svc-label{display:flex;align-items:center;gap:5px;font-weight:600;color:#334155}'
 + '.svc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}'
 + '.mono{font-variant-numeric:tabular-nums}'
 + '.fw{font-weight:800;color:#0f172a}'
-+ '.kdv-col{color:#16a34a;font-weight:600}'
++ '.kdv-col{color:#0891b2;font-weight:600}'
 + '.tev-col{color:#dc2626;font-weight:600}'
 + '.net-col{font-weight:700;color:#0f172a}'
 + '.text-right{text-align:right}.text-center{text-align:center}'
@@ -3518,7 +3455,7 @@ window.printCariKart = function(plaka, month) {
 + '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + manuelSectionHtml + autoSectionHtml + '</div>'
 + '<div class="scard">'
 + '<div class="sr"><span>Fatura Matrahi</span><b>' + fmt(invoiceTotals.matrah) + '</b></div>'
-+ '<div class="sr"><span style="color:#16a34a">KDV Toplami</span><b style="color:#16a34a">' + (invoiceTotals.kdv >= 0 ? '+' : '-') + fmt(Math.abs(invoiceTotals.kdv)) + '</b></div>'
++ '<div class="sr"><span style="color:#0891b2">KDV Toplami</span><b style="color:#0891b2">' + (invoiceTotals.kdv >= 0 ? '+' : '-') + fmt(Math.abs(invoiceTotals.kdv)) + '</b></div>'
 + '<div class="sr"><span style="color:#dc2626">TEV (Stopaj)</span><b style="color:#dc2626">' + (invoiceTotals.tev >= 0 ? '-' : '+') + fmt(Math.abs(invoiceTotals.tev)) + '</b></div>'
 + '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
 + (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
@@ -3674,7 +3611,7 @@ window.filterYakitlar = function (mulkiyet, sirket) {
         if (sirketBtn) {
             sirketBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
             if (sirket === 'IDEOL') sirketBtn.classList.add('bg-blue-500', 'text-white');
-            else if (sirket === 'DİKKAN') sirketBtn.classList.add('bg-emerald-500', 'text-white');
+            else if (sirket === 'DİKKAN') sirketBtn.classList.add('bg-violet-500', 'text-white');
             else if (sirket === 'M.K.') sirketBtn.classList.add('bg-red-500', 'text-white');
         }
     }
@@ -3693,7 +3630,7 @@ window.filterAraclar = function (filter) {
             if (key === 'd2') btn.classList.add('text-blue-400');
             else if (key === 'd4s') btn.classList.add('text-purple-400');
             else if (key === 'ideol') btn.classList.add('text-orange-400');
-            else if (key === 'dikkan') btn.classList.add('text-emerald-400');
+            else if (key === 'dikkan') btn.classList.add('text-violet-400');
             else if (key === 'mk') btn.classList.add('text-red-400');
             else btn.classList.add('text-gray-400');
         }
@@ -3732,7 +3669,7 @@ window.filterAraclarBySirket = function (sirket) {
     const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : (sirket === 'M.K.' ? 'mk' : 'hepsi'));
     const btn = document.getElementById(`filter-btn-${activeKey}`);
     if (btn) {
-        btn.classList.add(sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-emerald-500' : 'bg-red-500'), 'text-white');
+        btn.classList.add(sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-violet-500' : 'bg-red-500'), 'text-white');
         btn.classList.remove('hover:bg-white/10');
     }
 
@@ -3763,7 +3700,7 @@ window.filterSoforler = function (sirket) {
     });
     const btn = document.getElementById(`filter-sofor-btn-${activeKey}`);
     if (btn) {
-        const bgClass = sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-emerald-500' : (sirket === 'M.K.' ? 'bg-red-500' : 'bg-blue-500'));
+        const bgClass = sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-violet-500' : (sirket === 'M.K.' ? 'bg-red-500' : 'bg-blue-500'));
         btn.classList.add(bgClass, 'text-white');
         btn.classList.remove('hover:bg-white/10');
     }

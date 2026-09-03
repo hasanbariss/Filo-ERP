@@ -1987,7 +1987,7 @@ window.loadAracCariKarti = async function(aracId) {
                 document.getElementById(`${tabId}-y`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all';
             } else if (type === 'police') {
                 document.getElementById(`${tabId}-police`).classList.remove('hidden');
-                document.getElementById(`${tabId}-p`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-emerald-500 text-white transition-all';
+                document.getElementById(`${tabId}-p`).className = 'flex-1 py-1.5 text-[11px] font-bold rounded-lg bg-indigo-500 text-white transition-all';
             }
         };
 
@@ -2058,16 +2058,16 @@ window.loadAracCariKarti = async function(aracId) {
             policeler.forEach(p => {
                 html += `<div class="flex items-start justify-between py-2 px-3 rounded-lg bg-white/5">
                     <div class="flex-1 min-w-0">
-                        <div class="text-[11px] font-bold text-emerald-400 uppercase">${p.police_turu || 'Sigorta'}</div>
+                        <div class="text-[11px] font-bold text-violet-400 uppercase">${p.police_turu || 'Sigorta'}</div>
                         <div class="text-[10px] text-gray-400 font-bold mb-0.5">${fmtDate(p.baslangic_tarihi)}${p.cariler && p.cariler.unvan ? ' · Sigorta: ' + p.cariler.unvan : ''}</div>
                         ${p.aciklama ? `<div class="text-[10px] text-gray-500 italic max-w-[200px] truncate" title="${p.aciklama}">Poliçe Notu: ${p.aciklama}</div>` : ''}
                     </div>
-                    <div class="text-[11px] font-black text-emerald-400 ml-2 whitespace-nowrap">${fmt(p.toplam_tutar)} ₺</div>
+                    <div class="text-[11px] font-black text-violet-400 ml-2 whitespace-nowrap">${fmt(p.toplam_tutar)} ₺</div>
                 </div>`;
             });
             html += `<div class="flex justify-between border-t border-white/10 pt-1.5 mt-1 px-1">
                 <span class="text-[10px] text-gray-500 font-bold uppercase">Toplam Sigorta</span>
-                <span class="text-sm font-black text-emerald-400">${fmt(toplamPolice)} ₺</span>
+                <span class="text-sm font-black text-violet-400">${fmt(toplamPolice)} ₺</span>
             </div>`;
         }
 
@@ -2467,7 +2467,7 @@ window.openSoforDetay = async function(soforId, ev) {
                     <i data-lucide="edit-2" class="w-4 h-4"></i>Şoför Düzenle
                 </button>
                 ${s.telefon ? `<a href="https://wa.me/90${s.telefon.replace(/\\D/g,'')}?text=Merhaba%20${encodeURIComponent(s.ad_soyad.split(' ')[0])}" target="_blank"
-                    class="flex-1 py-3 text-[10px] font-bold bg-green-500/10 hover:bg-green-500/20 border border-green-500/20 text-green-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
+                    class="flex-1 py-3 text-[10px] font-bold bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 text-indigo-400 rounded-xl transition-all flex items-center justify-center gap-2 uppercase tracking-wide">
                     <i data-lucide="message-circle" class="w-4 h-4"></i>WhatsApp
                 </a>` : ''}
             </div>
@@ -2547,7 +2547,7 @@ async function fetchSoforler(sirketFilter) {
             return;
         }
 
-        const colors = ['bg-orange-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
+        const colors = ['bg-orange-500', 'bg-blue-500', 'bg-cyan-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
 
         soforler.forEach((sofor, idx) => {
             const initial = sofor.ad_soyad ? sofor.ad_soyad.charAt(0).toUpperCase() : '?';
@@ -2557,7 +2557,7 @@ async function fetchSoforler(sirketFilter) {
                 : sofor.sigorta_durumu === 'Bağkur' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
                     : 'bg-red-500/10 text-red-500 border-red-500/20';
 
-            const sirketBadgeColor = sofor.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : (sofor.sirket === 'DİKKAN' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
+            const sirketBadgeColor = sofor.sirket === 'IDEOL' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' : (sofor.sirket === 'DİKKAN' ? 'bg-violet-500/10 text-violet-400 border-violet-500/30' : 'bg-red-500/10 text-red-400 border-red-500/30');
             const sirketBadgeHtml = sofor.sirket ? `
                 <span class="px-1.5 py-0.5 rounded border ${sirketBadgeColor} text-[9px] font-bold uppercase tracking-wider ml-2">
                     ${window.CompanyBranding.companyDisplayName(sofor.sirket)}
@@ -4187,7 +4187,7 @@ async function fetchSoforPuantaj() {
                 if (p) {
                     if (p.durum === 'ÇALIŞTI') {
                         cellContent = 'Ç';
-                        cellClass = 'bg-green-500/20 text-green-500 font-bold';
+                        cellClass = 'bg-cyan-500/20 text-cyan-600 font-bold';
                     } else if (p.durum === 'İZİNLİ') {
                         cellContent = 'İ';
                         cellClass = 'bg-blue-500/20 text-blue-500 font-bold';
@@ -6986,7 +6986,7 @@ window.fetchSoforMaasBordro = async function () {
             totals.elden += elden;
 
             // Initials avatar color (stable per name)
-            const colors = ['bg-orange-500', 'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500'];
+            const colors = ['bg-orange-500', 'bg-blue-500', 'bg-cyan-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
             const colorIdx = s.ad_soyad.charCodeAt(0) % colors.length;
             const initials = s.ad_soyad.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
 
@@ -7052,7 +7052,7 @@ window.fetchSoforMaasBordro = async function () {
                     ${avans > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-orange-400"></span><span class="text-[10px] font-bold text-orange-400">Avans: ${fmt(avans)}</span></div>` : ''}
                     ${ceza > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span class="text-[10px] font-bold text-red-400">Ceza: ${fmt(ceza)}</span></div>` : ''}
                     ${haciz > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-purple-400"></span><span class="text-[10px] font-bold text-purple-400">Haciz: ${fmt(haciz)}</span></div>` : ''}
-                    ${(mk_banka + ideol_banka) > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-green-400"></span><span class="text-[10px] font-bold text-green-400">Banka: ${fmt(mk_banka + ideol_banka)}</span></div>` : ''}
+                    ${(mk_banka + ideol_banka) > 0 ? `<div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span><span class="text-[10px] font-bold text-indigo-400">Banka: ${fmt(mk_banka + ideol_banka)}</span></div>` : ''}
                 </div>
 
                 <!-- Progress Bar -->
@@ -7104,8 +7104,8 @@ window.fetchSoforMaasBordro = async function () {
                                 ${inp('mk_banka', mk_banka || '', '')}
                             </div>
                             <div>
-                                <label class="block text-[9px] font-bold text-green-400 uppercase tracking-widest mb-1">İDEOL Banka (₺)</label>
-                                ${inp('ideol_banka', ideol_banka || '', 'text-green-400')}
+                                <label class="block text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-1">İDEOL Banka (₺)</label>
+                                ${inp('ideol_banka', ideol_banka || '', 'text-indigo-400')}
                             </div>
                         </div>
                         ${kayit ? `<div class="flex justify-end pt-1"><button onclick="deleteRecord('sofor_maas_bordro','${kayit.id}','fetchSoforMaasBordro')" class="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-1"><i data-lucide="trash-2" class="w-3 h-3"></i>Kaydı Sil</button></div>` : ''}
@@ -7388,7 +7388,7 @@ window.fetchTaseronSeferler = async function () {
                 <td class="px-6 py-4">${bolgeBadge(s.bolge)}</td>
                 <td class="px-6 py-4 text-gray-400">${s.guzergah || '-'}</td>
                 <td class="px-6 py-4 text-gray-400">${s.musteriler?.unvan || '-'}</td>
-                <td class="px-6 py-4 text-right font-bold text-green-400">${window.formatCurrency(s.anlasilan_tutar || 0)}</td>
+                <td class="px-6 py-4 text-right font-bold text-cyan-500">${window.formatCurrency(s.anlasilan_tutar || 0)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -7756,7 +7756,7 @@ window.fetchKrediKartlari = async function () {
                     </div>
                 </td>
                 <td class="px-6 py-4">
-                    <p class="text-sm font-bold text-green-400">${window.formatCurrency(limit)}</p>
+                    <p class="text-sm font-bold text-indigo-400">${window.formatCurrency(limit)}</p>
                     <p class="text-[10px] text-gray-400">Özet Kullanılabilir: <span class="text-white">${window.formatCurrency(kullanilabilir)}</span></p>
                 </td>
                 <td class="px-6 py-4 text-orange-500 font-bold text-base">
@@ -8280,9 +8280,9 @@ window.fetchRaporlar = async function() {
                     <td class="p-3 text-center"><span class="px-2 py-0.5 bg-red-500/10 text-red-400 text-[10px] uppercase font-bold rounded">${r.tur}</span></td>
                     <td class="p-3 text-right font-bold ${r.color}">${fmt(r.tutar)}</td>
                 </tr>
-            `).join('') + `<tr class="border-t-2 border-emerald-500/30 bg-emerald-500/5 font-black">
-                <td class="p-4 text-emerald-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GİDER</td>
-                <td class="p-4 text-right text-emerald-400 text-lg">${fmt(totalGider)}</td>
+            `).join('') + `<tr class="border-t-2 border-orange-500/30 bg-orange-500/5 font-black">
+                <td class="p-4 text-orange-400 uppercase tracking-widest text-xs" colspan="2">TOPLAM GİDER</td>
+                <td class="p-4 text-right text-orange-400 text-lg">${fmt(totalGider)}</td>
             </tr>`;
 
             // Chart 1: Category Distribution
@@ -8631,7 +8631,7 @@ window.handleRaporPrint = function(tab) {
             { label: 'Sigorta', val: document.getElementById('rapor-police')?.textContent || '0 TL', color: '#ec4899' },
             { label: 'Maaş', val: document.getElementById('rapor-maas')?.textContent || '0 TL', color: '#eab308' },
             { label: 'Avans', val: document.getElementById('rapor-avans')?.textContent || '0 TL', color: '#a855f7' },
-            { label: 'Ciro', val: document.getElementById('rapor-ciro')?.textContent || '0 TL', color: '#10b981' }
+            { label: 'Ciro', val: document.getElementById('rapor-ciro')?.textContent || '0 TL', color: '#0891b2' }
         ];
 
         printHTML += `
@@ -9539,7 +9539,7 @@ function renderYakitKmTable(records) {
                 <tr class="hover:bg-white/5 transition-colors group/row">
                     <td class="p-3 text-xs text-gray-300 font-medium">${tarih}</td>
                     <td class="p-3 text-xs text-gray-400">${sofor}</td>
-                    <td class="p-3 text-xs font-black text-emerald-400 text-center">${km}</td>
+                    <td class="p-3 text-xs font-black text-cyan-500 text-center">${km}</td>
                     <td class="p-3 text-xs font-bold text-orange-400 text-center">+${fark} KM</td>
                     <td class="p-3 text-xs font-black text-white text-right">₺${tutar}</td>
                     <td class="p-3 text-right">

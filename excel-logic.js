@@ -522,7 +522,7 @@ window.displayMusteriAracAnaliz = function (kayitlar, tanimlar) {
             <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[9px] font-black ${tipClass}">${tipLabel}</span></td>
             <td class="px-4 py-3 text-center font-bold text-xs text-orange-400">${s.vardiya || '—'}</td>
             <td class="px-4 py-3 text-center font-bold text-xs text-blue-400">${s.tek || '—'}</td>
-            <td class="px-4 py-3 text-right font-black text-xs text-green-400">${s.tutar > 0 ? '₺' + s.tutar.toLocaleString('tr-TR') : '—'}</td>
+            <td class="px-4 py-3 text-right font-black text-xs text-cyan-500">${s.tutar > 0 ? '₺' + s.tutar.toLocaleString('tr-TR') : '—'}</td>
         `;
         tbody.appendChild(tr);
     });

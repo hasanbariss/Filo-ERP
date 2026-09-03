@@ -37,9 +37,18 @@ const currentState = { policyCount: 4, maintenanceCount: 2, cardDebt: 85000 };
 assert.deepEqual(currentState, { policyCount: 4, maintenanceCount: 2, cardDebt: 85000 });
 
 const css = fs.readFileSync(path.join(__dirname, '..', 'design-system.css'), 'utf8');
-assert.match(css, /\.bf-management-dashboard \.dashboard-kpi-grid \{ grid-template-columns: repeat\(5,/);
+assert.match(css, /\.bf-management-dashboard \.dashboard-kpi-grid \{ grid-template-columns: repeat\(4,/);
 assert.match(css, /@media \(max-width: 1280px\)[\s\S]*?dashboard-kpi-grid \{ grid-template-columns: repeat\(3,/);
 assert.match(css, /@media \(min-width: 769px\)[\s\S]*?body\.bf-app \{ overflow-y: auto;/);
 assert.match(css, /\.bf-sidebar::-webkit-scrollbar/);
+
+const source = fs.readFileSync(path.join(__dirname, '..', 'dashboard-funcs.js'), 'utf8');
+assert.match(source, /_dashboardFetchPeriodRows\('yakit_takip',[\s\S]*?'tarih', monthStart, monthEnd/);
+assert.match(source, /_dashboardFetchPeriodRows\('taseron_hakedis',[\s\S]*?'sefer_tarihi', monthStart, monthEnd/);
+assert.match(source, /_dashboardFetchPeriodRows\('musteri_servis_puantaj',[\s\S]*?'tarih', monthStart, monthEnd/);
+assert.match(source, /\.range\(from, from \+ pageSize - 1\)/);
+assert.match(source, /renderPoliceDashboardTable\(policelerEnriched, 'tumu'\);[\s\S]*?fetchInfoMobileMileage\(/);
+assert.doesNotMatch(source, /await window\.fetchInfoMobileMileage/);
+assert.match(source, /_dashboardInflight\?\.key === requestKey/);
 
 console.log('Dashboard varsayılan dönem, ay geçişi ve dönem izolasyonu fixture testleri başarılı.');

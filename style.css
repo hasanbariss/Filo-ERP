@@ -4,14 +4,14 @@
 
 :root {
     /* Light Mode Colors (Default) */
-    --bg-main: 42 28% 96%;
-    --bg-sidebar: 40 31% 98%;
+    --bg-main: 210 20% 97%;
+    --bg-sidebar: 205 31% 15%;
     --bg-card: 0 0% 100%;
-    --bg-card-hover: 40 24% 94%;
+    --bg-card-hover: 205 18% 95%;
 
-    --text-primary: 156 22% 16%;
-    --text-secondary: 155 10% 40%;
-    --text-dim: 154 8% 56%;
+    --text-primary: 204 41% 14%;
+    --text-secondary: 202 16% 39%;
+    --text-dim: 201 11% 54%;
 
     --accent-orange: 22 67% 49%;
     --accent-blue: 193 49% 43%;
@@ -33,17 +33,17 @@
 
 .dark {
     /* Core Dashboard Colors - Dark Mode */
-    --bg-main: 156 17% 10%;
-    --bg-sidebar: 155 17% 12%;
-    --bg-card: 155 15% 15%;
-    --bg-card-hover: 156 14% 19%;
+    --bg-main: 210 10% 8%;
+    --bg-sidebar: 205 18% 12%;
+    --bg-card: 210 8% 12%;
+    --bg-card-hover: 210 7% 16%;
 
     --text-primary: 43 25% 95%;
-    --text-secondary: 148 14% 76%;
-    --text-dim: 150 10% 58%;
+    --text-secondary: 205 12% 76%;
+    --text-dim: 205 9% 58%;
 
-    --border-dim: 155 12% 25%;
-    --border-strong: 154 13% 33%;
+    --border-dim: 210 8% 25%;
+    --border-strong: 210 8% 33%;
 }
 
 /* Base Reset & Typography */
@@ -763,25 +763,25 @@ body.mobile-preview-mode .top-bar {
 
 /* Drop Alanı */
 .import-drop-area {
-    border: 2px dashed hsl(var(--accent-green));
+    border: 2px dashed hsl(var(--accent-blue));
     border-radius: 14px;
     padding: 28px 20px;
     text-align: center;
     cursor: pointer;
     transition: var(--transition-base);
-    background: hsla(var(--accent-green), 0.04);
+    background: hsla(var(--accent-blue), 0.04);
     user-select: none;
 }
 
 .import-drop-area:hover,
 .import-drop-area.import-drop-hover {
-    background: hsla(var(--accent-green), 0.12);
-    border-color: hsl(var(--accent-green));
+    background: hsla(var(--accent-blue), 0.12);
+    border-color: hsl(var(--accent-blue));
     transform: scale(1.01);
 }
 
 .import-drop-area.import-drop-active {
-    background: hsla(var(--accent-green), 0.18);
+    background: hsla(var(--accent-blue), 0.18);
     border-style: solid;
 }
 
@@ -792,8 +792,8 @@ body.mobile-preview-mode .top-bar {
     width: 56px;
     height: 56px;
     border-radius: 14px;
-    background: hsla(var(--accent-green), 0.12);
-    color: hsl(var(--accent-green));
+    background: hsla(var(--accent-blue), 0.12);
+    color: hsl(var(--accent-blue));
     margin-bottom: 4px;
 }
 
@@ -929,7 +929,7 @@ body.mobile-preview-mode .top-bar {
 .import-btn-primary {
     flex: 1;
     min-width: 160px;
-    background: hsl(var(--accent-green));
+    background: hsl(var(--accent-orange));
     color: white;
     font-weight: 700;
     font-size: 0.85rem;
@@ -938,7 +938,7 @@ body.mobile-preview-mode .top-bar {
     border: none;
     cursor: pointer;
     transition: var(--transition-base);
-    box-shadow: 0 4px 20px hsla(var(--accent-green), 0.35);
+    box-shadow: 0 4px 20px hsla(var(--accent-orange), 0.24);
 }
 
 .import-btn-primary:hover:not(:disabled) {
@@ -1168,15 +1168,11 @@ body.mobile-preview-mode .top-bar {
    2026 NATURAL PREMIUM UI REFRESH
    ===================================================== */
 body {
-    background:
-        radial-gradient(circle at 85% -10%, hsla(var(--accent-green), 0.08), transparent 26rem),
-        hsl(var(--bg-main));
+    background: hsl(var(--bg-main));
 }
 
 .sidebar {
-    background:
-        linear-gradient(180deg, hsla(var(--bg-sidebar), 0.98), hsla(var(--bg-sidebar), 0.92)),
-        radial-gradient(circle at 10% 0%, hsla(var(--accent-green), 0.12), transparent 17rem);
+    background: hsl(var(--bg-sidebar));
     border-right-color: hsla(var(--text-primary), 0.08);
     box-shadow: 16px 0 42px rgba(22, 37, 30, 0.035);
 }
@@ -1193,9 +1189,9 @@ body {
 
 .nav-link:hover,
 .nav-link.active {
-    background: linear-gradient(90deg, hsla(var(--accent-green), 0.14), hsla(var(--accent-green), 0.035));
+    background: hsla(var(--accent-orange), 0.11);
     color: hsl(var(--text-primary));
-    box-shadow: inset 0 0 0 1px hsla(var(--accent-green), 0.11);
+    box-shadow: inset 0 0 0 1px hsla(var(--accent-orange), 0.14);
 }
 
 .nav-link.active {
@@ -1203,15 +1199,12 @@ body {
 }
 
 .nav-link.active svg {
-    stroke: hsl(var(--accent-green));
+    stroke: hsl(var(--accent-orange));
 }
 
 body > main {
     padding: 2.35rem 2.65rem;
-    background:
-        radial-gradient(circle at 92% 0%, hsla(var(--accent-yellow), 0.075), transparent 24rem),
-        radial-gradient(circle at 42% 100%, hsla(var(--accent-green), 0.055), transparent 28rem),
-        hsl(var(--bg-main));
+    background: hsl(var(--bg-main));
 }
 
 .top-bar {
@@ -1231,7 +1224,7 @@ body > main {
 }
 
 .dashboard-card:hover {
-    border-color: hsla(var(--accent-green), 0.24);
+    border-color: hsla(var(--accent-blue), 0.24);
     box-shadow: 0 18px 38px rgba(32, 48, 40, 0.08);
     transform: translateY(-3px);
 }
@@ -1671,7 +1664,7 @@ textarea {
 /* =====================================================
    APP-WIDE SOFT DARK SURFACE
    Dashboard, lists, reports, forms and menus use the
-   same deep green-charcoal language as the login screen.
+   same neutral charcoal language as the shared design system.
    ===================================================== */
 .dark {
     color-scheme: dark;
@@ -1679,18 +1672,13 @@ textarea {
 
 .dark body,
 .dark body > main {
-    color: #edf3ed;
-    background:
-        radial-gradient(circle at 92% -8%, rgba(75, 134, 103, 0.13), transparent 31rem),
-        radial-gradient(circle at 32% 105%, rgba(192, 143, 76, 0.055), transparent 28rem),
-        #16211d;
+    color: #f3f6f8;
+    background: #111416;
 }
 
 .dark .sidebar {
-    background:
-        linear-gradient(180deg, rgba(25, 39, 33, 0.99), rgba(18, 30, 25, 0.99)),
-        #17231e;
-    border-right-color: rgba(217, 236, 220, 0.1);
+    background: #112a3d;
+    border-right-color: rgba(255, 255, 255, 0.08);
     box-shadow: 18px 0 44px rgba(0, 0, 0, 0.18);
 }
 
@@ -1703,55 +1691,54 @@ textarea {
 .dark .sidebar .nav-link {
     min-height: 44px;
     padding: 0.74rem 0.82rem;
-    color: #b9cbc0 !important;
+    color: #b6c4cc !important;
     border: 1px solid transparent;
     border-radius: 13px;
 }
 
 .dark .sidebar .nav-link:hover {
-    color: #f0f5ef !important;
-    background: rgba(113, 169, 134, 0.1);
-    border-color: rgba(138, 193, 156, 0.12);
+    color: #f3f6f8 !important;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
 }
 
 .dark .sidebar .nav-link.active {
-    color: #f4f8f2 !important;
-    background: linear-gradient(90deg, rgba(56, 128, 94, 0.42), rgba(50, 104, 78, 0.17));
-    border-color: rgba(133, 194, 153, 0.2);
-    box-shadow: inset 3px 0 0 #80bd95, 0 9px 20px rgba(0, 0, 0, 0.12);
+    color: #f3f6f8 !important;
+    background: #173448;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: inset 3px 0 0 #ff654f, 0 9px 20px rgba(0, 0, 0, 0.12);
 }
 
 .dark .sidebar .nav-link.active svg {
-    stroke: #95cfa7;
+    stroke: #ff654f;
 }
 
 .dark .sidebar .text-gray-500 {
-    color: #8fa598 !important;
+    color: #8496a0 !important;
 }
 
 .dark .top-bar {
     padding-bottom: 1.35rem;
-    border-bottom: 1px solid rgba(220, 236, 222, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .dark .top-bar h1,
 .dark #page-title {
-    color: #f4f8f2;
+    color: #f3f6f8;
     letter-spacing: -0.035em;
 }
 
 .dark .dashboard-card,
 .dark .modal-content,
 .dark .import-modal-content {
-    background:
-        linear-gradient(145deg, rgba(31, 46, 39, 0.98), rgba(23, 35, 30, 0.98));
-    border-color: rgba(220, 239, 223, 0.1);
+    background: #191d20;
+    border-color: #343b40;
     box-shadow: 0 16px 36px rgba(0, 0, 0, 0.17);
 }
 
 .dark .dashboard-card:hover {
-    border-color: rgba(127, 191, 149, 0.3);
+    border-color: #465058;
     box-shadow: 0 20px 42px rgba(0, 0, 0, 0.22);
 }
 
@@ -1763,19 +1750,19 @@ textarea {
 .dark .bg-slate-50,
 .dark .bg-slate-100,
 .dark .bg-slate-200 {
-    background-color: #1c2a24 !important;
+    background-color: #22272b !important;
 }
 
 .dark .bg-\[\#0a0a0b\],
 .dark .bg-\[\#0d0f11\],
 .dark .bg-\[\#0f1113\],
 .dark .bg-\[\#111418\] {
-    background-color: #13201b !important;
+    background-color: #14181b !important;
 }
 
 .dark .bg-\[\#1a1c1e\],
 .dark .bg-\[\#1a1d24\] {
-    background-color: #1d2b25 !important;
+    background-color: #1d2226 !important;
 }
 
 .dark .text-black,
@@ -1785,27 +1772,27 @@ textarea {
 .dark .text-slate-900,
 .dark .text-slate-800,
 .dark .text-slate-700 {
-    color: #edf4ed !important;
+    color: #f3f6f8 !important;
 }
 
 .dark .text-gray-600,
 .dark .text-slate-600 {
-    color: #a8bbae !important;
+    color: #b6c4cc !important;
 }
 
 .dark .text-gray-500,
 .dark .text-slate-500 {
-    color: #aebfb3 !important;
+    color: #a0afb8 !important;
 }
 
 .dark .text-gray-400,
 .dark .text-slate-400 {
-    color: #c5d2c8 !important;
+    color: #c4cfd5 !important;
 }
 
 .dark .text-gray-300,
 .dark .text-slate-300 {
-    color: #dbe5dc !important;
+    color: #dce3e7 !important;
 }
 
 .dark .border-gray-50,
@@ -1815,76 +1802,76 @@ textarea {
 .dark .border-slate-100,
 .dark .border-slate-200,
 .dark .border-slate-300 {
-    border-color: rgba(216, 235, 220, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 .dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]),
 .dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
-    border-color: rgba(216, 235, 220, 0.09) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
 .dark select,
 .dark textarea {
-    background-color: #14211c;
-    color: #edf4ed;
-    border-color: rgba(213, 233, 217, 0.16);
+    background-color: #191d20;
+    color: #f3f6f8;
+    border-color: #343b40;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]):focus,
 .dark select:focus,
 .dark textarea:focus {
-    border-color: #70ae88;
-    box-shadow: 0 0 0 4px rgba(112, 174, 136, 0.13);
+    border-color: #1d4d6a;
+    box-shadow: 0 0 0 4px rgba(29, 77, 106, 0.16);
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-    color: #81958a;
+    color: #8496a0;
     opacity: 1;
 }
 
 .dark input[type="checkbox"],
 .dark input[type="radio"] {
-    accent-color: #76b38e;
+    accent-color: #ff654f;
 }
 
 .dark select option {
-    background: #1a2922;
-    color: #edf4ed;
+    background: #191d20;
+    color: #f3f6f8;
 }
 
 .dark table {
-    color: #dbe6dd;
+    color: #dce3e7;
 }
 
 .dark table thead,
 .dark table thead tr,
 .dark .premium-table th {
-    color: #a9bcaf;
-    background-color: rgba(9, 19, 15, 0.24);
+    color: #aebbc3;
+    background-color: rgba(0, 0, 0, 0.18);
 }
 
 .dark table tbody tr {
-    border-color: rgba(220, 237, 222, 0.07);
+    border-color: rgba(255, 255, 255, 0.07);
 }
 
 .dark table tbody tr:hover,
 .dark .premium-table tr:hover td {
-    background-color: rgba(99, 157, 120, 0.085);
+    background-color: rgba(255, 255, 255, 0.045);
 }
 
 .dark .rapor-print-container {
-    background: #1a2922 !important;
-    color: #edf4ed !important;
-    border: 1px solid rgba(216, 235, 220, 0.11);
+    background: #191d20 !important;
+    color: #f3f6f8 !important;
+    border: 1px solid rgba(255, 255, 255, 0.11);
 }
 
 .dark .rapor-print-container .text-black {
-    color: #edf4ed !important;
+    color: #f3f6f8 !important;
 }
 
 .dark .bg-black\/20,
