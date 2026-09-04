@@ -2687,10 +2687,24 @@
     #cari-kart-modal-overlay .cari-fuel-section { background: color-mix(in srgb, var(--erp-amber) 3%, var(--erp-panel)) !important; }
     #cari-kart-modal-overlay .cari-manual-section { background: color-mix(in srgb, var(--erp-violet) 3%, var(--erp-panel)) !important; }
     #cari-kart-modal-overlay .cari-auto-expense-section { background: color-mix(in srgb, var(--erp-teal) 3%, var(--erp-panel)) !important; }
-    #cari-kart-modal-overlay .cari-factory-list { gap: 7px !important; }
-    #cari-kart-modal-overlay .cari-factory-card { padding: 0 !important; overflow: hidden; border: 1px solid var(--erp-line) !important; border-radius: 5px !important; background: var(--erp-panel) !important; }
-    #cari-kart-modal-overlay .cari-factory-card.is-open { border-color: color-mix(in srgb, var(--erp-blue) 40%, var(--erp-line)) !important; }
-    #cari-kart-modal-overlay .cari-factory-card.is-dikkan.is-open { border-color: color-mix(in srgb, var(--erp-violet) 48%, var(--erp-line)) !important; }
+    #cari-kart-modal-overlay .cari-factory-list {
+        gap: 0 !important;
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 6px;
+        background: var(--erp-panel);
+    }
+    #cari-kart-modal-overlay .cari-factory-list > *,
+    #cari-kart-modal-overlay .cari-factory-total > * { margin-top: 0 !important; }
+    #cari-kart-modal-overlay .cari-factory-card {
+        padding: 0 !important;
+        overflow: hidden;
+        border: 0 !important;
+        border-bottom: 1px solid var(--erp-line) !important;
+        border-radius: 0 !important;
+        background: var(--erp-panel) !important;
+    }
+    #cari-kart-modal-overlay .cari-factory-card:last-child { border-bottom: 0 !important; }
     #cari-kart-modal-overlay .cari-factory-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 56px; padding: 9px 13px; color: var(--erp-text); background: color-mix(in srgb, var(--erp-blue) 4%, var(--erp-panel-soft)); text-align: left; }
     #cari-kart-modal-overlay .cari-factory-card.is-dikkan .cari-factory-toggle { background: color-mix(in srgb, var(--erp-violet) 7%, var(--erp-panel-soft)); }
     #cari-kart-modal-overlay .cari-factory-toggle > span { display: grid; grid-template-columns: 18px auto; align-items: center; min-width: 0; column-gap: 7px; }
@@ -2698,10 +2712,18 @@
     #cari-kart-modal-overlay .cari-factory-toggle strong { overflow: hidden; font-size: 15px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
     #cari-kart-modal-overlay .cari-factory-toggle small { margin-top: 3px; color: var(--erp-text-2); font-size: 10.5px; }
     #cari-kart-modal-overlay .cari-factory-chevron { width: 15px; height: 15px; color: var(--erp-text-3); transition: transform .16s ease; }
-    #cari-kart-modal-overlay .cari-factory-content { display: none; padding: 0 12px 11px; }
+    #cari-kart-modal-overlay .cari-factory-content { display: none; padding: 0 13px 12px; }
     #cari-kart-modal-overlay .cari-factory-card.is-open .cari-factory-content { display: block; }
     #cari-kart-modal-overlay .cari-factory-card.is-open .cari-factory-chevron { transform: rotate(180deg); }
-    #cari-kart-modal-overlay .cari-rate-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 0 !important; }
+    #cari-kart-modal-overlay .cari-rate-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+        overflow: visible !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
     #cari-kart-modal-overlay .cari-rate-item, #cari-kart-modal-overlay .cari-rate-item.col-span-2 { display: grid !important; grid-template-columns: minmax(180px,1fr) 170px; align-items: center; grid-column: 1 !important; min-height: 52px; padding: 7px 10px !important; gap: 12px; border: 0 !important; border-bottom: 1px solid var(--erp-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
     #cari-kart-modal-overlay .cari-rate-item.is-shift { background: color-mix(in srgb, var(--erp-blue) 5%, var(--erp-panel)) !important; box-shadow: inset 3px 0 0 var(--erp-blue) !important; }
     #cari-kart-modal-overlay .cari-rate-item.is-single { background: color-mix(in srgb, var(--erp-amber) 6%, var(--erp-panel)) !important; box-shadow: inset 3px 0 0 var(--erp-amber) !important; }
@@ -2714,22 +2736,25 @@
     #cari-kart-modal-overlay .cari-rate-item input[class*="-count"] { width: 58px !important; min-height: 31px !important; color: var(--erp-text) !important; border: 1px solid var(--erp-line-strong) !important; background: var(--erp-panel) !important; font-size: 12.5px !important; }
     #cari-kart-modal-overlay .cari-rate-item > div:last-child { min-width: 0; border: 1px solid var(--erp-line-strong); border-radius: 3px; background: var(--erp-panel-soft); }
     #cari-kart-modal-overlay .cari-rate-item input[class*="-fiyat"] { min-height: 36px !important; color: var(--erp-text) !important; font-size: 13.5px !important; }
-    #cari-kart-modal-overlay .cari-tax-grid { margin-top: 8px !important; padding-top: 8px; gap: 8px !important; border-top: 1px solid var(--erp-line); }
-    #cari-kart-modal-overlay .cari-tax-item { min-height: 52px; padding: 8px 11px !important; background: var(--erp-panel-soft) !important; }
-    #cari-kart-modal-overlay .cari-tax-item.is-vat { border-color: color-mix(in srgb, var(--erp-blue) 38%, var(--erp-line)) !important; background: color-mix(in srgb, var(--erp-blue) 6%, var(--erp-panel-soft)) !important; }
-    #cari-kart-modal-overlay .cari-tax-item.is-withholding { border-color: color-mix(in srgb, var(--erp-amber) 42%, var(--erp-line)) !important; background: color-mix(in srgb, var(--erp-amber) 7%, var(--erp-panel-soft)) !important; }
+    #cari-kart-modal-overlay .cari-tax-grid { margin-top: 0 !important; padding-top: 0; gap: 0 !important; border-top: 1px solid var(--erp-line); }
+    #cari-kart-modal-overlay .cari-tax-item { min-height: 52px; padding: 8px 12px !important; border: 0 !important; border-radius: 0 !important; background: var(--erp-panel-soft) !important; }
+    #cari-kart-modal-overlay .cari-tax-item + .cari-tax-item { border-left: 1px solid var(--erp-line) !important; }
+    #cari-kart-modal-overlay .cari-tax-item.is-vat { background: color-mix(in srgb, var(--erp-blue) 6%, var(--erp-panel-soft)) !important; }
+    #cari-kart-modal-overlay .cari-tax-item.is-withholding { background: color-mix(in srgb, var(--erp-amber) 7%, var(--erp-panel-soft)) !important; }
     #cari-kart-modal-overlay .cari-tax-item > div:first-child { font-size: 11px !important; }
     #cari-kart-modal-overlay .cari-tax-item input { color: var(--erp-text) !important; font-size: 14px !important; }
-    #cari-kart-modal-overlay .cari-factory-total { margin-top: 8px !important; grid-template-columns: repeat(3,minmax(0,1fr)); padding-top: 8px !important; }
-    #cari-kart-modal-overlay .cari-factory-total > div { min-height: 42px; padding: 6px 8px; border: 1px solid var(--erp-line); border-left: 3px solid var(--erp-line-strong); }
+    #cari-kart-modal-overlay .cari-factory-total { margin-top: 0 !important; grid-template-columns: repeat(3,minmax(0,1fr)); padding-top: 0 !important; gap: 0; border-top: 1px solid var(--erp-line); background: var(--erp-panel-soft); }
+    #cari-kart-modal-overlay .cari-factory-total > div { min-height: 44px; padding: 7px 10px; border: 0 !important; border-left: 1px solid var(--erp-line) !important; background: transparent !important; }
+    #cari-kart-modal-overlay .cari-factory-total > div:first-child { border-left: 0 !important; }
     #cari-kart-modal-overlay .cari-factory-total span:first-child { font-size: 10px !important; }
     #cari-kart-modal-overlay .cari-factory-total span:last-child { margin-top: 3px; font-size: 13px !important; }
     #cari-kart-modal-overlay .cari-card-summary { padding: 10px 16px !important; background: color-mix(in srgb, var(--erp-blue) 3%, var(--erp-panel-soft)) !important; }
-    #cari-kart-modal-overlay .cari-card-summary > div { display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) minmax(180px,1.25fr); gap: 7px !important; }
-    #cari-kart-modal-overlay .cari-summary-row { display: flex !important; flex-direction: column; align-items: flex-start !important; justify-content: center; min-width: 0; min-height: 48px !important; padding: 6px 8px !important; border: 1px solid var(--erp-line) !important; background: var(--erp-panel) !important; }
+    #cari-kart-modal-overlay .cari-card-summary > div { display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) minmax(180px,1.25fr); gap: 0 !important; overflow: hidden; border: 1px solid var(--erp-line); border-radius: 5px; background: var(--erp-panel); }
+    #cari-kart-modal-overlay .cari-summary-row { display: flex !important; flex-direction: column; align-items: flex-start !important; justify-content: center; min-width: 0; min-height: 48px !important; padding: 7px 10px !important; border: 0 !important; border-left: 1px solid var(--erp-line) !important; border-radius: 0 !important; background: transparent !important; }
+    #cari-kart-modal-overlay .cari-summary-row:first-child { border-left: 0 !important; }
     #cari-kart-modal-overlay .cari-summary-row > span:first-child { font-size: 8px !important; }
     #cari-kart-modal-overlay .cari-summary-row > span:last-child { margin-top: 3px; font-size: 12px !important; }
-    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 48px !important; margin: 0 !important; border-color: color-mix(in srgb, var(--erp-teal) 40%, var(--erp-line)) !important; background: color-mix(in srgb, var(--erp-teal) 7%, var(--erp-panel)) !important; }
+    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 48px !important; margin: 0 !important; border-left: 3px solid color-mix(in srgb, var(--erp-teal) 58%, var(--erp-line)) !important; background: color-mix(in srgb, var(--erp-teal) 8%, var(--erp-panel)) !important; }
     #cari-kart-modal-overlay #modal-net-total { font-size: 17px !important; }
 
     /* Receivables submodules — one compact ledger language across policy, instalment,
