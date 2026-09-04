@@ -1649,7 +1649,8 @@ window.printRapor = function(selector) {
     printWindow.document.write(`
         <html>
             <head>
-                <title>Taseron_Hakedis_Raporu_${window._taseronCariAy || 'Donem'}</title>
+                <title>${branding.getBrowserTitle(`Taşeron Hakediş Raporu - ${window._taseronCariAy || 'Dönem'}`)}</title>
+                ${branding.getFaviconLink()}
                 <style>
                     ${branding.getPrintStyles()}
                     @page { size: A4 landscape; margin: 5mm; }

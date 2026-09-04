@@ -190,6 +190,8 @@
         state.tab = ['analysis', 'records', 'entry'].includes(tab) ? tab : 'analysis';
         document.querySelectorAll('[data-fuel-tab]').forEach(function (button) { button.classList.toggle('is-active', button.dataset.fuelTab === state.tab); });
         document.querySelectorAll('.fuel-panel').forEach(function (panel) { panel.classList.toggle('is-active', panel.id === 'fuel-panel-' + state.tab); });
+        const activeButton = document.querySelector('[data-fuel-tab="' + state.tab + '"]');
+        if (typeof window.setVisibleModuleBrowserTitle === 'function') window.setVisibleModuleBrowserTitle('module-yakit-km', 'Yakıt & KM', activeButton?.textContent);
     };
 
     window.setFuelAnalyticsPeriod = function (period) {

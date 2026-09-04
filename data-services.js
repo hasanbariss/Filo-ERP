@@ -8448,6 +8448,10 @@ window.switchRaporTab = function(tab) {
             content.classList.toggle('block', t === tab);
         }
     });
+    const activeReportButton = document.getElementById('rapor-tab-' + tab);
+    if (typeof window.setVisibleModuleBrowserTitle === 'function') {
+        window.setVisibleModuleBrowserTitle('module-raporlar', 'Raporlar', activeReportButton?.textContent);
+    }
     // Load tab data if not already loaded
     const ay = document.getElementById('rapor-ay')?.value;
     if (!ay) return;
@@ -9957,7 +9961,8 @@ window.printManuelYakitRaporu = function(specificPlaka = null) {
     printWindow.document.write(`
         <html>
             <head>
-                <title>Yakıt & KM Takip Raporu</title>
+                <title>${branding.getBrowserTitle('Yakıt & KM Takip Raporu')}</title>
+                ${branding.getFaviconLink()}
                 <style>
                     ${branding.getPrintStyles()}
                     body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }

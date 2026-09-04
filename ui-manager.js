@@ -63,6 +63,19 @@ function getViewPeriod(...elementIds) {
     return '';
 }
 
+window.setBrowserSectionTitle = function(...sections) {
+    const parts = sections
+        .map(value => String(value || '').replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+    document.title = ['Baris.Flow', 'Filo Yönetim', ...parts].join(' / ');
+};
+
+window.setVisibleModuleBrowserTitle = function(moduleId, ...sections) {
+    const moduleElement = document.getElementById(moduleId);
+    if (!moduleElement || moduleElement.classList.contains('hidden')) return;
+    window.setBrowserSectionTitle(...sections);
+};
+
 function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
@@ -137,6 +150,7 @@ navButtons.forEach(btn => {
 
         // Başlık Güncelle
         if (pageTitle) pageTitle.innerText = moduleName;
+        window.setBrowserSectionTitle(moduleName);
 
         // Modülleri Gizle ve Hedefi Göster
         modules.forEach(mod => {
@@ -322,6 +336,8 @@ function switchFiloTab(tabName) {
         cizelgeSub.classList.add('block');
         if (typeof fetchOzmalCizelge === 'function') window.loadViewData('filo:cizelge', () => fetchOzmalCizelge());
     }
+    const selectedFiloTab = tabName === 'araclar' ? aracBtn : tabName === 'soforler' ? soforBtn : cizelgeBtn;
+    window.setVisibleModuleBrowserTitle('module-filo', 'Özmal Filo', selectedFiloTab?.textContent);
 }
 
 /* === 1.C. TAŞERON ALT SEKMELERİ === */
@@ -392,6 +408,7 @@ window.switchTaseronTab = function (tabName) {
         activeContent.classList.remove('hidden');
         activeContent.classList.add('block');
     }
+    window.setVisibleModuleBrowserTitle('module-taseron', 'Taşeronlar', activeBtn?.textContent);
 
     // Tab'a özgü veri yükle
     if (tabName === 'liste' && typeof fetchTaseronlar === 'function') window.loadViewData('module:taseron', () => fetchTaseronlar());
@@ -454,6 +471,12 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
         activeContent.classList.add('block');
     } else {
     }
+
+    window.setVisibleModuleBrowserTitle(
+        `module-${modulePrefix}`,
+        modulePrefix === 'finans' ? 'Hakediş' : modulePrefix === 'cari' ? 'Cariler' : modulePrefix,
+        clickedButton?.textContent
+    );
 
     if (window.lucide) window.lucide.createIcons();
 
@@ -758,7 +781,8 @@ window.printCariEkstre = function () {
     printWindow.document.write(`
         <html>
             <head>
-                <title>Cari Hesap Ekstresi - ${unvan}</title>
+                <title>${branding.getBrowserTitle(`Cari Hesap Ekstresi - ${unvan}`)}</title>
+                ${branding.getFaviconLink()}
                 <style>
                     ${branding.getPrintStyles()}
                     body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
@@ -3344,7 +3368,8 @@ window.printTaseronRapor = function () {
     win.document.write(`
         <html>
             <head>
-                <title>Taşeron Ay Sonu Raporu - ${month}</title>
+                <title>${branding.getBrowserTitle(`Taşeron Ay Sonu Raporu - ${month}`)}</title>
+                ${branding.getFaviconLink()}
                 <style>
                     ${branding.getPrintStyles()}
                     body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #111; }
@@ -3537,7 +3562,8 @@ window.printCariKart = function(plaka, month) {
     var win = window.open('', '', 'height=850,width=960');
     win.document.write('<!DOCTYPE html><html><head>'
 + '<meta charset="UTF-8">'
-+ '<title>Cari Hesap - ' + plaka + '</title>'
++ '<title>' + branding.getBrowserTitle('Cari Hesap - ' + plaka) + '</title>'
++ branding.getFaviconLink()
 + '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
 + '<style>'
 + branding.getPrintStyles()
@@ -4062,7 +4088,8 @@ window.printOzmalCizelge = function() {
     let printHtml = `
     <html>
     <head>
-        <title>Özmal Çizelge Raporu</title>
+        <title>${branding.getBrowserTitle('Özmal Çizelge Raporu')}</title>
+        ${branding.getFaviconLink()}
         <style>
             ${branding.getPrintStyles()}
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');

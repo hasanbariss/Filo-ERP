@@ -77,6 +77,14 @@
         return '<span class="company-wordmark' + (className ? ' ' + escapeHTML(className) : '') + '" role="img" aria-label="' + escapeHTML(currentCompany.name) + '">' + escapeHTML(currentCompany.shortName) + '</span>';
     }
 
+    function getBrowserTitle(section) {
+        return [platform.name, 'Filo Yönetim', String(section || '').trim()].filter(Boolean).join(' / ');
+    }
+
+    function getFaviconLink() {
+        return '<link rel="icon" type="image/png" sizes="192x192" href="' + escapeHTML(absoluteAsset('./icons/icon-192.png?v=1')) + '">';
+    }
+
     function getPrintStyles() {
         return [
             '.company-print-header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;margin:0 0 20px;padding:0 0 14px;border-bottom:2px solid #e2e8f0;color:#0f172a}',
@@ -127,7 +135,7 @@
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
         printWindow.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"><title>'
-            + escapeHTML(opts.title || 'Belge') + '</title><style>' + getPrintStyles()
+            + escapeHTML(getBrowserTitle(opts.title || 'Belge')) + '</title>' + getFaviconLink() + '<style>' + getPrintStyles()
             + 'body{margin:0;padding:28px;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0f172a;background:#fff}'
             + 'table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:7px 8px;border:1px solid #e2e8f0;text-align:left}th{background:#f8fafc;font-weight:800}.text-right{text-align:right}.no-print,button,input,select{display:none!important}'
             + '@page{size:A4 landscape;margin:10mm}</style></head><body>'
@@ -184,6 +192,8 @@
         companyDisplayName: companyDisplayName,
         getPlatformLogo: getPlatformLogo,
         getCompanyMark: getCompanyMark,
+        getBrowserTitle: getBrowserTitle,
+        getFaviconLink: getFaviconLink,
         getPrintStyles: getPrintStyles,
         getPrintHeader: getPrintHeader,
         getPrintFooter: getPrintFooter,
