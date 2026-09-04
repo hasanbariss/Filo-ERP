@@ -3818,6 +3818,7 @@ window.applyOwnedFleetFilters = function () {
     const ownership = document.getElementById('fleet-filter-ownership')?.value || '';
     const driver = document.getElementById('fleet-filter-driver')?.value || '';
     const company = document.getElementById('fleet-filter-company')?.value || '';
+    const vehicleClass = document.getElementById('fleet-filter-class')?.value || '';
     const license = document.getElementById('fleet-filter-license')?.value || '';
     const documentStatus = document.getElementById('fleet-filter-document')?.value || '';
     let visibleRows = 0;
@@ -3828,6 +3829,7 @@ window.applyOwnedFleetFilters = function () {
             && (!ownership || item.dataset.fleetOwnership === ownership)
             && (!driver || item.dataset.fleetDriver === driver)
             && (!company || item.dataset.fleetCompany === company)
+            && (!vehicleClass || item.dataset.fleetClass === vehicleClass)
             && (!license || item.dataset.fleetLicense === license)
             && (!documentStatus || item.dataset.fleetDocument === documentStatus);
         item.hidden = !matches;
@@ -3845,7 +3847,7 @@ window.filterOwnedFleetSearch = function (value) {
 };
 
 window.resetOwnedFleetFilters = function () {
-    ['fleet-search-input', 'fleet-filter-ownership', 'fleet-filter-driver', 'fleet-filter-company', 'fleet-filter-license', 'fleet-filter-document'].forEach(id => {
+    ['fleet-search-input', 'fleet-filter-ownership', 'fleet-filter-driver', 'fleet-filter-company', 'fleet-filter-class', 'fleet-filter-license', 'fleet-filter-document'].forEach(id => {
         const control = document.getElementById(id);
         if (control) control.value = '';
     });

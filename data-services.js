@@ -1498,13 +1498,13 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
     // Loading state
     if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div>';
     if (listBody && document.getElementById('arac-list-container') && !document.getElementById('arac-list-container').classList.contains('hidden')) {
-        listBody.innerHTML = '<tr><td colspan="6"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
+        listBody.innerHTML = '<tr><td colspan="7"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
     }
 
     const conn = window.checkSupabaseConnection();
     if (!conn.ok) {
         window.showGlobalError('arac-cards-grid', conn.msg);
-        if (listBody) listBody.innerHTML = `<tr><td colspan="6"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
+        if (listBody) listBody.innerHTML = `<tr><td colspan="7"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
         return;
     }
 
@@ -1602,7 +1602,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         if (araclar.length === 0) {
             if (grid) grid.innerHTML = '<div class="empty-state fleet-empty-state"><div><span class="fleet-state-icon"><i data-lucide="truck"></i></span><strong>Henüz araç bulunmuyor.</strong><p>Filonuza ilk aracı ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Araç Ekle\')"><i data-lucide="plus"></i>Araç Ekle</button></div></div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -1781,12 +1781,26 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 `;
             }
 
-            const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', mulkiyet, arac.belge_turu || ''].join(' ');
+            const vehicleClass = arac.arac_sinifi || '';
+            const vehicleClassLabels = {
+                'TAKSİ': 'Taksi',
+                '16+1': '16+1 Minibüs',
+                '27+1': '27+1 Midibüs',
+                '46+1': '46+1 Otobüs',
+                'DİĞER': 'Diğer'
+            };
+            const vehicleClassLabel = vehicleClassLabels[vehicleClass] || 'Sınıf yok';
+            const vehicleClassHtml = vehicleClass
+                ? `<span class="fleet-class-badge">${vehicleClassLabel}</span>`
+                : '<span class="fleet-class-badge is-empty">Sınıf yok</span>';
+
+            const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', mulkiyet, arac.belge_turu || '', vehicleClassLabel].join(' ');
             const state = documentState(arac);
             const documentStatus = (state.missing || state.expired) ? 'critical' : (state.upcoming ? 'upcoming' : 'current');
             const licenseType = arac.belge_turu && arac.belge_turu !== 'Yok' ? arac.belge_turu : 'none';
             const driverStatus = soforAdi ? 'assigned' : 'unassigned';
             const companyName = arac.sirket && arac.sirket !== 'Belirtilmemiş' ? arac.sirket : '';
+            const vehicleClassFilter = vehicleClass || 'unclassified';
 
             // Supabase'den gelen veriye göre modern card oluştur
             if (grid) {
@@ -1798,6 +1812,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 card.dataset.fleetCompany = companyName;
                 card.dataset.fleetLicense = licenseType;
                 card.dataset.fleetDocument = documentStatus;
+                card.dataset.fleetClass = vehicleClassFilter;
 
                 card.innerHTML = `
                     <div class="fleet-vehicle-summary" onclick="window.openAracDetay('${arac.id}')">
@@ -1812,6 +1827,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                                     <div class="fleet-vehicle-badges">
                                         ${sirketBadgeHtml}
                                         ${belgeBadgeHtml}
+                                        ${vehicleClassHtml}
                                     </div>
                                 </div>
                             </div>
@@ -1852,6 +1868,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 tr.dataset.fleetCompany = companyName;
                 tr.dataset.fleetLicense = licenseType;
                 tr.dataset.fleetDocument = documentStatus;
+                tr.dataset.fleetClass = vehicleClassFilter;
                 tr.innerHTML = `
                     <td>
                         <div class="fleet-table-vehicle" onclick="window.openAracDetay('${arac.id}')">
@@ -1865,6 +1882,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                         </div>
                     </td>
                     <td><div class="fleet-company-cell">${sirketBadgeHtml || '<span class="fleet-empty-value">—</span>'}</div></td>
+                    <td>${vehicleClassHtml}</td>
                     <td>
                         <div class="fleet-ownership-cell">
                             <span class="${mulkiyet === 'ÖZMAL' ? 'badge-success' : 'badge-neutral'}">${mulkiyet}</span>
@@ -1905,7 +1923,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
     } catch (error) {
         console.error("Araçları çekerken hata:", error);
         if (grid) grid.innerHTML = `<div class="empty-state fleet-error-state"><div><i data-lucide="circle-alert"></i><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div>`;
-        if (listBody) listBody.innerHTML = `<tr><td colspan="6"><div class="empty-state fleet-error-state"><div><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
+        if (listBody) listBody.innerHTML = `<tr><td colspan="7"><div class="empty-state fleet-error-state"><div><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
         if (window.lucide) window.lucide.createIcons();
     }
 }
@@ -2195,6 +2213,10 @@ window.openAracDetay = async function(aracId) {
                 <div class="bg-white/5 rounded-xl p-3">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Mülkiyet</div>
                     <div class="font-bold text-blue-400">${a.mulkiyet_durumu || '—'}</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-3">
+                    <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Araç Sınıfı</div>
+                    <div class="font-bold text-blue-400">${({ 'TAKSİ': 'Taksi', '16+1': '16+1 Minibüs', '27+1': '27+1 Midibüs', '46+1': '46+1 Otobüs', 'DİĞER': 'Diğer' })[a.arac_sinifi] || 'Sınıflandırılmamış'}</div>
                 </div>
                 <div class="bg-white/5 rounded-xl p-3 relative group flex flex-col justify-center">
                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Atanan Şoför</div>

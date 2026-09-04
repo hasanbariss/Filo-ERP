@@ -99,7 +99,8 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.15">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.18">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.19">
+    <link rel="stylesheet" href="fleet-bulk-edit.css?v=1.0.0">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
     <link rel="stylesheet" href="ui-final-pass.css?v=1.0.0">
     <!-- Chart.js -->
@@ -538,6 +539,10 @@
                                 <p class="page-subtitle">Şirketinize ait araçları, durumlarını ve operasyon bilgilerini yönetin.</p>
                             </div>
                             <div class="page-actions">
+                                <button type="button" onclick="window.openFleetBulkEditor()" class="btn-secondary fleet-bulk-open">
+                                    <i data-lucide="rows-3" aria-hidden="true"></i>
+                                    Sürücü &amp; Sınıf Ata
+                                </button>
                                 <button onclick="openModal('Yeni Araç Ekle')" class="btn-primary">
                                     <i data-lucide="plus" aria-hidden="true"></i>
                                     Araç Ekle
@@ -595,6 +600,17 @@
                                                 </select>
                                             </label>
                                             <label>
+                                                <span>Araç sınıfı</span>
+                                                <select id="fleet-filter-class" onchange="window.applyOwnedFleetFilters()">
+                                                    <option value="">Tüm araç sınıfları</option>
+                                                    <option value="TAKSİ">Taksi</option>
+                                                    <option value="16+1">16+1 Minibüs</option>
+                                                    <option value="27+1">27+1 Midibüs</option>
+                                                    <option value="46+1">46+1 Otobüs</option>
+                                                    <option value="unclassified">Sınıflandırılmamış</option>
+                                                </select>
+                                            </label>
+                                            <label>
                                                 <span>Belge türü</span>
                                                 <select id="fleet-filter-license" onchange="window.applyOwnedFleetFilters()">
                                                     <option value="">Tüm belge türleri</option>
@@ -640,6 +656,7 @@
                                             <tr>
                                                 <th>Plaka / Araç</th>
                                                 <th>Şirket</th>
+                                                <th>Araç Sınıfı</th>
                                                 <th>Mülkiyet / Belge</th>
                                                 <th>Şoför</th>
                                                 <th class="hidden md:table-cell">Evrak Durumu</th>
@@ -2966,10 +2983,11 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.2"></script>
 <script defer src="report-analytics.js?v=2.0.0"></script>
-<script defer src="data-services.js?v=2.0.14"></script>
+<script defer src="data-services.js?v=2.0.15"></script>
 <script defer src="report-comparison-ui.js?v=2.0.0"></script>
-<script defer src="ui-manager.js?v=2.0.12"></script>
+<script defer src="ui-manager.js?v=2.0.13"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.5"></script>
+<script defer src="fleet-bulk-edit.js?v=1.0.0"></script>
 
 
 <!-- 3. FEATURE MODULES -->
