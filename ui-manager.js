@@ -7,6 +7,62 @@ window.debounce = function(func, wait = 300) {
     };
 };
 
+// Aynı görünüm kısa süre içinde tekrar açıldığında aynı Supabase sorgularını
+// yeniden çalıştırma. Bu önbellek yalnızca sekme/navigasyon yüklemelerinde
+// kullanılır; filtreler, kayıt işlemleri ve manuel yenilemeler doğrudan fetch
+// fonksiyonlarını çağırmaya devam eder.
+const VIEW_DATA_CACHE_TTL = 30000;
+window.__viewDataCache = window.__viewDataCache || new Map();
+window.loadViewData = function(key, loader, maxAge = VIEW_DATA_CACHE_TTL) {
+    if (!key || typeof loader !== 'function') return Promise.resolve();
+
+    const cache = window.__viewDataCache;
+    const now = Date.now();
+    const current = cache.get(key);
+
+    if (current?.inflight) return current.inflight;
+    if (current?.loadedAt && now - current.loadedAt < maxAge) {
+        return Promise.resolve(current.value);
+    }
+
+    const inflight = Promise.resolve()
+        .then(loader)
+        .then(value => {
+            cache.set(key, { loadedAt: Date.now(), value });
+            return value;
+        })
+        .catch(error => {
+            cache.delete(key);
+            console.error('[ViewData] Görünüm verisi yüklenemedi:', key, error);
+        });
+
+    cache.set(key, {
+        loadedAt: current?.loadedAt || 0,
+        value: current?.value,
+        inflight
+    });
+    return inflight;
+};
+
+window.clearViewDataCache = function(prefix = '') {
+    const cache = window.__viewDataCache;
+    if (!prefix) {
+        cache.clear();
+        return;
+    }
+    Array.from(cache.keys()).forEach(key => {
+        if (key.startsWith(prefix)) cache.delete(key);
+    });
+};
+
+function getViewPeriod(...elementIds) {
+    for (const id of elementIds) {
+        const value = document.getElementById(id)?.value;
+        if (value) return value;
+    }
+    return '';
+}
+
 function setGpsUrl(url) {
     document.getElementById('gps-url-input').value = url;
 }
@@ -96,30 +152,34 @@ navButtons.forEach(btn => {
         // Önce yeni modülü ekrana çiz, veri yenilemeyi hemen sonraki karede başlat.
         // Böylece iPhone'da menü dokunuşu veritabanı sorgusunu beklemez.
         requestAnimationFrame(() => setTimeout(() => {
+        const loadView = (key, loader, maxAge) => window.loadViewData(key, loader, maxAge);
+
         // Modüle özgü veri yükle
         if (targetId === 'module-teklifler' && typeof fetchTeklifler === 'function') {
-            fetchTeklifler();
+            loadView('module:teklifler', () => fetchTeklifler());
         } else if (targetId === 'module-dashboard' && typeof fetchDashboardData === 'function') {
-            fetchDashboardData();
+            const period = getViewPeriod('dashboard-reporting-period', 'dashboard-ay');
+            loadView(`module:dashboard:${period}`, () => fetchDashboardData(), 20000);
         } else if (targetId === 'module-musteri' && typeof fetchMusteriler === 'function') {
-            fetchMusteriler();
+            loadView('module:musteri', () => fetchMusteriler());
 
         } else if (targetId === 'module-taseron' && typeof fetchTaseronlar === 'function') {
-            fetchTaseronlar();
+            loadView('module:taseron', () => fetchTaseronlar());
         } else if (targetId === 'module-filo') {
-            if (typeof fetchAraclar === 'function') fetchAraclar();
+            if (typeof fetchAraclar === 'function') loadView('module:filo', () => fetchAraclar());
         } else if (targetId === 'module-cari') {
-            if (typeof fetchCariler === 'function') fetchCariler();
+            if (typeof fetchCariler === 'function') loadView('cari:cariler', () => fetchCariler());
         } else if (targetId === 'module-finans') {
-            if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
+            if (typeof fetchFinansDashboard === 'function') loadView('finans:dashboard', () => fetchFinansDashboard());
         } else if (targetId === 'module-raporlar') {
-            if (typeof fetchRaporlar === 'function') fetchRaporlar();
+            const period = getViewPeriod('rapor-ay');
+            if (typeof fetchRaporlar === 'function') loadView(`rapor:genel:${period}`, () => fetchRaporlar());
         } else if (targetId === 'module-takvim') {
-            if (typeof fetchTakvim === 'function') fetchTakvim();
-        } else if (targetId === 'module-teklifler') {
-            if (typeof fetchTeklifler === 'function') fetchTeklifler();
+            const period = getViewPeriod('takvim-ay', 'calendar-month');
+            if (typeof fetchTakvim === 'function') loadView(`module:takvim:${period}`, () => fetchTakvim());
         } else if (targetId === 'module-yakit-km') {
-            if (typeof window.fetchFuelAnalytics === 'function') window.fetchFuelAnalytics();
+            const period = getViewPeriod('fuel-period-anchor', 'yakit-km-ay');
+            if (typeof window.fetchFuelAnalytics === 'function') loadView(`module:yakit-km:${period}`, () => window.fetchFuelAnalytics());
         } else if (targetId === 'module-operasyon-merkezi') {
             if (typeof window.renderOperasyonMerkezi === 'function') window.renderOperasyonMerkezi();
         } else if (targetId === 'module-is-emirleri') {
@@ -135,8 +195,11 @@ navButtons.forEach(btn => {
             if (ayEl && ayEl.value) {
                 ['filter-bordro-ay','filter-bordro-ay-p'].forEach(function(id) { const el = document.getElementById(id); if(el) el.value = ayEl.value; });
             }
-            if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
-            if (typeof fetchSoforler === 'function') fetchSoforler();
+            const period = ayEl?.value || '';
+            loadView(`module:personel:${period}`, () => Promise.all([
+                typeof fetchSoforMaasBordro === 'function' ? fetchSoforMaasBordro() : Promise.resolve(),
+                typeof fetchSoforler === 'function' ? fetchSoforler() : Promise.resolve()
+            ]));
         }
 
         // Active tab stili resetlemeyi garantilemek için nav tetiklendiğinde ilgili modülün varsayılan tab'ini (varsa) active yapma
@@ -247,17 +310,17 @@ function switchFiloTab(tabName) {
         aracBtn.className = activeClass;
         aracSub.classList.remove('hidden');
         aracSub.classList.add('block');
-        if (typeof fetchAraclar === 'function') fetchAraclar();
+        if (typeof fetchAraclar === 'function') window.loadViewData('module:filo', () => fetchAraclar());
     } else if (tabName === 'soforler' && soforBtn && soforSub) {
         soforBtn.className = activeClass;
         soforSub.classList.remove('hidden');
         soforSub.classList.add('block');
-        if (typeof fetchSoforler === 'function') fetchSoforler();
+        if (typeof fetchSoforler === 'function') window.loadViewData('filo:soforler', () => fetchSoforler());
     } else if (tabName === 'cizelge' && cizelgeBtn && cizelgeSub) {
         cizelgeBtn.className = activeClass;
         cizelgeSub.classList.remove('hidden');
         cizelgeSub.classList.add('block');
-        if (typeof fetchOzmalCizelge === 'function') fetchOzmalCizelge();
+        if (typeof fetchOzmalCizelge === 'function') window.loadViewData('filo:cizelge', () => fetchOzmalCizelge());
     }
 }
 
@@ -331,12 +394,13 @@ window.switchTaseronTab = function (tabName) {
     }
 
     // Tab'a özgü veri yükle
-    if (tabName === 'liste' && typeof fetchTaseronlar === 'function') fetchTaseronlar();
+    if (tabName === 'liste' && typeof fetchTaseronlar === 'function') window.loadViewData('module:taseron', () => fetchTaseronlar());
     if (tabName === 'hakedis') {
         if (typeof window.initTaseronHakedisMonth === 'function') window.initTaseronHakedisMonth();
-        if (typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis();
+        const period = getViewPeriod('taseron-hakedis-month');
+        if (typeof fetchTaseronHakedis === 'function') window.loadViewData(`taseron:hakedis:${period}`, () => fetchTaseronHakedis());
     }
-    if (tabName === 'sefer' && typeof fetchTaseronSeferler === 'function') fetchTaseronSeferler();
+    if (tabName === 'sefer' && typeof fetchTaseronSeferler === 'function') window.loadViewData('taseron:seferler', () => fetchTaseronSeferler());
 
     if (window.lucide) window.lucide.createIcons();
 };
@@ -394,6 +458,18 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
     if (window.lucide) window.lucide.createIcons();
 
     if (modulePrefix === 'finans') {
+        if (tabName === 'taseron-finans' && typeof window.initCariHakedisMonth === 'function') {
+            window.initCariHakedisMonth();
+        }
+        const financeCacheKey = `finans:${tabName}:${getViewPeriod(
+            tabName === 'taseron-finans' ? 'filter-cari-hakedis-ay' :
+            tabName === 'taseron-rapor' ? 'filter-taseron-rapor-ay' :
+            tabName === 'yakit' ? 'filter-yakit-ay' :
+            tabName === 'aylik-odeme' ? 'filter-aylik-odeme-ay' :
+            'filter-bordro-ay'
+        )}`;
+        const cachedFinanceSnapshot = window.__viewDataCache.get(financeCacheKey)?.value;
+        const isFirstFinanceLoad = !cachedFinanceSnapshot;
         const k1t = document.getElementById('fin-kpi1-title');
         const k1d = document.getElementById('fin-kpi1-desc');
         const k1i = document.getElementById('fin-kpi1-icon');
@@ -421,26 +497,39 @@ window.switchTab = function (modulePrefix, tabName, clickedButton) {
             if (window.lucide) window.lucide.createIcons();
         }
 
-        const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = '...';
-        const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = '...';
-        const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = '...';
-        if (tabName === 'sofor-puantaj') fetchSoforMaasBordro();
-        else if (tabName === 'sofor-finans') fetchSoforFinans();
-        else if (tabName === 'sofor-maas') fetchSoforMaaslar();
-        else if (tabName === 'taseron-finans') {
-            if (typeof window.initCariHakedisMonth === 'function') window.initCariHakedisMonth();
-            fetchTaseronFinans();
+        if (isFirstFinanceLoad) {
+            const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = '...';
+            const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = '...';
+            const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = '...';
+        } else {
+            const elBrut = document.getElementById('fin-kpi-brut'); if (elBrut) elBrut.textContent = cachedFinanceSnapshot.brut;
+            const elYakit = document.getElementById('fin-kpi-yakit'); if (elYakit) elYakit.textContent = cachedFinanceSnapshot.yakit;
+            const elNet = document.getElementById('fin-kpi-net'); if (elNet) elNet.textContent = cachedFinanceSnapshot.net;
         }
-        else if (tabName === 'taseron-rapor') fetchTaseronAylikRapor();
-        else if (tabName === 'yakit') fetchYakitlar();
-        else if (tabName === 'aylik-odeme' && typeof fetchAylikOdemeOzeti === 'function') fetchAylikOdemeOzeti();
+        const loadFinanceData = loader => window.loadViewData(financeCacheKey, async () => {
+            await loader();
+            return {
+                brut: document.getElementById('fin-kpi-brut')?.textContent || '—',
+                yakit: document.getElementById('fin-kpi-yakit')?.textContent || '—',
+                net: document.getElementById('fin-kpi-net')?.textContent || '—'
+            };
+        }, 0);
+        if (tabName === 'sofor-puantaj') loadFinanceData(() => fetchSoforMaasBordro());
+        else if (tabName === 'sofor-finans') loadFinanceData(() => fetchSoforFinans());
+        else if (tabName === 'sofor-maas') loadFinanceData(() => fetchSoforMaaslar());
+        else if (tabName === 'taseron-finans') {
+            loadFinanceData(() => fetchTaseronFinans());
+        }
+        else if (tabName === 'taseron-rapor') loadFinanceData(() => fetchTaseronAylikRapor());
+        else if (tabName === 'yakit') loadFinanceData(() => fetchYakitlar());
+        else if (tabName === 'aylik-odeme' && typeof fetchAylikOdemeOzeti === 'function') loadFinanceData(() => fetchAylikOdemeOzeti());
     } else if (modulePrefix === 'cari') {
-        if (tabName === 'cariler') fetchCariler();
-        else if (tabName === 'bakim') fetchBakimlar();
-        else if (tabName === 'police') fetchPoliceler();
-        else if (tabName === 'taksitler') fetchTaksitler();
-        else if (tabName === 'maaslar') fetchMaaslar();
-        else if (tabName === 'kredi-kartlari') fetchKrediKartlari();
+        if (tabName === 'cariler') window.loadViewData('cari:cariler', () => fetchCariler());
+        else if (tabName === 'bakim') window.loadViewData('cari:bakim', () => fetchBakimlar());
+        else if (tabName === 'police') window.loadViewData('cari:police', () => fetchPoliceler());
+        else if (tabName === 'taksitler') window.loadViewData('cari:taksitler', () => fetchTaksitler());
+        else if (tabName === 'maaslar') window.loadViewData('cari:maaslar', () => fetchMaaslar());
+        else if (tabName === 'kredi-kartlari') window.loadViewData('cari:kredi-kartlari', () => fetchKrediKartlari());
     }
 }
 

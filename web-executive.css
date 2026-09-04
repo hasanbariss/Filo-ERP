@@ -156,6 +156,7 @@
     .bf-sidebar-wordmark { display: inline-flex; align-items: baseline; color: #f8fafb; font-size: 27px; line-height: 1; letter-spacing: -.055em; }
     .bf-sidebar-wordmark b { font-weight: 800; }
     .bf-sidebar-wordmark strong { color: var(--erp-coral); font-weight: 740; }
+    .bf-sidebar .sidebar-brand-logo { width: 154px; max-height: 48px; object-fit: contain; }
     .bf-sidebar .bf-company-context { display: none; }
     .bf-sidebar .bf-sidebar-nav {
         display: block;
@@ -306,6 +307,7 @@
     :root.dark body.bf-app .bf-sidebar.is-collapsed { width: 64px; }
     .bf-sidebar.is-collapsed .bf-sidebar-brand { padding: 0; justify-content: center; }
     .bf-sidebar.is-collapsed .bf-sidebar-wordmark { display: none; }
+    .bf-sidebar.is-collapsed .sidebar-brand-logo { display: none; }
     .bf-sidebar.is-collapsed .bf-sidebar-brand::after { content: "b."; color: #fff; font-size: 21px; font-weight: 820; letter-spacing: -.08em; }
     .bf-sidebar.is-collapsed .nav-link { padding: 0; justify-content: center; }
     .bf-sidebar.is-collapsed .nav-link span { display: none; }

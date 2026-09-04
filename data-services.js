@@ -6689,6 +6689,7 @@ window.doLogin = async function () {
         }
 
         // Başarılı giriş
+        if (typeof window.clearViewDataCache === 'function') window.clearViewDataCache();
         document.getElementById('auth-overlay').style.display = 'none';
         setLoginButton(false);
         btn.disabled = false;
@@ -6716,6 +6717,7 @@ window.doLogin = async function () {
 
 window.doLogout = async function () {
     localStorage.removeItem('ideol-auto-login');
+    if (typeof window.clearViewDataCache === 'function') window.clearViewDataCache();
     if (window.supabaseUrl !== 'YOUR_SUPABASE_URL') {
         await window.supabaseClient.auth.signOut();
     }
@@ -8409,6 +8411,8 @@ window.fetchAylikOdemeOzeti = async function () {
 
 window.refreshAllModules = function () {
 
+    if (typeof window.clearViewDataCache === 'function') window.clearViewDataCache();
+
     if (typeof window.fetchFinansDashboard === 'function') window.fetchFinansDashboard();
     if (typeof window.fetchAraclar === 'function') window.fetchAraclar();
     if (typeof window.fetchCariler === 'function') window.fetchCariler();
@@ -8447,9 +8451,12 @@ window.switchRaporTab = function(tab) {
     // Load tab data if not already loaded
     const ay = document.getElementById('rapor-ay')?.value;
     if (!ay) return;
-    if (tab === 'personel') window.fetchRaporPersonel(ay);
-    else if (tab === 'musteri') window.fetchRaporMusteri(ay);
-    else if (tab === 'cari') window.fetchRaporCari();
+    const loadReport = (key, loader) => typeof window.loadViewData === 'function'
+        ? window.loadViewData(key, loader)
+        : Promise.resolve().then(loader);
+    if (tab === 'personel') loadReport(`rapor:personel:${ay}`, () => window.fetchRaporPersonel(ay));
+    else if (tab === 'musteri') loadReport(`rapor:musteri:${ay}`, () => window.fetchRaporMusteri(ay));
+    else if (tab === 'cari') loadReport(`rapor:cari:${ay}`, () => window.fetchRaporCari());
 };
 
 // ============================================================
@@ -9190,6 +9197,11 @@ window.fetchDashboard = async function() {
 // Güvenli başlatma fonksiyonu: Sadece başarılı giriş sonrası çağrılır
 window.initApp = function() {
   if (window.appInitialized) return;
+  if (!window.__dashboardModuleReady) {
+    clearTimeout(window.__pendingAppInitTimer);
+    window.__pendingAppInitTimer = setTimeout(window.initApp, 25);
+    return;
+  }
   window.appInitialized = true;
   
 

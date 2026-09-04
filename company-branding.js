@@ -110,7 +110,7 @@
     function getPrintFooter(meta) {
         return '<footer class="platform-print-footer" data-platform-print-footer><span>'
             + escapeHTML(meta || new Date().toLocaleString('tr-TR'))
-            + '</span><span>Baris.Flow ile oluşturuldu</span></footer>';
+            + '</span><span>Filo yönetim sistemi ile oluşturuldu</span></footer>';
     }
 
     function decoratePrintRoot(root, options) {
@@ -156,7 +156,7 @@
         }
         doc.setTextColor(148, 163, 184);
         doc.setFontSize(7);
-        doc.text('Baris.Flow ile oluşturuldu', pageWidth - 14, pageHeight - 7, { align: 'right' });
+        doc.text('Filo yönetim sistemi ile oluşturuldu', pageWidth - 14, pageHeight - 7, { align: 'right' });
     }
 
     function applyRuntimeBranding() {

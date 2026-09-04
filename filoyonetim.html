@@ -5,18 +5,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="format-detection" content="telephone=no">
-    <title>Baris.Flow</title>
+    <title>Filo Yönetimi</title>
     <meta name="google" content="notranslate">
     <!-- iOS PWA Support -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Baris.Flow">
+    <meta name="apple-mobile-web-app-title" content="Filo Yönetimi">
     <meta name="theme-color" content="#f3f4f2">
     <script>
         try {
             document.documentElement.classList.toggle('dark', localStorage.getItem('baris-flow-web-theme-v3') === 'dark');
         } catch (_) { /* Light theme remains the safe first paint. */ }
+        document.documentElement.classList.add('auth-checking');
     </script>
+    <style>
+        #auth-boot-screen { position: fixed; inset: 0; z-index: 10001; display: grid; place-items: center; background: #f5f5f2; }
+        #auth-boot-screen img { display: block; width: 154px; height: auto; border-radius: 8px; }
+        html:not(.auth-checking) #auth-boot-screen { display: none; }
+        html.auth-checking #auth-overlay,
+        html.auth-checking .bf-sidebar,
+        html.auth-checking .bf-main-shell,
+        html.auth-checking .mobile-bottom-nav,
+        html.auth-checking #sidebar-overlay { visibility: hidden !important; }
+    </style>
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
@@ -87,7 +98,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.14">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.11">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.12">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
     <link rel="stylesheet" href="ui-final-pass.css?v=1.0.0">
     <!-- Chart.js -->
@@ -149,6 +160,10 @@
 
 <body class="bf-app">
 
+    <div id="auth-boot-screen" aria-label="Oturum kontrol ediliyor">
+        <img src="icons/baris-flow-logo.png" alt="Platform logosu">
+    </div>
+
     <!-- Mobile Sidebar Overlay -->
     <div id="sidebar-overlay" onclick="window.closeMobileSidebar()"></div>
 
@@ -157,10 +172,10 @@
         <div class="auth-shell">
             <section class="auth-login-area">
                 <div class="auth-login-card">
-                    <span class="auth-wordmark" aria-label="Baris.Flow"><b>baris.</b><strong>Flow</strong></span>
+                    <img src="icons/baris-flow-logo.png" alt="Platform logosu" class="auth-brand-logo">
                     <p class="auth-kicker">Güvenli erişim</p>
                     <h2>Hesabınıza giriş yapın</h2>
-                    <p class="auth-login-subtitle">Baris.Flow</p>
+                    <p class="auth-login-subtitle">Kurumsal filo yönetimi</p>
 
                     <div id="auth-error" class="auth-error hidden"></div>
 
@@ -185,7 +200,7 @@
                         <span>Bu cihazda otomatik giriş yap</span>
                     </label>
 
-                    <button onclick="doLogin()" id="auth-login-btn" class="auth-submit">
+                    <button onclick="doLogin()" id="auth-login-btn" class="auth-submit" disabled>
                         Giriş yap
                         <span aria-hidden="true">→</span>
                     </button>
@@ -193,8 +208,8 @@
                 </div>
             </section>
 
-            <aside class="auth-context" aria-label="Baris.Flow Drive">
-                <span class="auth-context-chip">Baris.Flow</span>
+            <aside class="auth-context" aria-label="Filo yönetimi">
+                <span class="auth-context-chip">Yönetim Platformu</span>
                 <h1>Filo operasyonunuz.<br><em>Tek akışta.</em></h1>
                 <div class="auth-context-list">
                     <div><i data-lucide="truck" aria-hidden="true"></i><span>Filo</span></div>
@@ -209,7 +224,7 @@
     <!-- Fixed Sidebar -->
     <aside class="sidebar bf-sidebar" id="main-sidebar" aria-label="Ana navigasyon">
         <div class="bf-sidebar-brand">
-            <span class="bf-sidebar-wordmark" aria-label="Baris.Flow"><b>baris.</b><strong>Flow</strong></span>
+            <img src="icons/baris-flow-logo.png" alt="Platform logosu" class="sidebar-brand-logo">
         </div>
 
         <div class="bf-company-context" aria-label="Aktif şirket">
@@ -257,7 +272,7 @@
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
             <div class="bf-topbar-company">
-                <strong data-platform-name>Baris.Flow</strong>
+                <strong data-company-name>IDEOL</strong>
                 <i data-lucide="chevron-down" aria-hidden="true"></i>
                 <h1 id="page-title" class="sr-only">Genel Bakış</h1>
             </div>
@@ -1068,7 +1083,7 @@
                                 </div>
                                 <div>
                                     <h3 class="font-bold text-white text-lg">Genel Günlük İçe Aktar</h3>
-                                    <p class="text-xs text-gray-500">Standart Baris.Flow puantaj formatı.</p>
+                                    <p class="text-xs text-gray-500">Standart puantaj formatı.</p>
                                 </div>
                             </div>
                         </div>
@@ -2735,6 +2750,7 @@
             function _hideAuthOverlay(user) {
                 var ov = document.getElementById('auth-overlay');
                 if (ov) ov.style.display = 'none';
+                document.documentElement.classList.remove('auth-checking');
                 var dd = document.getElementById('user-display-name');
                 if (dd && user && user.email) {
                     dd.textContent = user.email.split('@')[0].substring(0, 2).toUpperCase();
@@ -2743,12 +2759,41 @@
             function _showAuthOverlay() {
                 var ov = document.getElementById('auth-overlay');
                 if (ov) ov.style.display = 'flex';
+                document.documentElement.classList.remove('auth-checking');
+                var loginBtn = document.getElementById('auth-login-btn');
+                if (loginBtn && typeof window.doLogin === 'function') loginBtn.disabled = false;
+                else if (loginBtn) {
+                    var loginReadyInterval = setInterval(function () {
+                        if (typeof window.doLogin === 'function') {
+                            loginBtn.disabled = false;
+                            clearInterval(loginReadyInterval);
+                        }
+                    }, 25);
+                    setTimeout(function () { clearInterval(loginReadyInterval); }, 6000);
+                }
             }
             function _isAutoLoginEnabled() {
                 return localStorage.getItem('ideol-auto-login') === '1';
             }
+            function _activateAuthenticatedApp(user) {
+                var attempts = 0;
+                var activate = function () {
+                    if (typeof window.initApp !== 'function' || !window.__dashboardModuleReady) return false;
+                    _hideAuthOverlay(user);
+                    window.initApp();
+                    return true;
+                };
+                if (activate()) return;
+                var appReadyInterval = setInterval(function () {
+                    attempts += 1;
+                    if (activate() || attempts >= 200) {
+                        clearInterval(appReadyInterval);
+                        if (attempts >= 200) _showAuthOverlay();
+                    }
+                }, 25);
+            }
             // window.doLogin ve window.doLogout data-services.js içerisinde tanımlandığı için buradan kaldırıldı.
-            document.addEventListener('DOMContentLoaded', function () {
+            (function startAuthCheck() {
                 var p = document.getElementById('auth-password');
                 if (p) p.addEventListener('keydown', function (e) { if (e.key === 'Enter') window.doLogin(); });
                 var em = document.getElementById('auth-email');
@@ -2761,24 +2806,25 @@
                         // Otomatik giriş özellikle seçilmediyse her açılışta giriş ekranını göster.
                         window.supabaseClient.auth.getSession().then(({ data: { session } }) => {
                             if (session && _isAutoLoginEnabled()) {
-                                _hideAuthOverlay(session.user);
-                                if (typeof window.initApp === 'function') window.initApp();
+                                _activateAuthenticatedApp(session.user);
                             } else {
                                 if (session) window.supabaseClient.auth.signOut();
                                 _showAuthOverlay();
                             }
-                        });
+                        }).catch(function () { _showAuthOverlay(); });
 
                         window.supabaseClient.auth.onAuthStateChange(function (ev, sess) {
                             if (ev === 'SIGNED_IN' && sess) {
-                                _hideAuthOverlay(sess.user);
-                                if (typeof window.initApp === 'function') window.initApp();
+                                _activateAuthenticatedApp(sess.user);
                             }
                             else if (ev === 'SIGNED_OUT') _showAuthOverlay();
                         });
                     }
                 }, 100);
-            });
+                setTimeout(function () {
+                    if (document.documentElement.classList.contains('auth-checking')) _showAuthOverlay();
+                }, 6000);
+            })();
         </script>
 
 
@@ -2889,25 +2935,27 @@
             container.innerHTML = html;
         };
     </script>
-    <!-- 1. CRITICAL LIBRARIES (exact versions, defer) -->
+<!-- 1. AUTH BOOTSTRAP (session check starts before heavier UI libraries) -->
 <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<script defer src="https://filo-erp-pi.vercel.app/api/public-config?v=1"></script>
+<script defer src="config.js"></script>
+
+<!-- 2. CRITICAL LIBRARIES (exact versions, defer) -->
 <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-<!-- 2. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
-<script defer src="https://filo-erp-pi.vercel.app/api/public-config?v=1"></script>
-<script defer src="config.js"></script>
-<script defer src="company-branding.js?v=2.0.1"></script>
+<!-- 3. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
+<script defer src="company-branding.js?v=2.0.2"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
 <script defer src="report-analytics.js?v=2.0.0"></script>
-<script defer src="data-services.js?v=2.0.10"></script>
+<script defer src="data-services.js?v=2.0.11"></script>
 <script defer src="report-comparison-ui.js?v=2.0.0"></script>
-<script defer src="ui-manager.js?v=2.0.10"></script>
+<script defer src="ui-manager.js?v=2.0.11"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 
 
@@ -2933,7 +2981,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.10"></script>
+<script defer src="dashboard-funcs.js?v=2.0.11"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

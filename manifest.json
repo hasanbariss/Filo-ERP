@@ -1,6 +1,6 @@
 {
-    "name": "Baris.Flow",
-    "short_name": "Baris.Flow",
+    "name": "Filo Yönetimi",
+    "short_name": "Filo",
     "description": "Araç filosu, personel ve finans yönetim sistemi",
     "start_url": "/filoyonetim.html",
     "scope": "/",

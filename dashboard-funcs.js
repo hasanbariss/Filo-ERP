@@ -654,6 +654,7 @@ window.fetchDashboardData = function () {
 };
 
 window.fetchDashboard = window.fetchDashboardData;
+window.__dashboardModuleReady = true;
 
 // ════════════════════════════════════════════════════════════════
 // BİTEN POLİÇELER TABLO RENDER
