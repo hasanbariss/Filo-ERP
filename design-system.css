@@ -2851,8 +2851,8 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     backdrop-filter: blur(10px);
 }
 #cari-kart-modal-overlay .cari-card-sheet {
-    width: min(760px, calc(100vw - clamp(24px, 7vw, 96px))) !important;
-    max-width: 760px !important;
+    width: min(640px, calc(100vw - clamp(24px, 9vw, 128px))) !important;
+    max-width: 640px !important;
     max-height: calc(100dvh - clamp(20px, 5vh, 52px)) !important;
     color: var(--bf-text-primary);
     border-color: var(--bf-border) !important;
@@ -2867,12 +2867,12 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     border-color: var(--bf-border) !important;
     background: var(--bf-surface) !important;
 }
-#cari-kart-modal-overlay .cari-card-eyebrow { font-size: 9px; line-height: 1; letter-spacing: .08em; }
-#cari-kart-modal-overlay .cari-card-header h2 { margin: 3px 0 0; font-size: 19px !important; line-height: 1.1; }
+#cari-kart-modal-overlay .cari-card-eyebrow { font-size: 11px; line-height: 1; letter-spacing: .07em; }
+#cari-kart-modal-overlay .cari-card-header h2 { margin: 3px 0 0; font-size: 21px !important; line-height: 1.1; }
 #cari-kart-modal-overlay .cari-card-header h2 svg { width: 18px; height: 18px; }
 #cari-kart-modal-overlay .cari-hakedis-plate { padding-left: 8px; border-left: 1px solid var(--bf-border-strong); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 #cari-kart-modal-overlay .cari-card-meta { margin-top: 3px !important; gap: 6px !important; }
-#cari-kart-modal-overlay .cari-card-meta p { margin: 0; font-size: 11px !important; line-height: 1.2; }
+#cari-kart-modal-overlay .cari-card-meta p { margin: 0; font-size: 13px !important; line-height: 1.25; }
 #cari-kart-modal-overlay .cari-card-actions { gap: 6px !important; }
 #cari-kart-modal-overlay .cari-card-action { min-height: 34px; padding: 0 11px !important; border: 1px solid var(--bf-border); border-radius: 7px !important; box-shadow: none !important; }
 #cari-kart-modal-overlay .cari-card-close { width: 34px; height: 34px; padding: 0 !important; border: 1px solid var(--bf-border); border-radius: 7px !important; }
@@ -2902,7 +2902,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-card-section > div > h3 {
     margin: 0 0 8px !important;
     color: var(--bf-text-secondary) !important;
-    font-size: 10px !important;
+    font-size: 12px !important;
     line-height: 1.2;
     letter-spacing: .055em !important;
 }
@@ -2920,8 +2920,8 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-factory-toggle { min-height: 42px; padding: 7px 11px; border-bottom: 0; background: var(--bf-surface-subtle); }
 #cari-kart-modal-overlay .cari-factory-card.is-open .cari-factory-toggle { border-bottom: 1px solid var(--bf-border); }
 #cari-kart-modal-overlay .cari-factory-toggle > span { gap: 7px; }
-#cari-kart-modal-overlay .cari-factory-toggle strong { font-size: 12px; }
-#cari-kart-modal-overlay .cari-factory-toggle small { margin-left: 3px; font-size: 10px; }
+#cari-kart-modal-overlay .cari-factory-toggle strong { font-size: 14px; }
+#cari-kart-modal-overlay .cari-factory-toggle small { margin-left: 3px; font-size: 12px; }
 #cari-kart-modal-overlay .cari-factory-content { padding: 8px 10px 9px; }
 #cari-kart-modal-overlay .cari-factory-title { color: var(--bf-text-primary) !important; }
 #cari-kart-modal-overlay .cari-rate-grid {
@@ -2966,7 +2966,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-rate-item > div:first-child > div { gap: 8px; }
 #cari-kart-modal-overlay .cari-rate-item > div:first-child > div > span:first-child {
     color: var(--bf-text-secondary) !important;
-    font-size: 10px !important;
+    font-size: 12px !important;
     line-height: 1.2;
     letter-spacing: .025em;
 }
@@ -2980,11 +2980,11 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     position: absolute;
     right: calc(100% + 8px);
     color: var(--bf-text-tertiary);
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
 }
-#cari-kart-modal-overlay .cari-rate-item input[type="number"] { min-height: 28px; font-size: 12px !important; }
+#cari-kart-modal-overlay .cari-rate-item input[type="number"] { min-height: 30px; font-size: 14px !important; }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-count"] { width: 42px !important; height: 27px; padding: 2px 5px !important; }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-fiyat"] { height: 27px; padding-top: 2px !important; padding-bottom: 2px !important; }
 #cari-kart-modal-overlay .cari-rate-item.is-shift { --item-accent: var(--bf-flow-coral-500); }
@@ -3003,7 +3003,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     background: var(--bf-border);
 }
 #cari-kart-modal-overlay .cari-tax-item { display: grid; grid-template-columns: auto 88px; align-items: center; gap: 10px; }
-#cari-kart-modal-overlay .cari-tax-item > div:first-child { margin: 0 !important; font-size: 9px !important; }
+#cari-kart-modal-overlay .cari-tax-item > div:first-child { margin: 0 !important; font-size: 11px !important; }
 #cari-kart-modal-overlay .cari-tax-item input { min-height: 28px; padding: 2px 5px !important; text-align: right; }
 #cari-kart-modal-overlay input,
 #cari-kart-modal-overlay select {
@@ -3023,7 +3023,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 }
 #cari-kart-modal-overlay .cari-factory-total > div { min-height: 34px; padding: 0 9px; border-right: 1px solid var(--bf-border); }
 #cari-kart-modal-overlay .cari-factory-total > div:last-child { border-right: 0; }
-#cari-kart-modal-overlay .cari-factory-total span { font-size: 10px !important; letter-spacing: 0 !important; }
+#cari-kart-modal-overlay .cari-factory-total span { font-size: 11px !important; letter-spacing: 0 !important; }
 #cari-kart-modal-overlay .cari-factory-total .text-white,
 #cari-kart-modal-overlay .row-toplam { color: var(--bf-text-primary) !important; }
 #cari-kart-modal-overlay #yakitlar-list-container > div,
@@ -3043,13 +3043,13 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     box-shadow: 0 -5px 16px rgba(16, 47, 70, .07) !important;
 }
 #cari-kart-modal-overlay .cari-card-summary > div {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0 !important;
 }
 #cari-kart-modal-overlay .cari-summary-row {
-    flex: 1 1 0;
     min-width: 0;
-    min-height: 58px;
+    min-height: 52px;
     padding: 8px 11px;
     flex-direction: column;
     align-items: flex-start !important;
@@ -3060,17 +3060,17 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     border-radius: 0;
     background: transparent;
 }
-#cari-kart-modal-overlay .cari-summary-row > span:first-child { color: var(--bf-text-muted) !important; font-size: 9px !important; line-height: 1.2; text-transform: uppercase; letter-spacing: .04em; }
-#cari-kart-modal-overlay .cari-summary-row > span:last-child { color: var(--bf-text-primary) !important; font-size: 14px !important; line-height: 1.2; font-variant-numeric: tabular-nums; }
+#cari-kart-modal-overlay .cari-summary-row > span:first-child { color: var(--bf-text-muted) !important; font-size: 10px !important; line-height: 1.2; text-transform: uppercase; letter-spacing: .03em; }
+#cari-kart-modal-overlay .cari-summary-row > span:last-child { color: var(--bf-text-primary) !important; font-size: 15px !important; line-height: 1.2; font-variant-numeric: tabular-nums; }
 #cari-kart-modal-overlay .cari-summary-row > span:last-child { white-space: nowrap; }
 #cari-kart-modal-overlay .cari-summary-row.is-vat { --summary-accent: var(--bf-info); }
 #cari-kart-modal-overlay .cari-summary-row.is-withholding { --summary-accent: var(--bf-warning); }
 #cari-kart-modal-overlay .cari-summary-row.is-fuel { --summary-accent: #c87416; }
 #cari-kart-modal-overlay .cari-summary-row.is-expense { --summary-accent: var(--bf-danger); }
 #cari-kart-modal-overlay .cari-summary-row.is-net {
-    flex-grow: 1.35;
+    grid-column: 1 / -1;
     --summary-accent: var(--bf-flow-coral-500);
-    min-height: 58px;
+    min-height: 54px;
     border-right: 0;
     background: color-mix(in srgb, var(--bf-flow-coral-500) 9%, var(--bf-surface));
 }
@@ -3079,23 +3079,24 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 
 /* Cari hakediş listesinde başlık ve tutarlar aynı kolon eksenini kullanır. */
 #content-taseron-finans .progress-table { table-layout: fixed; }
-#content-taseron-finans .progress-table { min-width: 920px; }
+#content-taseron-finans .progress-table { min-width: 880px; }
 #content-taseron-finans .progress-table th:nth-child(1),
-#content-taseron-finans .progress-table td:nth-child(1) { width: 21%; }
+#content-taseron-finans .progress-table td:nth-child(1) { width: 22%; }
 #content-taseron-finans .progress-table th:nth-child(2),
-#content-taseron-finans .progress-table td:nth-child(2) { width: 31%; }
+#content-taseron-finans .progress-table td:nth-child(2) { width: 25%; }
 #content-taseron-finans .progress-table th:nth-child(3),
-#content-taseron-finans .progress-table td:nth-child(3) { width: 13.5%; text-align: right; }
+#content-taseron-finans .progress-table td:nth-child(3) { width: 15%; text-align: right; }
 #content-taseron-finans .progress-table th:nth-child(4),
-#content-taseron-finans .progress-table td:nth-child(4) { width: 13.5%; text-align: right; }
+#content-taseron-finans .progress-table td:nth-child(4) { width: 15%; text-align: right; }
 #content-taseron-finans .progress-table th:nth-child(5),
-#content-taseron-finans .progress-table td:nth-child(5) { width: 14%; text-align: right; }
+#content-taseron-finans .progress-table td:nth-child(5) { width: 16%; text-align: right; }
 #content-taseron-finans .progress-table th:nth-child(6),
 #content-taseron-finans .progress-table td:nth-child(6) { width: 7%; text-align: right; }
 #content-taseron-finans .hakedis-ledger-row { height: 58px; }
-#content-taseron-finans .cari-card-services { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-#content-taseron-finans .cari-card-services .service-pill { min-height: 28px; padding: 5px 8px; font-size: 10px; }
-#content-taseron-finans .cari-card-services .service-pill strong { font-size: 11px; }
+#content-taseron-finans .cari-card-services { display: flex; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 7px; white-space: nowrap; }
+#content-taseron-finans .cari-card-services .service-pill { min-height: 0; margin: 0; padding: 0; gap: 3px; border: 0 !important; border-radius: 0; background: transparent; font-size: 11px; }
+#content-taseron-finans .cari-card-services .service-pill strong { font-size: 12px; }
+#content-taseron-finans .cari-card-services .service-pill + .service-pill::before { content: "·"; margin-right: 4px; color: var(--bf-text-tertiary); }
 #content-taseron-finans .cari-card-money { font-variant-numeric: tabular-nums; }
 #content-taseron-finans .cari-card-money strong { display: block; font-size: 13px; line-height: 1.2; white-space: nowrap; }
 
