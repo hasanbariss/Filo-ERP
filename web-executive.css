@@ -1,230 +1,326 @@
 /*
- * Baris.Flow — Executive ERP
- * Final desktop presentation layer. Light-first, with an equivalent dark theme.
- * Mobile/iOS presentation is intentionally untouched.
+ * Baris.Flow — Reference ERP desktop system
+ * Desktop-only presentation layer based on the approved Light Executive reference.
+ * Business logic, data bindings and mobile/iOS layouts are intentionally untouched.
  */
 
 @media (min-width: 769px) {
     :root:not(.dark) {
         color-scheme: light;
-        --bf-bg: #f3f4f2;
-        --bf-workspace: #f7f7f5;
-        --bf-surface: #ffffff;
-        --bf-surface-raised: #f7f8f7;
-        --bf-surface-hover: #eef1f1;
-        --bf-surface-float: #ffffff;
-        --bf-border: #dde2e2;
-        --bf-border-strong: #c7cecf;
-        --bf-text: #172027;
-        --bf-text-secondary: #53616a;
-        --bf-text-muted: #849098;
-        --bf-primary: #e45e4b;
-        --bf-primary-hover: #cf4e3d;
-        --bf-cyan: #168da0;
-        --bf-orange: #c97926;
-        --bf-violet: #7661a8;
-        --bf-gold: #a7771d;
-        --bf-teal: #228d82;
-        --bf-indigo: #526ca8;
-        --bf-rose: #b95672;
-        --bf-success: #25855c;
-        --bf-warning: #a66b12;
-        --bf-danger: #c34750;
-        --bf-info: #356fa8;
-        --bf-canvas: var(--bf-bg);
-        --bf-surface-soft: var(--bf-workspace);
-        --bf-surface-subtle: var(--bf-surface-raised);
-        --bf-divider: var(--bf-border);
-        --bf-text-primary: var(--bf-text);
-        --bf-shadow-xs: 0 1px 1px rgba(30, 43, 49, .025);
-        --bf-shadow-sm: 0 8px 24px rgba(30, 43, 49, .055);
-        --bf-shadow-md: 0 18px 44px rgba(30, 43, 49, .09);
-        --bf-shadow-modal: 0 28px 80px rgba(24, 34, 40, .2);
+        --erp-canvas: #f6f7f8;
+        --erp-panel: #ffffff;
+        --erp-panel-soft: #f8f9fa;
+        --erp-filter-bar: #f1f3f5;
+        --erp-panel-hover: #f2f4f6;
+        --erp-line: #dfe3e7;
+        --erp-line-strong: #cbd2d8;
+        --erp-text: #17212b;
+        --erp-text-2: #4f5c68;
+        --erp-text-3: #7e8993;
+        --erp-coral: #ef6657;
+        --erp-coral-strong: #dc5143;
+        --erp-teal: #169a9b;
+        --erp-blue: #3178c6;
+        --erp-amber: #c8842f;
+        --erp-violet: #7a5bb8;
+        --erp-green: #2b8b68;
+        --erp-red: #d34f5a;
+        --erp-sidebar: #17232d;
+        --erp-sidebar-deep: #111a22;
+        --erp-topbar: #1c252e;
+        --bf-bg: var(--erp-canvas);
+        --bf-workspace: var(--erp-canvas);
+        --bf-surface: var(--erp-panel);
+        --bf-surface-raised: var(--erp-panel-soft);
+        --bf-surface-hover: var(--erp-panel-hover);
+        --bf-surface-float: var(--erp-panel);
+        --bf-border: var(--erp-line);
+        --bf-border-strong: var(--erp-line-strong);
+        --bf-text: var(--erp-text);
+        --bf-text-primary: var(--erp-text);
+        --bf-text-secondary: var(--erp-text-2);
+        --bf-text-muted: var(--erp-text-3);
+        --bf-primary: var(--erp-coral);
+        --bf-primary-hover: var(--erp-coral-strong);
+        --bf-shadow-xs: 0 1px 2px rgba(22, 33, 43, .025);
+        --bf-shadow-sm: 0 4px 14px rgba(22, 33, 43, .045);
+        --bf-shadow-md: 0 14px 34px rgba(22, 33, 43, .09);
+        --bf-shadow-modal: 0 24px 70px rgba(22, 33, 43, .22);
     }
 
     :root.dark {
-        --bf-bg: #0b1014;
-        --bf-workspace: #10171c;
-        --bf-surface: #151e25;
-        --bf-surface-raised: #1b262e;
-        --bf-surface-hover: #22313a;
-        --bf-surface-float: #263640;
-        --bf-border: #2c3b44;
-        --bf-border-strong: #43535d;
-        --bf-text: #edf2f3;
-        --bf-text-secondary: #b1bdc2;
-        --bf-text-muted: #7c8c94;
-        --bf-primary: #ff6b55;
-        --bf-primary-hover: #ff806d;
+        color-scheme: dark;
+        --erp-canvas: #10161b;
+        --erp-panel: #182129;
+        --erp-panel-soft: #1d2831;
+        --erp-filter-bar: #202b34;
+        --erp-panel-hover: #23313b;
+        --erp-line: #2d3943;
+        --erp-line-strong: #42515c;
+        --erp-text: #f0f3f5;
+        --erp-text-2: #b5c0c7;
+        --erp-text-3: #87969f;
+        --erp-coral: #ff7464;
+        --erp-coral-strong: #ff8a7c;
+        --erp-teal: #35b6b1;
+        --erp-blue: #67a3e8;
+        --erp-amber: #e3a24c;
+        --erp-violet: #aa8cdd;
+        --erp-green: #57b58a;
+        --erp-red: #f16f78;
+        --erp-sidebar: #17222b;
+        --erp-sidebar-deep: #111920;
+        --erp-topbar: #1b232b;
+        --bf-bg: var(--erp-canvas);
+        --bf-workspace: var(--erp-canvas);
+        --bf-surface: var(--erp-panel);
+        --bf-surface-raised: var(--erp-panel-soft);
+        --bf-surface-hover: var(--erp-panel-hover);
+        --bf-surface-float: #202c35;
+        --bf-border: var(--erp-line);
+        --bf-border-strong: var(--erp-line-strong);
+        --bf-text: var(--erp-text);
+        --bf-text-primary: var(--erp-text);
+        --bf-text-secondary: var(--erp-text-2);
+        --bf-text-muted: var(--erp-text-3);
+        --bf-primary: var(--erp-coral);
+        --bf-primary-hover: var(--erp-coral-strong);
     }
 
+    html, body.bf-app { min-height: 100%; background: var(--erp-canvas); }
     body.bf-app {
-        color: var(--bf-text);
-        background: var(--bf-bg);
+        color: var(--erp-text);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         font-size: 13px;
+        line-height: 1.45;
     }
 
-    /* Two-layer command navigation */
-    body.bf-app .bf-sidebar.is-executive-nav,
-    :root.dark body.bf-app .bf-sidebar.is-executive-nav {
-        top: 16px;
-        bottom: 16px;
-        left: 16px;
+    /* App shell */
+    body.bf-app .bf-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 50;
         display: flex;
-        width: 308px;
+        width: 244px;
         padding: 0;
-        flex-direction: row;
-        overflow: hidden;
-        border: 1px solid rgba(255,255,255,.08);
-        border-radius: 16px;
-        color: #dce4e7;
-        background: #172129;
-        box-shadow: 0 18px 46px rgba(22, 31, 37, .18);
-        transition: width 200ms cubic-bezier(.2,.7,.2,1);
-    }
-    .bf-sidebar.is-executive-nav::after { display: none; }
-    .bf-command-rail {
-        display: flex;
-        width: 72px;
-        min-width: 72px;
-        padding: 14px 10px 12px;
         flex-direction: column;
-        align-items: center;
-        border-right: 1px solid rgba(255,255,255,.08);
-        background: #111920;
-    }
-    .bf-command-brand {
-        display: grid;
-        width: 42px;
-        height: 42px;
-        margin-bottom: 24px;
-        place-items: center;
-        border: 1px solid rgba(255,107,85,.28);
-        border-radius: 12px;
-        color: #fff;
-        background: rgba(255,107,85,.1);
-        cursor: pointer;
-    }
-    .bf-command-brand span { font-size: 19px; font-weight: 820; letter-spacing: -.08em; }
-    .bf-command-sections { display: grid; width: 100%; gap: 8px; }
-    .bf-command-section {
-        position: relative;
-        display: grid;
-        width: 50px;
-        height: 48px;
-        place-items: center;
+        overflow: hidden;
         border: 0;
-        border-radius: 11px;
-        color: #84939b;
-        background: transparent;
-        cursor: pointer;
-        transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+        border-right: 1px solid rgba(255,255,255,.075);
+        border-radius: 0;
+        color: #d6dde2;
+        background: linear-gradient(180deg, var(--erp-sidebar) 0%, var(--erp-sidebar-deep) 100%);
+        box-shadow: none;
+        transition: width 180ms ease;
     }
-    .bf-command-section::before {
+    :root.dark body.bf-app .bf-sidebar {
+        inset: 0 auto 0 0;
+        width: 244px;
+        padding: 0;
+        border: 0;
+        border-right: 1px solid rgba(255,255,255,.075);
+        border-radius: 0;
+        background: linear-gradient(180deg, var(--erp-sidebar) 0%, var(--erp-sidebar-deep) 100%);
+        box-shadow: none;
+    }
+    body.bf-app .bf-sidebar::after { display: none; }
+    .bf-sidebar .bf-sidebar-brand {
+        display: flex;
+        height: 88px;
+        min-height: 88px;
+        margin: 0;
+        padding: 0 25px;
+        align-items: center;
+        border-bottom: 1px solid rgba(255,255,255,.075);
+        background: rgba(8,15,21,.22);
+    }
+    .bf-sidebar-wordmark { display: inline-flex; align-items: baseline; color: #f8fafb; font-size: 27px; line-height: 1; letter-spacing: -.055em; }
+    .bf-sidebar-wordmark b { font-weight: 800; }
+    .bf-sidebar-wordmark strong { color: var(--erp-coral); font-weight: 740; }
+    .bf-sidebar .bf-company-context { display: none; }
+    .bf-sidebar .bf-sidebar-nav {
+        display: block;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 20px 0 12px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.16) transparent;
+    }
+    .bf-sidebar .nav-section { display: block; margin: 0; }
+    .bf-sidebar .nav-section-label { display: none; }
+    .bf-sidebar .nav-link,
+    :root.dark body.bf-app .bf-sidebar .nav-link {
+        position: relative;
+        display: flex;
+        width: 100%;
+        min-height: 48px;
+        margin: 0;
+        padding: 0 25px;
+        gap: 16px;
+        align-items: center;
+        border: 0;
+        border-radius: 0;
+        color: #c1cbd1;
+        background: transparent;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        box-shadow: none;
+        transition: color 140ms ease, background 140ms ease;
+    }
+    .bf-sidebar .nav-link::before {
         position: absolute;
-        top: 12px;
-        bottom: 12px;
-        left: -10px;
+        inset: 0 auto 0 0;
         width: 3px;
-        border-radius: 0 3px 3px 0;
+        border-radius: 0;
         content: "";
         background: transparent;
     }
-    .bf-command-section:hover { color: #eef3f4; background: rgba(255,255,255,.055); transform: translateY(-1px); }
-    .bf-command-section.is-active { color: #ff7966; background: rgba(255,107,85,.105); }
-    .bf-command-section.is-active::before { background: #ff6b55; }
-    .bf-command-section svg { width: 18px; height: 18px; stroke-width: 1.8; }
-    .bf-command-section > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-    .bf-command-rail-footer { display: flex; margin-top: auto; min-height: 32px; align-items: center; }
-    .bf-command-status { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.045); }
-    .bf-command-status i { width: 7px; height: 7px; border-radius: 50%; background: #55c58a; box-shadow: 0 0 0 4px rgba(85,197,138,.1); }
-
-    .bf-sidebar-panel {
+    .bf-sidebar .nav-link svg { width: 20px; min-width: 20px; height: 20px; color: #b3bec6; stroke-width: 1.65; }
+    .bf-sidebar .nav-link:hover,
+    :root.dark body.bf-app .bf-sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,.055); }
+    .bf-sidebar .nav-link.active,
+    :root.dark body.bf-app .bf-sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.105); }
+    .bf-sidebar .nav-link.active::before { background: var(--erp-coral); }
+    .bf-sidebar .nav-link.active svg { color: var(--erp-coral); }
+    .bf-sidebar .bf-sidebar-footer {
         display: flex;
-        width: 236px;
-        min-width: 236px;
-        padding: 18px 14px 14px;
-        flex-direction: column;
-        overflow: hidden;
-        background: #18232b;
-        transition: opacity 150ms ease, transform 180ms ease;
-    }
-    .bf-sidebar-panel .bf-sidebar-brand { height: 42px; min-height: 42px; margin: 0 4px 14px; padding: 0 0 12px; }
-    .bf-sidebar-panel .sidebar-brand-logo { display: block; width: 146px; }
-    .bf-sidebar-panel .bf-company-context { min-height: 48px; margin: 0 0 16px; padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.035); }
-    .bf-sidebar-panel-context { display: flex; margin: 0 5px 13px; align-items: baseline; justify-content: space-between; }
-    .bf-sidebar-panel-context span { color: #758791; font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-    .bf-sidebar-panel-context strong { color: #eef3f4; font-size: 14px; font-weight: 680; }
-    .bf-sidebar-panel .bf-sidebar-nav { display: block; flex: 1 1 auto; min-height: 0; padding: 0; overflow-y: auto; }
-    .bf-sidebar-panel .nav-section { display: grid; gap: 3px; }
-    .bf-sidebar-panel .nav-section.is-rail-filtered-out { display: none; }
-    .bf-sidebar-panel .nav-section-label { display: none; }
-    .bf-sidebar-panel .nav-link,
-    :root.dark body.bf-app .bf-sidebar-panel .nav-link {
-        min-height: 42px;
+        min-height: 66px;
         margin: 0;
-        padding: 0 12px;
-        gap: 11px;
+        padding: 0;
+        align-items: stretch;
+        border-top: 1px solid rgba(255,255,255,.075);
+        background: rgba(0,0,0,.08);
+    }
+    .bf-sidebar-more { margin-top: 6px; border-top: 1px solid rgba(255,255,255,.055); }
+    .bf-sidebar-more > summary {
+        display: flex;
+        min-height: 46px;
+        padding: 0 25px;
+        align-items: center;
+        gap: 16px;
+        color: #8f9da6;
+        font-size: 12px;
+        cursor: pointer;
+        list-style: none;
+    }
+    .bf-sidebar-more > summary::-webkit-details-marker { display: none; }
+    .bf-sidebar-more > summary > svg { width: 20px; height: 20px; }
+    .bf-sidebar-more > summary .bf-sidebar-more-chevron { width: 14px; height: 14px; margin-left: auto; transition: transform 160ms ease; }
+    .bf-sidebar-more[open] > summary .bf-sidebar-more-chevron { transform: rotate(180deg); }
+    .bf-sidebar-more > div { padding-bottom: 4px; background: rgba(0,0,0,.08); }
+    .bf-sidebar-more > div .nav-link { min-height: 42px; padding-left: 34px; font-size: 12px; }
+
+    body.bf-app > .bf-main-shell {
+        width: auto;
+        min-height: 100vh;
+        margin: 0 0 0 244px;
+        padding: 62px 0 0;
+        background: var(--erp-canvas);
+        transition: margin-left 180ms ease;
+    }
+    body.bf-app .bf-topbar {
+        position: fixed;
+        inset: 0 0 auto 244px;
+        z-index: 45;
+        display: flex;
+        height: 62px;
+        min-height: 62px;
+        margin: 0;
+        padding: 0 22px;
+        align-items: center;
         border: 0;
-        border-radius: 9px;
-        color: #aebac0;
+        border-bottom: 1px solid rgba(255,255,255,.075);
+        border-radius: 0;
+        color: #eef2f4;
+        background: var(--erp-topbar);
+        box-shadow: none;
+        transition: left 180ms ease;
+    }
+    .bf-topbar-company { display: flex; min-width: 160px; margin-left: 0; align-items: center; gap: 9px; }
+    .bf-topbar-company strong { color: #f6f8f9; font-size: 13px; font-weight: 620; }
+    .bf-topbar-company svg { width: 14px; height: 14px; color: #9ca9b1; }
+    body.bf-app .bf-topbar .page-actions { margin-left: auto; gap: 18px; }
+    .bf-topbar-date { display: flex; align-items: center; gap: 8px; color: #d4dce1; font-size: 12px; }
+    .bf-topbar-date svg { width: 16px; height: 16px; }
+    body.bf-app .bf-user-menu {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid rgba(255,255,255,.16);
+        border-radius: 50%;
+        color: #1c252e;
+        background: #f7f8f8;
+        font-size: 11px;
+        font-weight: 720;
+    }
+    .bf-topbar-tool { display: grid; width: 32px; height: 32px; padding: 0; place-items: center; color: #c7d0d6; border: 0; border-radius: 50%; background: transparent; }
+    .bf-topbar-tool:hover { color: #fff; background: rgba(255,255,255,.08); }
+    .bf-topbar-tool svg { width: 17px; height: 17px; }
+    body.bf-app .sidebar-collapse-toggle {
+        position: static !important;
+        inset: auto !important;
+        z-index: auto;
+        display: flex;
+        width: 100%;
+        min-height: 66px;
+        padding: 0 25px;
+        align-items: center;
+        gap: 12px;
+        color: #aeb9bf;
+        border: 0;
+        border-radius: 0;
         background: transparent;
         font-size: 12px;
-        font-weight: 560;
+        text-align: left;
     }
-    .bf-sidebar-panel .nav-link:hover,
-    :root.dark body.bf-app .bf-sidebar-panel .nav-link:hover { color: #fff; background: rgba(255,255,255,.055); }
-    .bf-sidebar-panel .nav-link.active,
-    :root.dark body.bf-app .bf-sidebar-panel .nav-link.active { color: #fff; background: rgba(255,107,85,.1); }
-    .bf-sidebar-panel .nav-link::before { top: 9px; bottom: 9px; left: 0; width: 2px; }
-    .bf-sidebar-panel .nav-link svg { width: 17px; min-width: 17px; height: 17px; }
-    .bf-sidebar-panel .bf-sidebar-footer { display: grid; margin-top: 12px; padding-top: 10px; gap: 2px; }
+    body.bf-app .sidebar-collapse-toggle:hover { color: #fff; background: rgba(255,255,255,.05); }
+    body.bf-app .sidebar-collapse-toggle svg { width: 19px; height: 19px; flex: 0 0 19px; }
+    body.bf-app .sidebar-collapse-toggle::after { display: none; }
+    body.bf-app .bf-content { width: 100%; max-width: none; margin: 0; padding: 28px 32px 52px; }
 
-    body.bf-app .bf-sidebar.is-executive-nav.is-collapsed,
-    :root.dark body.bf-app .bf-sidebar.is-executive-nav.is-collapsed { width: 72px; padding: 0; }
-    .bf-sidebar.is-executive-nav.is-collapsed .bf-sidebar-panel { opacity: 0; transform: translateX(-12px); pointer-events: none; }
-    .bf-sidebar.is-executive-nav.is-collapsed .bf-command-rail { border-right-color: transparent; }
-    .bf-sidebar.is-executive-nav.is-collapsed .bf-sidebar-brand::before { display: none; }
+    body.bf-app .bf-sidebar.is-collapsed { width: 64px; }
+    :root.dark body.bf-app .bf-sidebar.is-collapsed { width: 64px; }
+    .bf-sidebar.is-collapsed .bf-sidebar-brand { padding: 0; justify-content: center; }
+    .bf-sidebar.is-collapsed .bf-sidebar-wordmark { display: none; }
+    .bf-sidebar.is-collapsed .bf-sidebar-brand::after { content: "b."; color: #fff; font-size: 21px; font-weight: 820; letter-spacing: -.08em; }
+    .bf-sidebar.is-collapsed .nav-link { padding: 0; justify-content: center; }
+    .bf-sidebar.is-collapsed .nav-link span { display: none; }
+    .bf-sidebar.is-collapsed .nav-link svg { width: 18px; height: 18px; }
+    .bf-sidebar.is-collapsed .bf-sidebar-more > summary { padding: 0; justify-content: center; }
+    .bf-sidebar.is-collapsed .bf-sidebar-more > summary span,
+    .bf-sidebar.is-collapsed .bf-sidebar-more > summary .bf-sidebar-more-chevron,
+    .bf-sidebar.is-collapsed .bf-sidebar-more > div { display: none; }
+    .bf-sidebar.is-collapsed .sidebar-collapse-toggle { padding: 0; justify-content: center; }
+    .bf-sidebar.is-collapsed .sidebar-collapse-toggle span { display: none; }
+    body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 64px; }
+    body.bf-app.sidebar-collapsed .bf-topbar { left: 64px; }
+    :root.dark body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 64px; }
+    :root.dark body.bf-app.sidebar-collapsed .bf-topbar { left: 64px; }
 
-    body.bf-app > .bf-main-shell { margin-left: 336px; padding: 16px 24px 48px 0; background: transparent; }
-    body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 104px; }
-    .bf-content { max-width: 1680px; }
+    /* Shared module system */
+    .main-module:not(.hidden) { color: var(--erp-text-2); animation: erp-enter 150ms ease-out both; }
+    @keyframes erp-enter { from { opacity: .45; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+    .main-module h1, .main-module h2, .main-module h3, .main-module h4,
+    .main-module .page-title { color: var(--erp-text); letter-spacing: -.025em; }
+    .main-module h1, .main-module .page-title { font-weight: 700; }
+    .main-module h2, .main-module h3 { font-weight: 650; }
+    .main-module p, .main-module small { color: var(--erp-text-3); }
+    .main-module label { color: var(--erp-text-2); font-weight: 560; }
 
-    /* Dark command bar works in both themes. */
-    body.bf-app .bf-topbar {
-        min-height: 58px;
-        margin: 0 0 30px;
-        padding: 8px 12px 8px 14px;
-        border: 0;
-        border-radius: 10px;
-        color: #edf2f3;
-        background: #20272d;
-        box-shadow: 0 5px 16px rgba(20, 28, 33, .09);
-        backdrop-filter: none;
-    }
-    body.bf-app .bf-topbar .page-title { color: #f4f6f7; font-size: 13px; }
-    body.bf-app .bf-topbar .page-subtitle { color: #919da4; font-size: 10px; }
-    body.bf-app .bf-topbar .sidebar-collapse-toggle { color: #aeb9bf; border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.04); }
-    body.bf-app .bf-topbar .sidebar-collapse-toggle:hover { color: #ff7a66; background: rgba(255,255,255,.07); }
-    body.bf-app .bf-topbar .sidebar-collapse-toggle::after { background: rgba(255,255,255,.1); }
-    body.bf-app .bf-top-search-input { color: #e7edef; border-color: rgba(255,255,255,.1); background: #293138; }
-    body.bf-app .bf-top-search-input::placeholder { color: #8f9aa0; }
-    body.bf-app .bf-user-menu { color: #ffd8d2; border-color: rgba(255,107,85,.22); background: rgba(255,107,85,.095); }
-
-    /* Shared executive hierarchy */
-    .main-module:not(.hidden) { color: var(--bf-text-secondary); animation: bf-executive-enter 180ms ease-out both; }
-    @keyframes bf-executive-enter { from { opacity: .25; transform: translateY(3px); } to { opacity: 1; transform: none; } }
-    .main-module h1, .main-module h2, .main-module .page-title { color: var(--bf-text); font-weight: 720; letter-spacing: -.035em; }
-    .main-module h3 { color: var(--bf-text); font-weight: 680; letter-spacing: -.02em; }
-    .main-module h4 { color: var(--bf-text-secondary); font-weight: 650; }
-    .main-module p, .main-module small { color: var(--bf-text-muted); line-height: 1.5; }
-    .main-module label { color: var(--bf-text-secondary); }
     .main-module:not(#module-dashboard) > .page-header,
     .owned-fleet-page-header, .contractor-page-header, .factory-page-header,
     .personnel-page-header, .receivables-page-header, .progress-page-header, .fuel-page-header {
-        margin-bottom: 24px;
+        margin: 0 0 22px;
         padding: 0 0 18px;
-        border-bottom: 1px solid var(--bf-border);
+        border-bottom: 1px solid var(--erp-line);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
     }
     .main-module:not(#module-dashboard) > .page-header::before,
     .owned-fleet-page-header::before, .contractor-page-header::before, .factory-page-header::before,
@@ -234,227 +330,2278 @@
     .fleet-surface, .contractor-surface, .factory-workspace, .personnel-workspace,
     .receivables-workspace, .progress-workspace, .fuel-workspace,
     .dashboard-card, [class*="workspace"] {
-        color: var(--bf-text);
-        border-color: var(--bf-border);
-        border-radius: 10px;
-        background: var(--bf-surface);
-        box-shadow: var(--bf-shadow-xs);
+        color: var(--erp-text);
+        border: 1px solid var(--erp-line);
+        border-radius: 5px;
+        background: var(--erp-panel);
+        box-shadow: none;
     }
-
     .btn-primary, body.bf-app button.bg-orange-500 {
+        min-height: 36px;
+        padding-inline: 15px;
         color: #fff;
-        border-color: #d95846;
-        border-radius: 7px;
-        background: #e45e4b;
+        border: 1px solid var(--erp-coral-strong);
+        border-radius: 4px;
+        background: var(--erp-coral);
         box-shadow: none;
     }
-    .btn-primary:hover, body.bf-app button.bg-orange-500:hover { background: #cf4e3d; }
+    .btn-primary:hover, body.bf-app button.bg-orange-500:hover { background: var(--erp-coral-strong); }
     .btn-secondary, .btn-ghost, .btn-icon {
-        color: var(--bf-text-secondary);
-        border-color: var(--bf-border);
-        border-radius: 7px;
-        background: var(--bf-surface);
+        min-height: 34px;
+        color: var(--erp-text-2);
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
         box-shadow: none;
     }
-    .btn-secondary:hover, .btn-ghost:hover, .btn-icon:hover { color: var(--bf-text); border-color: var(--bf-border-strong); background: var(--bf-surface-hover); }
-
-    .form-control,
-    body.bf-app input:not([type="checkbox"]):not([type="radio"]),
-    body.bf-app select,
-    body.bf-app textarea {
-        min-height: 38px;
-        color: var(--bf-text);
-        border-color: var(--bf-border);
-        border-radius: 7px;
-        background: var(--bf-surface);
+    .btn-secondary:hover, .btn-ghost:hover, .btn-icon:hover { color: var(--erp-text); border-color: var(--erp-line-strong); background: var(--erp-panel-hover); }
+    .form-control, .main-module input:not([type="checkbox"]):not([type="radio"]),
+    .main-module select, .main-module textarea {
+        min-height: 36px;
+        color: var(--erp-text);
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
         box-shadow: none;
     }
-    .form-control:focus,
-    body.bf-app input:not([type="checkbox"]):not([type="radio"]):focus,
-    body.bf-app select:focus,
-    body.bf-app textarea:focus { border-color: rgba(228,94,75,.65); box-shadow: 0 0 0 3px rgba(228,94,75,.09); }
-
-    /* Flat, precise table system */
-    .bf-data-table, .factory-table, .contractor-table, .personnel-table, .fleet-table,
-    .receivables-table, .progress-table, .fuel-table, .premium-table, .dashboard-policy-table,
-    #module-raporlar table, #module-finans table {
-        color: var(--bf-text);
-        border-collapse: collapse;
-        font-variant-numeric: tabular-nums;
+    .form-control:focus, .main-module input:focus, .main-module select:focus, .main-module textarea:focus {
+        border-color: #8295a4;
+        outline: 2px solid color-mix(in srgb, var(--erp-blue) 13%, transparent);
+        outline-offset: 0;
     }
-    .bf-data-table th, .factory-table th, #module-taseron .contractor-table th,
-    .personnel-table th, .fleet-table th, .receivables-table th, .progress-table th,
-    .fuel-table th, .premium-table th, .dashboard-policy-table thead th,
-    #module-raporlar table thead th, #module-finans table thead th {
-        height: 40px;
-        padding: 9px 12px;
-        color: var(--bf-text-muted);
-        border-color: var(--bf-border);
-        background: var(--bf-surface-raised);
+    .main-module table { color: var(--erp-text-2); border-collapse: collapse; }
+    .main-module thead, .main-module thead.bg-white\/5 { background: var(--erp-panel-soft); }
+    .main-module th { color: var(--erp-text-3); border-bottom: 1px solid var(--erp-line); font-size: 10px; font-weight: 650; letter-spacing: .045em; text-transform: uppercase; }
+    .main-module td { color: var(--erp-text-2); border-bottom: 1px solid var(--erp-line); }
+    .main-module tbody tr:hover { background: var(--erp-panel-hover); }
+
+    /* Dense ERP module blueprint — one command bar, one data surface. */
+    .fleet-kpi-grid,
+    .contractor-kpi-grid,
+    .factory-kpi-grid,
+    .personnel-kpi-grid,
+    .progress-kpi-grid,
+    .receivables-kpi-grid,
+    .fuel-kpi-grid,
+    .bf-offer-kpis { display: none !important; }
+
+    .main-module:not(#module-dashboard) {
+        width: 100%;
+        max-width: 1840px;
+        margin-inline: auto;
+    }
+    .main-module:not(#module-dashboard) > .page-header,
+    .bf-offers-page .bf-page-header {
+        display: flex;
+        min-width: 0;
+        min-height: 62px;
+        margin: 0 0 14px;
+        padding: 0 0 13px;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+    }
+    .page-header-identity,
+    .bf-offers-page .bf-page-header > div:first-child { min-width: 0; }
+    .main-module:not(#module-dashboard) .page-title,
+    .bf-offers-page .bf-page-header h2 {
+        margin: 0;
+        overflow-wrap: anywhere;
+        color: var(--erp-text);
+        font-size: 23px;
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -.03em;
+    }
+    .main-module:not(#module-dashboard) .page-subtitle,
+    .bf-offers-page .bf-page-header p {
+        max-width: 720px;
+        margin: 5px 0 0;
+        overflow-wrap: anywhere;
+        color: var(--erp-text-3);
+        font-size: 11px;
+        line-height: 1.45;
+    }
+    .main-module:not(#module-dashboard) [class$="-eyebrow"],
+    .bf-offers-page .bf-page-eyebrow {
+        display: block;
+        margin: 0 0 4px;
+        color: var(--erp-coral);
         font-size: 9px;
-        font-weight: 760;
-        letter-spacing: .065em;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: .09em;
+        text-transform: uppercase;
     }
-    .bf-data-table td, .factory-table td, #module-taseron .contractor-table td,
-    .personnel-table td, .fleet-table td, .receivables-table td, .progress-table td,
-    .fuel-table td, .premium-table td, .dashboard-policy-table td,
-    #module-raporlar table tbody td, #module-finans table tbody td {
-        min-height: 44px;
-        padding: 11px 12px;
-        color: var(--bf-text-secondary);
-        border-color: var(--bf-border);
+    .main-module:not(#module-dashboard) .page-actions,
+    .bf-offers-page .bf-page-actions {
+        display: flex;
+        min-width: 0;
+        flex: 0 1 auto;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 7px;
+    }
+    .main-module:not(#module-dashboard) .page-actions > *,
+    .bf-offers-page .bf-page-actions > * { flex: 0 0 auto; }
+    .main-module:not(#module-dashboard) .page-actions button,
+    .bf-offers-page .bf-page-actions button {
+        display: inline-flex;
+        min-height: 34px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+    .main-module:not(#module-dashboard) .page-actions svg,
+    .bf-offers-page .bf-page-actions svg { width: 15px; height: 15px; }
+
+    .bf-fleet-tabs,
+    .contractor-tabs,
+    .personnel-tabs,
+    .progress-tabs,
+    .receivables-tabs,
+    .fuel-tabs {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        margin: 0;
+        padding: 0 10px;
+        align-items: stretch;
+        gap: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        border: 1px solid var(--erp-line);
+        border-bottom: 0;
+        border-radius: 4px 4px 0 0;
+        background: var(--erp-panel);
+        box-shadow: inset 0 -1px 0 var(--erp-line);
+        scrollbar-width: thin;
+    }
+    .bf-fleet-tabs > button,
+    .contractor-tabs > button,
+    .personnel-tabs > button,
+    .progress-tabs > button,
+    .receivables-tabs > button,
+    .fuel-tabs > button {
+        position: relative;
+        display: inline-flex;
+        min-width: max-content;
+        min-height: 41px;
+        padding: 0 13px !important;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        overflow: visible;
+        border: 0 !important;
+        border-radius: 0 !important;
+        color: var(--erp-text-2) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 11px !important;
+        line-height: 1 !important;
+        font-weight: 600 !important;
+        white-space: nowrap;
+    }
+    .bf-fleet-tabs > button::after,
+    .contractor-tabs > button::after,
+    .personnel-tabs > button::after,
+    .progress-tabs > button::after,
+    .receivables-tabs > button::after,
+    .fuel-tabs > button::after {
+        position: absolute;
+        right: 9px;
+        bottom: 0;
+        left: 9px;
+        height: 2px;
+        content: "";
         background: transparent;
     }
-    .bf-data-table tbody tr:hover td, .factory-table tbody tr:hover td,
-    #module-taseron .contractor-table tbody tr:hover td, .personnel-table tbody tr:hover td,
-    .fleet-table tbody tr:hover td, .receivables-table tbody tr:hover td,
-    .progress-table tbody tr:hover td, .fuel-table tbody tr:hover td,
-    .premium-table tbody tr:hover td, .dashboard-policy-table tbody tr:hover td { color: var(--bf-text); background: var(--bf-surface-hover); }
+    .bf-fleet-tabs > button.is-active,
+    .contractor-tabs > button.is-active,
+    .personnel-tabs > button.is-active,
+    .fuel-tabs > button.is-active,
+    .progress-tabs > button.bg-orange-500,
+    .receivables-tabs > button.bg-orange-500 {
+        color: var(--erp-text) !important;
+        background: transparent !important;
+    }
+    .bf-fleet-tabs > button.is-active::after,
+    .contractor-tabs > button.is-active::after,
+    .personnel-tabs > button.is-active::after,
+    .fuel-tabs > button.is-active::after,
+    .progress-tabs > button.bg-orange-500::after,
+    .receivables-tabs > button.bg-orange-500::after { background: var(--erp-coral); }
+    .bf-fleet-tabs svg,
+    .contractor-tabs svg,
+    .personnel-tabs svg,
+    .progress-tabs svg,
+    .receivables-tabs svg,
+    .fuel-tabs svg { width: 14px; height: 14px; flex: 0 0 14px; }
+    .personnel-period {
+        display: flex;
+        min-width: 172px;
+        margin-left: auto;
+        padding-left: 12px;
+        align-items: center;
+        gap: 8px;
+        border-left: 1px solid var(--erp-line);
+        white-space: nowrap;
+    }
+    .personnel-period span { color: var(--erp-text-3); font-size: 9px; text-transform: uppercase; }
+    .personnel-period input { width: 122px; min-height: 29px; }
 
-    /* Dashboard mirrors the approved executive concept. */
-    .bf-management-dashboard { display: grid; gap: 22px; max-width: 1640px; }
-    .dashboard-page-header {
-        min-height: 92px;
-        padding: 2px 0 20px;
+    .fleet-surface,
+    .contractor-surface,
+    .factory-workspace,
+    .personnel-workspace,
+    .progress-workspace,
+    .receivables-workspace,
+    .fuel-workspace,
+    .bf-table-shell {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    .bf-fleet-tabs + .bf-owned-fleet .fleet-surface,
+    .contractor-tabs + .contractor-list-content .contractor-surface { border-radius: 0 0 4px 4px; }
+    .personnel-workspace,
+    .progress-workspace,
+    .receivables-workspace,
+    .fuel-workspace { border-top: 0; border-radius: 0 0 4px 4px; }
+
+    .fleet-toolbar,
+    .contractor-toolbar,
+    .factory-toolbar,
+    .personnel-toolbar,
+    .progress-toolbar,
+    .receivables-toolbar,
+    .fuel-toolbar,
+    .bf-offer-toolbar,
+    .maintenance-toolbar {
+        background: var(--erp-filter-bar);
+    }
+    .factory-toolbar,
+    .progress-panel-head,
+    .receivables-panel-head,
+    .fuel-section-head {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 50px;
+        margin: 0;
+        padding: 8px 11px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 12px;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-panel);
+    }
+    .fleet-toolbar,
+    .contractor-toolbar,
+    .factory-toolbar,
+    .personnel-toolbar,
+    .progress-toolbar,
+    .receivables-toolbar,
+    .fuel-toolbar,
+    .bf-offer-toolbar,
+    .maintenance-toolbar {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 50px;
+        margin: 0;
+        padding: 8px 11px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px 12px;
+        border-bottom: 1px solid var(--erp-line);
+    }
+    .fleet-toolbar input,
+    .fleet-toolbar select,
+    .contractor-toolbar input,
+    .contractor-toolbar select,
+    .factory-toolbar input,
+    .factory-toolbar select,
+    .personnel-toolbar input,
+    .personnel-toolbar select,
+    .progress-toolbar input,
+    .progress-toolbar select,
+    .receivables-toolbar input,
+    .receivables-toolbar select,
+    .fuel-toolbar input,
+    .fuel-toolbar select,
+    .bf-offer-toolbar input,
+    .bf-offer-toolbar select,
+    .maintenance-toolbar input,
+    .maintenance-toolbar select { background: var(--erp-panel); }
+    .fleet-toolbar > *,
+    .contractor-toolbar > *,
+    .factory-toolbar > *,
+    .personnel-toolbar > *,
+    .progress-toolbar > *,
+    .receivables-toolbar > *,
+    .fuel-toolbar > *,
+    .bf-offer-toolbar > *,
+    .maintenance-toolbar > * { min-width: 0; }
+    .fleet-search,
+    .contractor-search,
+    .personnel-search,
+    .fuel-search,
+    .bf-search-field {
+        position: relative;
+        display: flex;
+        width: clamp(210px, 24vw, 320px);
+        min-width: 180px;
+        flex: 1 1 240px;
+        align-items: center;
+    }
+    .fleet-search > svg,
+    .contractor-search > svg,
+    .personnel-search > svg,
+    .fuel-search > svg,
+    .bf-search-field > svg {
+        position: absolute;
+        left: 10px;
+        z-index: 1;
+        width: 15px;
+        height: 15px;
+        color: var(--erp-text-3);
+        pointer-events: none;
+    }
+    .fleet-search input,
+    .contractor-search input,
+    .personnel-search input,
+    .fuel-search input,
+    .bf-search-field input { width: 100%; min-width: 0; padding-left: 33px; }
+    .fleet-toolbar-controls,
+    .fleet-filter-group,
+    .personnel-filter-group,
+    .fuel-period-toggle,
+    .maintenance-toolbar-actions,
+    .contractor-filter-row {
+        display: flex;
+        min-width: 0;
+        flex: 0 1 auto;
+        align-items: center;
+        gap: 5px;
+    }
+    .fleet-toolbar-controls { flex: 1 1 560px; justify-content: flex-end; }
+    .fleet-filter-group,
+    .personnel-filter-group {
+        max-width: 100%;
+        padding: 2px;
+        overflow-x: auto;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel-soft);
+        scrollbar-width: thin;
+    }
+    .fleet-filter-group button,
+    .personnel-filter-group button,
+    .fuel-period-toggle button {
+        min-height: 29px;
+        padding: 0 9px !important;
+        flex: 0 0 auto;
+        border: 0 !important;
+        border-radius: 3px !important;
+        color: var(--erp-text-2) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 10px !important;
+        font-weight: 600 !important;
+        white-space: nowrap;
+    }
+    .fleet-filter-group button.bg-orange-500,
+    .personnel-filter-group button.is-active,
+    .fuel-period-toggle button.is-active { color: #fff !important; background: var(--erp-coral) !important; }
+    .fleet-view-toggle { display: none !important; }
+    .personnel-filter-disclosure { min-width: 0; }
+    .personnel-filter-disclosure summary { display: none; }
+    .personnel-filter-disclosure[open] > div { display: flex; }
+    .factory-toolbar > div,
+    .progress-panel-head > div:first-child,
+    .receivables-panel-head > div:first-child,
+    .fuel-section-head > div:first-child,
+    .maintenance-heading { min-width: 0; }
+    .factory-toolbar strong,
+    .progress-panel-head h3,
+    .receivables-panel-head h3,
+    .fuel-section-head h2,
+    .maintenance-heading h3 { margin: 0; color: var(--erp-text); font-size: 12px; line-height: 1.25; }
+    .factory-toolbar p,
+    .progress-panel-head p,
+    .receivables-panel-head p,
+    .fuel-section-head p,
+    .maintenance-heading p {
+        max-width: 680px;
+        margin: 2px 0 0;
+        overflow-wrap: anywhere;
+        color: var(--erp-text-3);
+        font-size: 9px;
+        line-height: 1.35;
+    }
+    .contractor-toolbar > p { margin: 0; font-size: 10px; }
+    .fuel-toolbar { justify-content: flex-start; }
+    .fuel-toolbar .fuel-search { margin-left: auto; }
+    .fuel-date-control { display: flex; align-items: center; gap: 7px; white-space: nowrap; }
+    .fuel-date-control span { color: var(--erp-text-3); font-size: 9px; text-transform: uppercase; }
+    .fuel-date-control input { width: 132px; min-height: 32px; }
+    .fuel-provider-status { margin-left: 2px; white-space: nowrap; }
+    .progress-owner-filter { display: flex; align-items: center; gap: 8px; }
+    .progress-owner-filter > span { color: var(--erp-text-3); font-size: 9px; text-transform: uppercase; white-space: nowrap; }
+    .progress-owner-filter select { min-width: 210px; }
+    .bf-offer-toolbar { margin: 0 0 -1px; border: 1px solid var(--erp-line); border-radius: 4px 4px 0 0; }
+    .bf-offer-toolbar select { width: 180px; flex: 0 0 180px; }
+    .bf-offer-toolbar + .bf-table-shell { border-radius: 0 0 4px 4px; }
+
+    .erp-filter-search {
+        position: relative;
+        display: flex;
+        min-width: 220px;
+        flex: 1 1 300px;
+        align-items: center;
+    }
+    .erp-filter-search > svg {
+        position: absolute;
+        left: 10px;
+        z-index: 1;
+        width: 15px;
+        height: 15px;
+        color: var(--erp-text-3);
+        pointer-events: none;
+    }
+    .erp-filter-search input { width: 100%; min-width: 0; padding-left: 33px; }
+    .erp-filter-select {
+        width: clamp(150px, 14vw, 190px);
+        min-width: 150px;
+        flex: 0 1 190px;
+        padding-inline: 10px;
+        color: var(--erp-text-2);
+        font-size: 10px;
+    }
+    .erp-advanced-filters { position: relative; flex: 0 0 auto; }
+    .erp-advanced-filters > summary {
+        display: inline-flex;
+        min-height: 34px;
+        padding: 0 10px;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        color: var(--erp-text-2);
+        background: var(--erp-panel);
+        font-size: 10px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        list-style: none;
+    }
+    .erp-advanced-filters > summary::-webkit-details-marker { display: none; }
+    .erp-advanced-filters > summary svg { width: 14px; height: 14px; }
+    .erp-advanced-filters[open] > summary { color: var(--erp-coral-strong); border-color: color-mix(in srgb, var(--erp-coral) 48%, var(--erp-line)); }
+    .erp-advanced-filter-panel {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 20;
+        display: grid;
+        width: 248px;
+        padding: 10px;
+        gap: 9px;
+        border: 1px solid var(--erp-line-strong);
+        border-radius: 4px;
+        background: var(--erp-panel);
+        box-shadow: var(--bf-shadow-md);
+    }
+    .erp-advanced-filter-panel label { display: grid; min-width: 0; gap: 5px; }
+    .erp-advanced-filter-panel label > span { color: var(--erp-text-3); font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .erp-advanced-filter-panel select { width: 100%; min-width: 0; }
+    .erp-advanced-filter-panel button { display: inline-flex; min-height: 32px; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+    .erp-advanced-filter-panel button svg { width: 13px; height: 13px; }
+    .erp-result-count {
+        display: inline-flex;
+        min-height: 28px;
+        padding: 0 8px;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 4px;
+        border-left: 1px solid var(--erp-line-strong);
+        color: var(--erp-text-3);
+        font-size: 9px;
+        white-space: nowrap;
+    }
+    .erp-result-count b { color: var(--erp-text); font-size: 11px; }
+    .factory-toolbar { background: var(--erp-filter-bar); }
+
+    .fleet-card-grid,
+    .contractor-card-grid,
+    .factory-card-grid,
+    .personnel-card-grid,
+    .receivables-card-grid { display: none !important; }
+    .fleet-table-wrap,
+    .contractor-table-wrap,
+    .factory-table-wrap,
+    .personnel-table-wrap,
+    .progress-table-wrap,
+    .receivables-table-wrap,
+    .fuel-table-state,
+    .maintenance-table-wrap,
+    .bf-table-shell > .overflow-x-auto,
+    .main-module .overflow-x-auto {
+        display: block;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    .fleet-table,
+    .contractor-table,
+    .factory-table,
+    .personnel-table,
+    .progress-table,
+    .receivables-table,
+    .maintenance-table,
+    .bf-data-table {
+        width: 100%;
+        min-width: 900px;
+        table-layout: auto;
+        border-collapse: collapse;
+    }
+    .fleet-table th, .fleet-table td,
+    .contractor-table th, .contractor-table td,
+    .factory-table th, .factory-table td,
+    .personnel-table th, .personnel-table td,
+    .progress-table th, .progress-table td,
+    .receivables-table th, .receivables-table td,
+    .maintenance-table th, .maintenance-table td,
+    .bf-data-table th, .bf-data-table td {
+        height: auto;
+        min-height: 0;
+        padding: 10px 12px;
+        line-height: 1.35;
+        vertical-align: middle;
+    }
+    .fleet-table th, .contractor-table th, .factory-table th,
+    .personnel-table th, .progress-table th, .receivables-table th,
+    .maintenance-table th, .bf-data-table th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        height: 36px;
+        color: var(--erp-text-3);
+        background: var(--erp-panel-soft);
+        font-size: 9px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .fleet-table td, .contractor-table td, .factory-table td,
+    .personnel-table td, .progress-table td, .receivables-table td,
+    .maintenance-table td, .bf-data-table td { color: var(--erp-text-2); font-size: 11px; }
+    .fleet-table td > *, .contractor-table td > *, .factory-table td > *,
+    .personnel-table td > *, .progress-table td > *, .receivables-table td > *,
+    .maintenance-table td > *, .bf-data-table td > * { min-width: 0; }
+    .fleet-actions-heading,
+    .contractor-actions-heading,
+    .factory-actions-heading,
+    .personnel-actions-heading,
+    .maintenance-actions,
+    .bf-offer-actions { width: 118px; min-width: 118px; white-space: nowrap; }
+    .fleet-row-actions,
+    .contractor-row-actions,
+    .factory-row-actions,
+    .personnel-row-actions,
+    .receivables-row-actions,
+    .bf-offer-actions {
+        display: flex;
+        min-width: max-content;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+    }
+
+    /* Contractors — compact operational workspace, without stacked KPI cards. */
+    .bf-contractor-module .contractor-tabs {
+        padding-inline: 10px;
+        border-bottom: 1px solid var(--erp-line);
+        border-radius: 4px 4px 0 0;
+        background: var(--erp-panel);
+    }
+    .bf-contractor-module .contractor-tab {
+        min-height: 41px;
+        padding: 0 11px;
+        border-radius: 0;
+        color: var(--erp-text-2);
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 10px;
+        font-weight: 600;
+    }
+    .bf-contractor-module .contractor-tab::after {
+        position: absolute;
+        right: 10px;
+        bottom: -1px;
+        left: 10px;
+        height: 2px;
+        content: "";
+        background: transparent;
+    }
+    .bf-contractor-module .contractor-tab.is-active { color: var(--erp-text) !important; }
+    .bf-contractor-module .contractor-tab.is-active::after { background: var(--erp-coral); }
+    .bf-contractor-module .contractor-tab svg { width: 14px; height: 14px; color: currentColor; }
+    .contractor-section-stack { gap: 12px; }
+    .contractor-finance-strip {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+        box-shadow: var(--bf-shadow-xs);
+    }
+    .contractor-finance-strip > span {
+        position: relative;
+        display: grid;
+        min-width: 0;
+        min-height: 72px;
+        padding: 13px 16px 11px;
+        align-content: center;
+        gap: 3px;
+    }
+    .contractor-finance-strip > span + span { border-left: 1px solid var(--erp-line); }
+    .contractor-finance-strip > span::before {
+        position: absolute;
+        top: 13px;
+        bottom: 13px;
+        left: 0;
+        width: 2px;
+        content: "";
+        background: var(--erp-amber);
+    }
+    .contractor-finance-strip > span:nth-child(2)::before { background: var(--erp-teal); }
+    .contractor-finance-strip > span:nth-child(3)::before { background: var(--erp-blue); }
+    .contractor-finance-strip small {
+        overflow: hidden;
+        color: var(--erp-text-3);
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: .045em;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .contractor-finance-strip strong {
+        overflow: hidden;
+        color: var(--erp-text);
+        font-size: 18px;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .contractor-data-panel,
+    .contractor-surface { border-radius: 4px; box-shadow: var(--bf-shadow-xs); }
+    .contractor-panel-head {
+        min-height: 58px;
+        padding: 10px 12px;
+        align-items: center;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-panel);
+    }
+    .contractor-panel-head > div:first-child { min-width: 190px; }
+    .contractor-panel-head h3,
+    .contractor-section-head h3,
+    .contractor-document-title { margin: 0; color: var(--erp-text); font-size: 12px; line-height: 1.25; }
+    .contractor-panel-head p { margin: 2px 0 0; color: var(--erp-text-3); font-size: 9px; line-height: 1.35; }
+    .contractor-filter-row { justify-content: flex-end; gap: 6px; }
+    .contractor-control { min-width: 130px !important; min-height: 32px !important; border-radius: 4px !important; font-size: 10px !important; }
+    .contractor-control-search { width: 180px; }
+    .contractor-import-btn { min-height: 32px; font-size: 10px; }
+    .contractor-panel-padded { padding: 14px; }
+    .contractor-section-head { min-height: 34px; margin: 0 0 10px; }
+    .contractor-document-grid { gap: 12px; }
+    .contractor-document-title { margin-bottom: 12px; }
+    .contractor-document-form { gap: 8px; }
+
+    /* Cari hakediş — financial ledger instead of a card list. */
+    #content-taseron-finans .progress-panel-head {
+        min-height: 62px;
+        padding: 10px 12px;
+        align-items: center;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-panel);
+    }
+    #content-taseron-finans .progress-toolbar { flex: 1 1 610px; gap: 6px; }
+    #content-taseron-finans .progress-toolbar input {
+        width: clamp(190px, 22vw, 300px) !important;
+        min-width: 170px;
+        flex: 1 1 210px;
+    }
+    #content-taseron-finans .progress-toolbar select { min-width: 145px; }
+    #content-taseron-finans .progress-toolbar input,
+    #content-taseron-finans .progress-toolbar select,
+    #content-taseron-finans .progress-toolbar button {
+        min-height: 32px;
+        border-radius: 4px;
+        font-size: 10px;
+    }
+    #content-taseron-finans .progress-table {
+        min-width: 980px;
+        table-layout: fixed;
+    }
+    #content-taseron-finans .progress-table th:nth-child(1) { width: 22%; }
+    #content-taseron-finans .progress-table th:nth-child(2) { width: 23%; }
+    #content-taseron-finans .progress-table th:nth-child(3),
+    #content-taseron-finans .progress-table th:nth-child(4),
+    #content-taseron-finans .progress-table th:nth-child(5) { width: 15%; }
+    #content-taseron-finans .progress-table th:nth-child(6) { width: 10%; }
+    #content-taseron-finans .progress-table td { padding-block: 11px; }
+    .hakedis-ledger-row { cursor: default; transition: background 120ms ease; }
+    .hakedis-ledger-row.is-interactive { cursor: pointer; }
+    .cari-card-identity { min-width: 0; }
+    .cari-card-name {
+        overflow: hidden;
+        color: var(--erp-text);
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .cari-card-plates { display: flex; max-height: 45px; margin-top: 5px; flex-wrap: wrap; gap: 3px; overflow: hidden; }
+    .hakedis-plate-chip {
+        display: inline-flex;
+        min-height: 19px;
+        padding: 0 6px;
+        align-items: center;
+        border: 1px solid var(--erp-line);
+        border-radius: 3px;
+        color: var(--erp-blue);
+        background: var(--erp-panel-soft);
+        font-size: 8px;
+        font-weight: 700;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+    .hakedis-plate-chip:hover { border-color: var(--erp-blue); background: color-mix(in srgb, var(--erp-blue) 8%, var(--erp-panel)); }
+    .cari-card-context { display: block; margin-top: 3px; color: var(--erp-text-3); font-size: 8px; }
+    .cari-card-services { display: flex; min-width: 0; flex-wrap: wrap; gap: 4px; }
+    .service-pill {
+        display: inline-flex;
+        min-height: 22px;
+        padding: 0 7px;
+        align-items: center;
+        gap: 3px;
+        border: 1px solid var(--erp-line);
+        border-radius: 3px;
+        color: var(--erp-text-2);
+        background: var(--erp-panel-soft);
+        font-size: 8px;
+        white-space: nowrap;
+    }
+    .service-pill strong { color: var(--erp-text); font-size: 10px; }
+    .service-pill.is-shift { border-left: 2px solid var(--erp-blue); }
+    .service-pill.is-single { border-left: 2px solid var(--erp-amber); }
+    .service-pill.is-overtime { border-left: 2px solid var(--erp-violet); }
+    .cari-card-money { text-align: right; font-variant-numeric: tabular-nums; }
+    .cari-card-money > span { display: block; color: var(--erp-text-3); font-size: 8px; line-height: 1.2; }
+    .cari-card-money > strong { display: block; margin-top: 2px; color: var(--erp-text); font-size: 11px; line-height: 1.25; white-space: nowrap; }
+    .cari-card-money.is-deduction > strong { color: var(--erp-red); }
+    .cari-card-net > strong { color: var(--erp-teal); font-size: 12px; }
+    .cari-card-net.is-negative > strong,
+    .cari-card-money strong.is-negative { color: var(--erp-red); }
+    .cari-card-detail { text-align: right; white-space: nowrap; }
+    .hakedis-detail-action,
+    .cari-card-count {
+        display: inline-flex;
+        min-height: 25px;
+        padding: 0 7px;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid var(--erp-line);
+        border-radius: 3px;
+        color: var(--erp-text-2);
+        background: var(--erp-panel);
+        font-size: 8px;
+        font-weight: 700;
+    }
+    .hakedis-detail-action { color: var(--erp-coral-strong); }
+    .hakedis-detail-action svg { width: 12px; height: 12px; }
+    .hakedis-ledger-total td {
+        border-top: 2px solid var(--erp-line-strong);
+        border-bottom: 0 !important;
+        color: var(--erp-text) !important;
+        background: var(--erp-filter-bar);
+        font-weight: 700;
+    }
+    .hakedis-ledger-total td:first-child span,
+    .hakedis-ledger-total td:first-child strong { display: block; }
+    .hakedis-ledger-total td:first-child span { color: var(--erp-text-3); font-size: 8px; text-transform: uppercase; }
+    .hakedis-ledger-total td:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+    .hakedis-ledger-total td:nth-child(n+3) span { display: block; color: var(--erp-text-3); font-size: 8px; }
+    .hakedis-ledger-total td:nth-child(n+3) strong { white-space: nowrap; }
+
+    /* Cari hesaplar — simple ledger rows with one clear identity block. */
+    #content-cariler .receivables-table { min-width: 900px; table-layout: fixed; }
+    #content-cariler .receivables-table th:nth-child(1) { width: 28%; }
+    #content-cariler .receivables-table th:nth-child(2) { width: 15%; }
+    #content-cariler .receivables-table th:nth-child(3),
+    #content-cariler .receivables-table th:nth-child(4),
+    #content-cariler .receivables-table th:nth-child(5) { width: 14%; }
+    #content-cariler .receivables-table th:nth-child(6) { width: 15%; }
+    #content-cariler .receivables-table tbody tr { cursor: pointer; }
+    .receivables-simple-identity {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(0, max-content) max-content;
+        align-items: center;
+        justify-content: start;
+        gap: 2px 6px;
+    }
+    .receivables-simple-identity strong {
+        overflow: hidden;
+        color: var(--erp-text);
+        font-size: 11px;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .receivables-simple-identity .badge-neutral { min-height: 19px; padding-inline: 6px; border-radius: 3px; font-size: 8px; }
+    .receivables-simple-identity small { grid-column: 1 / -1; color: var(--erp-text-3); font-size: 8px; }
+    #content-cariler .cari-list-phone { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #content-cariler .receivables-money { text-align: right; white-space: nowrap; }
+    #content-cariler .cari-list-balance small { font-size: 8px; }
+    #content-cariler .receivables-balance { gap: 3px; font-size: 10px; white-space: nowrap; }
+    #content-cariler .receivables-balance svg { width: 12px; height: 12px; }
+    #content-cariler .cari-list-actions { width: 132px; }
+    #content-cariler .receivables-row-actions button { width: 28px; height: 28px; border-radius: 3px; }
+    #content-cariler .receivables-row-actions svg { width: 13px; height: 13px; }
+
+    /* Owned fleet — compact reference ERP inventory view. */
+    .bf-owned-fleet .fleet-toolbar { align-items: center; }
+    .bf-owned-fleet .fleet-search { flex: 1 1 280px; }
+    .bf-owned-fleet .fleet-toolbar-controls {
+        flex: 1 1 650px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .bf-owned-fleet .erp-filter-select { flex-basis: 176px; }
+    .fleet-result-strip {
+        display: flex;
+        min-height: 35px;
+        padding: 0 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px 18px;
+        border-bottom: 1px solid var(--erp-line);
+        color: var(--erp-text-3);
+        background: var(--erp-panel);
+        font-size: 9px;
+    }
+    .fleet-result-strip > span:not(.fleet-result-note) {
+        position: relative;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    .fleet-result-strip > span:not(.fleet-result-note):not(:last-child)::after {
+        position: absolute;
+        top: 50%;
+        right: -10px;
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        content: "";
+        background: var(--erp-line-strong);
+    }
+    .fleet-result-strip strong { color: var(--erp-text); font-size: 10px; }
+    .fleet-result-note { margin-left: auto; color: var(--erp-text-3); }
+    .bf-owned-fleet .fleet-table { min-width: 1040px; table-layout: fixed; }
+    .bf-owned-fleet .fleet-table th:nth-child(1) { width: 21%; }
+    .bf-owned-fleet .fleet-table th:nth-child(2) { width: 11%; }
+    .bf-owned-fleet .fleet-table th:nth-child(3) { width: 14%; }
+    .bf-owned-fleet .fleet-table th:nth-child(4) { width: 15%; }
+    .bf-owned-fleet .fleet-table th:nth-child(5) { width: auto; }
+    .bf-owned-fleet .fleet-table th:nth-child(6) { width: 168px; }
+    .bf-owned-fleet .fleet-table tbody tr[hidden] { display: none !important; }
+    .bf-owned-fleet .fleet-table-vehicle { gap: 9px; }
+    .bf-owned-fleet .fleet-vehicle-icon {
+        width: 30px;
+        height: 30px;
+        flex-basis: 30px;
+        border-radius: 4px;
+        color: var(--erp-blue);
+        background: color-mix(in srgb, var(--erp-blue) 10%, transparent);
+    }
+    .bf-owned-fleet .fleet-vehicle-icon svg { width: 15px; height: 15px; }
+    .bf-owned-fleet .fleet-table-vehicle strong {
+        overflow: hidden;
+        color: var(--erp-text);
+        font-size: 12px;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .bf-owned-fleet .fleet-table-vehicle span {
+        overflow: hidden;
+        color: var(--erp-text-3);
+        font-size: 9px;
+        line-height: 1.3;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .fleet-company-cell,
+    .fleet-ownership-cell { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; gap: 4px; }
+    .fleet-company-cell [class^="badge-"],
+    .fleet-ownership-cell [class^="badge-"] {
+        min-height: 20px;
+        padding-inline: 7px;
+        border-radius: 3px;
+        font-size: 8px;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    .fleet-empty-value { color: var(--erp-text-3); font-size: 9px; white-space: nowrap; }
+    .bf-owned-fleet .fleet-driver-name {
+        overflow: hidden;
+        color: var(--erp-text-2);
+        font-size: 10px;
+        font-weight: 550;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .bf-owned-fleet .fleet-document-list {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        gap: 3px;
+    }
+    .bf-owned-fleet .fleet-document-badge {
+        min-height: 20px;
+        padding-inline: 6px;
+        gap: 3px;
+        border-radius: 3px;
+        font-size: 8px;
+        line-height: 1;
+    }
+    .bf-owned-fleet .fleet-document-badge svg { width: 9px; height: 9px; }
+    .bf-owned-fleet .fleet-actions-heading { width: 168px; min-width: 168px; text-align: right; }
+    .bf-owned-fleet .fleet-row-actions { width: 148px; margin-left: auto; gap: 2px; }
+    .bf-owned-fleet .fleet-row-actions button {
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        border-color: transparent;
+        border-radius: 3px;
+        color: var(--erp-text-2);
+    }
+    .bf-owned-fleet .fleet-row-actions button:hover {
+        color: var(--erp-text);
+        border-color: var(--erp-line);
+        background: var(--erp-panel-hover);
+    }
+    .bf-owned-fleet .fleet-row-actions button.is-danger { color: var(--erp-red); }
+    .bf-owned-fleet .fleet-row-actions svg { width: 13px; height: 13px; }
+
+    /* Fleet driver roster and editable document schedule. */
+    .fleet-driver-page-header,
+    .fleet-schedule-page-header {
+        display: flex;
+        min-width: 0;
+        min-height: 62px;
+        margin: 0 0 14px;
+        padding: 0 0 13px;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 1px solid var(--erp-line);
+        background: transparent;
+    }
+    .fleet-driver-page-header .page-header-identity,
+    .fleet-schedule-page-header .page-header-identity { min-width: 0; }
+    .fleet-driver-page-header .page-title,
+    .fleet-schedule-page-header .page-title {
+        margin: 0;
+        color: var(--erp-text);
+        font-size: 23px;
+        line-height: 1.12;
+        font-weight: 700;
+        letter-spacing: -.03em;
+    }
+    .fleet-driver-page-header .page-subtitle,
+    .fleet-schedule-page-header .page-subtitle {
+        max-width: 720px;
+        margin: 5px 0 0;
+        overflow-wrap: anywhere;
+        color: var(--erp-text-3);
+        font-size: 11px;
+    }
+    .fleet-driver-page-header .page-actions,
+    .fleet-schedule-page-header .page-actions { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; }
+    .fleet-driver-page-header .page-actions svg,
+    .fleet-schedule-page-header .page-actions svg { width: 15px; height: 15px; }
+    .fleet-driver-surface,
+    .fleet-schedule-surface {
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        color: var(--erp-text);
+        background: var(--erp-panel);
+    }
+    .fleet-driver-toolbar,
+    .fleet-schedule-toolbar {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 50px;
+        padding: 8px 11px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-filter-bar);
+    }
+    .fleet-driver-search,
+    .fleet-schedule-search {
+        position: relative;
+        display: flex;
+        min-width: 220px;
+        margin-right: auto;
+        flex: 1 1 290px;
+        align-items: center;
+    }
+    .fleet-driver-search > svg,
+    .fleet-schedule-search > svg {
+        position: absolute;
+        left: 10px;
+        z-index: 1;
+        width: 15px;
+        height: 15px;
+        color: var(--erp-text-3);
+        pointer-events: none;
+    }
+    .fleet-driver-search input,
+    .fleet-schedule-search input { width: 100%; min-width: 0; padding-left: 33px; background: var(--erp-panel); }
+    .fleet-driver-mobile-grid { display: none !important; }
+    .fleet-driver-table-wrap,
+    .fleet-schedule-table-wrap {
+        display: block !important;
+        width: 100%;
+        max-width: 100%;
+        padding: 0 !important;
+        overflow-x: auto;
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+    .fleet-driver-table,
+    .fleet-schedule-table {
+        width: 100%;
+        min-width: 980px;
+        table-layout: fixed;
+        border-collapse: collapse;
+        color: var(--erp-text-2);
+        text-align: left;
+    }
+    .fleet-driver-table th,
+    .fleet-driver-table td,
+    .fleet-schedule-table th,
+    .fleet-schedule-table td {
+        height: auto;
+        min-height: 0;
+        padding: 10px 12px;
+        line-height: 1.35;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--erp-line);
+    }
+    .fleet-driver-table th,
+    .fleet-schedule-table th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        height: 36px;
+        color: var(--erp-text-3);
+        background: var(--erp-panel-soft);
+        font-size: 9px;
+        line-height: 1.15;
+        font-weight: 700;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    .fleet-driver-table td,
+    .fleet-schedule-table td { color: var(--erp-text-2); font-size: 10px; }
+    .fleet-driver-table tbody tr:hover,
+    .fleet-schedule-table tbody tr:hover { background: var(--erp-panel-hover); }
+    .fleet-driver-table tbody tr[hidden],
+    .fleet-schedule-table tbody tr[hidden] { display: none !important; }
+    .fleet-driver-table th:nth-child(1) { width: 21%; }
+    .fleet-driver-table th:nth-child(2) { width: 11%; }
+    .fleet-driver-table th:nth-child(3) { width: 14%; }
+    .fleet-driver-table th:nth-child(4) { width: 17%; }
+    .fleet-driver-table th:nth-child(5) { width: 11%; }
+    .fleet-driver-table th:nth-child(6) { width: 12%; }
+    .fleet-driver-table th:nth-child(7) { width: 130px; }
+    .fleet-driver-identity {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        padding: 0;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 9px;
+        border: 0;
+        color: inherit;
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+    }
+    .fleet-driver-identity .personnel-avatar { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 4px; font-size: 10px; }
+    .fleet-driver-identity > span:last-child { display: grid; min-width: 0; gap: 1px; }
+    .fleet-driver-identity strong,
+    .fleet-driver-identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .fleet-driver-identity strong { color: var(--erp-text); font-size: 11px; }
+    .fleet-driver-identity small { color: var(--erp-text-3); font-size: 8px; }
+    .fleet-driver-table [class^="badge-"] {
+        min-height: 20px;
+        padding-inline: 7px;
+        border-radius: 3px;
+        font-size: 8px;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    .fleet-driver-vehicle { display: inline-flex; max-width: 100%; align-items: center; gap: 5px; color: var(--erp-text); font-weight: 650; white-space: nowrap; }
+    .fleet-driver-vehicle.is-unassigned { color: var(--erp-text-3); font-weight: 500; }
+    .fleet-driver-vehicle svg { width: 13px; height: 13px; flex: 0 0 13px; }
+    .fleet-driver-credentials { display: flex; min-width: 0; flex-wrap: wrap; gap: 4px; }
+    .fleet-driver-money { text-align: right; white-space: nowrap; }
+    .fleet-driver-money strong { display: block; color: var(--erp-text); font-size: 10px; }
+    .fleet-driver-money span { display: block; color: var(--erp-text-3); font-size: 8px; }
+    .fleet-driver-actions-heading { text-align: right; }
+    .fleet-driver-row-actions { display: flex; min-width: max-content; align-items: center; justify-content: flex-end; gap: 2px; }
+    .fleet-driver-row-actions button,
+    .fleet-driver-row-actions a {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        flex: 0 0 28px;
+        place-items: center;
+        border: 1px solid transparent;
+        border-radius: 3px;
+        color: var(--erp-text-2);
+        background: transparent;
+    }
+    .fleet-driver-row-actions button:hover,
+    .fleet-driver-row-actions a:hover { color: var(--erp-text); border-color: var(--erp-line); background: var(--erp-panel-hover); }
+    .fleet-driver-row-actions .is-danger { color: var(--erp-red); }
+    .fleet-driver-row-actions svg { width: 13px; height: 13px; }
+
+    .fleet-schedule-toolbar .erp-filter-select { flex: 0 1 190px; }
+    .cizelge-warning-wrap { border-bottom: 1px solid var(--erp-line); background: var(--erp-panel); }
+    .cizelge-warning-panel { display: flex; min-height: 38px; padding: 8px 12px; align-items: center; gap: 8px; font-size: 9px; }
+    .cizelge-warning-panel.is-clear { color: var(--erp-green); background: color-mix(in srgb, var(--erp-green) 5%, var(--erp-panel)); }
+    .cizelge-warning-panel.is-clear svg { width: 14px; height: 14px; }
+    .cizelge-warning-panel.is-alert { display: block; padding: 0; background: color-mix(in srgb, var(--erp-amber) 4%, var(--erp-panel)); }
+    .cizelge-warning-head { display: flex; min-height: 34px; padding: 0 12px; align-items: center; gap: 7px; color: var(--erp-amber); border-bottom: 1px solid color-mix(in srgb, var(--erp-amber) 18%, var(--erp-line)); }
+    .cizelge-warning-head svg { width: 13px; height: 13px; }
+    .cizelge-warning-head strong { font-size: 9px; font-weight: 700; }
+    .cizelge-warning-items { display: flex; max-height: 82px; padding: 7px 12px; flex-wrap: wrap; gap: 5px; overflow-y: auto; }
+    .cizelge-warning-item { display: inline-flex; min-height: 24px; padding: 0 7px; align-items: center; gap: 4px; border: 1px solid var(--erp-line); border-radius: 3px; background: var(--erp-panel); font-size: 8px; white-space: nowrap; }
+    .cizelge-warning-item svg { width: 10px; height: 10px; }
+    .cizelge-warning-item strong { color: var(--erp-text); }
+    .cizelge-warning-item span { color: var(--erp-text-3); }
+    .cizelge-warning-item em { font-style: normal; font-weight: 650; }
+    .cizelge-warning-item.is-danger em,
+    .cizelge-warning-item.is-danger svg { color: var(--erp-red); }
+    .cizelge-warning-item.is-warning em,
+    .cizelge-warning-item.is-warning svg { color: var(--erp-amber); }
+    .fleet-schedule-table th:nth-child(1) { width: 12%; }
+    .fleet-schedule-table th:nth-child(2) { width: 13%; }
+    .fleet-schedule-table th:nth-child(3) { width: 19%; }
+    .fleet-schedule-table th:nth-child(n+4) { width: 14%; text-align: center; }
+    .fleet-schedule-table td:nth-child(n+4) { text-align: center; }
+    .fleet-schedule-table [class^="badge-"] { min-height: 20px; padding-inline: 7px; border-radius: 3px; font-size: 8px; }
+    .cizelge-plate { color: var(--erp-text); font-size: 11px; white-space: nowrap; }
+    .cizelge-model { display: block; overflow: hidden; color: var(--erp-text-2); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .cizelge-date-cell { min-width: 126px; padding: 2px; border: 1px solid var(--erp-line); border-radius: 3px; background: var(--erp-panel-soft); }
+    .cizelge-date-cell input { width: 100%; min-height: 27px; padding: 0 5px; border: 0; color: var(--erp-text-2); background: transparent; outline: 0; font-size: 9px; font-weight: 650; text-align: center; cursor: pointer; }
+    .cizelge-date-cell.is-current { border-color: color-mix(in srgb, var(--erp-green) 28%, var(--erp-line)); background: color-mix(in srgb, var(--erp-green) 6%, var(--erp-panel)); }
+    .cizelge-date-cell.is-current input { color: var(--erp-green); }
+    .cizelge-date-cell.is-warning { border-color: color-mix(in srgb, var(--erp-amber) 34%, var(--erp-line)); background: color-mix(in srgb, var(--erp-amber) 7%, var(--erp-panel)); }
+    .cizelge-date-cell.is-warning input { color: var(--erp-amber); }
+    .cizelge-date-cell.is-danger { border-color: color-mix(in srgb, var(--erp-red) 34%, var(--erp-line)); background: color-mix(in srgb, var(--erp-red) 7%, var(--erp-panel)); }
+    .cizelge-date-cell.is-danger input { color: var(--erp-red); }
+    .cizelge-date-cell.is-missing { border-style: dashed; }
+    .cizelge-date-cell.is-missing input { color: var(--erp-text-3); }
+    .main-module table button,
+    .main-module table .badge,
+    .main-module table [class^="badge-"] { white-space: nowrap; }
+
+    /* Reporting follows the same horizontal ERP rhythm instead of a card gallery. */
+    #module-raporlar .report-page-header h2 { margin: 0; color: var(--erp-text); font-size: 23px; line-height: 1.12; letter-spacing: -.03em; }
+    #module-raporlar .report-page-header > div:first-child { min-width: 0; }
+    #module-raporlar .report-page-header > div:first-child > p:last-child { max-width: 680px; margin: 5px 0 0; overflow-wrap: anywhere; color: var(--erp-text-3); font-size: 11px; line-height: 1.4; }
+    #module-raporlar .report-period-control {
+        display: flex;
+        min-width: 220px;
+        min-height: 36px;
+        padding: 3px 4px 3px 9px;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    #module-raporlar .report-period-control label { padding: 0; color: var(--erp-text-3); font-size: 9px; white-space: nowrap; }
+    #module-raporlar .report-period-control input { width: 142px; min-height: 28px; padding: 0 6px; color: var(--erp-text); border: 0; background: var(--erp-panel-soft); }
+    #module-raporlar .report-summary-band {
+        display: grid;
+        margin: 0 0 14px;
+        padding: 0;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    #module-raporlar .report-summary-band > .dashboard-card {
+        display: grid;
+        min-width: 0;
+        min-height: 66px;
+        margin: 0;
+        padding: 10px 12px;
+        align-content: center;
+        gap: 5px;
+        overflow: hidden;
+        border: 0;
+        border-right: 1px solid var(--erp-line);
+        border-radius: 0;
+        background: transparent;
+    }
+    #module-raporlar .report-summary-band > .dashboard-card:last-child { border-right: 0; }
+    #module-raporlar .report-summary-band > .dashboard-card > .flex { min-width: 0; margin: 0; gap: 7px; }
+    #module-raporlar .report-summary-band > .dashboard-card .w-8 { width: 24px; height: 24px; flex: 0 0 24px; border-radius: 3px; }
+    #module-raporlar .report-summary-band > .dashboard-card span { overflow: hidden; color: var(--erp-text-3); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-summary-band > .dashboard-card > div:last-child { overflow: hidden; color: var(--erp-text); font-size: 14px; line-height: 1.15; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-workspace { border-radius: 4px; }
+    #module-raporlar .report-tabs {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+        margin: 0;
+        padding: 0 10px;
+        flex-flow: row nowrap;
+        align-items: stretch;
+        gap: 0;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-panel);
+        box-shadow: inset 0 -1px 0 var(--erp-line);
+    }
+    #module-raporlar .report-tabs .rapor-tab-btn {
+        position: relative;
+        display: inline-flex;
+        min-width: max-content;
+        min-height: 41px;
+        padding: 0 13px;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 7px;
+        border: 0;
+        border-radius: 0;
+        color: var(--erp-text-2);
+        background: transparent;
+        box-shadow: none;
+        font-size: 11px;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    #module-raporlar .report-tabs .rapor-tab-btn::after { position: absolute; right: 9px; bottom: 0; left: 9px; height: 2px; content: ""; background: transparent; }
+    #module-raporlar .report-tabs .rapor-tab-btn.active { color: var(--erp-text); background: transparent; }
+    #module-raporlar .report-tabs .rapor-tab-btn.active::after { background: var(--erp-coral); }
+    #module-raporlar .report-tabs svg { width: 14px; height: 14px; }
+    #module-raporlar .report-content { min-width: 0; padding: 0; }
+    #module-raporlar .report-content > .flex:first-child {
+        display: flex;
+        min-width: 0;
+        min-height: 50px;
+        margin: 0;
+        padding: 8px 11px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        border-bottom: 1px solid var(--erp-line);
+    }
+    #module-raporlar .report-content > .flex:first-child h3 { min-width: 0; margin: 0; color: var(--erp-text); font-size: 12px; line-height: 1.3; }
+    #module-raporlar .report-content > .flex:first-child > .flex { display: flex; margin-left: auto; flex-wrap: wrap; gap: 6px; }
+    #module-raporlar .report-content > .flex:first-child button {
+        display: inline-flex;
+        min-height: 32px;
+        padding: 0 10px;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        color: var(--erp-text-2);
+        background: var(--erp-panel);
+        box-shadow: none;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+    #module-raporlar .report-general-grid { display: flex; margin: 0; flex-direction: column; gap: 0; }
+    #module-raporlar .report-highlight-list {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-panel-soft);
+    }
+    #module-raporlar .report-highlight {
+        display: grid;
+        min-width: 0;
+        min-height: 66px;
+        margin: 0;
+        padding: 10px 12px;
+        align-content: center;
+        gap: 3px;
+        overflow: hidden;
+        border: 0;
+        border-right: 1px solid var(--erp-line);
+        border-radius: 0;
+        background: transparent;
+    }
+    #module-raporlar .report-highlight:last-child { border-right: 0; }
+    #module-raporlar .report-highlight > .flex { min-width: 0; margin: 0; gap: 7px; }
+    #module-raporlar .report-highlight .w-8 { width: 24px; height: 24px; flex: 0 0 24px; border-radius: 3px; }
+    #module-raporlar .report-highlight span { overflow: hidden; color: var(--erp-text-3); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-highlight > div:nth-last-child(-n+2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-table-panel { min-width: 0; overflow-x: auto; border: 0; border-radius: 0; background: var(--erp-panel); }
+    #module-raporlar .report-table-panel table,
+    #module-raporlar .report-content > .overflow-x-auto table { width: 100%; min-width: 720px; }
+    #module-raporlar table th { padding: 9px 12px; color: var(--erp-text-3); background: var(--erp-panel-soft); font-size: 9px; white-space: nowrap; }
+    #module-raporlar table td { padding: 10px 12px; color: var(--erp-text-2); font-size: 11px; line-height: 1.35; }
+    #module-raporlar .report-chart-grid { display: grid; margin: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    #module-raporlar .report-chart-panel { min-width: 0; padding: 14px; overflow: hidden; border: 1px solid var(--erp-line); border-radius: 4px; background: var(--erp-panel); }
+    #module-raporlar .report-chart-panel > .flex { min-width: 0; margin-bottom: 10px; }
+    #module-raporlar .report-chart-panel h3 { overflow-wrap: anywhere; color: var(--erp-text); font-size: 11px; line-height: 1.3; }
+    #module-raporlar .report-chart-panel .h-64 { height: 210px; }
+
+    /* Import tools remain available, but use compact operational panels. */
+    .bf-factory-module .factory-import-section { margin-top: 24px; gap: 10px; }
+    .bf-factory-module .factory-section-heading h2 { margin: 0; color: var(--erp-text); font-size: 16px; line-height: 1.2; }
+    .bf-factory-module .factory-section-heading > div > p:last-child { margin-top: 3px; color: var(--erp-text-3); font-size: 10px; }
+    .bf-factory-module .factory-import-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .bf-factory-module .factory-import-card {
+        min-width: 0;
+        margin: 0;
+        padding: 12px;
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+        box-shadow: none;
+    }
+    .bf-factory-module .factory-import-card > .absolute { display: none; }
+    .bf-factory-module .factory-import-card > .flex:first-of-type { min-width: 0; min-height: 38px; margin-bottom: 9px; gap: 8px; }
+    .bf-factory-module .factory-import-card > .flex:first-of-type > div:first-child { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 4px; }
+    .bf-factory-module .factory-import-card > .flex:first-of-type > div:last-child { min-width: 0; }
+    .bf-factory-module .factory-import-card h3 { margin: 0; overflow-wrap: anywhere; color: var(--erp-text); font-size: 12px; line-height: 1.25; }
+    .bf-factory-module .factory-import-card p { max-width: 100%; overflow-wrap: anywhere; color: var(--erp-text-3); font-size: 9px; line-height: 1.35; }
+    .bf-factory-module .factory-import-card > [class*="border-dashed"] {
+        display: flex;
+        min-height: 58px;
+        padding: 9px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        border-width: 1px;
+        border-radius: 4px;
+    }
+    .bf-factory-module .factory-import-card > [class*="border-dashed"] > div:first-of-type { width: 28px; height: 28px; margin: 0; flex: 0 0 28px; border-radius: 4px; }
+    .bf-factory-module .factory-import-card > [class*="border-dashed"] svg { width: 15px; height: 15px; }
+    .bf-factory-module .factory-import-card > [class*="border-dashed"] p { margin: 0; }
+    .bf-factory-module .factory-import-card .mb-4,
+    .bf-factory-module .factory-import-card .mt-4 { margin-block: 8px; }
+    .bf-factory-module .factory-import-card button,
+    .bf-factory-module .factory-import-card a { min-height: 32px; padding: 0 10px; border-radius: 4px; line-height: 1.2; }
+    .bf-factory-module .factory-import-card select { min-height: 34px; min-width: 0; border-width: 1px; border-radius: 4px; font-size: 10px; }
+
+    /* Stop legacy cards and long labels from colliding at desktop breakpoints. */
+    .main-module *,
+    .dashboard-panel * { box-sizing: border-box; }
+    .main-module h1, .main-module h2, .main-module h3, .main-module h4,
+    .main-module p, .main-module span, .main-module strong,
+    .dashboard-panel h3, .dashboard-panel h4, .dashboard-panel p,
+    .dashboard-panel span, .dashboard-panel strong { max-width: 100%; }
+    .main-module .badge,
+    .main-module [class^="badge-"] { display: inline-flex; align-items: center; line-height: 1.2; }
+    .main-module button { line-height: 1.2; }
+
+    /* Dashboard */
+    .bf-management-dashboard { display: grid; max-width: 1600px; margin: 0 auto; gap: 20px; }
+    .bf-management-dashboard .dashboard-page-header {
+        position: static;
+        display: flex;
+        min-height: 72px;
+        margin: 0;
+        padding: 0;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 28px;
         overflow: visible;
         border: 0;
-        border-bottom: 1px solid var(--bf-border);
         border-radius: 0;
         background: transparent;
         box-shadow: none;
     }
-    .dashboard-page-header::after { display: none; }
-    .dashboard-page-header .page-title { font-size: clamp(26px, 2vw, 32px); }
-    .bf-management-dashboard .dashboard-eyebrow { color: var(--bf-primary); font-size: 10px; }
-    .dashboard-updated-at { margin-top: 9px; font-size: 10px; }
-    .dashboard-reporting-period { border-color: var(--bf-border); border-radius: 8px; background: var(--bf-surface); }
-    .dashboard-reporting-period .form-control { background: var(--bf-surface); }
+    .bf-management-dashboard .dashboard-page-header::after { display: none; }
+    .dashboard-title-line { display: flex; align-items: center; gap: 9px; }
+    .dashboard-page-header h2 { margin: 0; color: var(--erp-text); font-size: 30px; line-height: 1.12; font-weight: 700; }
+    .dashboard-page-header p { margin: 6px 0 0; color: var(--erp-text-2); font-size: 12px; }
+    .dashboard-page-header small { display: block; margin-top: 5px; color: var(--erp-text-3); font-size: 10px; }
+    .dashboard-page-actions { display: flex; align-items: center; gap: 10px; }
+    .dashboard-reporting-period {
+        display: flex;
+        min-height: 38px;
+        padding: 0 7px 0 11px;
+        align-items: center;
+        gap: 5px;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    .dashboard-reporting-period > svg { width: 15px; height: 15px; color: var(--erp-text-3); }
+    .dashboard-reporting-period .btn-icon { width: 26px; min-height: 26px; padding: 0; border: 0; background: transparent; }
+    .dashboard-reporting-period input { width: 148px; min-height: 28px; padding: 0 5px; border: 0; font-size: 11px; font-weight: 620; text-align: center; outline: 0; }
 
     .bf-management-dashboard .dashboard-kpi-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 0;
         overflow: hidden;
-        border: 1px solid var(--bf-border);
-        border-radius: 10px;
-        background: var(--bf-surface);
-        box-shadow: var(--bf-shadow-sm);
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
     }
-    .bf-management-dashboard .dashboard-kpi-card {
-        min-height: 126px;
-        padding: 20px 22px;
+    body.bf-app .bf-management-dashboard .dashboard-kpi-card {
+        --metric-accent: var(--erp-blue);
+        display: grid;
+        min-width: 0;
+        min-height: 132px;
+        padding: 22px 24px;
+        grid-template-columns: 48px minmax(0, 1fr);
+        align-items: center;
+        gap: 14px;
         border: 0;
-        border-right: 1px solid var(--bf-border);
+        border-right: 1px solid var(--erp-line);
         border-radius: 0;
         background: transparent;
         box-shadow: none;
     }
-    .bf-management-dashboard .dashboard-kpi-card:last-child { border-right: 0; }
-    .bf-management-dashboard .dashboard-kpi-card::after { display: none; }
-    .dashboard-kpi-icon { border: 0; border-radius: 9px; background: color-mix(in srgb, var(--dashboard-accent) 10%, transparent); }
-    .bf-management-dashboard .dashboard-kpi-card h3 { margin-top: 13px; color: var(--bf-text-muted); font-size: 9px; }
-    .dashboard-kpi-value { margin-top: 4px; color: var(--bf-text); font-size: clamp(25px,2vw,32px); }
-    .dashboard-kpi-meta { margin-top: 13px; padding-top: 10px; border-top: 1px solid var(--bf-border); }
-    .dashboard-kpi-meta strong { color: var(--bf-text-secondary); }
+    body.bf-app .bf-management-dashboard .dashboard-kpi-card:last-child { border-right: 0; }
+    body.bf-app .bf-management-dashboard .dashboard-kpi-card::after { display: none; }
+    .dashboard-kpi-card.is-fleet { --metric-accent: var(--erp-coral); }
+    .dashboard-kpi-card.is-maintenance { --metric-accent: var(--erp-teal); }
+    .dashboard-kpi-card.is-fuel { --metric-accent: var(--erp-amber); }
+    .dashboard-kpi-card.is-accrual { --metric-accent: var(--erp-blue); }
+    .dashboard-kpi-card.is-balance { --metric-accent: var(--erp-violet); }
+    .dashboard-kpi-icon { display: grid; width: 46px; height: 46px; place-items: center; border: 0; border-radius: 50%; color: var(--metric-accent); background: color-mix(in srgb, var(--metric-accent) 11%, transparent); }
+    .dashboard-kpi-icon svg { width: 22px; height: 22px; stroke-width: 1.8; }
+    .dashboard-kpi-card > div { min-width: 0; }
+    .dashboard-kpi-card > div > span { display: block; color: var(--erp-text-2); font-size: 12px; }
+    .dashboard-kpi-card > div > strong { display: block; margin-top: 4px; overflow: hidden; color: var(--erp-text); font-size: clamp(22px, 1.65vw, 29px); line-height: 1.1; font-weight: 620; letter-spacing: -.035em; text-overflow: ellipsis; white-space: nowrap; }
+    .dashboard-kpi-card small { display: block; margin-top: 9px; overflow: hidden; color: var(--erp-text-3); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .dashboard-kpi-card small b { color: var(--metric-accent); font-weight: 650; }
 
-    .dashboard-live-zone { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-    .dashboard-live-zone .dashboard-scope-heading { padding: 0 0 12px; border-bottom: 1px solid var(--bf-border); }
-    .dashboard-scope-heading h2 { color: var(--bf-text); font-size: 18px; }
-    .dashboard-scope-heading > p { max-width: 520px; }
-    .dashboard-live-grid { grid-template-columns: minmax(0,1.45fr) minmax(340px,.8fr); gap: 18px; }
-    .dashboard-domain-card {
-        border: 1px solid var(--bf-border);
-        border-radius: 10px;
-        background: var(--bf-surface);
-        box-shadow: var(--bf-shadow-xs);
-    }
-    .dashboard-domain-card::before { display: none; }
-    .dashboard-live-grid .is-maintenance-domain { padding: 20px; }
-    .dashboard-policy-head, .dashboard-section-head { padding-bottom: 14px; border-bottom: 1px solid var(--bf-border); }
-    .dashboard-section-icon { border-radius: 8px; }
+    .dashboard-reference-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    .dashboard-panel { min-width: 0; overflow: hidden; border: 1px solid var(--erp-line); border-radius: 4px; background: var(--erp-panel); box-shadow: none; }
+    .dashboard-panel-head { display: flex; min-height: 62px; padding: 12px 18px; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--erp-line); }
+    .dashboard-panel-head h3 { margin: 0; color: var(--erp-text); font-size: 16px; font-weight: 650; }
+    .dashboard-panel-head p { margin: 3px 0 0; color: var(--erp-text-3); font-size: 10px; }
+    .panel-link { display: inline-flex; padding: 0; align-items: center; gap: 6px; border: 0; color: var(--erp-text-2); background: transparent; font-size: 10px; font-weight: 560; cursor: pointer; }
+    .panel-link:hover { color: var(--erp-coral); }
+    .panel-link svg { width: 13px; height: 13px; }
+    .dashboard-panel-footer { display: flex; min-height: 38px; padding: 7px 13px; align-items: center; justify-content: space-between; border-top: 1px solid var(--erp-line); }
 
-    .dashboard-dual-finance { grid-template-columns: minmax(0,1.55fr) minmax(380px,.7fr); gap: 18px; }
-    .dashboard-finance-zone, .dashboard-current-finance {
-        border: 1px solid var(--bf-border);
-        border-radius: 10px;
-        background: var(--bf-surface);
-        box-shadow: var(--bf-shadow-xs);
-    }
-    .dashboard-finance-zone { padding: 20px; }
-    .dashboard-zone-head { padding-bottom: 15px; border-bottom: 1px solid var(--bf-border); }
-    .dashboard-period-totals { margin-top: 14px; border-radius: 8px; background: var(--bf-surface-raised); }
-    .dashboard-finance-zone .dashboard-finance-grid { gap: 0; border: 1px solid var(--bf-border); border-radius: 8px; background: transparent; }
-    .dashboard-finance-zone .dashboard-domain-card { border: 0; border-right: 1px solid var(--bf-border); border-radius: 0; box-shadow: none; }
-    .dashboard-finance-zone .dashboard-domain-card:last-child { border-right: 0; }
-    .dashboard-current-column { gap: 12px; }
-    .dashboard-current-finance .dashboard-domain-card { border: 0; border-bottom: 1px solid var(--bf-border); border-radius: 0; box-shadow: none; }
-    .dashboard-stat-grid, .dashboard-partner-grid > div { border-color: var(--bf-border); border-radius: 7px; background: var(--bf-surface-raised); }
-    .dashboard-primary-total { color: var(--bf-text); }
-    .is-accrual-domain .dashboard-primary-total { color: var(--bf-gold); }
-    .is-fuel-domain .dashboard-primary-total { color: var(--bf-orange); }
+    .dashboard-maintenance-layout { display: grid; grid-template-columns: 1fr; gap: 0; }
+    .dashboard-maintenance-layout > div { min-width: 0; }
+    .dashboard-maintenance-layout > div + div { border-top: 1px solid var(--erp-line); }
+    .dashboard-maintenance-layout h4, .dashboard-subsection h4 { margin: 0; padding: 8px 14px; color: var(--erp-text-3); background: var(--erp-panel-soft); font-size: 9px; font-weight: 650; letter-spacing: .045em; text-transform: uppercase; }
+    .management-attention-list, .dashboard-compact-list { min-height: 74px; color: var(--erp-text-2); }
+    .management-attention-list > *, .dashboard-compact-list > * { border-color: var(--erp-line); }
+    .loading-state { display: grid; min-height: 74px; place-items: center; color: var(--erp-text-3); font-size: 10px; }
 
-    /* Modal, drawer and overlay language */
-    #general-modal > div:first-child, #cari-detail-modal > div:first-child,
-    #kredi-karti-detail-modal > div:first-child, #confirm-modal,
-    #cari-kart-modal-overlay, #modal-taseron-detay-rapor { background: rgba(22,29,34,.46); backdrop-filter: blur(3px); }
+    .dashboard-policy-head { margin-bottom: 0; }
+    .dashboard-policy-head > div:first-child { display: block; min-width: 160px; }
+    .dashboard-policy-head > div:last-child { display: flex; align-items: center; gap: 8px; }
+    #police-ozet-badges { display: flex; align-items: center; gap: 4px; }
+    .dashboard-policy-filter { width: 118px; min-height: 32px; font-size: 10px; }
+    .dashboard-table-wrap { max-height: 342px; overflow: auto; }
+    .dashboard-policy-table { width: 100%; min-width: 560px; }
+    .dashboard-policy-table th { position: sticky; top: 0; z-index: 1; padding: 9px 12px; white-space: nowrap; background: var(--erp-panel-soft); }
+    .dashboard-policy-table td { padding: 10px 12px; font-size: 10px; white-space: nowrap; }
+    .dashboard-policy-row { cursor: pointer; transition: background 140ms ease, box-shadow 140ms ease; }
+    .dashboard-policy-row:hover { background: var(--erp-panel-hover); }
+    .dashboard-policy-row:focus-visible { position: relative; z-index: 2; outline: 2px solid color-mix(in srgb, var(--erp-coral) 55%, transparent); outline-offset: -2px; }
+    .dashboard-policy-table .policy-type-cell { min-width: 170px; white-space: normal; }
+    .dashboard-policy-table .policy-type-cell strong { display: flex; align-items: center; gap: 6px; color: var(--erp-text); font-size: 11px; font-weight: 620; }
+    .dashboard-policy-table .policy-type-icon { width: 14px; height: 14px; flex: 0 0 14px; color: var(--erp-violet); }
+    .dashboard-policy-table .policy-type-cell small { display: block; margin-top: 2px; color: var(--erp-text-3); font-size: 9px; }
+    .dashboard-policy-table .policy-plate strong { color: var(--erp-text); font-size: 11px; }
+
+    .dashboard-operation-metrics { display: grid; }
+    .dashboard-operation-metrics article { display: grid; min-height: 58px; padding: 9px 16px; grid-template-columns: 34px minmax(0, 1fr) auto; align-items: center; gap: 11px; border-bottom: 1px solid var(--erp-line); }
+    .dashboard-operation-metrics article:last-child { border-bottom: 0; }
+    .dashboard-operation-metrics article > div { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; }
+    .dashboard-operation-metrics article > div > span { color: var(--erp-text-2); font-size: 11px; }
+    .dashboard-operation-metrics article > div > strong { color: var(--erp-text); font-size: 13px; font-weight: 650; white-space: nowrap; }
+    .dashboard-row-icon.is-blue { color: var(--erp-blue); background: color-mix(in srgb, var(--erp-blue) 10%, transparent); }
+    .dashboard-row-icon.is-amber { color: var(--erp-amber); background: color-mix(in srgb, var(--erp-amber) 11%, transparent); }
+    .dashboard-row-icon.is-teal { color: var(--erp-teal); background: color-mix(in srgb, var(--erp-teal) 10%, transparent); }
+    .dashboard-row-icon.is-violet { color: var(--erp-violet); background: color-mix(in srgb, var(--erp-violet) 10%, transparent); }
+    .dashboard-trend { display: inline-flex; min-width: 82px; justify-content: flex-end; color: var(--erp-text-3); font-size: 9px; font-style: normal; font-weight: 650; white-space: nowrap; }
+    .dashboard-trend.is-positive { color: var(--erp-teal); }
+    .dashboard-trend.is-negative { color: var(--erp-red); }
+    .dashboard-trend.is-neutral { color: var(--erp-text-3); }
+
+    .dashboard-zone-period { display: flex; flex-direction: column; align-items: flex-end; }
+    .dashboard-zone-period span { color: var(--erp-text); font-size: 11px; font-weight: 650; }
+    .dashboard-zone-period small { color: var(--erp-text-3); font-size: 8px; text-transform: uppercase; }
+    .dashboard-period-totals { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--erp-line); background: var(--erp-panel-soft); }
+    .dashboard-period-totals span { display: flex; min-height: 48px; padding: 8px 12px; flex-direction: column; justify-content: center; color: var(--erp-text-3); border-right: 1px solid var(--erp-line); font-size: 9px; }
+    .dashboard-period-totals span:last-child { border-right: 0; }
+    .dashboard-period-totals strong { margin-top: 2px; color: var(--erp-text); font-size: 12px; }
+    .dashboard-finance-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-finance-rows article { min-width: 0; padding: 13px 14px; border-right: 1px solid var(--erp-line); }
+    .dashboard-finance-rows article:last-child { border-right: 0; }
+    .dashboard-finance-rows article > span, .dashboard-liability-grid article > span { display: flex; align-items: center; gap: 7px; color: var(--erp-text-2); }
+    .dashboard-finance-rows article svg, .dashboard-liability-grid article > span svg { width: 15px; height: 15px; color: var(--erp-coral); }
+    .dashboard-finance-rows article > span b, .dashboard-liability-grid article > span b { color: var(--erp-text-2); font-size: 10px; }
+    .dashboard-finance-rows article > strong { display: block; margin-top: 8px; color: var(--erp-text); font-size: 18px; font-weight: 650; }
+    .dashboard-finance-rows article > small { display: block; margin-top: 6px; overflow: hidden; color: var(--erp-text-3); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+    .dashboard-finance-rows article > small b { color: var(--erp-text-2); }
+    .dashboard-subsection { border-top: 1px solid var(--erp-line); }
+
+    .dashboard-finance-table-wrap { overflow-x: auto; }
+    .dashboard-finance-table { width: 100%; min-width: 520px; }
+    .dashboard-finance-table th, .dashboard-finance-table td { padding: 12px 18px; text-align: right; }
+    .dashboard-finance-table th:first-child, .dashboard-finance-table td:first-child { text-align: left; }
+    .dashboard-finance-table td { color: var(--erp-text-2); font-size: 11px; font-variant-numeric: tabular-nums; }
+    .dashboard-finance-table td:nth-child(2) { color: var(--erp-text); font-weight: 650; }
+    .dashboard-finance-table .is-total td { background: var(--erp-panel-soft); font-weight: 650; }
+    .dashboard-finance-foot { display: flex; min-height: 44px; padding: 9px 18px; align-items: center; gap: 22px; color: var(--erp-text-3); border-top: 1px solid var(--erp-line); font-size: 9px; }
+    .dashboard-finance-foot b { color: var(--erp-text-2); }
+
+    .dashboard-recent-wrap { max-height: 352px; overflow: auto; }
+    .dashboard-recent-table { width: 100%; table-layout: fixed; }
+    .dashboard-recent-table th { position: sticky; top: 0; z-index: 1; padding: 9px 12px; background: var(--erp-panel-soft); }
+    .dashboard-recent-table th:nth-child(1) { width: 92px; }
+    .dashboard-recent-table th:nth-child(2) { width: 126px; }
+    .dashboard-recent-table th:nth-child(4) { width: 112px; text-align: right; }
+    .dashboard-recent-table td { height: 44px; padding: 8px 12px; font-size: 10px; }
+    .dashboard-activity-date { color: var(--erp-text-3) !important; white-space: nowrap; }
+    .dashboard-activity-detail { overflow: hidden; color: var(--erp-text-2) !important; text-overflow: ellipsis; white-space: nowrap; }
+    .dashboard-activity-amount { color: var(--erp-text) !important; font-weight: 650; text-align: right; white-space: nowrap; }
+    .dashboard-activity-module { display: inline-flex; min-width: 0; align-items: center; gap: 6px; color: var(--erp-text-2); font-size: 9px; font-weight: 620; white-space: nowrap; }
+    .dashboard-activity-module svg { width: 14px; height: 14px; }
+    .dashboard-activity-module.is-fuel { color: var(--erp-amber); }
+    .dashboard-activity-module.is-maintenance { color: var(--erp-violet); }
+    .dashboard-activity-module.is-accrual { color: var(--erp-blue); }
+    .dashboard-activity-module.is-receivable { color: var(--erp-coral); }
+    .dashboard-activity-module.is-payment { color: var(--erp-teal); }
+    .dashboard-activity-module.is-card { color: var(--erp-red); }
+
+    .dashboard-liability-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dashboard-liability-grid > article { min-width: 0; padding: 14px; }
+    .dashboard-liability-grid > article + article { border-left: 1px solid var(--erp-line); }
+    .dashboard-liability-grid article > strong { display: block; margin-top: 10px; color: var(--erp-text); font-size: 21px; font-weight: 650; }
+    .dashboard-liability-grid article > small { display: block; margin-top: 5px; color: var(--erp-text-3); font-size: 9px; }
+    .dashboard-partner-grid { display: grid; margin-top: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid var(--erp-line); }
+    .dashboard-partner-grid > div { display: flex; min-width: 0; padding: 9px; flex-direction: column; border-right: 1px solid var(--erp-line); background: var(--erp-panel-soft); }
+    .dashboard-partner-grid > div:last-child { border-right: 0; }
+    .dashboard-partner-grid small, .dashboard-partner-grid span { color: var(--erp-text-3); font-size: 8px; }
+    .dashboard-partner-grid strong { margin: 3px 0; color: var(--erp-text); font-size: 13px; }
+
+    /* Modals and legacy translation */
+    .fixed.inset-0, .modal-backdrop, .bf-overlay { backdrop-filter: blur(3px); }
     #general-modal .general-modal-sheet, #cari-detail-modal .cari-detail-sheet,
     #kredi-karti-detail-modal .kredi-detail-sheet, #confirm-modal > div,
     .ios-modal-sheet, .modal-content, #cari-kart-modal-overlay .cari-card-sheet {
-        color: var(--bf-text);
-        border: 1px solid var(--bf-border);
-        border-radius: 12px;
-        background: var(--bf-surface);
+        color: var(--erp-text);
+        border: 1px solid var(--erp-line-strong);
+        border-radius: 6px;
+        background: var(--erp-panel);
         box-shadow: var(--bf-shadow-modal);
     }
     #general-modal .general-modal-header, #general-modal .general-modal-footer,
     #cari-detail-modal .cari-detail-header, #kredi-karti-detail-modal .premium-modal-header,
-    #cari-kart-modal-overlay .cari-card-header {
-        color: var(--bf-text);
-        border-color: var(--bf-border);
-        background: var(--bf-surface-raised);
-    }
+    #cari-kart-modal-overlay .cari-card-header { color: var(--erp-text); border-color: var(--erp-line); background: var(--erp-panel-soft); }
     #general-modal #modal-dynamic-body, #cari-detail-modal .cari-detail-scroll,
-    #kredi-karti-detail-modal .ios-modal-body, #cari-kart-modal-overlay .cari-card-body { color: var(--bf-text); background: var(--bf-surface); }
+    #kredi-karti-detail-modal .ios-modal-body, #cari-kart-modal-overlay .cari-card-body { color: var(--erp-text); background: var(--erp-panel); }
 
-    /* Translate common legacy dark utilities in light mode. */
-    :root:not(.dark) body.bf-app .main-module .text-white { color: var(--bf-text); }
+    /* Shared create/edit forms — one consistent desktop dialog system. */
+    #general-modal .general-modal-backdrop { background: rgba(10, 17, 23, .66); backdrop-filter: blur(5px); }
+    #general-modal .general-modal-dialog { position: relative; z-index: 1; width: 100%; padding: 18px; }
+    #general-modal .general-modal-sheet {
+        display: flex;
+        width: min(720px, calc(100vw - 36px));
+        max-width: 720px;
+        max-height: calc(100vh - 36px);
+        flex-direction: column;
+        border-radius: 6px !important;
+        background: var(--erp-panel) !important;
+    }
+    #general-modal.bf-fleet-modal .general-modal-sheet,
+    #general-modal.bf-receivables-modal .general-modal-sheet { width: min(800px, calc(100vw - 36px)); max-width: 800px; }
+    #general-modal.bf-offer-modal .general-modal-sheet { width: min(920px, calc(100vw - 36px)); max-width: 920px; }
+    #general-modal .general-modal-header {
+        min-height: 60px;
+        padding: 10px 13px !important;
+        flex: 0 0 auto;
+        border-bottom: 1px solid var(--erp-line) !important;
+        background: var(--erp-panel-soft) !important;
+    }
+    #general-modal .general-modal-heading { display: flex; min-width: 0; align-items: center; gap: 10px; }
+    #general-modal .general-modal-heading > div { display: grid; min-width: 0; gap: 1px; }
+    #general-modal .general-modal-icon {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 34px;
+        place-items: center;
+        border-radius: 4px;
+        color: var(--erp-coral);
+        background: color-mix(in srgb, var(--erp-coral) 9%, transparent);
+    }
+    #general-modal .general-modal-icon svg { width: 16px; height: 16px; }
+    #general-modal .general-modal-eyebrow { color: var(--erp-coral-strong); font-size: 7px; font-weight: 750; letter-spacing: .075em; }
+    #general-modal #modal-title {
+        overflow: hidden;
+        margin: 0;
+        color: var(--erp-text) !important;
+        font-size: 15px;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #general-modal .general-modal-close {
+        display: grid;
+        width: 31px;
+        height: 31px;
+        padding: 0;
+        flex: 0 0 31px;
+        place-items: center;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        color: var(--erp-text-3) !important;
+        background: var(--erp-panel);
+    }
+    #general-modal .general-modal-close:hover { color: var(--erp-red) !important; border-color: color-mix(in srgb, var(--erp-red) 35%, var(--erp-line)); }
+    #general-modal .general-modal-close svg { width: 15px !important; height: 15px !important; }
+    #general-modal #modal-dynamic-body {
+        min-height: 0;
+        max-height: calc(100vh - 150px) !important;
+        padding: 14px 16px !important;
+        flex: 1 1 auto;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background: var(--erp-panel) !important;
+    }
+    #general-modal #modal-dynamic-body > p:first-child {
+        margin: 0 0 12px !important;
+        padding: 8px 10px;
+        border-left: 2px solid var(--erp-blue);
+        color: var(--erp-text-2) !important;
+        background: var(--erp-panel-soft);
+        font-size: 9px !important;
+        line-height: 1.45;
+    }
+    #general-modal #modal-dynamic-body .space-y-3 > * + *,
+    #general-modal #modal-dynamic-body .space-y-4 > * + *,
+    #general-modal #modal-dynamic-body .space-y-5 > * + *,
+    #general-modal #modal-dynamic-body .space-y-6 > * + *,
+    #general-modal #modal-dynamic-body .space-y-8 > * + * { margin-top: 10px !important; }
+    #general-modal #modal-dynamic-body .gap-3,
+    #general-modal #modal-dynamic-body .gap-4,
+    #general-modal #modal-dynamic-body .gap-5,
+    #general-modal #modal-dynamic-body .gap-6 { gap: 10px !important; }
+    #general-modal #modal-dynamic-body hr { margin-block: 13px !important; border-color: var(--erp-line) !important; }
+    #general-modal #modal-dynamic-body label {
+        display: block;
+        margin-bottom: 5px !important;
+        color: var(--erp-text-2) !important;
+        font-size: 8px !important;
+        font-weight: 700 !important;
+        letter-spacing: .045em !important;
+        line-height: 1.3;
+        text-transform: uppercase !important;
+    }
+    #general-modal #modal-dynamic-body input:not([type="checkbox"]):not([type="radio"]),
+    #general-modal #modal-dynamic-body select,
+    #general-modal #modal-dynamic-body textarea {
+        width: 100%;
+        min-width: 0;
+        min-height: 34px !important;
+        padding: 7px 10px !important;
+        border: 1px solid var(--erp-line) !important;
+        border-radius: 4px !important;
+        color: var(--erp-text) !important;
+        background: var(--erp-panel) !important;
+        box-shadow: none !important;
+        font-size: 10px !important;
+        line-height: 1.3;
+    }
+    #general-modal #modal-dynamic-body textarea { min-height: 74px !important; resize: vertical; }
+    #general-modal #modal-dynamic-body input:focus,
+    #general-modal #modal-dynamic-body select:focus,
+    #general-modal #modal-dynamic-body textarea:focus {
+        outline: none;
+        border-color: var(--erp-blue) !important;
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--erp-blue) 13%, transparent) !important;
+    }
+    #general-modal #modal-dynamic-body input[type="checkbox"],
+    #general-modal #modal-dynamic-body input[type="radio"] { accent-color: var(--erp-coral); }
+    #general-modal #modal-dynamic-body .searchable-select-wrapper { width: 100%; min-width: 0; }
+    #general-modal #modal-dynamic-body .searchable-select-btn {
+        min-height: 34px !important;
+        padding: 0 10px !important;
+        border: 1px solid var(--erp-line) !important;
+        border-radius: 4px !important;
+        color: var(--erp-text) !important;
+        background: var(--erp-panel) !important;
+        box-shadow: none !important;
+        font-size: 10px !important;
+    }
+    #general-modal #modal-dynamic-body .searchable-select-label { color: var(--erp-text-2) !important; }
+    #general-modal #modal-dynamic-body .searchable-select-dropdown {
+        overflow: hidden;
+        border: 1px solid var(--erp-line-strong) !important;
+        border-radius: 4px !important;
+        background: var(--erp-panel) !important;
+        box-shadow: var(--bf-shadow-md) !important;
+    }
+    #general-modal #modal-dynamic-body .searchable-select-dropdown input { border-width: 0 0 1px !important; border-radius: 0 !important; background: var(--erp-panel-soft) !important; }
+    #general-modal #modal-dynamic-body .searchable-select-option { min-height: 32px; padding: 8px 10px !important; color: var(--erp-text-2) !important; font-size: 10px !important; }
+    #general-modal #modal-dynamic-body .searchable-select-option:hover { color: var(--erp-text) !important; background: var(--erp-panel-hover) !important; }
+    #general-modal .general-modal-footer {
+        min-height: 54px;
+        padding: 9px 13px !important;
+        flex: 0 0 auto;
+        gap: 6px !important;
+        border-top: 1px solid var(--erp-line) !important;
+        background: var(--erp-panel-soft) !important;
+    }
+    #general-modal .general-modal-footer button {
+        min-height: 32px !important;
+        padding: 0 12px !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+        font-size: 9px !important;
+        font-weight: 700;
+    }
+    #general-modal .general-modal-cancel { color: var(--erp-text-2) !important; border: 1px solid var(--erp-line) !important; background: var(--erp-panel) !important; }
+    #general-modal .general-modal-save-more { color: var(--erp-coral-strong) !important; border: 1px solid color-mix(in srgb, var(--erp-coral) 38%, var(--erp-line)) !important; background: var(--erp-panel) !important; }
+    #general-modal .general-modal-save { color: #fff !important; border: 1px solid var(--erp-coral) !important; background: var(--erp-coral) !important; }
+    #general-modal .general-modal-save:hover { background: var(--erp-coral-strong) !important; }
+
+    #confirm-modal { background: rgba(10, 17, 23, .7) !important; backdrop-filter: blur(5px); }
+    #confirm-modal > div { max-width: 390px; border-radius: 6px !important; }
+    #confirm-modal > div > div:first-child { padding: 22px 20px 17px !important; }
+    #confirm-modal #confirm-modal-icon { width: 42px !important; height: 42px !important; margin-bottom: 12px !important; border-radius: 4px !important; }
+    #confirm-modal #confirm-modal-icon svg { width: 19px !important; height: 19px !important; }
+    #confirm-modal #confirm-modal-title { margin: 0 0 5px !important; color: var(--erp-text) !important; font-size: 15px; }
+    #confirm-modal #confirm-modal-message { margin: 0; color: var(--erp-text-2) !important; font-size: 10px; line-height: 1.45; }
+    #confirm-modal > div > div:last-child { display: flex; padding: 9px 12px !important; flex-direction: row-reverse !important; gap: 6px !important; border-top: 1px solid var(--erp-line); background: var(--erp-panel-soft) !important; }
+    #confirm-modal > div > div:last-child button { min-height: 33px; padding: 0 12px !important; border-radius: 4px !important; box-shadow: none !important; font-size: 9px !important; }
+    #confirm-modal #confirm-modal-ok { width: auto !important; color: #fff !important; background: var(--erp-red) !important; }
+    #confirm-modal #confirm-modal-cancel { width: auto !important; color: var(--erp-text-2) !important; border: 1px solid var(--erp-line); background: var(--erp-panel) !important; }
+
+    /* Cari account statement — compact, document-like modal. */
+    #cari-detail-modal .cari-detail-backdrop { background: rgba(10, 17, 23, .68); backdrop-filter: blur(5px); }
+    #cari-detail-modal .cari-detail-dialog { position: relative; z-index: 1; width: 100%; padding: 18px; }
+    #cari-detail-modal .cari-detail-sheet {
+        width: min(1080px, calc(100vw - 36px));
+        max-width: 1080px;
+        height: auto !important;
+        min-height: 0;
+        max-height: calc(100vh - 36px);
+        border-radius: 6px !important;
+    }
+    #cari-detail-modal .cari-detail-header {
+        min-height: 68px;
+        padding: 11px 14px !important;
+        align-items: center;
+        gap: 14px;
+    }
+    #cari-detail-modal .cari-detail-heading { min-width: 0; align-items: center; gap: 11px !important; }
+    #cari-detail-modal .cari-detail-icon {
+        width: 38px !important;
+        height: 38px !important;
+        flex: 0 0 38px;
+        border-radius: 4px !important;
+        color: var(--erp-coral) !important;
+        background: color-mix(in srgb, var(--erp-coral) 9%, transparent) !important;
+    }
+    #cari-detail-modal .cari-detail-icon svg { width: 18px !important; height: 18px !important; }
+    #cari-detail-modal .cari-detail-title-copy { display: grid; min-width: 0; gap: 1px; }
+    #cari-detail-modal .cari-detail-eyebrow {
+        color: var(--erp-coral-strong);
+        font-size: 8px;
+        font-weight: 750;
+        letter-spacing: .075em;
+    }
+    #cari-detail-modal #cari-detail-unvan {
+        overflow: hidden;
+        margin: 0;
+        color: var(--erp-text) !important;
+        font-size: 18px;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #cari-detail-modal #cari-detail-tur { margin: 0; color: var(--erp-text-3) !important; font-size: 9px; line-height: 1.25; }
+    #cari-detail-modal .cari-detail-actions { flex: 0 0 auto; gap: 6px !important; }
+    #cari-detail-modal .cari-detail-action {
+        display: inline-flex;
+        min-height: 32px;
+        padding: 0 10px !important;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px !important;
+        color: var(--erp-text-2) !important;
+        background: var(--erp-panel) !important;
+        box-shadow: none;
+        font-size: 9px !important;
+        letter-spacing: .025em !important;
+    }
+    #cari-detail-modal .cari-detail-action.is-whatsapp { color: var(--erp-green) !important; }
+    #cari-detail-modal .cari-detail-action.is-print { color: var(--erp-blue) !important; }
+    #cari-detail-modal .cari-detail-action svg { width: 14px !important; height: 14px !important; }
+    #cari-detail-modal .cari-detail-close {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        padding: 0 !important;
+        place-items: center;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px !important;
+        color: var(--erp-text-3) !important;
+        background: var(--erp-panel) !important;
+    }
+    #cari-detail-modal .cari-detail-close svg { width: 16px !important; height: 16px !important; }
+    #cari-detail-modal .cari-detail-scroll {
+        max-height: calc(100vh - 105px) !important;
+        padding: 14px !important;
+    }
+    #cari-detail-modal .cari-detail-scroll > * + * { margin-top: 14px !important; }
+    #cari-detail-modal .cari-detail-metrics {
+        display: grid;
+        overflow: hidden;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0 !important;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    #cari-detail-modal .cari-detail-metric {
+        position: relative;
+        min-width: 0;
+        min-height: 72px;
+        padding: 12px 15px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+    }
+    #cari-detail-modal .cari-detail-metric + .cari-detail-metric { border-left: 1px solid var(--erp-line) !important; }
+    #cari-detail-modal .cari-detail-metric::before {
+        position: absolute;
+        top: 12px;
+        bottom: 12px;
+        left: 0;
+        width: 2px;
+        content: "";
+        background: var(--metric-accent, var(--erp-text-3));
+    }
+    #cari-detail-modal .cari-detail-metric.is-debt { --metric-accent: var(--erp-red); }
+    #cari-detail-modal .cari-detail-metric.is-payment { --metric-accent: var(--erp-teal); }
+    #cari-detail-modal .cari-detail-metric.is-balance { --metric-accent: var(--erp-coral); }
+    #cari-detail-modal .cari-detail-metric p:first-child {
+        margin: 0 0 4px !important;
+        color: var(--erp-text-3) !important;
+        font-size: 8px !important;
+        letter-spacing: .05em !important;
+    }
+    #cari-detail-modal .cari-detail-metric p[id] {
+        overflow: hidden;
+        margin: 0;
+        color: var(--erp-text) !important;
+        font-size: 18px !important;
+        line-height: 1.25;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #cari-detail-modal .cari-detail-metric.is-payment p[id] { color: var(--erp-teal) !important; }
+    #cari-detail-modal .cari-detail-metric.is-balance p[id] { color: var(--erp-coral-strong) !important; }
+    #cari-detail-modal .cari-statement-head { min-height: 38px; margin: 0 !important; padding: 0 2px 8px; gap: 16px; }
+    #cari-detail-modal .cari-statement-head > div:first-child { display: grid; gap: 1px; }
+    #cari-detail-modal .cari-statement-head span { color: var(--erp-coral-strong); font-size: 8px; font-weight: 750; letter-spacing: .06em; }
+    #cari-detail-modal .cari-statement-head h3 { margin: 0; color: var(--erp-text) !important; font-size: 12px; }
+    #cari-detail-modal .cari-statement-head > div:last-child { color: var(--erp-text-3) !important; font-size: 9px; }
+    #cari-detail-modal .cari-detail-transactions { max-height: calc(100vh - 275px); border-radius: 4px !important; }
+    #cari-detail-modal .cari-statement-table { min-width: 820px; table-layout: fixed; }
+    #cari-detail-modal .cari-statement-table th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        height: 35px;
+        padding: 0 10px !important;
+        color: var(--erp-text-3) !important;
+        background: var(--erp-panel-soft) !important;
+        font-size: 8px !important;
+        letter-spacing: .045em !important;
+        white-space: nowrap;
+    }
+    #cari-detail-modal .cari-statement-table th:nth-child(1) { width: 100px; }
+    #cari-detail-modal .cari-statement-table th:nth-child(2) { width: auto; }
+    #cari-detail-modal .cari-statement-table th:nth-child(3),
+    #cari-detail-modal .cari-statement-table th:nth-child(4),
+    #cari-detail-modal .cari-statement-table th:nth-child(5) { width: 130px; }
+    #cari-detail-modal .cari-statement-table th:nth-child(6) { width: 62px; }
+    #cari-detail-modal .cari-statement-table td {
+        height: 46px;
+        padding: 7px 10px !important;
+        border-color: var(--erp-line) !important;
+        color: var(--erp-text-2) !important;
+        font-size: 10px;
+        line-height: 1.3;
+    }
+    #cari-detail-modal .statement-date { white-space: nowrap; }
+    #cari-detail-modal .statement-detail { min-width: 0; }
+    #cari-detail-modal .statement-detail > div:first-child { color: var(--erp-text) !important; font-size: 10px; }
+    #cari-detail-modal .statement-detail > div:last-child { overflow: hidden; color: var(--erp-text-3) !important; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    #cari-detail-modal .statement-debt,
+    #cari-detail-modal .statement-credit,
+    #cari-detail-modal .statement-balance { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #cari-detail-modal .statement-credit { color: var(--erp-teal) !important; }
+    #cari-detail-modal .statement-balance { color: var(--erp-coral-strong) !important; font-size: 10px !important; }
+    #cari-detail-modal .statement-action button {
+        min-height: 25px;
+        padding: 0 7px !important;
+        border-color: color-mix(in srgb, var(--erp-red) 28%, var(--erp-line)) !important;
+        border-radius: 3px !important;
+        color: var(--erp-red) !important;
+        background: transparent;
+        font-size: 8px !important;
+    }
+
+    /* Hakediş detail — an editable reconciliation workspace. */
+    #cari-kart-modal-overlay.hakedis-detail-overlay { padding: 18px !important; background: rgba(10, 17, 23, .72) !important; backdrop-filter: blur(5px); }
+    #cari-kart-modal-overlay .cari-card-sheet {
+        width: min(1120px, calc(100vw - 36px)) !important;
+        max-width: 1120px !important;
+        max-height: calc(100vh - 36px) !important;
+        border-radius: 6px !important;
+    }
+    #cari-kart-modal-overlay .cari-card-header {
+        min-height: 68px;
+        padding: 10px 14px !important;
+        gap: 14px;
+        background: var(--erp-panel-soft) !important;
+    }
+    #cari-kart-modal-overlay .cari-card-heading { display: grid; min-width: 0; gap: 1px; }
+    #cari-kart-modal-overlay .cari-card-eyebrow { color: var(--erp-coral-strong); font-size: 8px; font-weight: 750; letter-spacing: .075em; }
+    #cari-kart-modal-overlay .cari-card-header h2 { min-width: 0; margin: 0; font-size: 17px !important; line-height: 1.25; }
+    #cari-kart-modal-overlay .cari-card-header h2 svg { width: 17px !important; height: 17px !important; color: var(--erp-coral) !important; }
+    #cari-kart-modal-overlay .cari-hakedis-title { color: var(--erp-text-3); font-size: 11px; font-weight: 600; }
+    #cari-kart-modal-overlay .cari-hakedis-plate { overflow: hidden; color: var(--erp-text); text-overflow: ellipsis; white-space: nowrap; }
+    #cari-kart-modal-overlay .cari-card-meta { min-width: 0; gap: 6px !important; }
+    #cari-kart-modal-overlay .cari-card-meta p { overflow: hidden; margin: 0; font-size: 8px !important; text-overflow: ellipsis; white-space: nowrap; }
+    #cari-kart-modal-overlay .cari-card-actions { flex: 0 0 auto; gap: 6px !important; }
+    #cari-kart-modal-overlay .cari-card-action {
+        min-height: 32px;
+        padding: 0 10px !important;
+        border: 1px solid var(--erp-line) !important;
+        border-radius: 4px !important;
+        color: var(--erp-text-2) !important;
+        background: var(--erp-panel) !important;
+        box-shadow: none !important;
+        font-size: 9px !important;
+    }
+    #cari-kart-modal-overlay .cari-card-action.is-save { color: #fff !important; border-color: var(--erp-coral) !important; background: var(--erp-coral) !important; }
+    #cari-kart-modal-overlay .cari-card-action svg { width: 13px !important; height: 13px !important; }
+    #cari-kart-modal-overlay .cari-card-close {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        padding: 0 !important;
+        place-items: center;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px !important;
+        color: var(--erp-text-3) !important;
+        background: var(--erp-panel) !important;
+    }
+    #cari-kart-modal-overlay .cari-card-close svg { width: 16px !important; height: 16px !important; }
+    #cari-kart-modal-overlay .cari-card-body {
+        display: grid;
+        padding: 12px !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: start;
+        gap: 12px !important;
+        background: var(--erp-canvas) !important;
+    }
+    #cari-kart-modal-overlay .cari-card-body > * { min-width: 0; margin: 0 !important; }
+    #cari-kart-modal-overlay .cari-service-section { grid-column: 1 / -1; }
+    #cari-kart-modal-overlay .cari-card-section {
+        padding: 12px !important;
+        border-width: 1px !important;
+        border-left-width: 1px !important;
+        border-top: 2px solid var(--section-accent, var(--erp-line-strong)) !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+    #cari-kart-modal-overlay .cari-card-section > h3,
+    #cari-kart-modal-overlay .cari-card-section > div > h3 { margin: 0 0 9px !important; font-size: 8px !important; letter-spacing: .055em !important; }
+    #cari-kart-modal-overlay .cari-card-section > h3 svg,
+    #cari-kart-modal-overlay .cari-card-section > div > h3 svg { width: 14px !important; height: 14px !important; }
+    #cari-kart-modal-overlay .cari-factory-list { display: grid; gap: 8px !important; }
+    #cari-kart-modal-overlay .cari-factory-card { padding: 11px !important; border-radius: 4px !important; }
+    #cari-kart-modal-overlay .cari-factory-title { margin-bottom: 9px !important; font-size: 10px !important; }
+    #cari-kart-modal-overlay .cari-rate-grid { gap: 7px !important; }
+    #cari-kart-modal-overlay .cari-rate-item,
+    #cari-kart-modal-overlay .cari-tax-item { padding: 8px 9px !important; border-radius: 4px !important; }
+    #cari-kart-modal-overlay .cari-rate-item > div:first-child,
+    #cari-kart-modal-overlay .cari-tax-item > div:first-child { margin-bottom: 4px !important; font-size: 8px !important; }
+    #cari-kart-modal-overlay .cari-rate-item input,
+    #cari-kart-modal-overlay .cari-tax-item input { min-height: 26px !important; font-size: 10px !important; }
+    #cari-kart-modal-overlay .cari-tax-grid { gap: 7px !important; }
+    #cari-kart-modal-overlay .cari-factory-total { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    #cari-kart-modal-overlay .cari-factory-total > div { min-width: 0; padding: 7px; border-left: 2px solid var(--erp-line-strong); background: var(--erp-panel); }
+    #cari-kart-modal-overlay .cari-factory-total span { font-size: 8px !important; white-space: nowrap; }
+    #cari-kart-modal-overlay .manuel-kalem-row,
+    #cari-kart-modal-overlay .auto-gider-row,
+    #cari-kart-modal-overlay #yakitlar-list-container > div { padding: 8px !important; border-radius: 4px !important; }
+    #cari-kart-modal-overlay .manuel-kalem-row input,
+    #cari-kart-modal-overlay .manuel-kalem-row select { min-height: 29px !important; font-size: 9px !important; }
+    #cari-kart-modal-overlay .cari-card-summary { padding: 10px 12px !important; }
+    #cari-kart-modal-overlay .cari-card-summary > div {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+        gap: 6px !important;
+    }
+    #cari-kart-modal-overlay .cari-summary-row {
+        min-width: 0;
+        min-height: 48px;
+        padding: 7px 9px !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        gap: 2px !important;
+        border-left-width: 2px;
+        border-radius: 3px;
+    }
+    #cari-kart-modal-overlay .cari-summary-row > span:first-child { font-size: 8px !important; line-height: 1.2; }
+    #cari-kart-modal-overlay .cari-summary-row > span:last-child { font-size: 12px !important; line-height: 1.25; }
+    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 48px; }
+    #cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { font-size: 9px !important; letter-spacing: .045em !important; }
+    #cari-kart-modal-overlay #modal-net-total { font-size: 16px !important; }
+
+    :root:not(.dark) body.bf-app .main-module .text-white { color: var(--erp-text); }
     :root:not(.dark) body.bf-app .main-module .text-gray-300,
-    :root:not(.dark) body.bf-app .main-module .text-gray-400 { color: var(--bf-text-secondary); }
+    :root:not(.dark) body.bf-app .main-module .text-gray-400 { color: var(--erp-text-2); }
     :root:not(.dark) body.bf-app .main-module .text-gray-500,
-    :root:not(.dark) body.bf-app .main-module .text-gray-600 { color: var(--bf-text-muted); }
+    :root:not(.dark) body.bf-app .main-module .text-gray-600 { color: var(--erp-text-3); }
     :root:not(.dark) body.bf-app .main-module .bg-white\/5,
     :root:not(.dark) body.bf-app .main-module [class*="bg-black"],
     :root:not(.dark) body.bf-app .main-module [class*="bg-[#0d0f11]"],
-    :root:not(.dark) body.bf-app .main-module [class*="bg-[#111418]"] { background-color: var(--bf-surface-raised); }
+    :root:not(.dark) body.bf-app .main-module [class*="bg-[#111418]"] { background-color: var(--erp-panel-soft); }
     :root:not(.dark) body.bf-app .main-module .border-white\/5,
-    :root:not(.dark) body.bf-app .main-module .border-white\/10 { border-color: var(--bf-border); }
+    :root:not(.dark) body.bf-app .main-module .border-white\/10 { border-color: var(--erp-line); }
 
-    /* Light login belongs to the same product. */
-    :root:not(.dark) .auth-overlay { background: #f2f3f1; }
-    :root:not(.dark) .auth-story { color: #eef3f4; background: #172129; }
-    :root:not(.dark) .auth-login-area { background: #f6f6f4; }
-    :root:not(.dark) .auth-login-card { color: var(--bf-text); border-color: var(--bf-border); background: #fff; box-shadow: var(--bf-shadow-md); }
-    :root:not(.dark) .auth-login-card h2 { color: var(--bf-text); }
-    :root:not(.dark) .auth-input { color: var(--bf-text); border-color: var(--bf-border); background: #fff; }
+    :root:not(.dark) .auth-overlay { background: #eef1f3; }
+    :root:not(.dark) .auth-story { color: #eef3f4; background: var(--erp-sidebar); }
+    :root:not(.dark) .auth-login-area { background: #f6f7f8; }
+    :root:not(.dark) .auth-login-card { color: var(--erp-text); border-color: var(--erp-line); border-radius: 6px; background: #fff; box-shadow: var(--bf-shadow-md); }
+    :root:not(.dark) .auth-login-card h2 { color: var(--erp-text); }
+    :root:not(.dark) .auth-input { color: var(--erp-text); border-color: var(--erp-line); border-radius: 4px; background: #fff; }
 
     @media (max-width: 1450px) {
-        body.bf-app .bf-sidebar.is-executive-nav { width: 288px; }
-        .bf-sidebar-panel { width: 216px; min-width: 216px; }
-        body.bf-app > .bf-main-shell { margin-left: 310px; padding-right: 16px; }
-        body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 100px; }
-        .bf-management-dashboard { gap: 18px; }
-        .dashboard-live-grid, .dashboard-dual-finance { gap: 14px; }
-        .bf-management-dashboard .dashboard-kpi-card { padding: 17px 16px; }
+        body.bf-app .bf-content { padding: 22px 24px 46px; }
+        .main-module:not(#module-dashboard) > .page-header,
+        .bf-offers-page .bf-page-header,
+        .fleet-driver-page-header,
+        .fleet-schedule-page-header { align-items: flex-start; }
+        .main-module:not(#module-dashboard) .page-subtitle,
+        .bf-offers-page .bf-page-header p { max-width: 580px; }
+        .bf-fleet-tabs > button,
+        .contractor-tabs > button,
+        .personnel-tabs > button,
+        .progress-tabs > button,
+        .receivables-tabs > button,
+        .fuel-tabs > button { padding-inline: 10px !important; }
+        .fleet-toolbar,
+        .personnel-toolbar,
+        .fuel-toolbar,
+        .progress-panel-head,
+        .maintenance-toolbar { align-items: flex-start; }
+        .fleet-search,
+        .contractor-search,
+        .personnel-search,
+        .fuel-search,
+        .bf-search-field,
+        .fleet-driver-search,
+        .fleet-schedule-search { flex-basis: 210px; }
+        .fleet-toolbar-controls { flex-basis: 500px; }
+        .fuel-toolbar .fuel-search { margin-left: 0; }
+        .dashboard-reference-grid { gap: 14px; }
+        .dashboard-panel-head { align-items: flex-start; }
+        .dashboard-policy-head { flex-wrap: wrap; }
+        .dashboard-policy-head > div:first-child { flex: 1 1 180px; }
+        .dashboard-policy-head > div:last-child { flex: 1 1 260px; flex-wrap: wrap; justify-content: flex-end; }
+    }
+
+    @media (max-width: 1180px) {
+        body.bf-app .bf-sidebar { width: 196px; }
+        :root.dark body.bf-app .bf-sidebar { width: 196px; }
+        body.bf-app > .bf-main-shell { margin-left: 196px; }
+        body.bf-app .bf-topbar { left: 196px; }
+        body.bf-app .bf-content { padding-inline: 22px; }
+        .dashboard-kpi-card { padding-inline: 13px; grid-template-columns: 40px minmax(0,1fr); gap: 10px; }
+        .dashboard-kpi-icon { width: 40px; height: 40px; }
+        .main-module:not(#module-dashboard) > .page-header,
+        .bf-offers-page .bf-page-header,
+        .fleet-driver-page-header,
+        .fleet-schedule-page-header { align-items: stretch; flex-direction: column; }
+        .main-module:not(#module-dashboard) .page-actions,
+        .bf-offers-page .bf-page-actions,
+        .fleet-driver-page-header .page-actions,
+        .fleet-schedule-page-header .page-actions { justify-content: flex-start; }
+        .fleet-toolbar-controls { flex-basis: 100%; justify-content: flex-start; }
+        .dashboard-reference-grid { grid-template-columns: minmax(0, 1fr); }
     }
 
     @media (min-width: 2000px) {
-        body.bf-app .bf-sidebar.is-executive-nav { top: 22px; bottom: 22px; left: 22px; width: 324px; }
-        .bf-sidebar-panel { width: 252px; min-width: 252px; padding-inline: 16px; }
-        body.bf-app > .bf-main-shell { margin-left: 370px; padding: 22px 34px 56px 0; }
-        body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 122px; }
-        .bf-content { max-width: 1960px; }
-        .bf-management-dashboard { max-width: 1880px; gap: 26px; }
-        .bf-management-dashboard .dashboard-kpi-card { min-height: 134px; padding: 22px 25px; }
-        .dashboard-live-grid, .dashboard-dual-finance { gap: 22px; }
+        body.bf-app .bf-sidebar { width: 256px; }
+        :root.dark body.bf-app .bf-sidebar { width: 256px; }
+        body.bf-app > .bf-main-shell { margin-left: 256px; }
+        body.bf-app .bf-topbar { left: 256px; }
+        body.bf-app .bf-content { padding: 34px 44px 64px; }
+        .bf-management-dashboard { max-width: 1840px; gap: 22px; }
+        .dashboard-reference-grid { gap: 22px; }
+        .dashboard-kpi-card { min-height: 122px; padding-inline: 24px; }
+        .dashboard-panel-head { min-height: 58px; padding-inline: 17px; }
+        .dashboard-table-wrap { max-height: 300px; }
+        .main-module:not(#module-dashboard) { max-width: 1880px; }
+        .main-module:not(#module-dashboard) > .page-header,
+        .bf-offers-page .bf-page-header,
+        .fleet-driver-page-header,
+        .fleet-schedule-page-header { min-height: 68px; }
+        .fleet-table th, .fleet-table td,
+        .contractor-table th, .contractor-table td,
+        .factory-table th, .factory-table td,
+        .personnel-table th, .personnel-table td,
+        .progress-table th, .progress-table td,
+        .receivables-table th, .receivables-table td,
+        .maintenance-table th, .maintenance-table td,
+        .bf-data-table th, .bf-data-table td { padding-inline: 15px; }
     }
+}
+
+@media (max-width: 768px) {
+    .fleet-driver-page-header,
+    .fleet-schedule-page-header { display: grid; padding: 0 16px 16px; gap: 12px; }
+    .fleet-driver-page-header .page-actions,
+    .fleet-schedule-page-header .page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .fleet-driver-toolbar,
+    .fleet-schedule-toolbar { display: grid; padding: 12px; gap: 10px; }
+    .fleet-driver-search,
+    .fleet-schedule-search { position: relative; display: flex; width: 100%; align-items: center; }
+    .fleet-driver-search > svg,
+    .fleet-schedule-search > svg { position: absolute; left: 12px; z-index: 1; width: 16px; height: 16px; pointer-events: none; }
+    .fleet-driver-search input,
+    .fleet-schedule-search input { width: 100%; padding-left: 38px; }
+    .fleet-result-strip { display: flex; padding: 10px 12px; flex-wrap: wrap; gap: 8px 14px; }
+    .fleet-result-note { width: 100%; }
+    .fleet-driver-table-wrap { display: none !important; }
+    .fleet-schedule-table-wrap { width: 100%; overflow-x: auto; }
+    .fleet-schedule-table { min-width: 920px; }
+    .cizelge-warning-items { max-height: 120px; overflow-y: auto; }
+    .erp-filter-search { position: relative; display: flex; width: 100%; align-items: center; }
+    .erp-filter-search > svg { position: absolute; left: 12px; z-index: 1; width: 16px; height: 16px; pointer-events: none; }
+    .erp-filter-search input { width: 100%; padding-left: 38px; }
+    .erp-filter-select { width: 100%; }
+    .erp-advanced-filters { width: 100%; }
+    .erp-advanced-filters > summary { display: flex; width: 100%; min-height: 44px; padding-inline: 12px; align-items: center; gap: 8px; }
+    .erp-advanced-filter-panel { display: grid; width: 100%; padding-top: 10px; gap: 10px; }
+    .erp-advanced-filter-panel label { display: grid; gap: 5px; }
+    .erp-advanced-filter-panel select,
+    .erp-advanced-filter-panel button { width: 100%; }
+    .erp-result-count { display: inline-flex; align-items: center; gap: 4px; }
+    .contractor-finance-strip {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        overflow: hidden;
+        border: 1px solid var(--bf-border);
+        border-radius: var(--bf-radius-card);
+        background: var(--bf-surface);
+    }
+    .contractor-finance-strip > span { display: grid; min-width: 0; padding: 12px 14px; gap: 3px; }
+    .contractor-finance-strip > span + span { border-top: 1px solid var(--bf-border); }
+    .contractor-finance-strip small { color: var(--bf-text-muted); font-size: 11px; font-weight: 700; }
+    .contractor-finance-strip strong { color: var(--bf-text-primary); font-size: 18px; font-variant-numeric: tabular-nums; }
+    .hakedis-ledger-total { border-width: 2px !important; border-color: var(--bf-border-strong) !important; }
+    .hakedis-plate-chip {
+        display: inline-flex;
+        min-height: 26px;
+        margin: 2px;
+        padding: 0 8px;
+        align-items: center;
+        border: 1px solid var(--bf-border);
+        border-radius: var(--bf-radius-sm);
+        color: var(--bf-info);
+        background: var(--bf-surface-subtle);
+        font-size: 11px;
+        font-weight: 700;
+    }
+    .cari-card-plates,
+    .cari-card-services { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+    .service-pill { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+    .cari-card-money > span { display: block; color: var(--bf-text-muted); font-size: 11px; }
+    .cari-card-money > strong { display: block; color: var(--bf-text-primary); font-size: 14px; font-variant-numeric: tabular-nums; }
+    .cari-card-money.is-deduction > strong,
+    .cari-card-money.is-negative > strong { color: var(--bf-danger); }
+    .cari-card-net > strong { color: var(--bf-success); }
+    .hakedis-detail-action,
+    .cari-card-count { display: inline-flex; align-items: center; gap: 4px; color: var(--bf-text-secondary); font-size: 11px; font-weight: 700; }
+    .receivables-card.is-simple { padding: 14px; gap: 12px; border-radius: var(--bf-radius-card); }
+    .receivables-card.is-simple .receivables-card-head { align-items: flex-start; }
+    .receivables-card.is-simple .receivables-card-identity h3 { margin: 0; font-size: 15px; }
+    .receivables-card.is-simple .receivables-card-identity p { margin: 3px 0 0; color: var(--bf-text-muted); font-size: 11px; }
+    .receivables-card.is-simple .receivables-card-balance { padding: 11px 0; border-block: 1px solid var(--bf-border); }
+    .receivables-card.is-simple .receivables-card-summary { gap: 8px; }
+    .receivables-card.is-simple .receivables-card-summary > div { padding: 9px; border-radius: var(--bf-radius-sm); background: var(--bf-surface-subtle); }
+    .receivables-card.is-simple .receivables-card-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .receivables-card.is-simple .receivables-card-actions button { min-width: 0; padding-inline: 7px; justify-content: center; }
 }

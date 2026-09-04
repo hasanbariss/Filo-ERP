@@ -87,7 +87,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=1.0.0">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.8">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -211,7 +211,7 @@
     <!-- Fixed Sidebar -->
     <aside class="sidebar bf-sidebar" id="main-sidebar" aria-label="Ana navigasyon">
         <div class="bf-sidebar-brand">
-            <img class="sidebar-brand-logo platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
+            <span class="bf-sidebar-wordmark" aria-label="Baris.Flow"><b>baris.</b><strong>Flow</strong></span>
         </div>
 
         <div class="bf-company-context" aria-label="Aktif şirket">
@@ -236,30 +236,20 @@
                 <h2 class="nav-section-label" id="nav-finance-label">Finans</h2>
                 <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span>Cariler</span></button>
                 <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span>Hakediş</span></button>
-                <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span>Teklifler</span></button>
                 <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Raporlar</span></button>
             </section>
-            <section class="nav-section" aria-labelledby="nav-operation-label">
-                <h2 class="nav-section-label" id="nav-operation-label">Operasyon</h2>
-                <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
-                <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
-            </section>
-            <section class="nav-section nav-section-secondary" aria-labelledby="nav-other-label">
-                <h2 class="nav-section-label" id="nav-other-label">Diğer</h2>
-                <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span>Operasyon Takvimi</span></button>
-            </section>
+            <details class="bf-sidebar-more">
+                <summary><i data-lucide="ellipsis"></i><span>Diğer Modüller</span><i data-lucide="chevron-down" class="bf-sidebar-more-chevron"></i></summary>
+                <div>
+                    <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span>Teklifler</span></button>
+                    <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
+                    <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
+                    <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span>Operasyon Takvimi</span></button>
+                </div>
+            </details>
         </nav>
 
-        <div class="bf-sidebar-footer">
-            <button onclick="toggleDarkMode()" class="nav-link w-full text-left">
-                <i data-lucide="moon" id="theme-icon-light"></i>
-                <i data-lucide="sun" id="theme-icon-dark" class="hidden"></i>
-                Tema Değiştir
-            </button>
-            <button onclick="doLogout()" class="nav-link w-full text-left mt-2 text-pink-500 hover:bg-pink-500/10">
-                <i data-lucide="log-out"></i> Çıkış Yap
-            </button>
-        </div>
+        <div class="bf-sidebar-footer"></div>
     </aside>
 
     <!-- Main Content Area -->
@@ -268,16 +258,17 @@
             <button id="hamburger-btn" onclick="window.toggleMobileSidebar()" class="hamburger-btn btn-icon bf-menu-toggle" aria-label="Ana menüyü aç" title="Ana menüyü aç" aria-controls="main-sidebar" aria-expanded="false">
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
-            <div class="page-header-identity">
-                <h1 class="page-title" id="page-title">Genel Bakış</h1>
-                <p class="page-subtitle">Hoş geldin, sistem kontrolünde her şey yolunda.</p>
+            <div class="bf-topbar-company">
+                <strong data-company-name>IDEOL</strong>
+                <i data-lucide="chevron-down" aria-hidden="true"></i>
+                <h1 id="page-title" class="sr-only">Genel Bakış</h1>
             </div>
             <div class="page-actions">
-                <div class="bf-top-search">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
-                    <input type="text" id="top-search" placeholder="Hızlı ara..."
-                        class="form-control bf-top-search-input" aria-label="Uygulamada hızlı ara">
-                </div>
+                <div class="bf-topbar-date"><i data-lucide="calendar-days" aria-hidden="true"></i><span id="bf-topbar-date">—</span></div>
+                <button type="button" onclick="toggleDarkMode()" class="bf-topbar-tool" aria-label="Temayı değiştir" title="Temayı değiştir">
+                    <i data-lucide="moon" id="theme-icon-light"></i>
+                    <i data-lucide="sun" id="theme-icon-dark" class="hidden"></i>
+                </button>
                 <button type="button" id="user-display-name" class="bf-user-menu"
                     onclick="doLogout()" aria-label="Oturumu kapat" title="Çıkış yap">
                     ??
@@ -337,125 +328,81 @@
 
             <!-- Management Dashboard — Baris.Flow 2.0 -->
             <div id="module-dashboard" class="main-module block stagger-in bf-dashboard bf-management-dashboard">
-                <header class="page-header dashboard-page-header">
-                    <div class="page-header-identity">
-                        <p class="dashboard-eyebrow">Yönetim Merkezi</p>
+                <header class="dashboard-page-header">
+                    <div>
                         <div class="dashboard-title-line">
-                            <h2 class="page-title">Genel Bakış</h2>
+                            <h2>Genel Bakış</h2>
                             <div id="dashboard-refresh-spin" class="dashboard-refresh-spinner hidden" role="status" aria-label="Dashboard yenileniyor"></div>
                         </div>
-                        <p class="page-subtitle">Filo sağlığı, yaklaşan yükümlülükler ve finansal görünüm.</p>
-                        <p class="dashboard-updated-at" id="dashboard-date-label" aria-live="polite">Yükleniyor...</p>
+                        <p>Filo operasyonları ve finansal performans özetiniz.</p>
+                        <small id="dashboard-date-label" aria-live="polite">Yükleniyor...</small>
                     </div>
                     <div class="dashboard-page-actions">
                         <div class="dashboard-reporting-period" aria-label="Dashboard raporlama dönemi">
-                            <span>Raporlama Dönemi</span>
+                            <i data-lucide="calendar-days" aria-hidden="true"></i>
                             <button type="button" class="btn-icon" onclick="window.shiftDashboardReportingPeriod(-1)" aria-label="Önceki aya git"><i data-lucide="chevron-left"></i></button>
                             <label><span class="sr-only">Ay ve yıl seçin</span><input type="month" id="dashboard-reporting-period" class="form-control" onchange="window.fetchDashboardData()"></label>
                             <button type="button" class="btn-icon" onclick="window.shiftDashboardReportingPeriod(1)" aria-label="Sonraki aya git"><i data-lucide="chevron-right"></i></button>
                         </div>
-                        <button type="button" onclick="window.fetchDashboardData()" class="btn-ghost" aria-label="Dashboard verilerini yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
+                        <button type="button" onclick="window.fetchDashboardData()" class="btn-secondary" aria-label="Dashboard verilerini yenile"><i data-lucide="refresh-cw" aria-hidden="true"></i><span>Yenile</span></button>
                     </div>
                 </header>
 
                 <section class="dashboard-kpi-grid" aria-label="Yönetim özet metrikleri">
-                    <article class="kpi-card dashboard-kpi-card is-fleet">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="truck"></i></span><span class="badge-neutral">Filo</span></div>
-                        <h3>Toplam Araç</h3><strong class="dashboard-kpi-value" id="kpi-arac-main">0</strong>
-                        <div class="dashboard-kpi-meta"><span>Özmal <strong id="kpi-arac-ozmal">0</strong></span><span>Taşeron <strong id="kpi-arac-taseron">0</strong></span><span>Kiralık <strong id="kpi-arac-kiralik">0</strong></span></div>
+                    <article class="dashboard-kpi-card is-fleet">
+                        <span class="dashboard-kpi-icon"><i data-lucide="truck"></i></span>
+                        <div><span>Toplam Araç</span><strong id="kpi-arac-main">0</strong><small>Özmal <b id="kpi-arac-ozmal">0</b> · Taşeron <b id="kpi-arac-taseron">0</b> · Kiralık <b id="kpi-arac-kiralik">0</b></small></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-maintenance">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="wrench"></i></span><span class="badge-danger">Kontrol</span></div>
-                        <h3>Yaklaşan Bakım</h3><strong class="dashboard-kpi-value" id="kpi-bakim-main">0</strong>
-                        <div class="dashboard-kpi-meta"><span>Yaklaşan <strong id="kpi-bakim-yag">0</strong></span><span>Geciken <strong id="kpi-bakim-gecmis">0</strong></span></div>
+                    <article class="dashboard-kpi-card is-fuel">
+                        <span class="dashboard-kpi-icon"><i data-lucide="fuel"></i></span>
+                        <div><span>Toplam Yakıt Tüketimi</span><strong id="kpi-fuel-litres">0 L</strong><small>Gider <b id="kpi-finans-main">₺0</b> · <b id="kpi-fuel-trend">Önceki ay —</b></small></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-fuel">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="fuel"></i></span><span class="badge-warning dashboard-period-badge">Dönem</span></div>
-                        <h3>Yakıt Gideri</h3><strong class="dashboard-kpi-value is-currency" id="kpi-finans-main">₺0</strong>
-                        <div class="dashboard-kpi-meta"><span>Toplam litre <strong id="kpi-fuel-litres">0 L</strong></span><span>Toplam KM <strong id="kpi-fuel-km">—</strong></span></div>
+                    <article class="dashboard-kpi-card is-accrual">
+                        <span class="dashboard-kpi-icon"><i data-lucide="receipt-text"></i></span>
+                        <div><span>Toplam Cari Hakediş</span><strong id="kpi-hakedis-main">₺0</strong><small>Taşeron <b id="kpi-hakedis-taseron">₺0</b> · <b id="kpi-hakedis-trend">Önceki ay —</b></small></div>
                     </article>
-                    <article class="kpi-card dashboard-kpi-card is-accrual">
-                        <div class="dashboard-kpi-head"><span class="dashboard-kpi-icon"><i data-lucide="badge-turkish-lira"></i></span><span class="badge-success dashboard-period-badge">Dönem</span></div>
-                        <h3>Dağıtılan Hakediş</h3><strong class="dashboard-kpi-value is-currency" id="kpi-hakedis-main">₺0</strong>
-                        <div class="dashboard-kpi-meta"><span>Taşeron <strong id="kpi-hakedis-taseron">₺0</strong></span><span>Servis <strong id="kpi-hakedis-servis">₺0</strong></span></div>
+                    <article class="dashboard-kpi-card is-balance">
+                        <span class="dashboard-kpi-icon"><i data-lucide="wallet-cards"></i></span>
+                        <div><span>Toplam Cari Açık Bakiye</span><strong id="kpi-cari-balance">₺0</strong><small>Kredi kartı borcu <b id="kpi-card-debt">₺0</b></small></div>
                     </article>
                 </section>
 
-                <section class="dashboard-live-zone" aria-labelledby="dashboard-live-title">
-                <div class="dashboard-scope-heading is-current"><div><span>Güncel Durum</span><h2 id="dashboard-live-title">Uyarılar ve yükümlülükler</h2></div><p>Raporlama dönemi değişse de güncel filo sağlığı ve yaklaşan tarihler korunur.</p></div>
+                <div class="dashboard-reference-grid">
+                    <section class="dashboard-panel is-operations" aria-labelledby="dashboard-live-title">
+                        <header class="dashboard-panel-head"><div><h3 id="dashboard-live-title">Operasyon Özeti</h3><p>Seçilen ayın kilometre, tüketim ve bakım görünümü</p></div><button type="button" class="panel-link" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-yakit-km\']').click()">Detaylar <i data-lucide="arrow-right"></i></button></header>
+                        <div class="dashboard-operation-metrics">
+                            <article><span class="dashboard-row-icon is-blue"><i data-lucide="route"></i></span><div><span>Toplam KM</span><strong id="operation-total-km">Yükleniyor…</strong></div><em id="operation-km-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
+                            <article><span class="dashboard-row-icon is-amber"><i data-lucide="gauge"></i></span><div><span>Ortalama Yakıt Tüketimi</span><strong id="operation-avg-consumption">—</strong></div><em id="operation-consumption-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
+                            <article><span class="dashboard-row-icon is-teal"><i data-lucide="fuel"></i></span><div><span>Toplam Yakıt</span><strong id="operation-fuel-litres">0 L</strong></div><em id="operation-fuel-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
+                            <article><span class="dashboard-row-icon is-violet"><i data-lucide="wrench"></i></span><div><span>Bakım / Onarım Gideri</span><strong id="operation-maintenance-cost">₺0</strong></div><em id="operation-maintenance-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
+                        </div>
+                        <div class="dashboard-subsection"><h4>Bakım Uyarıları</h4><div id="management-attention-list" class="management-attention-list" aria-live="polite"><div class="loading-state">Bakım kayıtları hazırlanıyor...</div></div></div>
+                        <div id="dashboard-last-service-list" class="hidden" aria-hidden="true"></div>
+                    </section>
 
-                <div class="dashboard-live-grid">
+                    <section id="dashboard-policy-card" class="dashboard-panel is-obligations" aria-labelledby="dashboard-policy-title">
+                        <header class="dashboard-panel-head dashboard-policy-head"><div><h3 id="dashboard-policy-title">Yaklaşan Poliçeler</h3><p>Poliçe ve muayene bitiş takvimi</p></div><div><div id="police-ozet-badges"></div><select id="police-filtre" aria-label="Kayıtları duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter"><option value="aksiyon" selected>Aksiyon Gerekenler</option><option value="gecmis">Süresi Geçen</option><option value="kritik">Kritik (0–7 Gün)</option><option value="yaklasan">Yaklaşan (8–30 Gün)</option><option value="normal">Planlı (31–90 Gün)</option><option value="tumu">Tüm Kayıtlar</option></select></div></header>
+                        <div class="dashboard-table-wrap custom-scrollbar"><table class="dashboard-policy-table"><caption class="sr-only">Biten ve yaklaşan filo kayıtları</caption><thead><tr><th>Plaka</th><th>Poliçe / Belge</th><th>Bitiş Tarihi</th><th>Kalan</th><th>Durum</th></tr></thead><tbody id="police-dashboard-tbody"><tr><td colspan="5"><div class="loading-state">Kayıtlar yükleniyor...</div></td></tr></tbody></table></div>
+                        <div id="police-dashboard-footer" class="dashboard-panel-footer hidden"><span id="police-gosterilen-sayi"></span><button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="panel-link">Tüm Kayıtlar <i data-lucide="arrow-right"></i></button></div>
+                    </section>
 
-                <section id="dashboard-policy-card" class="data-section dashboard-policy dashboard-domain-card is-policy-domain" aria-labelledby="dashboard-policy-title">
-                    <div class="dashboard-policy-head">
-                        <div><span class="dashboard-section-icon"><i data-lucide="shield-check"></i></span><div><h3 id="dashboard-policy-title">Poliçe ve Muayene Takvimi</h3><p>Biten ve önümüzdeki 90 gün içinde yaklaşan kayıtlar.</p></div></div>
-                        <div><div id="police-ozet-badges"></div><select id="police-filtre" aria-label="Kayıtları duruma göre filtrele" onchange="window.filterPoliceDashboard(this.value)" class="form-control dashboard-policy-filter"><option value="tumu">Tüm Kayıtlar</option><option value="gecmis">Süresi Geçen</option><option value="kritik">Kritik (0–7 Gün)</option><option value="yaklasan">Yaklaşan (8–30 Gün)</option><option value="normal">Planlı (31–90 Gün)</option></select></div>
-                    </div>
-                    <div class="dashboard-table-wrap custom-scrollbar"><table class="dashboard-policy-table"><caption class="sr-only">Biten ve yaklaşan filo kayıtları</caption><thead><tr><th>Durum</th><th>Plaka</th><th>Konu</th><th>Firma</th><th>Başlangıç</th><th>Bitiş</th><th class="text-center">Kalan</th><th class="text-right">Tutar</th><th class="text-center">Ödeme</th></tr></thead><tbody id="police-dashboard-tbody"><tr><td colspan="9"><div class="loading-state">Kayıtlar yükleniyor...</div></td></tr></tbody></table></div>
-                    <div id="police-dashboard-footer" class="dashboard-policy-footer hidden"><span id="police-gosterilen-sayi"></span><button type="button" onclick="document.getElementById('police-filtre').value='tumu'; window.filterPoliceDashboard('tumu')" class="btn-ghost">Tümünü Göster <i data-lucide="arrow-right"></i></button></div>
-                </section>
+                    <section class="dashboard-panel is-finance" aria-labelledby="dashboard-finance-zone-title">
+                        <header class="dashboard-panel-head"><div><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p id="dashboard-finance-period-copy">Seçilen dönemin filo ve hakediş özeti</p></div><div class="dashboard-zone-period"><span id="dashboard-period-label">—</span><small>Dönem</small></div></header>
+                        <div class="dashboard-finance-table-wrap"><table class="dashboard-finance-table"><thead><tr><th>Kalem</th><th>Seçilen Ay</th><th>Önceki Ay</th><th>Değişim</th></tr></thead><tbody>
+                            <tr><td>Cari Hakediş</td><td id="accrual-month-total">₺0</td><td id="finance-prev-accrual">₺0</td><td><span id="finance-accrual-trend" class="dashboard-trend is-neutral">—</span></td></tr>
+                            <tr><td>Yakıt Gideri</td><td id="dashboard-period-fuel">₺0</td><td id="finance-prev-fuel">₺0</td><td><span id="finance-fuel-trend" class="dashboard-trend is-neutral">—</span></td></tr>
+                            <tr><td>Bakım / Servis</td><td id="dashboard-period-maintenance">₺0</td><td id="finance-prev-maintenance">₺0</td><td><span id="finance-maintenance-trend" class="dashboard-trend is-neutral">—</span></td></tr>
+                            <tr class="is-total"><td>Toplam Filo Gideri</td><td id="dashboard-period-fleet-expense">₺0</td><td id="finance-prev-fleet-expense">₺0</td><td><span id="finance-fleet-trend" class="dashboard-trend is-neutral">—</span></td></tr>
+                        </tbody></table></div>
+                        <div class="dashboard-finance-foot"><span><b id="accrual-record-count">0</b> hakediş kaydı</span><span><b id="accrual-party-count">0</b> cari/müşteri</span><span>Ort. litre <b id="fuel-month-average">—</b></span></div>
+                        <span id="accrual-taseron-total" class="hidden">₺0</span><span id="accrual-service-total" class="hidden">₺0</span><span id="fuel-month-total" class="hidden">₺0</span><span id="fuel-month-km" class="hidden">—</span><span id="fuel-month-litres" class="hidden">0 L</span><span id="fuel-month-consumption" class="hidden">—</span><span id="kpi-hakedis-servis" class="hidden">₺0</span><span id="kpi-bakim-main" class="hidden">0</span><span id="kpi-bakim-yag" class="hidden">0</span><span id="kpi-bakim-gecmis" class="hidden">0</span><span id="kpi-fuel-km" class="hidden">—</span>
+                    </section>
 
-                <section class="data-section dashboard-domain-card is-maintenance-domain" aria-labelledby="maintenance-service-title">
-                    <div class="dashboard-section-head">
-                        <div><p class="dashboard-eyebrow">Filo Sağlığı</p><h3 id="maintenance-service-title">Bakım ve Servis</h3><p>Periyodik bakım eşiğine yaklaşan araçlar ve son servis hareketleri.</p></div>
-                        <span class="dashboard-section-icon"><i data-lucide="wrench"></i></span>
-                    </div>
-                    <div class="dashboard-maintenance-layout">
-                        <div><h4>Bakım Uyarıları</h4><div id="management-attention-list" class="management-attention-list" aria-live="polite"><div class="loading-state">Bakım kayıtları hazırlanıyor...</div></div></div>
-                        <div><h4>Son Servis İşlemleri</h4><div id="dashboard-last-service-list" class="dashboard-compact-list" aria-live="polite"><div class="loading-state">Servis geçmişi hazırlanıyor...</div></div></div>
-                    </div>
-                </section>
-
-                </div>
-                </section>
-
-                <div class="dashboard-dual-finance">
-                <section class="dashboard-finance-zone" aria-labelledby="dashboard-finance-zone-title">
-                    <div class="dashboard-zone-head"><div><p class="dashboard-eyebrow">Dönemsel Finans</p><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p id="dashboard-finance-period-copy">Seçilen aya ait hakediş, yakıt ve filo giderleri birlikte gösterilir.</p></div><div class="dashboard-zone-period"><span id="dashboard-period-label">—</span><small>Dönemsel veriler</small></div></div>
-                    <div class="dashboard-period-totals"><span>Yakıt <strong id="dashboard-period-fuel">₺0</strong></span><span>Bakım / servis gideri <strong id="dashboard-period-maintenance">₺0</strong></span><span>Dönem filo gideri <strong id="dashboard-period-fleet-expense">₺0</strong></span></div>
-                    <div class="dashboard-finance-grid">
-                        <article class="data-section dashboard-domain-card is-accrual-domain" aria-labelledby="dashboard-accrual-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Hakediş</p><h3 id="dashboard-accrual-title">Cari Hakediş</h3><p>Seçilen dönemde sisteme dağıtılan hakedişlerin özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-period">Dönemsel</span><span class="dashboard-section-icon"><i data-lucide="hand-coins"></i></span></div></div>
-                            <strong class="dashboard-primary-total" id="accrual-month-total">₺0</strong><span class="dashboard-primary-label">Toplam dağıtılan hakediş</span>
-                            <div class="dashboard-stat-grid"><div><span>Taşeron</span><strong id="accrual-taseron-total">₺0</strong></div><div><span>Servis puantajı</span><strong id="accrual-service-total">₺0</strong></div><div><span>Dönem kaydı</span><strong id="accrual-record-count">0</strong></div><div><span>Cari / müşteri</span><strong id="accrual-party-count">0</strong></div></div>
-                            <div class="dashboard-subsection"><h4>En yüksek hakedişler</h4><div id="dashboard-accrual-top-list" class="dashboard-compact-list"><div class="loading-state">Hakedişler hazırlanıyor...</div></div></div>
-                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-finans\']').click()">Hakedişe Git <i data-lucide="arrow-right"></i></button>
-                        </article>
-
-                        <article class="data-section dashboard-domain-card is-fuel-domain" aria-labelledby="dashboard-fuel-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Yakıt</p><h3 id="dashboard-fuel-title">Yakıt Performansı</h3><p>Yakıt kayıtları ve aynı döneme ait InfoMobil kilometre özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-period">Dönemsel</span><span class="dashboard-section-icon"><i data-lucide="fuel"></i></span></div></div>
-                            <strong class="dashboard-primary-total" id="fuel-month-total">₺0</strong><span class="dashboard-primary-label">Toplam yakıt harcaması</span>
-                            <div class="dashboard-stat-grid"><div><span>Toplam KM</span><strong id="fuel-month-km">—</strong></div><div><span>Toplam litre</span><strong id="fuel-month-litres">0 L</strong></div><div><span>Ortalama L/100 KM</span><strong id="fuel-month-consumption">—</strong></div><div><span>Ortalama litre</span><strong id="fuel-month-average">—</strong></div></div>
-                            <button type="button" class="btn-ghost dashboard-card-action" onclick="window.openFuelAnalyticsForDashboardPeriod()">Yakıt &amp; KM'ye Git <i data-lucide="arrow-right"></i></button>
-                        </article>
-                    </div>
-                </section>
-
-                <div class="dashboard-current-column">
-                <div class="dashboard-scope-heading is-finance-current"><div><span>Güncel Finans</span><h2>Mevcut borç ve açık bakiyeler</h2></div><p>Bu değerler raporlama ayından bağımsız, güncel hesap durumunu gösterir.</p></div>
-
-                <section class="dashboard-current-finance" aria-label="Güncel finansal durum">
-                    <div class="dashboard-finance-grid">
-
-                        <article class="data-section dashboard-domain-card is-card-domain" aria-labelledby="dashboard-card-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">Borçlar</p><h3 id="dashboard-card-title">Kredi Kartları</h3><p>Kart modülündeki mevcut borç hesabının kompakt özeti.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-current">Güncel</span><span class="dashboard-section-icon"><i data-lucide="credit-card"></i></span></div></div>
-                            <strong class="dashboard-primary-total" id="cards-total-debt">₺0</strong><span class="dashboard-primary-label">Toplam güncel borç</span>
-                            <div class="dashboard-inline-meta"><span><strong id="cards-count">0</strong> kart</span><span>Toplam limit <strong id="cards-total-limit">₺0</strong></span></div>
-                            <div id="dashboard-card-list" class="dashboard-compact-list"><div class="loading-state">Kartlar hazırlanıyor...</div></div>
-                            <p class="dashboard-data-note">Son ödeme tarihi mevcut kart veri modelinde tutulmadığı için tahmin edilmez.</p>
-                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-cari\']').click()">Kartları Gör <i data-lucide="arrow-right"></i></button>
-                        </article>
-
-                        <article class="data-section dashboard-domain-card is-partner-domain" aria-labelledby="dashboard-partner-title">
-                            <div class="dashboard-section-head"><div><p class="dashboard-eyebrow">İş Ortakları</p><h3 id="dashboard-partner-title">Servis &amp; Sigorta</h3><p>Yalnızca kayıtlı cari türlerine göre hesaplanan güncel bakiye görünümü.</p></div><div class="dashboard-section-meta"><span class="dashboard-scope-label is-current">Güncel</span><span class="dashboard-section-icon"><i data-lucide="handshake"></i></span></div></div>
-                            <div class="dashboard-partner-grid"><div><span>Tamirci / Servis açık bakiye</span><strong id="partner-service-balance">₺0</strong><small><b id="partner-service-count">0</b> açık cari</small></div><div><span>Sigortacı açık bakiye</span><strong id="partner-insurance-balance">₺0</strong><small><b id="partner-insurance-count">0</b> açık cari</small></div></div>
-                            <div class="dashboard-inline-meta"><span>Toplam ödeme <strong id="partner-total-payments">₺0</strong></span><span>Kategorili cari <strong id="partner-total-count">0</strong></span></div>
-                            <p class="dashboard-data-note">Kategori dışındaki cariler bu özete dahil edilmez.</p>
-                            <button type="button" class="btn-ghost dashboard-card-action" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-cari\']').click()">Carilere Git <i data-lucide="arrow-right"></i></button>
-                        </article>
-                    </div>
-                </section>
-                </div>
+                    <section class="dashboard-panel is-recent-activity" aria-labelledby="dashboard-recent-title">
+                        <header class="dashboard-panel-head"><div><h3 id="dashboard-recent-title">Son Hareketler</h3><p>Filo ve finans modüllerindeki en güncel işlemler</p></div><button type="button" class="panel-link" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-raporlar\']').click()">Tümü <i data-lucide="arrow-right"></i></button></header>
+                        <div class="dashboard-recent-wrap"><table class="dashboard-recent-table"><thead><tr><th>Tarih</th><th>Modül</th><th>Açıklama</th><th>Tutar</th></tr></thead><tbody id="dashboard-recent-activity"><tr><td colspan="4"><div class="loading-state">Son hareketler hazırlanıyor...</div></td></tr></tbody></table></div>
+                        <span id="cards-total-debt" class="hidden">₺0</span><span id="cards-count" class="hidden">0</span><span id="cards-total-limit" class="hidden">₺0</span>
+                    </section>
                 </div>
             </div>
 
@@ -591,47 +538,58 @@
                                     <input id="fleet-search-input" type="search" placeholder="Plaka, araç veya sürücü ara" autocomplete="off" oninput="window.filterOwnedFleetSearch(this.value)">
                                 </label>
                                 <div class="fleet-toolbar-controls">
-                                    <!-- Filtre butonları -->
-                                    <div class="fleet-filter-group" aria-label="Araç filtreleri">
-                                        <button id="filter-btn-hepsi" onclick="window.filterAraclar('hepsi')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
-                                        <button id="filter-btn-ozmal" onclick="window.filterAraclar('ÖZMAL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Özmal</button>
-                                        <button id="filter-btn-taseron" onclick="window.filterAraclar('TAŞERON')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Taşeron</button>
-                                        <button id="filter-btn-kiralik" onclick="window.filterAraclar('KİRALIK')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Kiralık</button>
-                                        <span class="fleet-filter-divider" aria-hidden="true"></span>
-                                        <button id="filter-btn-d2" onclick="window.filterAraclar('D2')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-blue-400 hover:bg-blue-500/20 transition-all">D2
-                                            Belgeli</button>
-                                        <button id="filter-btn-d4s" onclick="window.filterAraclar('D4S')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all">D4S
-                                            Belgeli</button>
-                                        <span class="fleet-filter-divider" aria-hidden="true"></span>
-                                        <button id="filter-btn-ideol" onclick="window.filterAraclarBySirket('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all" data-company-name>IDEOL</button>
-                                        <button id="filter-btn-dikkan" onclick="window.filterAraclarBySirket('DİKKAN')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-violet-400 hover:bg-violet-500/20 transition-all">DİKKAN</button>
-                                        <button id="filter-btn-mk" onclick="window.filterAraclarBySirket('M.K.')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">M.K.</button>
-                                    </div>
-                                    <!-- Görünüm Türü -->
-                                    <div class="fleet-view-toggle" aria-label="Görünüm seçimi">
-                                        <button id="btn-arac-grid"
-                                            onclick="window.toggleViewMode('arac', 'grid', 'bg-orange-500')"
-                                            class="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all"
-                                            title="Kart Görünümü">
-                                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                                        </button>
-                                        <button id="btn-arac-list"
-                                            onclick="window.toggleViewMode('arac', 'list', 'bg-orange-500')"
-                                            class="p-2 rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all"
-                                            title="Liste Görünümü">
-                                            <i data-lucide="list" class="w-4 h-4"></i>
-                                        </button>
-                                    </div>
+                                    <select id="fleet-filter-ownership" class="erp-filter-select" onchange="window.applyOwnedFleetFilters()" aria-label="Mülkiyet durumuna göre filtrele">
+                                        <option value="">Tüm mülkiyet türleri</option>
+                                        <option value="ÖZMAL">Özmal</option>
+                                        <option value="TAŞERON">Taşeron</option>
+                                        <option value="KİRALIK">Kiralık</option>
+                                    </select>
+                                    <select id="fleet-filter-driver" class="erp-filter-select" onchange="window.applyOwnedFleetFilters()" aria-label="Şoför atama durumuna göre filtrele">
+                                        <option value="">Tüm şoför durumları</option>
+                                        <option value="assigned">Şoför atanmış</option>
+                                        <option value="unassigned">Şoför atanmamış</option>
+                                    </select>
+                                    <details class="erp-advanced-filters">
+                                        <summary><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Gelişmiş Filtreler</summary>
+                                        <div class="erp-advanced-filter-panel">
+                                            <label>
+                                                <span>Şirket</span>
+                                                <select id="fleet-filter-company" onchange="window.applyOwnedFleetFilters()">
+                                                    <option value="">Tüm şirketler</option>
+                                                    <option value="IDEOL" data-company-name>IDEOL</option>
+                                                    <option value="DİKKAN">DİKKAN</option>
+                                                    <option value="M.K.">M.K.</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Belge türü</span>
+                                                <select id="fleet-filter-license" onchange="window.applyOwnedFleetFilters()">
+                                                    <option value="">Tüm belge türleri</option>
+                                                    <option value="D2">D2 belgeli</option>
+                                                    <option value="D4S">D4S belgeli</option>
+                                                    <option value="none">Belge türü yok</option>
+                                                </select>
+                                            </label>
+                                            <label>
+                                                <span>Evrak durumu</span>
+                                                <select id="fleet-filter-document" onchange="window.applyOwnedFleetFilters()">
+                                                    <option value="">Tüm evrak durumları</option>
+                                                    <option value="critical">Kritik / eksik</option>
+                                                    <option value="upcoming">30 gün içinde</option>
+                                                    <option value="current">Güncel</option>
+                                                </select>
+                                            </label>
+                                            <button type="button" class="btn-secondary" onclick="window.resetOwnedFleetFilters()"><i data-lucide="rotate-ccw" aria-hidden="true"></i>Filtreleri Temizle</button>
+                                        </div>
+                                    </details>
+                                    <span class="erp-result-count"><b id="fleet-visible-count">—</b> araç</span>
                                 </div>
+                            </div>
+                            <div class="fleet-result-strip" aria-label="Filo kayıt özeti">
+                                <span><strong id="fleet-summary-total">—</strong> toplam araç</span>
+                                <span><strong id="fleet-summary-assigned">—</strong> şoför atanmış</span>
+                                <span><strong id="fleet-summary-action">—</strong> evrak aksiyonu</span>
+                                <span class="fleet-result-note">Plakaya tıklayarak araç detayını açabilirsiniz.</span>
                             </div>
                             <div id="arac-cards-grid"
                                 class="fleet-card-grid">
@@ -647,9 +605,11 @@
                                     <table class="fleet-table">
                                         <thead>
                                             <tr>
-                                                <th>Araç</th>
+                                                <th>Plaka / Araç</th>
+                                                <th>Şirket</th>
+                                                <th>Mülkiyet / Belge</th>
                                                 <th>Şoför</th>
-                                                <th class="hidden md:table-cell">Evrak / Bakım</th>
+                                                <th class="hidden md:table-cell">Evrak Durumu</th>
                                                 <th class="fleet-actions-heading">İşlemler</th>
                                             </tr>
                                         </thead>
@@ -663,58 +623,52 @@
 
                     <!-- 1.B. ŞOFÖRLER ALT MODÜLÜ -->
                     <div id="sub-soforler" class="hidden">
-                        <div class="dashboard-card overflow-hidden">
-                            <div class="flex justify-between items-center mb-8 flex-wrap gap-4">
-                                <div>
-                                    <h2 class="text-xl font-bold">Şoför Kurumsal Kadrosu</h2>
-                                    <p class="text-sm text-gray-500">Personel özlük bilgileri ve performans takibi.</p>
-                                </div>
-                                <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                                    <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5">
-                                        <button id="btn-sofor-grid"
-                                            onclick="window.toggleViewMode('sofor', 'grid', 'bg-blue-500')"
-                                            class="p-2 rounded-lg bg-blue-500 text-white shadow-lg shadow-blue-500/20 transition-all"
-                                            title="Kart Görünümü">
-                                            <i data-lucide="layout-grid" class="w-4 h-4"></i>
-                                        </button>
-                                        <button id="btn-sofor-list"
-                                            onclick="window.toggleViewMode('sofor', 'list', 'bg-blue-500')"
-                                            class="p-2 rounded-lg bg-white/5 text-gray-400 hover:bg-white/10 transition-all"
-                                            title="Liste Görünümü">
-                                            <i data-lucide="list" class="w-4 h-4"></i>
-                                        </button>
+                        <div class="page-header fleet-driver-page-header">
+                            <div class="page-header-identity">
+                                <p class="owned-fleet-eyebrow">Operasyon kadrosu</p>
+                                <h1 class="page-title">Şoför Kadrosu</h1>
+                                <p class="page-subtitle">Şoförlerin araç atamalarını, belgelerini ve çalışma bilgilerini yönetin.</p>
+                            </div>
+                            <div class="page-actions">
+                                <button onclick="window.exportTableToExcel('sofor-table', 'Sofor_Listesi')" class="btn-ghost" title="Excel indir"><i data-lucide="file-spreadsheet"></i><span>Excel</span></button>
+                                <button onclick="window.exportTableToPDF('sofor-table', 'Sofor Listesi')" class="btn-ghost" title="PDF indir"><i data-lucide="file-type-pdf"></i><span>PDF</span></button>
+                                <button onclick="openModal('Yeni Şoför Ekle')" class="btn-primary"><i data-lucide="user-plus"></i><span>Şoför Ekle</span></button>
+                            </div>
+                        </div>
+                        <div class="fleet-driver-surface">
+                            <div class="fleet-driver-toolbar">
+                                <label class="fleet-driver-search" for="fleet-driver-search-input">
+                                    <i data-lucide="search" aria-hidden="true"></i>
+                                    <input id="fleet-driver-search-input" type="search" placeholder="Ad, telefon, plaka veya belge ara" autocomplete="off" oninput="window.applyFleetDriverFilters()">
+                                </label>
+                                <select id="fleet-driver-filter-company" class="erp-filter-select" onchange="window.applyFleetDriverFilters()" aria-label="Şirkete göre filtrele">
+                                    <option value="">Tüm şirketler</option>
+                                    <option value="IDEOL" data-company-name>IDEOL</option>
+                                    <option value="DİKKAN">DİKKAN</option>
+                                    <option value="M.K.">M.K.</option>
+                                </select>
+                                <select id="fleet-driver-filter-assignment" class="erp-filter-select" onchange="window.applyFleetDriverFilters()" aria-label="Araç atama durumuna göre filtrele">
+                                    <option value="">Tüm araç atamaları</option>
+                                    <option value="assigned">Araç atanmış</option>
+                                    <option value="unassigned">Araç atanmamış</option>
+                                </select>
+                                <details class="erp-advanced-filters">
+                                    <summary><i data-lucide="sliders-horizontal"></i>Gelişmiş Filtreler</summary>
+                                    <div class="erp-advanced-filter-panel">
+                                        <label><span>Sigorta durumu</span><select id="fleet-driver-filter-insurance" onchange="window.applyFleetDriverFilters()"><option value="">Tüm sigorta durumları</option><option value="SGK">SGK</option><option value="Bağkur">Bağkur</option><option value="other">Diğer / belirtilmemiş</option></select></label>
+                                        <button type="button" class="btn-secondary" onclick="window.resetFleetDriverFilters()"><i data-lucide="rotate-ccw"></i>Filtreleri Temizle</button>
                                     </div>
-
-                                    <div
-                                        class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
-                                        <button id="filter-sofor-btn-hepsi" onclick="window.filterSoforler('hepsi')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-blue-500 text-white transition-all">Hepsi</button>
-                                        <button id="filter-sofor-btn-ideol" onclick="window.filterSoforler('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-orange-400 hover:bg-orange-500/20 transition-all" data-company-name>IDEOL</button>
-                                        <button id="filter-sofor-btn-dikkan" onclick="window.filterSoforler('DİKKAN')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-violet-400 hover:bg-violet-500/20 transition-all">DİKKAN</button>
-                                        <button id="filter-sofor-btn-mk" onclick="window.filterSoforler('M.K.')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">M.K.</button>
-                                    </div>
-                                    <button onclick="window.exportTableToExcel('sofor-table', 'Sofor_Listesi')"
-                                        class="p-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-500 rounded-xl transition-all"
-                                        title="Excel İndir">
-                                        <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
-                                    </button>
-                                    <button onclick="window.exportTableToPDF('sofor-table', 'Sofor Listesi')"
-                                        class="p-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl transition-all"
-                                        title="PDF İndir">
-                                        <i data-lucide="file-type-pdf" class="w-5 h-5"></i>
-                                    </button>
-                                    <button onclick="openModal('Yeni Şoför Ekle')"
-                                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                                        <i data-lucide="user-plus" class="w-4 h-4"></i>
-                                        Yeni Şoför Ekle
-                                    </button>
-                                </div>
+                                </details>
+                                <span class="erp-result-count"><b id="fleet-driver-visible-count">—</b> şoför</span>
+                            </div>
+                            <div class="fleet-result-strip" aria-label="Şoför kadrosu özeti">
+                                <span><strong id="fleet-driver-summary-total">—</strong> toplam şoför</span>
+                                <span><strong id="fleet-driver-summary-assigned">—</strong> araç atanmış</span>
+                                <span><strong id="fleet-driver-summary-insured">—</strong> SGK kayıtlı</span>
+                                <span class="fleet-result-note">Personel adına tıklayarak detayları açabilirsiniz.</span>
                             </div>
                             <div id="sofor-cards-grid"
-                                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-4">
+                                class="fleet-driver-mobile-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-4">
                                 <div class="col-span-full py-8 text-center text-gray-500 italic">
                                     <div class="flex flex-col items-center gap-2">
                                         <i data-lucide="loader-2" class="animate-spin w-6 h-6"></i>
@@ -723,23 +677,22 @@
                                 </div>
                             </div>
 
-                            <div id="sofor-list-container" class="hidden py-4">
-                                <div class="bg-black/20 rounded-2xl border border-white/5 overflow-x-auto">
-                                    <table class="w-full text-left border-collapse min-w-max">
+                            <div id="sofor-list-container" class="fleet-driver-table-wrap hidden md:block">
+                                    <table class="fleet-driver-table">
                                         <thead>
-                                            <tr
-                                                class="bg-white/5 text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5">
-                                                <th class="p-4 font-bold">Personel Bilgisi</th>
-                                                <th class="p-4 font-bold">Ehliyet / SRC</th>
-                                                <th class="p-4 font-bold hidden md:table-cell">Sigorta</th>
-                                                <th class="p-4 font-bold text-right w-32">Maaş</th>
-                                                <th class="p-4 font-bold text-right w-24">İşlemler</th>
+                                            <tr>
+                                                <th>Personel</th>
+                                                <th>Şirket</th>
+                                                <th>Atanan Araç</th>
+                                                <th>Ehliyet / SRC</th>
+                                                <th>Sigorta</th>
+                                                <th class="fleet-driver-money">Maaş</th>
+                                                <th class="fleet-driver-actions-heading">İşlemler</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="sofor-list-tbody" class="divide-y divide-white/5">
+                                        <tbody id="sofor-list-tbody">
                                         </tbody>
                                     </table>
-                                </div>
                             </div>
                             <div class="hidden">
                                 <table class="premium-table" id="sofor-table">
@@ -761,92 +714,48 @@
 
                     <!-- 1.C. ÖZMAL ARAÇ TAKİP ÇİZELGESİ -->
                     <div id="sub-cizelge" class="hidden">
-                        <div class="dashboard-card overflow-hidden">
-                            <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
-                                <div>
-                                    <h2 class="text-xl font-bold">Özmal Araç Takip Çizelgesi</h2>
-                                    <p class="text-sm text-gray-500">Araçların sigorta, kasko, koltuk ve vize bitiş tarihlerini yönetin.</p>
-                                </div>
-                                <div class="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                                    <!-- Sıralama Butonları -->
-                                    <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
-                                        <span class="text-[9px] text-gray-600 font-black uppercase tracking-widest px-1">Sırala:</span>
-                                        <button id="sort-btn-alfa" onclick="window.setCizelgeSort('varsayilan', this)"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all" title="Alfabetik">
-                                            A–Z
-                                        </button>
-                                        <button id="sort-btn-yaklasan" onclick="window.setCizelgeSort('yaklasan_genel', this)"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="En yakın bitiş tarihi önce">
-                                            ⚠ En Yakın
-                                        </button>
-                                        <button id="sort-btn-trafik" onclick="window.setCizelgeSort('trafik_yakin', this)"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Trafik sigortası bitiş">
-                                            Trafik
-                                        </button>
-                                        <button id="sort-btn-kasko" onclick="window.setCizelgeSort('kasko_yakin', this)"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Kasko bitiş">
-                                            Kasko
-                                        </button>
-                                        <button id="sort-btn-vize" onclick="window.setCizelgeSort('vize_yakin', this)"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" title="Vize bitiş">
-                                            Vize
-                                        </button>
-                                    </div>
-                                    <!-- Gizli select (JS mantığı hâlâ bunu okur) -->
-                                    <select id="cizelge-sort" class="hidden">
-                                        <option value="varsayilan">Alfabetik</option>
-                                        <option value="yaklasan_genel">En Yakın Bitiş</option>
-                                        <option value="trafik_yakin">Trafik</option>
-                                        <option value="kasko_yakin">Kasko</option>
-                                        <option value="vize_yakin">Vize</option>
-                                    </select>
-                                    <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
-                                        <button id="filter-cizelge-hepsi" onclick="window.filterOzmalCizelge('hepsi')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
-                                        <button id="filter-cizelge-ideol" onclick="window.filterOzmalCizelge('IDEOL')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all" data-company-name>IDEOL</button>
-                                        <button id="filter-cizelge-dikkan" onclick="window.filterOzmalCizelge('DİKKAN')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">DİKKAN</button>
-                                        <button id="filter-cizelge-mk" onclick="window.filterOzmalCizelge('M.K.')"
-                                            class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">M.K.</button>
-                                    </div>
-                                    <button onclick="if(window.printOzmalCizelge) window.printOzmalCizelge()"
-                                        class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
-                                        <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
-                                    </button>
-                                    <button onclick="if(window.fetchOzmalCizelge) window.fetchOzmalCizelge()"
-                                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20">
-                                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Yenile
-                                    </button>
-                                </div>
+                        <div class="page-header fleet-schedule-page-header">
+                            <div class="page-header-identity">
+                                <p class="owned-fleet-eyebrow">Evrak takibi</p>
+                                <h1 class="page-title">Özmal Araç Çizelgesi</h1>
+                                <p class="page-subtitle">Sigorta, kasko, koltuk ve vize bitiş tarihlerini tek ekrandan yönetin.</p>
                             </div>
-                            <!-- Çizelge Tablosu -->
-                            <div class="py-4 overflow-x-auto smooth-scrollbar">
-                                <div class="bg-black/20 rounded-2xl border border-white/5 min-w-max">
-                                    <table class="w-full text-left border-collapse" id="cizelge-table">
+                            <div class="page-actions">
+                                <button onclick="if(window.printOzmalCizelge) window.printOzmalCizelge()" class="btn-ghost"><i data-lucide="printer"></i><span>Yazdır</span></button>
+                                <button onclick="if(window.fetchOzmalCizelge) window.fetchOzmalCizelge()" class="btn-secondary"><i data-lucide="refresh-cw"></i><span>Yenile</span></button>
+                            </div>
+                        </div>
+                        <div class="fleet-schedule-surface">
+                            <div class="fleet-schedule-toolbar">
+                                <label class="fleet-schedule-search" for="cizelge-search-input"><i data-lucide="search"></i><input id="cizelge-search-input" type="search" placeholder="Plaka, şirket veya araç ara" autocomplete="off" oninput="window.applyCizelgeSearch()"></label>
+                                <select id="cizelge-company-filter" class="erp-filter-select" onchange="window.filterOzmalCizelge(this.value)" aria-label="Şirkete göre filtrele"><option value="hepsi">Tüm şirketler</option><option value="IDEOL" data-company-name>IDEOL</option><option value="DİKKAN">DİKKAN</option><option value="M.K.">M.K.</option></select>
+                                <select id="cizelge-sort" class="erp-filter-select" onchange="window.setCizelgeSort(this.value)" aria-label="Çizelge sıralaması"><option value="varsayilan">Plakaya göre A–Z</option><option value="yaklasan_genel">En yakın bitiş</option><option value="trafik_yakin">Trafik sigortası</option><option value="kasko_yakin">Kasko bitişi</option><option value="vize_yakin">Vize bitişi</option></select>
+                                <span class="erp-result-count"><b id="cizelge-visible-count">—</b> araç</span>
+                            </div>
+                            <div class="fleet-schedule-table-wrap overflow-x-auto smooth-scrollbar">
+                                    <table class="fleet-schedule-table" id="cizelge-table">
                                         <thead>
-                                            <tr class="bg-white/5 text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5">
-                                                <th class="p-4 font-bold">Hesap Adı</th>
-                                                <th class="p-4 font-bold border-l border-white/5">Araç Plakası</th>
-                                                <th class="p-4 font-bold border-l border-white/5">Marka / Model</th>
-                                                <th class="p-4 font-bold border-l border-white/5 text-center">Trafik Sigortası Bitiş</th>
-                                                <th class="p-4 font-bold border-l border-white/5 text-center">Koltuk Sigortası Bitiş</th>
-                                                <th class="p-4 font-bold border-l border-white/5 text-center">Kasko Bitiş</th>
-                                                <th class="p-4 font-bold border-l border-white/5 text-center">Vize Tarihleri Bitiş</th>
+                                            <tr>
+                                                <th>Şirket</th>
+                                                <th>Araç Plakası</th>
+                                                <th>Marka / Model</th>
+                                                <th>Trafik Sigortası</th>
+                                                <th>Koltuk Sigortası</th>
+                                                <th>Kasko</th>
+                                                <th>Vize</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="cizelge-tbody" class="divide-y divide-white/5">
+                                        <tbody id="cizelge-tbody">
                                             <tr>
-                                                <td colspan="7" class="py-12 text-center text-gray-500 italic">
-                                                    <div class="flex flex-col items-center gap-2">
+                                                <td colspan="7">
+                                                    <div class="loading-state">
                                                         <i data-lucide="loader-2" class="animate-spin w-6 h-6"></i>
-                                                        Çizelge verileri yükleniyor...
+                                                        <p>Çizelge verileri yükleniyor...</p>
                                                     </div>
                                                 </td>
                                             </tr>
                                         </tbody>
                                     </table>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -909,6 +818,7 @@
                             <input type="search" id="search-taseron" oninput="window.filterTaseronCards(this.value)" placeholder="Plaka, firma veya sürücü ara" autocomplete="off">
                         </label>
                         <p><span class="badge-info">Taşeron</span> olarak işaretlenen araçlar listelenir.</p>
+                        <span class="erp-result-count"><b id="contractor-visible-count">—</b> araç</span>
                     </div>
                     <div id="taseron-cards-grid" class="contractor-card-grid">
                         <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Taşeron araçlar yükleniyor...</p></div></div>
@@ -926,32 +836,14 @@
 
                 <!-- 2. HAKEDİŞ TAKİBİ -->
                 <div id="taseron-content-hakedis" class="hidden contractor-section-stack">
-                    <div class="contractor-finance-kpis">
-                        <div class="contractor-finance-card is-warning">
-                            <div class="contractor-finance-head">
-                                <span class="contractor-finance-icon"><i data-lucide="clock"></i></span>
-                                <span>Bekleyen Hakediş</span>
-                            </div>
-                            <p id="taseron-hakedis-pending">0 ₺</p>
-                        </div>
-                        <div class="contractor-finance-card is-success">
-                            <div class="contractor-finance-head">
-                                <span class="contractor-finance-icon"><i data-lucide="check-circle"></i></span>
-                                <span>Bu Ay Ödenen</span>
-                            </div>
-                            <p id="taseron-hakedis-paid">0 ₺</p>
-                        </div>
-                        <div class="contractor-finance-card is-info">
-                            <div class="contractor-finance-head">
-                                <span class="contractor-finance-icon"><i data-lucide="truck"></i></span>
-                                <span>Taşeron Araç</span>
-                            </div>
-                            <p id="taseron-total-count">0</p>
-                        </div>
+                    <div class="contractor-finance-strip" aria-label="Taşeron hakediş özeti">
+                        <span><small>Bekleyen Hakediş</small><strong id="taseron-hakedis-pending">0 ₺</strong></span>
+                        <span><small>Bu Ay Ödenen</small><strong id="taseron-hakedis-paid">0 ₺</strong></span>
+                        <span><small>Taşeron Araç</small><strong id="taseron-total-count">0</strong></span>
                     </div>
                     <div class="contractor-data-panel">
                         <div class="contractor-panel-head">
-                            <h3>Aylık Hakediş Detayları</h3>
+                            <div><h3>Aylık Hakediş Detayları</h3><p>Firma ve bölge bazında araç, sefer ve hakediş toplamları.</p></div>
                             <div class="contractor-filter-row">
                                 <input type="text" id="taseron-hakedis-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronHakedis === 'function') fetchTaseronHakedis()"
                                     class="contractor-control contractor-control-search">
@@ -1081,8 +973,29 @@
 
                 <section class="factory-workspace">
                     <div class="factory-toolbar">
-                        <div><strong>Fabrika listesi</strong><p>Operasyon, iletişim ve araç atamalarını tek görünümde inceleyin.</p></div>
-                        <p><span id="factory-visible-count" class="badge-neutral">—</span> fabrika</p>
+                        <span class="sr-only">Fabrika listesi filtreleri</span>
+                        <label class="erp-filter-search" for="factory-filter-search">
+                            <i data-lucide="search" aria-hidden="true"></i>
+                            <input id="factory-filter-search" type="search" placeholder="Fabrika, yetkili veya telefon ara" autocomplete="off" oninput="window.filterFactoryTable()">
+                        </label>
+                        <select id="factory-filter-region" class="erp-filter-select" onchange="window.filterFactoryTable()" aria-label="Bölgeye göre filtrele">
+                            <option value="">Tüm bölgeler</option>
+                            <option value="izmir">İzmir</option>
+                            <option value="manisa">Manisa</option>
+                        </select>
+                        <select id="factory-filter-assignment" class="erp-filter-select" onchange="window.filterFactoryTable()" aria-label="Araç atama durumuna göre filtrele">
+                            <option value="">Tüm atama durumları</option>
+                            <option value="assigned">Araç tanımlı</option>
+                            <option value="unassigned">Atama bekliyor</option>
+                        </select>
+                        <details class="erp-advanced-filters">
+                            <summary><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Gelişmiş Filtreler</summary>
+                            <div class="erp-advanced-filter-panel">
+                                <label><span>Servis tipi</span><select id="factory-filter-tariff" onchange="window.filterFactoryTable()"><option value="">Tüm servis tipleri</option><option value="vardiya">Vardiya</option><option value="tek">Tek sefer</option><option value="mesai">Mesai</option></select></label>
+                                <button type="button" class="btn-ghost" onclick="window.clearFactoryFilters()"><i data-lucide="rotate-ccw"></i>Temizle</button>
+                            </div>
+                        </details>
+                        <span class="erp-result-count"><b id="factory-visible-count">—</b> fabrika</span>
                     </div>
                     <div id="musteri-cards-grid" class="factory-card-grid">
                         <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Fabrikalar yükleniyor...</p></div></div>
@@ -1619,16 +1532,16 @@
                     <div class="progress-tabs" id="finans-tabs-nav">
                         <button onclick="switchTab('finans', 'taseron-finans', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="truck" class="w-4 h-4"></i>Cari Hakedis</button>
+                            <i data-lucide="truck" class="w-4 h-4"></i>Cari Hakediş</button>
                         <button onclick="switchTab('finans', 'taseron-rapor', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="file-text" class="w-4 h-4"></i>Taseron Ay Sonu</button>
+                            <i data-lucide="file-text" class="w-4 h-4"></i>Taşeron Ay Sonu</button>
                         <button onclick="switchTab('finans', 'yakit', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="droplets" class="w-4 h-4"></i>Yakit</button>
+                            <i data-lucide="droplets" class="w-4 h-4"></i>Yakıt</button>
                         <button onclick="switchTab('finans', 'aylik-odeme', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2">
-                            <i data-lucide="credit-card" class="w-4 h-4"></i>Aylik Odeme Ozeti</button>
+                            <i data-lucide="credit-card" class="w-4 h-4"></i>Aylık Ödeme Özeti</button>
                     </div>
 
 
@@ -1637,18 +1550,18 @@
                     <div id="content-taseron-finans" class="block progress-content">
                         <div class="progress-panel-head">
                             <div>
-                                <h3 class="text-lg font-bold">Taşeron Cari Hakediş (Özet)</h3>
-                                <p class="text-xs text-gray-500">Puantajdan çekilen aylık araç bazlı hakediş tablosu.</p>
+                                <h3 class="text-lg font-bold">Cari Hakediş Dökümü</h3>
+                                <p class="text-xs text-gray-500">Cari veya firma bazında brüt hizmet, yakıt kesintisi ve net ödenecek tutar.</p>
                             </div>
                             <div class="cari-hakedis-controls progress-toolbar">
-                                <input type="text" id="taseron-finans-search" placeholder="Plaka Ara..." oninput="if(typeof fetchTaseronFinans === 'function') fetchTaseronFinans()"
+                                <input type="text" id="taseron-finans-search" placeholder="Firma, plaka veya şoför ara" oninput="if(typeof fetchTaseronFinans === 'function') fetchTaseronFinans()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
                                 <select id="filter-cari-hakedis-ay" onchange="fetchTaseronFinans()" aria-label="Cari hakediş dönemi"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
                                     <option value="">Dönem seçin</option>
                                 </select>
                                 <button onclick="window.openDetayliTaseronRaporu()" class="btn-secondary">
-                                    <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor (Excel Formu)
+                                    <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor
                                 </button>
                                 <button onclick="window.CompanyBranding.printElement('#content-taseron-finans .overflow-x-auto', { title: 'Cari Hakediş Özeti', subtitle: 'Aktif dönem hakediş dökümü' })" class="btn-ghost">
                                     <i data-lucide="printer" class="w-4 h-4"></i> Yazdır
@@ -1659,12 +1572,12 @@
                             <table class="premium-table progress-table">
                                 <thead>
                                     <tr>
-                                        <th>Araç Plakası</th>
-                                        <th class="text-center">Toplam Sefer (Vardiya / Tek)</th>
-                                        <th class="text-right">Geçici Brüt (₺)</th>
-                                        <th class="text-right text-orange-400">Yakıt Toplamı (₺)</th>
-                                        <th class="text-right text-orange-400">Net Hakediş (₺)</th>
-                                        <th class="text-right">Detaylar</th>
+                                        <th>Cari / Firma</th>
+                                        <th>Çalışma Özeti</th>
+                                        <th class="text-right">Brüt Hizmet</th>
+                                        <th class="text-right">Yakıt Kesintisi</th>
+                                        <th class="text-right">Net Ödenecek</th>
+                                        <th class="text-right">Detay</th>
                                     </tr>
                                 </thead>
                                 <tbody id="taseron-finans-tbody">
@@ -1916,8 +1829,7 @@
                 <div class="receivables-workspace">
                     <div class="receivables-tabs" id="cari-tabs-nav">
                         <button id="tab-cariler" onclick="switchTab('cari', 'cariler', this)"
-                            class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all">Cari
-                            Kartlar</button>
+                            class="px-5 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg shadow-orange-500/20 transition-all">Cari Hesaplar</button>
                         <button id="tab-bakim" onclick="switchTab('cari', 'bakim', this)"
                             class="px-5 py-2 text-sm font-bold rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all">Araç
                             Bakım & Parça</button>
@@ -1937,8 +1849,26 @@
 
                     <!-- Cari Kartlar -->
                     <div id="content-cariler" class="block cari-list-content receivables-content">
-                        <div class="cari-list-header receivables-panel-head">
-                            <div><h3>Cari Hesap Listesi</h3><p>Borç, ödeme ve güncel bakiye durumlarını karşılaştırın.</p></div>
+                        <div class="receivables-toolbar">
+                            <label class="erp-filter-search" for="cari-filter-search">
+                                <i data-lucide="search" aria-hidden="true"></i>
+                                <input id="cari-filter-search" type="search" placeholder="Cari, telefon veya tür ara" autocomplete="off" oninput="window.filterCariTable()">
+                            </label>
+                            <select id="cari-filter-type" class="erp-filter-select" onchange="window.filterCariTable()" aria-label="Cari türüne göre filtrele"><option value="">Tüm cari türleri</option></select>
+                            <select id="cari-filter-balance" class="erp-filter-select" onchange="window.filterCariTable()" aria-label="Bakiye durumuna göre filtrele">
+                                <option value="">Tüm bakiye durumları</option>
+                                <option value="debt">Borçlu</option>
+                                <option value="credit">Alacaklı</option>
+                                <option value="settled">Kapalı</option>
+                            </select>
+                            <details class="erp-advanced-filters">
+                                <summary><i data-lucide="sliders-horizontal" aria-hidden="true"></i>Gelişmiş Filtreler</summary>
+                                <div class="erp-advanced-filter-panel">
+                                    <label><span>İletişim bilgisi</span><select id="cari-filter-contact" onchange="window.filterCariTable()"><option value="">Tümü</option><option value="present">Telefonu olan</option><option value="missing">Telefonu eksik</option></select></label>
+                                    <button type="button" class="btn-ghost" onclick="window.clearCariFilters()"><i data-lucide="rotate-ccw"></i>Temizle</button>
+                                </div>
+                            </details>
+                            <span class="erp-result-count"><b id="cari-visible-count">—</b> cari</span>
                         </div>
                         <div id="cari-cards-grid" class="receivables-card-grid">
                             <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Cariler yükleniyor...</p></div></div>
@@ -1947,8 +1877,7 @@
                             <table class="premium-table receivables-table" id="cari-table">
                                 <thead>
                                     <tr>
-                                        <th>Unvan / Firma</th>
-                                        <th>İşletme Türü</th>
+                                        <th>Cari Hesap</th>
                                         <th>İletişim</th>
                                         <th class="receivables-money">Borç</th>
                                         <th class="receivables-money">Ödeme</th>
@@ -2159,19 +2088,20 @@
                     </div>
                 </div>
             </div>
-                        <!-- 6. RAPORLAR MODULU -->
+            <!-- 6. RAPORLAR MODULU -->
             <div id="module-raporlar" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
+                <div class="page-header report-page-header flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div>
+                        <p class="report-eyebrow">Yönetim raporları</p>
                         <h2 class="text-2xl font-bold">Finansal Analiz &amp; Raporlar</h2>
                         <p class="text-sm text-gray-500 mt-1">Donemsel gelir, gider ve operasyonel verimlilik takibi.</p>
                     </div>
-                    <div class="flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
+                    <div class="report-period-control flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
                         <label class="text-xs font-bold text-gray-500 uppercase px-2">Donem:</label>
                         <input type="month" id="rapor-ay" onchange="fetchRaporlar()" class="bg-transparent border-none rounded-lg px-4 py-1.5 text-sm text-white focus:outline-none">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 px-2">
+                <div class="report-summary-band grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6 px-2">
                     <div class="dashboard-card border-none bg-blue-500/5 hover:bg-blue-500/10 transition-all p-4 rounded-3xl border border-blue-500/20">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
@@ -2227,15 +2157,15 @@
                         <div class="text-xl font-black text-cyan-600" id="rapor-ciro">0 TL</div>
                     </div>
                 </div>
-                <div class="dashboard-card p-0 overflow-hidden">
-                    <div class="flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;">
+                <div class="dashboard-card report-workspace p-0 overflow-hidden">
+                    <div class="report-tabs flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;">
                         <button id="rapor-tab-genel" onclick="window.switchRaporTab('genel')" class="rapor-tab-btn active px-4 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Genel Ozet</button>
                         <button id="rapor-tab-arac" onclick="window.switchRaporTab('arac')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4"></i>Arac Gider</button>
                         <button id="rapor-tab-personel" onclick="window.switchRaporTab('personel')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Personel</button>
                         <button id="rapor-tab-musteri" onclick="window.switchRaporTab('musteri')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Musteri/Sefer</button>
                         <button id="rapor-tab-cari" onclick="window.switchRaporTab('cari')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>Cari Bakiye</button>
                     </div>
-                    <div id="rapor-content-genel" class="block p-5">
+                    <div id="rapor-content-genel" class="report-content block p-5">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-sm">Gelir / Gider Karsilastirmasi</h3>
                             <div class="flex gap-2">
@@ -2244,10 +2174,10 @@
                                 <button onclick="window.handleRaporPrint('genel')" class="flex items-center gap-2 px-3 py-1.5 bg-slate-500/10 hover:bg-slate-500/20 text-slate-400 border border-slate-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="printer" class="w-3.5 h-3.5"></i>Yazdır</button>
                             </div>
                         </div>
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="report-general-grid grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                             <!-- Highlights -->
-                            <div class="lg:col-span-1 space-y-4">
-                                <div class="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                            <div class="report-highlight-list lg:col-span-1 space-y-4">
+                                <div class="report-highlight bg-white/5 border border-white/10 p-4 rounded-2xl">
                                     <div class="flex items-center gap-3 mb-3">
                                         <div class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-500">
                                             <i data-lucide="trophy" class="w-4 h-4"></i>
@@ -2257,7 +2187,7 @@
                                     <div class="text-lg font-black text-white" id="highlight-top-arac">-</div>
                                     <div class="text-[10px] text-gray-500 mt-1" id="highlight-top-arac-val">0 TL</div>
                                 </div>
-                                <div class="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                <div class="report-highlight bg-white/5 border border-white/10 p-4 rounded-2xl">
                                     <div class="flex items-center gap-3 mb-3">
                                         <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-500">
                                             <i data-lucide="layers" class="w-4 h-4"></i>
@@ -2267,7 +2197,7 @@
                                     <div class="text-lg font-black text-white" id="highlight-top-category">-</div>
                                     <div class="text-[10px] text-gray-500 mt-1" id="highlight-top-category-val">0 TL</div>
                                 </div>
-                                <div class="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                                <div class="report-highlight bg-white/5 border border-white/10 p-4 rounded-2xl">
                                     <div class="flex items-center gap-3 mb-3">
                                         <div class="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center text-cyan-600">
                                             <i data-lucide="truck" class="w-4 h-4"></i>
@@ -2279,7 +2209,7 @@
                                 </div>
                             </div>
                             <!-- Tables -->
-                            <div class="lg:col-span-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
+                            <div class="report-table-panel lg:col-span-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
                                 <table class="w-full" id="rapor-genel-table">
                                     <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/10 bg-white/5"><th class="p-4 text-left">Gider Kalemi</th><th class="p-4 text-center">Tür</th><th class="p-4 text-right">Aylık Toplam</th></tr></thead>
                                     <tbody id="rapor-gelir-gider-tbody" class="divide-y divide-white/5"><tr><td colspan="3" class="py-10 text-center text-gray-500 italic">Dönem seçiniz...</td></tr></tbody>
@@ -2287,14 +2217,14 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                        <div class="report-chart-grid grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div class="report-chart-panel bg-white/5 border border-white/10 p-6 rounded-3xl">
                                 <div class="flex items-center justify-between mb-6">
                                     <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-orange-500"></i>Kategori Dağılımı</h3>
                                 </div>
                                 <div class="h-64"><canvas id="raporGelirGiderChart"></canvas></div>
                             </div>
-                            <div class="bg-white/5 border border-white/10 p-6 rounded-3xl">
+                            <div class="report-chart-panel bg-white/5 border border-white/10 p-6 rounded-3xl">
                                 <div class="flex items-center justify-between mb-6">
                                     <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="bar-chart-horizontal" class="w-4 h-4 text-blue-500"></i>En Yüksek Harcamalı 10 Araç</h3>
                                 </div>
@@ -2302,7 +2232,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="rapor-content-arac" class="hidden p-5">
+                    <div id="rapor-content-arac" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-sm">Arac Bazli Gider Dagilimi</h3>
                             <div class="flex gap-2">
@@ -2317,7 +2247,7 @@
                             </table>
                         </div>
                     </div>
-                    <div id="rapor-content-personel" class="hidden p-5">
+                    <div id="rapor-content-personel" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-sm">Personel Maas Hakkedis Raporu</h3>
                             <div class="flex gap-2">
@@ -2332,7 +2262,7 @@
                             </table>
                         </div>
                     </div>
-                    <div id="rapor-content-musteri" class="hidden p-5">
+                    <div id="rapor-content-musteri" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-sm">Fabrika / Musteri Sefer Raporu</h3>
                             <div class="flex gap-2">
@@ -2347,7 +2277,7 @@
                             </table>
                         </div>
                     </div>
-                    <div id="rapor-content-cari" class="hidden p-5">
+                    <div id="rapor-content-cari" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-sm">Cari Hesap Bakiye Raporu</h3>
                             <div class="flex gap-2">
@@ -2543,32 +2473,33 @@
 
         <!-- CARİ DETAY MODALI (YENİ - PHASE 8) -->
         <div id="cari-detail-modal" class="fixed inset-0 z-[110] hidden items-center justify-center">
-            <div class="fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity" onclick="closeCariDetail()">
+            <div class="cari-detail-backdrop fixed inset-0 bg-black/80 backdrop-blur-xl transition-opacity" onclick="closeCariDetail()">
             </div>
-            <div class="flex items-center justify-center min-h-screen px-4 p-4">
+            <div class="cari-detail-dialog flex items-center justify-center min-h-screen px-4 p-4">
                 <div
                     class="cari-detail-sheet relative bg-[#0d0f11] border border-white/10 rounded-3xl overflow-hidden shadow-2xl transform transition-all max-w-5xl w-full">
                     <!-- Header -->
                     <div class="cari-detail-header premium-modal-header p-8 pb-4 flex justify-between items-start border-b border-white/5">
-                        <div class="flex gap-5">
+                        <div class="cari-detail-heading flex gap-5">
                             <div
-                                class="w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
+                                class="cari-detail-icon w-16 h-16 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500">
                                 <i data-lucide="building-2" class="w-8 h-8"></i>
                             </div>
-                            <div>
+                            <div class="cari-detail-title-copy">
+                                <span class="cari-detail-eyebrow">CARİ HESAP EKSTRESİ</span>
                                 <h2 class="text-3xl font-black text-white" id="cari-detail-unvan">Yükleniyor...</h2>
                                 <p class="text-gray-500 font-medium" id="cari-detail-tur">-</p>
                             </div>
                         </div>
-                        <div class="flex items-center justify-end gap-3 no-print">
-                            <button id="cari-whatsapp-btn" class="hidden px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl font-bold uppercase tracking-widest text-[10px] items-center gap-2 transition-all" title="Cariye WhatsApp'dan Ulaş">
+                        <div class="cari-detail-actions flex items-center justify-end gap-3 no-print">
+                            <button id="cari-whatsapp-btn" class="cari-detail-action is-whatsapp hidden px-4 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-500 rounded-xl font-bold uppercase tracking-widest text-[10px] items-center gap-2 transition-all" title="Cariye WhatsApp'dan Ulaş">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.488-1.761-1.665-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.052 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg> WHATSAPP
                             </button>
-                            <button onclick="printCariEkstre()" class="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 transition-all" title="Ekstreyi PDF Olarak Yazdır / Kaydet">
+                            <button onclick="printCariEkstre()" class="cari-detail-action is-print px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 transition-all" title="Ekstreyi PDF Olarak Yazdır / Kaydet">
                                 <i data-lucide="printer" class="w-4 h-4"></i> YAZDIR / PDF
                             </button>
                             <button onclick="closeCariDetail()" aria-label="Cari detayını kapat"
-                            class="p-2 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all">
+                            class="cari-detail-close p-2 bg-white/5 hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-all">
                             <i data-lucide="x" class="w-6 h-6"></i>
                         </button>
                         </div>
@@ -2577,31 +2508,31 @@
                     <div class="cari-detail-scroll p-8 space-y-8 overflow-y-auto max-h-[80vh]">
                         <!-- Cari Metrics -->
                         <div class="cari-detail-metrics grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Toplam Borç
+                            <div class="cari-detail-metric is-debt bg-white/5 p-6 rounded-2xl border border-white/5">
+                                <p id="cari-detail-borc-label" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Toplam Borç
                                 </p>
                                 <p class="text-2xl font-black text-white" id="cari-detail-borc">₺0</p>
                             </div>
-                            <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
-                                <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Ödenen</p>
+                            <div class="cari-detail-metric is-payment bg-white/5 p-6 rounded-2xl border border-white/5">
+                                <p id="cari-detail-odenen-label" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Ödenen</p>
                                 <p class="text-2xl font-black text-green-500" id="cari-detail-odenen">₺0</p>
                             </div>
-                            <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
-                                <p class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Güncel
+                            <div class="cari-detail-metric is-balance bg-white/5 p-6 rounded-2xl border border-white/10">
+                                <p id="cari-detail-bakiye-label" class="text-xs font-bold text-orange-500 uppercase tracking-widest mb-1">Güncel
                                     Bakiye</p>
                                 <p class="text-3xl font-black text-orange-500" id="cari-detail-bakiye">₺0</p>
                             </div>
                         </div>
 
                         <!-- Transactions Table -->
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-lg font-bold text-white">İşlem Geçmişi (Ekstre)</h3>
-                                <div class="text-xs text-gray-500 font-medium">Son 1 yıla ait tüm fatura ve ödemeler
+                        <div class="cari-statement-section">
+                            <div class="cari-statement-head flex items-center justify-between mb-4">
+                                <div><span>HAREKET DÖKÜMÜ</span><h3 class="text-lg font-bold text-white">İşlem Geçmişi</h3></div>
+                                <div class="text-xs text-gray-500 font-medium">Fatura, ödeme, poliçe ve bakım hareketleri
                                 </div>
                             </div>
                             <div class="cari-detail-transactions overflow-x-auto rounded-2xl border border-white/5">
-                                <table class="w-full text-left border-collapse">
+                                <table class="cari-statement-table w-full text-left border-collapse">
                                     <thead>
                                         <tr
                                             class="bg-white/5 text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -2699,16 +2630,19 @@
         <!-- GENEL AMAÇLI MODAL -->
         <div id="general-modal" class="fixed inset-0 z-[100] hidden">
             <!-- Arka Plan Karartması -->
-            <div class="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
+            <div class="general-modal-backdrop fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity" onclick="closeModal()"></div>
 
             <!-- Modal İçeriği -->
-            <div class="flex items-center justify-center min-h-screen px-4 p-4">
+            <div class="general-modal-dialog flex items-center justify-center min-h-screen px-4 p-4">
                 <div
                     class="ios-modal-sheet general-modal-sheet relative bg-[#1a1c1e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl transform transition-all max-w-lg w-full">
                     <!-- Header -->
                     <div class="ios-modal-header general-modal-header bg-white/5 px-6 py-4 flex justify-between items-center border-b border-white/5">
-                        <h3 class="text-lg font-bold text-white" id="modal-title">Yeni Kayıt Ekle</h3>
-                        <button onclick="closeModal()" class="text-gray-400 hover:text-white transition-all" aria-label="Modalı kapat">
+                        <div class="general-modal-heading">
+                            <span class="general-modal-icon"><i data-lucide="square-pen"></i></span>
+                            <div><span class="general-modal-eyebrow">KAYIT İŞLEMİ</span><h3 class="text-lg font-bold text-white" id="modal-title">Yeni Kayıt Ekle</h3></div>
+                        </div>
+                        <button onclick="closeModal()" class="general-modal-close text-gray-400 hover:text-white transition-all" aria-label="Modalı kapat">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -2720,11 +2654,11 @@
                     <!-- Footer -->
                     <div class="ios-modal-footer general-modal-footer bg-white/5 px-6 py-4 flex justify-end gap-3 border-t border-white/5">
                         <button type="button" onclick="closeModal()"
-                            class="px-5 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 text-sm font-bold transition-all">İptal</button>
+                            class="general-modal-cancel px-5 py-2 rounded-xl border border-white/10 text-gray-400 hover:text-white hover:bg-white/5 text-sm font-bold transition-all">İptal</button>
                         <button type="button" id="btn-save-continue" onclick="saveDataAndClose(event, true)"
-                            class="hidden px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all">Kaydet & Yeni Ekle</button>
+                            class="general-modal-save-more hidden px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all">Kaydet & Yeni Ekle</button>
                         <button type="button" id="modal-save-btn" onclick="saveDataAndClose(event)"
-                            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">Kaydet</button>
+                            class="general-modal-save px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all">Kaydet</button>
                     </div>
                 </div>
             </div>
@@ -2937,8 +2871,8 @@
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
-<script defer src="data-services.js?v=2.0.4"></script>
-<script defer src="ui-manager.js?v=2.0.7"></script>
+<script defer src="data-services.js?v=2.0.9"></script>
+<script defer src="ui-manager.js?v=2.0.10"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 
 
@@ -2950,7 +2884,7 @@
 <!-- puantaj.js removed: belongs exclusively to puantaj.html -->
 
 <!-- 5. FIXES -->
-<script defer src="app-fixes.js?v=2.1.0"></script>
+<script defer src="app-fixes.js?v=2.1.1"></script>
 <script defer src="ios-mobile.js?v=2.0.1"></script>
 
 <!-- 6. NEW SRP MODULES -->
@@ -2962,7 +2896,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.5"></script>
+<script defer src="dashboard-funcs.js?v=2.0.9"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

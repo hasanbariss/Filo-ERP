@@ -573,6 +573,16 @@ window.openCariDetail = function (cariId) {
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
 
+    const statementLabels = {
+        'cari-detail-borc-label': 'Toplam Borç',
+        'cari-detail-odenen-label': 'Ödenen',
+        'cari-detail-bakiye-label': 'Güncel Bakiye'
+    };
+    Object.entries(statementLabels).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    });
+
     // Fetch data
     if (typeof fetchCariDetails === 'function') {
         fetchCariDetails(cariId);
@@ -605,7 +615,17 @@ window.openKrediKartiDetay = function (kartId, kartAdi) {
     document.getElementById('cari-detail-bakiye').innerText = "-";
 
     const tbody = document.getElementById('cari-detail-tbody');
-    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Harcamalar yükleniyor...</td></tr>';
+    const creditCardLabels = {
+        'cari-detail-borc-label': 'Kart Harcaması',
+        'cari-detail-odenen-label': 'Kart Limiti',
+        'cari-detail-bakiye-label': 'Kullanılabilir Limit'
+    };
+    Object.entries(creditCardLabels).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    });
+
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Harcamalar yükleniyor...</td></tr>';
 
     if (typeof fetchKrediKartiDetails === 'function') {
         fetchKrediKartiDetails(kartId);
@@ -3631,68 +3651,109 @@ window.filterYakitlar = function (mulkiyet, sirket) {
 };
 
 window.filterAraclar = function (filter) {
-    // Tüm filtre butonlarını sıfırla
-    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk', 'dikkan'].forEach(key => {
-        const btn = document.getElementById(`filter-btn-${key}`);
-        if (btn) {
-            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'bg-emerald-500', 'text-white');
-            btn.classList.add('hover:bg-white/10');
-            // Orijinal renkleri geri ver
-            if (key === 'd2') btn.classList.add('text-blue-400');
-            else if (key === 'd4s') btn.classList.add('text-purple-400');
-            else if (key === 'ideol') btn.classList.add('text-orange-400');
-            else if (key === 'dikkan') btn.classList.add('text-violet-400');
-            else if (key === 'mk') btn.classList.add('text-red-400');
-            else btn.classList.add('text-gray-400');
-        }
-    });
-
-    // Aktif olanı vurgula
-    const keyMap = { 'hepsi': 'hepsi', 'ÖZMAL': 'ozmal', 'TAŞERON': 'taseron', 'KİRALIK': 'kiralik', 'D2': 'd2', 'D4S': 'd4s' };
-    const activeKey = keyMap[filter] || 'hepsi';
-    const activeBtn = document.getElementById(`filter-btn-${activeKey}`);
-    if (activeBtn) {
-        if (activeKey === 'd2') {
-            activeBtn.classList.add('bg-blue-500', 'text-white');
-            activeBtn.classList.remove('text-blue-400', 'hover:bg-white/10', 'hover:bg-blue-500/20');
-        } else if (activeKey === 'd4s') {
-            activeBtn.classList.add('bg-purple-500', 'text-white');
-            activeBtn.classList.remove('text-purple-400', 'hover:bg-white/10', 'hover:bg-purple-500/20');
-        } else {
-            activeBtn.classList.add('bg-orange-500', 'text-white');
-            activeBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
-        }
+    if (!filter || filter === 'hepsi') {
+        window.resetOwnedFleetFilters();
+        return;
     }
-    // Veriyi çek
-    if (typeof fetchAraclar === 'function') fetchAraclar(filter, 'hepsi');
+    const ownership = document.getElementById('fleet-filter-ownership');
+    const license = document.getElementById('fleet-filter-license');
+    const company = document.getElementById('fleet-filter-company');
+    if (ownership) ownership.value = ['ÖZMAL', 'TAŞERON', 'KİRALIK'].includes(filter) ? filter : '';
+    if (license) license.value = ['D2', 'D4S'].includes(filter) ? filter : '';
+    if (company) company.value = '';
+    window.applyOwnedFleetFilters();
 };
 
 window.filterAraclarBySirket = function (sirket) {
-    // Tüm araç filtrelerini temizle
-    ['hepsi', 'ozmal', 'taseron', 'kiralik', 'd2', 'd4s', 'ideol', 'mk', 'dikkan'].forEach(key => {
-        const btn = document.getElementById(`filter-btn-${key}`);
-        if (btn) {
-            btn.classList.remove('bg-orange-500', 'bg-blue-500', 'bg-purple-500', 'bg-red-500', 'bg-emerald-500', 'text-white');
-            btn.classList.add('hover:bg-white/10');
-        }
+    const ownership = document.getElementById('fleet-filter-ownership');
+    const license = document.getElementById('fleet-filter-license');
+    const company = document.getElementById('fleet-filter-company');
+    if (ownership) ownership.value = '';
+    if (license) license.value = '';
+    if (company) company.value = ['IDEOL', 'DİKKAN', 'M.K.'].includes(sirket) ? sirket : '';
+    window.applyOwnedFleetFilters();
+};
+
+window.applyOwnedFleetFilters = function () {
+    const input = document.getElementById('fleet-search-input');
+    const normalizedQuery = String(input ? input.value : '').toLocaleLowerCase('tr-TR').trim();
+    const ownership = document.getElementById('fleet-filter-ownership')?.value || '';
+    const driver = document.getElementById('fleet-filter-driver')?.value || '';
+    const company = document.getElementById('fleet-filter-company')?.value || '';
+    const license = document.getElementById('fleet-filter-license')?.value || '';
+    const documentStatus = document.getElementById('fleet-filter-document')?.value || '';
+    let visibleRows = 0;
+
+    document.querySelectorAll('#arac-cards-grid [data-fleet-search], #arac-list-tbody [data-fleet-search]').forEach(item => {
+        const haystack = String(item.dataset.fleetSearch || '').toLocaleLowerCase('tr-TR');
+        const matches = (!normalizedQuery || haystack.includes(normalizedQuery))
+            && (!ownership || item.dataset.fleetOwnership === ownership)
+            && (!driver || item.dataset.fleetDriver === driver)
+            && (!company || item.dataset.fleetCompany === company)
+            && (!license || item.dataset.fleetLicense === license)
+            && (!documentStatus || item.dataset.fleetDocument === documentStatus);
+        item.hidden = !matches;
+        if (matches && item.closest('#arac-list-tbody')) visibleRows += 1;
     });
 
-    const activeKey = sirket === 'IDEOL' ? 'ideol' : (sirket === 'DİKKAN' ? 'dikkan' : (sirket === 'M.K.' ? 'mk' : 'hepsi'));
-    const btn = document.getElementById(`filter-btn-${activeKey}`);
-    if (btn) {
-        btn.classList.add(sirket === 'IDEOL' ? 'bg-orange-500' : (sirket === 'DİKKAN' ? 'bg-violet-500' : 'bg-red-500'), 'text-white');
-        btn.classList.remove('hover:bg-white/10');
-    }
-
-    if (typeof fetchAraclar === 'function') fetchAraclar('hepsi', sirket);
+    const visibleCount = document.getElementById('fleet-visible-count');
+    if (visibleCount) visibleCount.textContent = String(visibleRows);
 };
 
 window.filterOwnedFleetSearch = function (value) {
-    const normalizedQuery = String(value || '').toLocaleLowerCase('tr-TR').trim();
-    document.querySelectorAll('#arac-cards-grid [data-fleet-search], #arac-list-tbody [data-fleet-search]').forEach(item => {
-        const haystack = String(item.dataset.fleetSearch || '').toLocaleLowerCase('tr-TR');
-        item.hidden = normalizedQuery.length > 0 && !haystack.includes(normalizedQuery);
+    const input = document.getElementById('fleet-search-input');
+    if (input && input.value !== String(value || '')) input.value = String(value || '');
+    window.applyOwnedFleetFilters();
+};
+
+window.resetOwnedFleetFilters = function () {
+    ['fleet-search-input', 'fleet-filter-ownership', 'fleet-filter-driver', 'fleet-filter-company', 'fleet-filter-license', 'fleet-filter-document'].forEach(id => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
     });
+    window.applyOwnedFleetFilters();
+};
+
+window.applyFleetDriverFilters = function () {
+    const query = String(document.getElementById('fleet-driver-search-input')?.value || '').toLocaleLowerCase('tr-TR').trim();
+    const company = document.getElementById('fleet-driver-filter-company')?.value || '';
+    const assignment = document.getElementById('fleet-driver-filter-assignment')?.value || '';
+    const insurance = document.getElementById('fleet-driver-filter-insurance')?.value || '';
+    let visibleRows = 0;
+
+    document.querySelectorAll('#sofor-cards-grid [data-fleet-driver-search], #sofor-list-tbody [data-fleet-driver-search]').forEach(item => {
+        const haystack = String(item.dataset.fleetDriverSearch || '').toLocaleLowerCase('tr-TR');
+        const matches = (!query || haystack.includes(query))
+            && (!company || item.dataset.fleetDriverCompany === company)
+            && (!assignment || item.dataset.fleetDriverAssignment === assignment)
+            && (!insurance || item.dataset.fleetDriverInsurance === insurance);
+        item.hidden = !matches;
+        if (matches && item.closest('#sofor-list-tbody')) visibleRows += 1;
+    });
+
+    const count = document.getElementById('fleet-driver-visible-count');
+    if (count) count.textContent = String(visibleRows);
+};
+
+window.resetFleetDriverFilters = function () {
+    ['fleet-driver-search-input', 'fleet-driver-filter-company', 'fleet-driver-filter-assignment', 'fleet-driver-filter-insurance'].forEach(id => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
+    });
+    window.applyFleetDriverFilters();
+};
+
+window.applyCizelgeSearch = function () {
+    const query = String(document.getElementById('cizelge-search-input')?.value || '').toLocaleLowerCase('tr-TR').trim();
+    let visibleRows = 0;
+    document.querySelectorAll('#cizelge-tbody [data-cizelge-search]').forEach(row => {
+        const haystack = String(row.dataset.cizelgeSearch || '').toLocaleLowerCase('tr-TR');
+        const matches = !query || haystack.includes(query);
+        row.hidden = !matches;
+        if (matches) visibleRows += 1;
+    });
+    const count = document.getElementById('cizelge-visible-count');
+    if (count) count.textContent = String(visibleRows);
 };
 
 window.filterSoforler = function (sirket) {

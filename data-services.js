@@ -1205,6 +1205,8 @@ window.currentOzmalFilter = 'hepsi';
 
 window.filterOzmalCizelge = function(sirketName) {
     window.currentOzmalFilter = sirketName || 'hepsi';
+    const companySelect = document.getElementById('cizelge-company-filter');
+    if (companySelect && companySelect.value !== window.currentOzmalFilter) companySelect.value = window.currentOzmalFilter;
     const btns = {
         'hepsi': 'filter-cizelge-hepsi',
         'IDEOL': 'filter-cizelge-ideol',
@@ -1261,7 +1263,7 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
     window._cizelgeBannerOnly = false;
 
     if (!bannerOnly) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic"><div class="flex flex-col items-center gap-2"><i data-lucide="loader-2" class="animate-spin w-6 h-6"></i> Çizelge verileri yükleniyor...</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7"><div class="loading-state"><i data-lucide="loader-2" class="animate-spin"></i><p>Çizelge verileri yükleniyor...</p></div></td></tr>';
         if(window.lucide) window.lucide.createIcons();
     }
 
@@ -1282,7 +1284,9 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         if (error) throw error;
 
         if (!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Sistemde Özmal araç kaydı bulunamadı.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div><strong>Özmal araç bulunamadı.</strong><p>Seçili şirket için çizelge kaydı bulunmuyor.</p></div></div></td></tr>';
+            const visibleCount = document.getElementById('cizelge-visible-count');
+            if (visibleCount) visibleCount.textContent = '0';
             return;
         }
 
@@ -1290,12 +1294,12 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         today.setHours(0,0,0,0);
 
         const getColorClass = (dateValue) => {
-            if (!dateValue) return 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30';
+            if (!dateValue) return 'is-missing';
             const dateObj = new Date(dateValue);
             const diffDays = Math.ceil((dateObj - today) / (1000 * 60 * 60 * 24));
-            if (diffDays < 0)   return 'bg-red-500/20 text-red-500 border border-red-500/30';
-            if (diffDays <= 30) return 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
-            return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            if (diffDays < 0) return 'is-danger';
+            if (diffDays <= 30) return 'is-warning';
+            return 'is-current';
         };
 
         // Helper to format date relative state
@@ -1303,12 +1307,11 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
             const cl = getColorClass(dateValue);
             // data-arac / data-field kullanarak in-place renk güncellemesi yapalım
             return `
-                <div class="${cl} rounded-lg p-1 transition-all hover:ring-2 hover:ring-white/20 cizelge-date-cell" data-arac="${aracId}" data-field="${fieldName}">
+                <div class="cizelge-date-cell ${cl}" data-arac="${aracId}" data-field="${fieldName}">
                     <input type="date"
                         value="${dateValue || ''}"
                         onchange="window.updateCizelgeDateInPlace(this, '${aracId}', '${fieldName}')"
-                        class="w-full bg-transparent text-center font-bold text-xs outline-none cursor-pointer"
-                        style="color:inherit;"
+                        aria-label="${fieldLabels?.[fieldName] || 'Bitiş tarihi'}"
                     />
                 </div>
             `;
@@ -1336,25 +1339,25 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
         if (!bannerEl) {
             bannerEl = document.createElement('div');
             bannerEl.id = 'cizelge-uyari-banner';
-            bannerEl.className = 'mb-4';
+            bannerEl.className = 'cizelge-warning-wrap';
             tbody.closest('table').parentElement.before(bannerEl);
         }
         if (warnings.length === 0) {
-            bannerEl.innerHTML = '<div class="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-emerald-400 text-xs font-bold"><i data-lucide="shield-check" class="w-4 h-4 flex-shrink-0"></i> Tüm araçların belgeleri güncel — yaklaşan bitiş tarihi yok.</div>';
+            bannerEl.innerHTML = '<div class="cizelge-warning-panel is-clear"><i data-lucide="shield-check"></i><span>Tüm araçların belgeleri güncel; yaklaşan bitiş tarihi yok.</span></div>';
         } else {
             bannerEl.innerHTML = `
-            <div class="rounded-xl border border-orange-500/30 bg-orange-500/5 overflow-hidden">
-                <div class="flex items-center gap-2 px-4 py-2.5 border-b border-orange-500/20 bg-orange-500/10">
-                    <i data-lucide="bell-ring" class="w-4 h-4 text-orange-400 flex-shrink-0"></i>
-                    <span class="text-xs font-black text-orange-400 uppercase tracking-widest">Dikkat — ${warnings.length} yaklaşan/geçmiş evrak</span>
+            <div class="cizelge-warning-panel is-alert">
+                <div class="cizelge-warning-head">
+                    <i data-lucide="bell-ring"></i>
+                    <strong>${warnings.length} yaklaşan veya süresi geçmiş evrak</strong>
                 </div>
-                <div class="flex flex-wrap gap-2 p-3">
+                <div class="cizelge-warning-items">
                     ${warnings.map(w => `
-                        <div class="flex items-center gap-1.5 ${w.cls} border rounded-lg px-2.5 py-1.5 text-[10px] font-bold">
-                            <i data-lucide="${w.icon}" class="w-3 h-3 flex-shrink-0"></i>
-                            <span class="text-white font-black">${w.plaka}</span>
-                            <span class="opacity-70">${w.label}:</span>
-                            <span>${w.text}</span>
+                        <div class="cizelge-warning-item ${w.diff < 0 ? 'is-danger' : 'is-warning'}">
+                            <i data-lucide="${w.icon}"></i>
+                            <strong>${w.plaka}</strong>
+                            <span>${w.label}</span>
+                            <em>${w.text}</em>
                         </div>`).join('')}
                 </div>
             </div>`;
@@ -1400,21 +1403,20 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
             const marka_model = a.marka_model || '-'; 
 
             return `
-                <tr class="hover:bg-white/5 transition-colors group">
-                    <td class="p-3 text-xs font-bold text-gray-300 uppercase bg-black/10 border-b border-white/5">${sirket}</td>
-                    <td class="p-3 text-xs font-black text-white border-l border-b border-white/5 whitespace-nowrap">${plaka}</td>
-                    <td class="p-3 text-[11px] font-bold text-gray-400 border-l border-b border-white/5 uppercase break-words">${marka_model}</td>
-                    
-                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                <tr data-cizelge-search="${[sirket, plaka, marka_model].join(' ')}">
+                    <td><span class="badge-info">${sirket}</span></td>
+                    <td><strong class="cizelge-plate">${plaka}</strong></td>
+                    <td><span class="cizelge-model">${marka_model}</span></td>
+                    <td>
                         ${getDateRenderer(a.sigorta_bitis, 'sigorta_bitis', a.id)}
                     </td>
-                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                    <td>
                         ${getDateRenderer(a.koltuk_bitis, 'koltuk_bitis', a.id)}
                     </td>
-                    <td class="p-2 border-l border-b border-white/5 w-40 border-r border-dashed">
+                    <td>
                         ${getDateRenderer(a.kasko_bitis, 'kasko_bitis', a.id)}
                     </td>
-                    <td class="p-2 border-l border-b border-white/5 w-40">
+                    <td>
                         ${getDateRenderer(a.vize_bitis, 'vize_bitis', a.id)}
                     </td>
                 </tr>
@@ -1423,6 +1425,7 @@ window.fetchOzmalCizelge = async function(sirketFilter = window.currentOzmalFilt
 
         if (!bannerOnly) {
             tbody.innerHTML = rows.join('');
+            if (typeof window.applyCizelgeSearch === 'function') window.applyCizelgeSearch();
             if (window.lucide) window.lucide.createIcons();
         } else {
             // Sadece uyarı bannerı güncellendi, tablo DOM'una dokunmadık
@@ -1446,17 +1449,16 @@ window.updateCizelgeDateInPlace = async function(inputEl, aracId, fieldName) {
     // Optimistic UI — rengi hemen güncelle
     if (cell) {
         const today = new Date(); today.setHours(0,0,0,0);
-        const allCls = ['bg-red-500/20','text-red-500','border-red-500/30','bg-orange-500/20','text-orange-400','border-orange-500/30','bg-emerald-500/20','text-emerald-400','border-emerald-500/30','bg-yellow-500/10','text-yellow-500','border-yellow-500/30'];
+        const allCls = ['is-danger', 'is-warning', 'is-current', 'is-missing'];
         allCls.forEach(c => cell.classList.remove(c));
         if (!newDate) {
-            cell.classList.add('bg-yellow-500/10','text-yellow-500','border-yellow-500/30');
+            cell.classList.add('is-missing');
         } else {
             const diff = Math.ceil((new Date(newDate) - today) / 86400000);
-            if (diff < 0)        cell.classList.add('bg-red-500/20','text-red-500','border-red-500/30');
-            else if (diff <= 30) cell.classList.add('bg-orange-500/20','text-orange-400','border-orange-500/30');
-            else                 cell.classList.add('bg-emerald-500/20','text-emerald-400','border-emerald-500/30');
+            if (diff < 0) cell.classList.add('is-danger');
+            else if (diff <= 30) cell.classList.add('is-warning');
+            else cell.classList.add('is-current');
         }
-        inputEl.style.color = 'inherit';
     }
 
     try {
@@ -1490,13 +1492,13 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
     // Loading state
     if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div>';
     if (listBody && document.getElementById('arac-list-container') && !document.getElementById('arac-list-container').classList.contains('hidden')) {
-        listBody.innerHTML = '<tr><td colspan="4"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
+        listBody.innerHTML = '<tr><td colspan="6"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
     }
 
     const conn = window.checkSupabaseConnection();
     if (!conn.ok) {
         window.showGlobalError('arac-cards-grid', conn.msg);
-        if (listBody) listBody.innerHTML = `<tr><td colspan="4"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
+        if (listBody) listBody.innerHTML = `<tr><td colspan="6"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
         return;
     }
 
@@ -1570,13 +1572,18 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             if (arac.sofor_id) summary.assigned += 1;
             if (state.upcoming) summary.upcoming += 1;
             if (state.missing || state.expired) summary.critical += 1;
+            if (state.missing || state.expired || state.upcoming) summary.action += 1;
             return summary;
-        }, { assigned: 0, upcoming: 0, critical: 0 });
+        }, { assigned: 0, upcoming: 0, critical: 0, action: 0 });
         const summaryValues = {
             'fleet-kpi-total': araclar.length,
             'fleet-kpi-assigned': fleetSummary.assigned,
             'fleet-kpi-upcoming': fleetSummary.upcoming,
-            'fleet-kpi-critical': fleetSummary.critical
+            'fleet-kpi-critical': fleetSummary.critical,
+            'fleet-summary-total': araclar.length,
+            'fleet-summary-assigned': fleetSummary.assigned,
+            'fleet-summary-action': fleetSummary.action,
+            'fleet-visible-count': araclar.length
         };
         Object.entries(summaryValues).forEach(([elementId, value]) => {
             const element = document.getElementById(elementId);
@@ -1589,7 +1596,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         if (araclar.length === 0) {
             if (grid) grid.innerHTML = '<div class="empty-state fleet-empty-state"><div><span class="fleet-state-icon"><i data-lucide="truck"></i></span><strong>Henüz araç bulunmuyor.</strong><p>Filonuza ilk aracı ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Araç Ekle\')"><i data-lucide="plus"></i>Araç Ekle</button></div></div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="4"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -1769,12 +1776,22 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             }
 
             const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', mulkiyet, arac.belge_turu || ''].join(' ');
+            const state = documentState(arac);
+            const documentStatus = (state.missing || state.expired) ? 'critical' : (state.upcoming ? 'upcoming' : 'current');
+            const licenseType = arac.belge_turu && arac.belge_turu !== 'Yok' ? arac.belge_turu : 'none';
+            const driverStatus = soforAdi ? 'assigned' : 'unassigned';
+            const companyName = arac.sirket && arac.sirket !== 'Belirtilmemiş' ? arac.sirket : '';
 
             // Supabase'den gelen veriye göre modern card oluştur
             if (grid) {
                 const card = document.createElement('div');
                 card.className = "fleet-vehicle-card";
                 card.dataset.fleetSearch = searchText;
+                card.dataset.fleetOwnership = mulkiyet;
+                card.dataset.fleetDriver = driverStatus;
+                card.dataset.fleetCompany = companyName;
+                card.dataset.fleetLicense = licenseType;
+                card.dataset.fleetDocument = documentStatus;
 
                 card.innerHTML = `
                     <div class="fleet-vehicle-summary" onclick="window.openAracDetay('${arac.id}')">
@@ -1824,6 +1841,11 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             if (listBody) {
                 const tr = document.createElement('tr');
                 tr.dataset.fleetSearch = searchText;
+                tr.dataset.fleetOwnership = mulkiyet;
+                tr.dataset.fleetDriver = driverStatus;
+                tr.dataset.fleetCompany = companyName;
+                tr.dataset.fleetLicense = licenseType;
+                tr.dataset.fleetDocument = documentStatus;
                 tr.innerHTML = `
                     <td>
                         <div class="fleet-table-vehicle" onclick="window.openAracDetay('${arac.id}')">
@@ -1832,9 +1854,15 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                             </div>
                             <div>
                                 <strong>${plaka}</strong>
-                                <span>${marka} · ${mulkiyet}</span>
-                                <div class="fleet-vehicle-badges">${sirketBadgeHtml}${belgeBadgeHtml}</div>
+                                <span>${marka}</span>
                             </div>
+                        </div>
+                    </td>
+                    <td><div class="fleet-company-cell">${sirketBadgeHtml || '<span class="fleet-empty-value">—</span>'}</div></td>
+                    <td>
+                        <div class="fleet-ownership-cell">
+                            <span class="${mulkiyet === 'ÖZMAL' ? 'badge-success' : 'badge-neutral'}">${mulkiyet}</span>
+                            ${belgeBadgeHtml || '<span class="fleet-empty-value">Belge yok</span>'}
                         </div>
                     </td>
                     <td>
@@ -1864,15 +1892,14 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         });
 
-        const searchInput = document.getElementById('fleet-search-input');
-        if (searchInput && typeof window.filterOwnedFleetSearch === 'function') window.filterOwnedFleetSearch(searchInput.value);
+        if (typeof window.applyOwnedFleetFilters === 'function') window.applyOwnedFleetFilters();
 
         if (window.lucide) window.lucide.createIcons();
 
     } catch (error) {
         console.error("Araçları çekerken hata:", error);
         if (grid) grid.innerHTML = `<div class="empty-state fleet-error-state"><div><i data-lucide="circle-alert"></i><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div>`;
-        if (listBody) listBody.innerHTML = `<tr><td colspan="4"><div class="empty-state fleet-error-state"><div><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
+        if (listBody) listBody.innerHTML = `<tr><td colspan="6"><div class="empty-state fleet-error-state"><div><strong>Veriler yüklenemedi.</strong><p>${error.message}</p></div></div></td></tr>`;
         if (window.lucide) window.lucide.createIcons();
     }
 }
@@ -2271,7 +2298,8 @@ async function fetchTaseronlar() {
             'contractor-kpi-vehicles': records.length,
             'contractor-kpi-assigned': records.filter(a => a.sofor_id).length,
             'contractor-kpi-missing': records.filter(a => !a.firma_adi || !a.sofor_id).length,
-            'taseron-total-count': records.length
+            'taseron-total-count': records.length,
+            'contractor-visible-count': records.length
         };
         Object.entries(summaryValues).forEach(([elementId, value]) => {
             const element = document.getElementById(elementId);
@@ -2353,10 +2381,15 @@ async function fetchTaseronlar() {
 
 window.filterTaseronCards = function(q) {
     const query = String(q || '').trim().toLocaleLowerCase('tr-TR');
+    let visibleRows = 0;
     document.querySelectorAll('#taseron-cards-grid [data-contractor-search], #taseron-tbody [data-contractor-search]').forEach(item => {
         const text = String(item.dataset.contractorSearch || '').toLocaleLowerCase('tr-TR');
-        item.hidden = query.length > 0 && !text.includes(query);
+        const matches = !query || text.includes(query);
+        item.hidden = !matches;
+        if (matches && item.closest('#taseron-tbody')) visibleRows += 1;
     });
+    const count = document.getElementById('contractor-visible-count');
+    if (count) count.textContent = String(visibleRows);
 };
 
 /* =====================================================
@@ -2494,7 +2527,7 @@ async function fetchSoforler(sirketFilter) {
         const conn = window.checkSupabaseConnection();
         if (!conn.ok) {
             if (grid) window.showGlobalError('sofor-cards-grid', conn.msg);
-            if (listBody) listBody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">${conn.msg}</td></tr>`;
+            if (listBody) listBody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
             if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">${conn.msg}</td></tr>`;
             if (personnelGrid) personnelGrid.innerHTML = `<div class="empty-state personnel-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div>`;
             if (personnelBody) personnelBody.innerHTML = `<tr><td colspan="6"><div class="empty-state personnel-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
@@ -2531,7 +2564,11 @@ async function fetchSoforler(sirketFilter) {
             'personnel-kpi-total': soforler.length,
             'personnel-kpi-assigned': soforler.filter(sofor => Boolean(aracMap[sofor.id])).length,
             'personnel-kpi-insured': soforler.filter(sofor => sofor.sigorta_durumu === 'SGK').length,
-            'personnel-kpi-missing': soforler.filter(sofor => !sofor.tc_no || !sofor.telefon || !sofor.sirket).length
+            'personnel-kpi-missing': soforler.filter(sofor => !sofor.tc_no || !sofor.telefon || !sofor.sirket).length,
+            'fleet-driver-summary-total': soforler.length,
+            'fleet-driver-summary-assigned': soforler.filter(sofor => Boolean(aracMap[sofor.id])).length,
+            'fleet-driver-summary-insured': soforler.filter(sofor => sofor.sigorta_durumu === 'SGK').length,
+            'fleet-driver-visible-count': soforler.length
         };
         Object.entries(personnelSummary).forEach(([id, value]) => {
             const element = document.getElementById(id);
@@ -2540,7 +2577,7 @@ async function fetchSoforler(sirketFilter) {
 
         if (soforler.length === 0) {
             if (grid) grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 italic">Henüz kayıtlı şoför bulunmuyor. Yeni Şoför butonu ile ekleyin.</div>';
-            if (listBody) listBody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-gray-500 italic">Kayıt bulunamadı.</td></tr>';
+            if (listBody) listBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div><strong>Henüz şoför bulunmuyor.</strong><p>Yeni şoför ekleyerek kadroyu oluşturmaya başlayabilirsiniz.</p></div></div></td></tr>';
             if (personnelGrid) personnelGrid.innerHTML = '<div class="empty-state personnel-empty-state"><div><span class="personnel-state-icon"><i data-lucide="users-round"></i></span><strong>Henüz personel bulunmuyor.</strong><p>İlk personel kaydını ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Şoför Ekle\')"><i data-lucide="user-plus"></i>Personel Ekle</button></div></div>';
             if (personnelBody) personnelBody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div><strong>Henüz personel bulunmuyor.</strong><p>İlk personel kaydını ekleyerek başlayabilirsiniz.</p></div></div></td></tr>';
             if (window.lucide) window.lucide.createIcons();
@@ -2572,7 +2609,9 @@ async function fetchSoforler(sirketFilter) {
             const companyName = sofor.sirket ? window.CompanyBranding.companyDisplayName(sofor.sirket) : 'Birim belirtilmemiş';
             const personnelStatusClass = sofor.sigorta_durumu === 'SGK' ? 'badge-success' : (sofor.sigorta_durumu === 'Bağkur' ? 'badge-info' : 'badge-neutral');
             const personnelStatusText = sofor.sigorta_durumu || 'Sigorta belirtilmemiş';
-            const personnelSearch = [sofor.ad_soyad || '', sofor.telefon || '', companyName, aracMap[sofor.id] || '', personnelStatusText].join(' ');
+            const personnelSearch = [sofor.ad_soyad || '', sofor.telefon || '', sofor.tc_no || '', companyName, aracMap[sofor.id] || '', personnelStatusText, sofor.ehliyet_sinifi || '', sofor.src_belgesi || ''].join(' ');
+            const assignmentStatus = aracMap[sofor.id] ? 'assigned' : 'unassigned';
+            const insuranceFilter = ['SGK', 'Bağkur'].includes(sofor.sigorta_durumu) ? sofor.sigorta_durumu : 'other';
 
             if (personnelGrid) {
                 const personnelCard = document.createElement('article');
@@ -2618,6 +2657,10 @@ async function fetchSoforler(sirketFilter) {
             if (grid) {
                 const card = document.createElement('div');
                 card.className = 'dashboard-card hover:border-blue-500/50 transition-all flex flex-col justify-between p-5 cursor-pointer';
+                card.dataset.fleetDriverSearch = personnelSearch;
+                card.dataset.fleetDriverCompany = sofor.sirket || '';
+                card.dataset.fleetDriverAssignment = assignmentStatus;
+                card.dataset.fleetDriverInsurance = insuranceFilter;
                 card.onclick = (e) => window.openSoforDetay(sofor.id, e);
                 card.innerHTML = `
                     <div>
@@ -2666,37 +2709,36 @@ async function fetchSoforler(sirketFilter) {
 
             if (listBody) {
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-white/5 transition-colors group";
+                const salaryValue = sofor.aylik_maas ? `₺${Number(sofor.aylik_maas).toLocaleString('tr-TR')}` : (sofor.gunluk_ucret ? `₺${Number(sofor.gunluk_ucret).toLocaleString('tr-TR')}` : '—');
+                const salaryPeriod = sofor.aylik_maas ? 'Aylık' : (sofor.gunluk_ucret ? 'Günlük' : 'Belirtilmedi');
+                tr.dataset.fleetDriverSearch = personnelSearch;
+                tr.dataset.fleetDriverCompany = sofor.sirket || '';
+                tr.dataset.fleetDriverAssignment = assignmentStatus;
+                tr.dataset.fleetDriverInsurance = insuranceFilter;
                 tr.innerHTML = `
-                    <td class="p-4 border-b border-white/5">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs ${colorClass}">${initial}</div>
-                            <div>
-                                <div class="font-bold text-white text-sm truncate max-w-[150px] flex items-center">
-                                    ${sofor.ad_soyad}
-                                    ${sirketBadgeHtml}
-                                </div>
-                                <div class="text-[10px] text-orange-400 font-bold whitespace-nowrap mt-0.5"><i data-lucide="truck" class="w-2.5 h-2.5 inline-block mr-0.5"></i>${aracMap[sofor.id] || 'Araç Yok'}</div>
-                                <div class="text-[10px] font-mono text-gray-500 mt-0.5">${sofor.telefon || (sofor.tc_no || 'Tel/TC Yok')}</div>
-                            </div>
+                    <td>
+                        <button type="button" class="fleet-driver-identity" onclick="window.openSoforDetay('${sofor.id}')">
+                            <span class="personnel-avatar">${initial}</span>
+                            <span><strong>${sofor.ad_soyad || 'İsimsiz şoför'}</strong><small>${sofor.telefon || sofor.tc_no || 'İletişim bilgisi yok'}</small></span>
+                        </button>
+                    </td>
+                    <td><span class="${sofor.sirket ? 'badge-info' : 'badge-neutral'}">${companyName}</span></td>
+                    <td><span class="fleet-driver-vehicle ${assignmentStatus === 'unassigned' ? 'is-unassigned' : ''}"><i data-lucide="truck"></i>${aracMap[sofor.id] || 'Atanmamış'}</span></td>
+                    <td>
+                        <div class="fleet-driver-credentials">
+                            ${sofor.ehliyet_sinifi ? `<span class="badge-neutral">Ehliyet ${sofor.ehliyet_sinifi}</span>` : ''}
+                            ${(sofor.src_belgesi && sofor.src_belgesi !== 'Yok') ? `<span class="badge-info">${sofor.src_belgesi}</span>` : ''}
+                            ${(!sofor.ehliyet_sinifi && (!sofor.src_belgesi || sofor.src_belgesi === 'Yok')) ? '<span class="fleet-empty-value">Belirtilmedi</span>' : ''}
                         </div>
                     </td>
-                    <td class="p-4 border-b border-white/5">
-                        <div class="flex flex-col gap-1 items-start">
-                            ${ehlHtml}${srcHtml}
-                        </div>
-                    </td>
-                    <td class="p-4 border-b border-white/5 hidden md:table-cell">
-                        <span class="px-2 py-0.5 text-[9px] uppercase tracking-wider font-bold rounded-md border ${sigortaColor}">${sofor.sigorta_durumu || '?'}</span>
-                    </td>
-                    <td class="p-4 border-b border-white/5 text-right w-32">
-                        <div class="text-xs font-bold text-white">${maasText}</div>
-                    </td>
-                    <td class="p-4 border-b border-white/5 text-right w-24">
-                        <div class="flex justify-end gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                            ${sofor.belge_url ? `<a href="${sofor.belge_url}" target="_blank" class="p-1.5 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all" title="Belge"><i data-lucide="file-check" class="w-3.5 h-3.5"></i></a>` : ''}
-                            <button onclick="openModal('Şoför Güncelle', '${sofor.id}')" class="p-1.5 text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg transition-all" title="Düzenle"><i data-lucide="edit-2" class="w-3.5 h-3.5"></i></button>
-                            <button onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" class="p-1.5 text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded-lg transition-all" title="Sil"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                    <td><span class="${personnelStatusClass}">${personnelStatusText}</span></td>
+                    <td class="fleet-driver-money"><strong>${salaryValue}</strong><span>${salaryPeriod}</span></td>
+                    <td>
+                        <div class="fleet-driver-row-actions">
+                            <button onclick="window.openSoforDetay('${sofor.id}')" title="Detay"><i data-lucide="eye"></i></button>
+                            ${sofor.belge_url ? `<a href="${sofor.belge_url}" target="_blank" title="Belge"><i data-lucide="file-check"></i></a>` : ''}
+                            <button onclick="openModal('Şoför Güncelle', '${sofor.id}')" title="Düzenle"><i data-lucide="edit-2"></i></button>
+                            <button class="is-danger" onclick="deleteRecord('soforler', '${sofor.id}', 'fetchSoforler')" title="Sil"><i data-lucide="trash-2"></i></button>
                         </div>
                     </td>
                 `;
@@ -2718,6 +2760,7 @@ async function fetchSoforler(sirketFilter) {
 
         const personnelSearchInput = document.getElementById('personnel-search-input');
         if (personnelSearchInput && typeof window.filterPersonnelRoster === 'function') window.filterPersonnelRoster(personnelSearchInput.value);
+        if (typeof window.applyFleetDriverFilters === 'function') window.applyFleetDriverFilters();
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -3098,18 +3141,18 @@ async function fetchTaseronFinans() {
 
             const plakaHTML = group.plakaList.map(r =>
                 `<span onclick="event.stopPropagation(); window.openCariHakedisDetay('${r.arac_id}')"
-                       class="inline-flex items-center px-2 py-0.5 bg-white/10 hover:bg-orange-500/20 border border-white/10 hover:border-orange-500/50 rounded-md text-[10px] font-black text-gray-300 hover:text-orange-300 cursor-pointer transition-all font-mono"
+                       class="hakedis-plate-chip"
                        title="${r.plaka} — Cari Kartı Aç">${r.plaka}</span>`
             ).join('');
 
             const tr = document.createElement('tr');
-            tr.className = `cari-hakedis-card${isSingle ? ' is-interactive' : ''}`;
+            tr.className = `hakedis-ledger-row${isSingle ? ' is-interactive' : ''}`;
             if (isSingle) tr.onclick = () => window.openCariHakedisDetay(group.plakaList[0].arac_id);
 
             tr.innerHTML = `
-                <td class="cari-card-identity px-6 py-4" data-label="Firma / Araç">
+                <td class="cari-card-identity" data-label="Cari / Firma">
                     <div class="cari-card-name">${group.label}</div>
-                    ${!isSingle ? `<div class="cari-card-plates">${plakaHTML}</div>` : '<span class="cari-card-context">Tek araç hakedişi</span>'}
+                    ${!isSingle ? `<div class="cari-card-plates">${plakaHTML}</div>` : '<span class="cari-card-context">Tek araç · detaya açılabilir</span>'}
                 </td>
                 <td class="cari-card-services" data-label="Seferler">
                     <span class="service-pill is-shift" title="Vardiya"><strong>${group.vardiya}</strong> Vardiya</span>
@@ -3120,14 +3163,14 @@ async function fetchTaseronFinans() {
                 <td class="cari-card-money is-deduction" data-label="Yakıt"><span>Yakıt kesintisi</span><strong>-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
                 <td class="cari-card-money cari-card-net${net < 0 ? ' is-negative' : ''}" data-label="Net Hakediş"><span>Net hakediş</span><strong>₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
                 <td class="cari-card-detail" data-label="Detaylar">
-                    ${isSingle ? '<span class="hakedis-detail-action">Detayı aç <i data-lucide="arrow-up-right"></i></span>' : `<span class="cari-card-count">${group.plakaList.length} araç</span>`}
+                    ${isSingle ? '<span class="hakedis-detail-action">İncele <i data-lucide="arrow-up-right"></i></span>' : `<span class="cari-card-count">${group.plakaList.length} araç</span>`}
                 </td>
             `;
             tbody.appendChild(tr);
         });
         
         const tfoot = document.createElement('tr');
-        tfoot.className = "cari-hakedis-total";
+        tfoot.className = "hakedis-ledger-total";
         tfoot.innerHTML = `
             <td data-label="Toplam"><span>Seçili dönem</span><strong>GENEL TOPLAM</strong></td>
             <td data-label="Seferler"><span>${totalVardiya} Vardiya · ${totalTek} Tek · ${totalMesai} Mesai</span></td>
@@ -3349,7 +3392,7 @@ window.openCariHakedisDetay = async function(arac_id) {
     
     // Yükleniyor overlay
     const overlay = document.createElement('div');
-    overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] flex items-center justify-center p-4';
+    overlay.className = 'hakedis-detail-overlay fixed inset-0 bg-black/80 backdrop-blur-sm z-[99] flex items-center justify-center p-4';
     overlay.id = 'cari-kart-modal-overlay';
     overlay.setAttribute('data-arac-id', arac_id);
     overlay.innerHTML = '<div class="text-white text-sm font-bold animate-pulse"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2"></i> Yükleniyor...</div>';
@@ -3571,22 +3614,23 @@ window.openCariHakedisDetay = async function(arac_id) {
         overlay.innerHTML = `
             <div class="cari-card-sheet bg-[#1a1c23] border border-white/10 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in duration-200">
                 <div class="cari-card-header p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-orange-500/10 to-transparent">
-                    <div>
+                    <div class="cari-card-heading">
+                        <span class="cari-card-eyebrow">DÖNEMSEL HAKEDİŞ</span>
                         <h2 class="text-xl font-black text-white flex items-center gap-2"><i data-lucide="calculator" class="w-6 h-6 text-orange-500"></i><span class="cari-hakedis-title">Hakediş</span><span class="cari-hakedis-plate">${data.plaka}</span></h2>
-                        <div class="flex items-center gap-2 mt-1">
+                        <div class="cari-card-meta flex items-center gap-2 mt-1">
                             <p class="text-xs text-gray-400">${month} Dönemi Hakediş Detayları</p>
                             <span class="text-gray-600">|</span>
                             <p class="text-xs font-bold text-orange-400/80 uppercase tracking-wider" id="modal-sahip-bilgisi">${data.sahip_bilgisi || ''}</p>
                         </div>
                     </div>
-                        <div class="flex items-center gap-3">
-                        <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
+                        <div class="cari-card-actions flex items-center gap-3">
+                        <button onclick="window.printCariKart('${data.plaka}', '${month}')" class="cari-card-action is-print px-3 py-1.5 bg-gray-600 hover:bg-gray-500 text-white text-xs font-bold rounded transition-all flex items-center gap-1.5">
                             <i data-lucide="printer" class="w-3.5 h-3.5"></i> Yazdır
                         </button>
-                        <button onclick="window.saveHakedisFiyatlar('${arac_id}', this, '${month}')" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
+                        <button onclick="window.saveHakedisFiyatlar('${arac_id}', this, '${month}')" class="cari-card-action is-save px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded shadow-[0_0_15px_rgba(234,88,12,0.3)] transition-all flex items-center gap-1.5">
                             <i data-lucide="save" class="w-3.5 h-3.5"></i> Kaydet
                         </button>
-                        <button onclick="document.getElementById('cari-kart-modal-overlay').remove()" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                        <button onclick="document.getElementById('cari-kart-modal-overlay').remove()" class="cari-card-close p-2 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors" aria-label="Hakediş detayını kapat">
                             <i data-lucide="x" class="w-5 h-5"></i>
                         </button>
                     </div>
@@ -3639,7 +3683,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
                 </div>
 
-                <div class="cari-card-summary p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10">
+                <div class="cari-card-summary p-6 border-t border-white/10 bg-black/60 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-10" aria-label="Hakediş hesap özeti">
                     <div class="flex flex-col gap-2.5">
                         <div class="cari-summary-row is-base flex justify-between items-center">
                             <span class="text-sm text-gray-400 font-bold">Fatura Matrahı</span>
@@ -4341,6 +4385,11 @@ async function fetchMusteriler() {
             const card = document.createElement('div');
             card.className = 'factory-card';
             card.setAttribute('data-musteri-id', m.id);
+            card.dataset.filterable = 'true';
+            card.dataset.filterSearch = [factoryName, contactName, m.telefon, m.adres, regionLabel, operationLabel].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
+            card.dataset.filterRegion = regions.join(' ').toLocaleLowerCase('tr-TR');
+            card.dataset.filterAssignment = araclar.length ? 'assigned' : 'unassigned';
+            card.dataset.filterTariff = tariffTypes.join(' ').toLocaleLowerCase('tr-TR');
 
             card.innerHTML = `
                 <div class="factory-card-head">
@@ -4378,6 +4427,11 @@ async function fetchMusteriler() {
 
             if (tableBody) {
                 const row = document.createElement('tr');
+                row.dataset.filterable = 'true';
+                row.dataset.filterSearch = [factoryName, contactName, m.telefon, m.adres, regionLabel, operationLabel].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
+                row.dataset.filterRegion = regions.join(' ').toLocaleLowerCase('tr-TR');
+                row.dataset.filterAssignment = araclar.length ? 'assigned' : 'unassigned';
+                row.dataset.filterTariff = tariffTypes.join(' ').toLocaleLowerCase('tr-TR');
                 row.innerHTML = `
                     <td><div class="factory-identity"><span class="factory-avatar">${m.logo_url ? `<img src="${m.logo_url}" alt="" onerror="this.parentElement.textContent='${initials}'">` : initials}</span><div><strong>${factoryName}</strong><span>${m.adres || 'Adres belirtilmemiş'}</span></div></div></td>
                     <td><div class="factory-contact"><strong>${contactName}</strong><span>${m.telefon || 'Telefon belirtilmemiş'}</span></div></td>
@@ -4389,6 +4443,7 @@ async function fetchMusteriler() {
             }
         });
 
+        if (typeof window.filterFactoryTable === 'function') window.filterFactoryTable();
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -4400,6 +4455,42 @@ async function fetchMusteriler() {
         if (window.lucide) window.lucide.createIcons();
     }
 }
+
+window.filterFactoryTable = function () {
+    const normalize = value => String(value || '').trim().toLocaleLowerCase('tr-TR');
+    const query = normalize(document.getElementById('factory-filter-search')?.value);
+    const region = normalize(document.getElementById('factory-filter-region')?.value);
+    const assignment = document.getElementById('factory-filter-assignment')?.value || '';
+    const tariff = normalize(document.getElementById('factory-filter-tariff')?.value);
+    let visible = 0;
+
+    document.querySelectorAll('#factory-list-tbody tr[data-filterable="true"]').forEach(row => {
+        const show = (!query || row.dataset.filterSearch.includes(query)) &&
+            (!region || row.dataset.filterRegion.includes(region)) &&
+            (!assignment || row.dataset.filterAssignment === assignment) &&
+            (!tariff || row.dataset.filterTariff.includes(tariff));
+        row.hidden = !show;
+        if (show) visible += 1;
+    });
+    document.querySelectorAll('#musteri-cards-grid [data-filterable="true"]').forEach(card => {
+        const show = (!query || card.dataset.filterSearch.includes(query)) &&
+            (!region || card.dataset.filterRegion.includes(region)) &&
+            (!assignment || card.dataset.filterAssignment === assignment) &&
+            (!tariff || card.dataset.filterTariff.includes(tariff));
+        card.hidden = !show;
+    });
+
+    const count = document.getElementById('factory-visible-count');
+    if (count) count.textContent = visible;
+};
+
+window.clearFactoryFilters = function () {
+    ['factory-filter-search', 'factory-filter-region', 'factory-filter-assignment', 'factory-filter-tariff'].forEach(id => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
+    });
+    window.filterFactoryTable();
+};
 
 window.toggleMusteriAraclar = function (btn) {
     const panel = btn.nextElementSibling;
@@ -4808,7 +4899,7 @@ window.fetchCariler = async function() {
     const cards = document.getElementById('cari-cards-grid');
     if (!tbody) return;
     const loadingState = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Cariler yükleniyor...</p></div></div>';
-    tbody.innerHTML = `<tr><td colspan="7">${loadingState}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6">${loadingState}</td></tr>`;
     if (cards) cards.innerHTML = loadingState;
 
     try {
@@ -4848,6 +4939,16 @@ window.fetchCariler = async function() {
 
         const carilerClean = window.sanitizeDataArray(cariler);
 
+        const typeFilter = document.getElementById('cari-filter-type');
+        if (typeFilter) {
+            const selectedType = typeFilter.value;
+            const types = [...new Set(carilerClean.map(c => c.tur || c.isletme_turu || 'Cari').filter(Boolean))]
+                .sort((a, b) => a.localeCompare(b, 'tr'));
+            typeFilter.replaceChildren(new Option('Tüm cari türleri', ''));
+            types.forEach(type => typeFilter.add(new Option(type, type.toLocaleLowerCase('tr-TR'))));
+            typeFilter.value = selectedType;
+        }
+
         // Dashboard Güncelleme
         const cariCountEl = document.getElementById('ozet-cari-sayisi');
         if (cariCountEl) cariCountEl.textContent = carilerClean.length;
@@ -4855,7 +4956,7 @@ window.fetchCariler = async function() {
         tbody.innerHTML = '';
         if (carilerClean.length === 0) {
             const emptyState = '<div class="receivables-empty-state"><span class="receivables-state-icon"><i data-lucide="building-2"></i></span><strong>Henüz cari kaydı bulunmuyor.</strong><p>İlk ticari hesabı ekleyerek bakiye ve hareket takibine başlayın.</p><button onclick="openModal(\'Yeni Cari Hesap\')" class="btn-primary"><i data-lucide="plus"></i>Cari Ekle</button></div>';
-            tbody.innerHTML = `<tr><td colspan="7">${emptyState}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6">${emptyState}</td></tr>`;
             if (cards) cards.innerHTML = emptyState;
             ['cari-kpi-total', 'cari-kpi-debt', 'cari-kpi-credit', 'cari-kpi-balance'].forEach(id => {
                 const el = document.getElementById(id);
@@ -4901,12 +5002,16 @@ window.fetchCariler = async function() {
 
             const tr = document.createElement('tr');
             tr.className = "ios-cari-row receivables-row";
+            tr.dataset.filterable = 'true';
+            tr.dataset.filterSearch = [c.unvan, c.tur, c.isletme_turu, c.telefon].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
+            tr.dataset.filterType = (c.tur || c.isletme_turu || 'Cari').toLocaleLowerCase('tr-TR');
+            tr.dataset.filterBalance = bakiye > 0 ? 'debt' : bakiye < 0 ? 'credit' : 'settled';
+            tr.dataset.filterContact = c.telefon ? 'present' : 'missing';
             tr.onclick = (e) => {
                 if (e.target.tagName !== 'BUTTON') window.openCariDetail(c.id);
             };
             tr.innerHTML = `
-                <td class="cari-list-name" data-label="Cari"><div class="receivables-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><strong>${c.unvan || '-'}</strong><button type="button" class="bf-statement-action" onclick="event.stopPropagation(); window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstreyi Göster<i data-lucide="arrow-up-right"></i></button></div></div></td>
-                <td class="cari-list-type" data-label="Tür"><span class="badge-neutral">${c.tur || c.isletme_turu || 'Cari'}</span></td>
+                <td class="cari-list-name" data-label="Cari"><div class="receivables-simple-identity"><strong>${c.unvan || '-'}</strong><span class="badge-neutral">${c.tur || c.isletme_turu || 'Cari'}</span><small>Ekstre için satırı açın</small></div></td>
                 <td class="cari-list-phone" data-label="İletişim">${c.telefon || 'Belirtilmemiş'}</td>
                 <td class="receivables-money" data-label="Borç">${window.formatCurrency(totalBorc)}</td>
                 <td class="receivables-money" data-label="Ödeme">${window.formatCurrency(totalOdeme)}</td>
@@ -4917,8 +5022,13 @@ window.fetchCariler = async function() {
 
             if (cards) {
                 const card = document.createElement('article');
-                card.className = 'receivables-card';
-                card.innerHTML = `<div class="receivables-card-head"><div class="receivables-card-identity"><span class="receivables-avatar">${(c.unvan || 'C').trim().charAt(0).toUpperCase()}</span><div><h3>${c.unvan || '-'}</h3><p>${c.tur || c.isletme_turu || 'Cari'} · ${c.telefon || 'Telefon belirtilmemiş'}</p></div></div><span class="${bakiye > 0 ? 'badge-warning' : bakiye < 0 ? 'badge-info' : 'badge-success'}">${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span></div><div class="receivables-card-balance"><span>Güncel bakiye</span><strong>${window.formatCurrency(bakiye)}</strong><small>${bakiye > 0 ? 'Ödenecek borç' : bakiye < 0 ? 'Cari alacağı' : 'Hesap dengede'}</small></div><div class="receivables-card-summary"><div><span>Toplam borç</span><strong>${window.formatCurrency(totalBorc)}</strong></div><div><span>Toplam ödeme</span><strong>${window.formatCurrency(totalOdeme)}</strong></div></div><div class="receivables-card-actions"><button class="is-primary-action" onclick="window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstreyi Göster<i data-lucide="arrow-up-right"></i></button><button onclick="openModal('Cari Güncelle', '${c.id}')"><i data-lucide="pencil"></i>Düzenle</button><button onclick="openModal('Yeni Fatura Kaydı', '${c.id}')"><i data-lucide="file-plus-2"></i>Fatura</button></div>`;
+                card.className = 'receivables-card is-simple';
+                card.dataset.filterable = 'true';
+                card.dataset.filterSearch = tr.dataset.filterSearch;
+                card.dataset.filterType = tr.dataset.filterType;
+                card.dataset.filterBalance = tr.dataset.filterBalance;
+                card.dataset.filterContact = tr.dataset.filterContact;
+                card.innerHTML = `<div class="receivables-card-head"><div class="receivables-card-identity"><div><h3>${c.unvan || '-'}</h3><p>${c.tur || c.isletme_turu || 'Cari'} · ${c.telefon || 'Telefon belirtilmemiş'}</p></div></div><span class="${bakiye > 0 ? 'badge-warning' : bakiye < 0 ? 'badge-info' : 'badge-success'}">${bakiye > 0 ? 'Borç' : bakiye < 0 ? 'Alacak' : 'Kapalı'}</span></div><div class="receivables-card-balance"><span>Güncel bakiye</span><strong>${window.formatCurrency(bakiye)}</strong></div><div class="receivables-card-summary"><div><span>Borç</span><strong>${window.formatCurrency(totalBorc)}</strong></div><div><span>Ödeme</span><strong>${window.formatCurrency(totalOdeme)}</strong></div></div><div class="receivables-card-actions"><button class="is-primary-action" onclick="window.openCariDetail('${c.id}')"><i data-lucide="book-open"></i>Ekstre</button><button onclick="openModal('Cari Güncelle', '${c.id}')"><i data-lucide="pencil"></i>Düzenle</button><button onclick="openModal('Yeni Fatura Kaydı', '${c.id}')"><i data-lucide="file-plus-2"></i>Fatura</button></div>`;
                 cards.appendChild(card);
             }
         });
@@ -4939,15 +5049,52 @@ window.fetchCariler = async function() {
             });
             borcluEl.textContent = borcluCount;
         }
+        if (typeof window.filterCariTable === 'function') window.filterCariTable();
         if (window.lucide) window.lucide.createIcons();
     } catch (e) {
         console.error('[CARİFETCH] Error:', e);
         const errorState = `<div class="receivables-error-state"><span class="receivables-state-icon"><i data-lucide="triangle-alert"></i></span><strong>Cari kayıtları yüklenemedi</strong><p>${e.message}</p><button onclick="fetchCariler()" class="btn-secondary"><i data-lucide="refresh-cw"></i>Tekrar dene</button></div>`;
-        tbody.innerHTML = `<tr><td colspan="7">${errorState}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6">${errorState}</td></tr>`;
         if (cards) cards.innerHTML = errorState;
         if (window.lucide) window.lucide.createIcons();
     }
 }
+
+window.filterCariTable = function () {
+    const normalize = value => String(value || '').trim().toLocaleLowerCase('tr-TR');
+    const query = normalize(document.getElementById('cari-filter-search')?.value);
+    const type = normalize(document.getElementById('cari-filter-type')?.value);
+    const balance = document.getElementById('cari-filter-balance')?.value || '';
+    const contact = document.getElementById('cari-filter-contact')?.value || '';
+    let visible = 0;
+
+    document.querySelectorAll('#cariler-tbody tr[data-filterable="true"]').forEach(row => {
+        const show = (!query || row.dataset.filterSearch.includes(query)) &&
+            (!type || row.dataset.filterType === type) &&
+            (!balance || row.dataset.filterBalance === balance) &&
+            (!contact || row.dataset.filterContact === contact);
+        row.hidden = !show;
+        if (show) visible += 1;
+    });
+    document.querySelectorAll('#cari-cards-grid [data-filterable="true"]').forEach(card => {
+        const show = (!query || card.dataset.filterSearch.includes(query)) &&
+            (!type || card.dataset.filterType === type) &&
+            (!balance || card.dataset.filterBalance === balance) &&
+            (!contact || card.dataset.filterContact === contact);
+        card.hidden = !show;
+    });
+
+    const count = document.getElementById('cari-visible-count');
+    if (count) count.textContent = visible;
+};
+
+window.clearCariFilters = function () {
+    ['cari-filter-search', 'cari-filter-type', 'cari-filter-balance', 'cari-filter-contact'].forEach(id => {
+        const control = document.getElementById(id);
+        if (control) control.value = '';
+    });
+    window.filterCariTable();
+};
 
 window.fetchTaksitler = async function() {
     const tbody = document.getElementById('taksitler-tbody');
@@ -7441,7 +7588,7 @@ window.fetchTaseronSeferler = async function () {
 window.fetchCariDetails = async function (cariId) {
     const tbody = document.getElementById('cari-detail-tbody');
     if (!tbody) return;
-    tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Hazırlanıyor...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Hazırlanıyor...</td></tr>';
 
     try {
         const [
@@ -7556,6 +7703,9 @@ window.fetchCariDetails = async function (cariId) {
         let totalAlacak = 0;
 
         tbody.innerHTML = '';
+        if (entries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu cari hesaba ait henüz bir hareket bulunmuyor.</td></tr>';
+        }
         entries.reverse().forEach(e => {
             totalBorc += (Number(e.borc) || 0);
             totalAlacak += (Number(e.alacak) || 0);
@@ -7891,7 +8041,7 @@ window.fetchKrediKartiDetails = async function (kartId) {
 
         // 5. Tabloyu Doldur
         if (islemler.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Bu karta ait henüz bir işlem bulunmamaktadır.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu karta ait henüz bir işlem bulunmamaktadır.</td></tr>';
             return;
         }
 
@@ -7905,13 +8055,14 @@ window.fetchKrediKartiDetails = async function (kartId) {
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-danger">₺${tutarGoster.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">-</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">-</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-center">-</td>
                 </tr>
             `;
         }).join('');
 
     } catch (e) {
         console.error('[KrediKartiDetails]', e);
-        if (tbody) tbody.innerHTML = `<tr><td colspan="5" class="py-12 text-center text-red-500 font-bold">Hata: ${e.message}</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-red-500 font-bold">Hata: ${e.message}</td></tr>`;
     }
 };
 

@@ -60,6 +60,12 @@
 })();
 
 document.addEventListener('DOMContentLoaded', function () {
+    const topbarDate = document.getElementById('bf-topbar-date');
+    if (topbarDate) {
+        topbarDate.textContent = new Intl.DateTimeFormat('tr-TR', {
+            day: 'numeric', month: 'long', year: 'numeric', weekday: 'long'
+        }).format(new Date());
+    }
     initMobileSidebar();
     initSidebarCollapse();
     initSearchableSelects();
@@ -184,46 +190,17 @@ function initSidebarCollapse() {
     const topbar = document.querySelector('.bf-topbar');
     if (!sidebar || !topbar || document.getElementById('sidebar-collapse-btn')) return;
 
-    const sectionDefinitions = [
-        { key: 'general', label: 'Genel', icon: 'layout-dashboard', sectionId: 'nav-general-label' },
-        { key: 'fleet', label: 'Filo', icon: 'truck', sectionId: 'nav-fleet-label' },
-        { key: 'finance', label: 'Finans', icon: 'landmark', sectionId: 'nav-finance-label' },
-        { key: 'operation', label: 'Operasyon', icon: 'panel-top', sectionId: 'nav-operation-label' },
-        { key: 'other', label: 'Diğer', icon: 'calendar-range', sectionId: 'nav-other-label' }
-    ];
-    const originalChildren = Array.from(sidebar.children);
-    const commandRail = document.createElement('div');
-    commandRail.className = 'bf-command-rail';
-    commandRail.setAttribute('aria-label', 'Modül grupları');
-    commandRail.innerHTML = `
-        <button type="button" class="bf-command-brand" aria-label="Baris.Flow menüsü" title="Baris.Flow"><span>b.</span></button>
-        <div class="bf-command-sections">
-            ${sectionDefinitions.map(item => `<button type="button" class="bf-command-section" data-sidebar-section="${item.key}" aria-label="${item.label}" title="${item.label}"><i data-lucide="${item.icon}"></i><span>${item.label}</span></button>`).join('')}
-        </div>
-        <div class="bf-command-rail-footer"><span class="bf-command-status" title="IDEOL aktif"><i></i></span></div>`;
-
-    const sidebarPanel = document.createElement('div');
-    sidebarPanel.className = 'bf-sidebar-panel';
-    const panelContext = document.createElement('div');
-    panelContext.className = 'bf-sidebar-panel-context';
-    panelContext.innerHTML = '<span>Çalışma Alanı</span><strong>Genel</strong>';
-    originalChildren.forEach(child => sidebarPanel.appendChild(child));
-    const panelNav = sidebarPanel.querySelector('.bf-sidebar-nav');
-    if (panelNav) sidebarPanel.insertBefore(panelContext, panelNav);
-    sidebar.append(commandRail, sidebarPanel);
-    sidebar.classList.add('is-executive-nav');
-
     // Keep the desktop control inside the command bar so it cannot drift away
     // from the shell while the sidebar width changes.
     const collapseBtn = document.createElement('button');
     collapseBtn.id = 'sidebar-collapse-btn';
     collapseBtn.type = 'button';
-    collapseBtn.className = 'btn-icon sidebar-collapse-toggle';
+    collapseBtn.className = 'sidebar-collapse-toggle';
     collapseBtn.title = 'Menüyü daralt';
     collapseBtn.setAttribute('aria-label', 'Menüyü daralt');
     collapseBtn.setAttribute('aria-controls', 'main-sidebar');
     collapseBtn.setAttribute('aria-expanded', 'true');
-    topbar.insertBefore(collapseBtn, topbar.firstChild);
+    (sidebar.querySelector('.bf-sidebar-footer') || sidebar).appendChild(collapseBtn);
 
     sidebar.querySelectorAll('.nav-link').forEach(function (link) {
         const label = link.querySelector('span')?.textContent?.trim() || link.textContent.trim();
@@ -232,25 +209,6 @@ function initSidebarCollapse() {
 
     const storageKey = 'baris-flow-sidebar-collapsed';
     let collapsed = localStorage.getItem(storageKey) === 'true';
-    let activeSection = 'general';
-
-    function showSection(sectionKey) {
-        activeSection = sectionDefinitions.some(item => item.key === sectionKey) ? sectionKey : 'general';
-        sectionDefinitions.forEach(item => {
-            const label = document.getElementById(item.sectionId);
-            const section = label?.closest('.nav-section');
-            if (section) section.classList.toggle('is-rail-filtered-out', item.key !== activeSection);
-        });
-        commandRail.querySelectorAll('.bf-command-section').forEach(button => {
-            const isActive = button.dataset.sidebarSection === activeSection;
-            button.classList.toggle('is-active', isActive);
-            button.setAttribute('aria-pressed', String(isActive));
-        });
-        const definition = sectionDefinitions.find(item => item.key === activeSection);
-        const contextTitle = panelContext.querySelector('strong');
-        if (contextTitle && definition) contextTitle.textContent = definition.label;
-    }
-
     function renderCollapseState() {
         document.body.classList.toggle('sidebar-collapsed', collapsed);
         sidebar.classList.toggle('is-collapsed', collapsed);
@@ -258,38 +216,9 @@ function initSidebarCollapse() {
         collapseBtn.title = collapsed ? 'Menüyü genişlet' : 'Menüyü daralt';
         collapseBtn.setAttribute('aria-label', collapseBtn.title);
         collapseBtn.innerHTML = collapsed
-            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m14 9 3 3-3 3"/></svg>'
-            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/><path d="m16 15-3-3 3-3"/></svg>';
+            ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m10 8 4 4-4 4"/></svg><span>Menüyü Genişlet</span>'
+            : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m14 8-4 4 4 4"/></svg><span>Menüyü Daralt</span>';
     }
-
-    commandRail.querySelectorAll('.bf-command-section').forEach(button => {
-        button.addEventListener('click', function () {
-            showSection(button.dataset.sidebarSection);
-            if (collapsed) {
-                collapsed = false;
-                localStorage.setItem(storageKey, 'false');
-                renderCollapseState();
-            }
-        });
-    });
-    commandRail.querySelector('.bf-command-brand')?.addEventListener('click', function () {
-        collapsed = !collapsed;
-        localStorage.setItem(storageKey, String(collapsed));
-        renderCollapseState();
-    });
-    sidebar.querySelectorAll('#main-nav-buttons .nav-link[data-target]').forEach(link => {
-        link.addEventListener('click', function () {
-            const section = link.closest('.nav-section');
-            const definition = sectionDefinitions.find(item => item.sectionId === section?.getAttribute('aria-labelledby'));
-            if (definition) showSection(definition.key);
-        });
-    });
-
-    const activeLink = sidebar.querySelector('#main-nav-buttons .nav-link.active');
-    const activeParentId = activeLink?.closest('.nav-section')?.getAttribute('aria-labelledby');
-    const initialDefinition = sectionDefinitions.find(item => item.sectionId === activeParentId);
-    showSection(initialDefinition?.key || 'general');
-    if (window.lucide) window.lucide.createIcons();
 
     function checkWidth() {
         const isMobile = window.innerWidth <= 768;

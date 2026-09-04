@@ -21,6 +21,9 @@ assert.deepEqual(dashboard.dashboardMonthBounds('', september), {
 assert.equal(dashboard.dashboardShiftMonth('2026-08', -1), '2026-07');
 assert.equal(dashboard.dashboardShiftMonth('2026-08', 1), '2026-09');
 assert.equal(dashboard.dashboardShiftMonth('2026-01', -1), '2025-12');
+assert.equal(dashboard.dashboardPercentChange(120, 100), 20);
+assert.equal(dashboard.dashboardPercentChange(75, 100), -25);
+assert.equal(dashboard.dashboardPercentChange(75, 0), null);
 
 const rows = [
     { tarih: '2026-07-31', toplam_tutar: 100 },
@@ -43,11 +46,18 @@ assert.match(css, /@media \(min-width: 769px\)[\s\S]*?body\.bf-app \{ overflow-y
 assert.match(css, /\.bf-sidebar::-webkit-scrollbar/);
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'dashboard-funcs.js'), 'utf8');
-assert.match(source, /_dashboardFetchPeriodRows\('yakit_takip',[\s\S]*?'tarih', monthStart, monthEnd/);
-assert.match(source, /_dashboardFetchPeriodRows\('taseron_hakedis',[\s\S]*?'sefer_tarihi', monthStart, monthEnd/);
-assert.match(source, /_dashboardFetchPeriodRows\('musteri_servis_puantaj',[\s\S]*?'tarih', monthStart, monthEnd/);
+assert.match(source, /_dashboardFetchPeriodRows\('yakit_takip',[\s\S]*?'tarih', previousMonthStart, monthEnd/);
+assert.match(source, /_dashboardFetchPeriodRows\('taseron_hakedis',[\s\S]*?'sefer_tarihi', previousMonthStart, monthEnd/);
+assert.match(source, /_dashboardFetchPeriodRows\('musteri_servis_puantaj',[\s\S]*?'tarih', previousMonthStart, monthEnd/);
+assert.match(source, /const aylikYakitlar = yakitlar\.filter\(row => isCurrentMonth/);
+assert.match(source, /const oncekiAyYakitlar = yakitlar\.filter\(row => isPreviousMonth/);
 assert.match(source, /\.range\(from, from \+ pageSize - 1\)/);
-assert.match(source, /renderPoliceDashboardTable\(policelerEnriched, 'tumu'\);[\s\S]*?fetchInfoMobileMileage\(/);
+assert.match(source, /renderPoliceDashboardTable\(policelerEnriched, 'aksiyon'\);[\s\S]*?fetchInfoMobileMileage\(/);
+assert.match(source, /filtre === 'aksiyon'[\s\S]*?p\.days <= 30/);
+assert.match(source, /days >= -90 && days <= 90/);
+assert.match(source, /openDashboardPolicyDetail[\s\S]*?Poliçe Düzenle[\s\S]*?Araç Evrak Güncelle/);
+assert.match(source, /renderDashboardRecentActivity\(recentActivity\)/);
+assert.match(source, /window\.renderDashboardRecentActivity = function/);
 assert.doesNotMatch(source, /await window\.fetchInfoMobileMileage/);
 assert.match(source, /_dashboardInflight\?\.key === requestKey/);
 

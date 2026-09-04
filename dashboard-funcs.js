@@ -25,6 +25,28 @@ function _fmtDate(str) {
     try { return new Date(str).toLocaleDateString('tr-TR'); } catch(e) { return str; }
 }
 
+function _dashboardPercentChange(current, previous) {
+    const now = Number(current) || 0;
+    const before = Number(previous) || 0;
+    return before > 0 ? ((now - before) / before) * 100 : null;
+}
+
+function _setDashboardTrend(id, current, previous, options = {}) {
+    const element = document.getElementById(id);
+    if (!element) return;
+    const change = _dashboardPercentChange(current, previous);
+    element.classList.remove('is-positive', 'is-negative', 'is-neutral');
+    if (change === null) {
+        element.classList.add('is-neutral');
+        element.textContent = 'Önceki ay —';
+        return;
+    }
+    const direction = change > 0 ? '▲' : change < 0 ? '▼' : '•';
+    const isFavourable = options.inverse ? change <= 0 : change >= 0;
+    element.classList.add(change === 0 ? 'is-neutral' : isFavourable ? 'is-positive' : 'is-negative');
+    element.textContent = `${direction} %${Math.abs(change).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+}
+
 function _dashboardMonthValue(date) {
     const source = date instanceof Date && !Number.isNaN(date.getTime()) ? date : new Date();
     return `${source.getFullYear()}-${String(source.getMonth() + 1).padStart(2, '0')}`;
@@ -168,14 +190,14 @@ async function _fetchDashboardData(activeRequest) {
                 .gte('bitis_tarihi', past90Str)
                 .lte('bitis_tarihi', future90Str)
                 .order('bitis_tarihi', { ascending: true }),
-            _dashboardFetchPeriodRows('yakit_takip', 'arac_id, tarih, litre, toplam_tutar, birim_fiyat', 'tarih', monthStart, monthEnd, countPeriodPage),
+            _dashboardFetchPeriodRows('yakit_takip', 'arac_id, tarih, litre, toplam_tutar, birim_fiyat', 'tarih', previousMonthStart, monthEnd, countPeriodPage),
             window.supabaseClient.from('arac_bakimlari').select('arac_id, cari_id, islem_tarihi, islem_turu, aciklama, toplam_tutar'),
-            _dashboardFetchPeriodRows('taseron_hakedis', 'arac_id, sefer_tarihi, net_hakedis, anlasilan_tutar', 'sefer_tarihi', monthStart, monthEnd, countPeriodPage),
-            _dashboardFetchPeriodRows('musteri_servis_puantaj', 'arac_id, musteri_id, tarih, gunluk_ucret', 'tarih', monthStart, monthEnd, countPeriodPage),
+            _dashboardFetchPeriodRows('taseron_hakedis', 'arac_id, sefer_tarihi, net_hakedis, anlasilan_tutar', 'sefer_tarihi', previousMonthStart, monthEnd, countPeriodPage),
+            _dashboardFetchPeriodRows('musteri_servis_puantaj', 'arac_id, musteri_id, tarih, gunluk_ucret', 'tarih', previousMonthStart, monthEnd, countPeriodPage),
             window.supabaseClient.from('kredi_kartlari').select('id, kart_adi, limit_tutari'),
-            window.supabaseClient.from('kredi_karti_islemleri').select('kart_id, toplam_tutar'),
-            window.supabaseClient.from('cari_faturalar').select('cari_id, toplam_tutar'),
-            window.supabaseClient.from('cari_odemeler').select('cari_id, tutar'),
+            window.supabaseClient.from('kredi_karti_islemleri').select('kart_id, toplam_tutar, islem_tarihi'),
+            window.supabaseClient.from('cari_faturalar').select('cari_id, toplam_tutar, fatura_tarihi, aciklama'),
+            window.supabaseClient.from('cari_odemeler').select('cari_id, tutar, tarih, aciklama'),
             window.supabaseClient.from('arac_policeler').select('cari_id, toplam_tutar')
         ]);
         const databaseCompletedAt = performance.now();
@@ -235,18 +257,31 @@ async function _fetchDashboardData(activeRequest) {
 
         const isInRange = (row, fields, start, end) => _dashboardRowsInPeriod(row ? [row] : [], fields, { start, end }).length > 0;
         const isCurrentMonth = (row, fields) => isInRange(row, fields, monthStart, monthEnd);
+        const isPreviousMonth = (row, fields) => isInRange(row, fields, previousMonthStart, previousMonthEnd);
         const aylikYakitlar = yakitlar.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
+        const oncekiAyYakitlar = yakitlar.filter(row => isPreviousMonth(row, ['tarih', 'created_at']));
         const aylikBakimlar = bakimlar.filter(row => isCurrentMonth(row, ['islem_tarihi', 'tarih', 'created_at']));
+        const oncekiAyBakimlar = bakimlar.filter(row => isPreviousMonth(row, ['islem_tarihi', 'tarih', 'created_at']));
         const aylikTaseronHakedis = hakedisTaseron.filter(row => isCurrentMonth(row, ['sefer_tarihi', 'tarih', 'created_at']));
+        const oncekiAyTaseronHakedis = hakedisTaseron.filter(row => isPreviousMonth(row, ['sefer_tarihi', 'tarih', 'created_at']));
         const aylikServisHakedis = hakedisServis.filter(row => isCurrentMonth(row, ['tarih', 'created_at']));
+        const oncekiAyServisHakedis = hakedisServis.filter(row => isPreviousMonth(row, ['tarih', 'created_at']));
         const currentFuelSummary = window.FuelAnalytics
             ? window.FuelAnalytics.summarizeFuelRows(aylikYakitlar)
             : { cost: aylikYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0), liters: aylikYakitlar.reduce((s, y) => s + (Number(y.litre) || 0), 0) };
+        const previousFuelSummary = window.FuelAnalytics
+            ? window.FuelAnalytics.summarizeFuelRows(oncekiAyYakitlar)
+            : { cost: oncekiAyYakitlar.reduce((s, y) => s + (Number(y.toplam_tutar) || 0), 0), liters: oncekiAyYakitlar.reduce((s, y) => s + (Number(y.litre) || 0), 0) };
         const sumYakit = currentFuelSummary.cost;
         const sumYakitLitre = currentFuelSummary.liters;
+        const previousYakit = previousFuelSummary.cost;
+        const previousYakitLitre = previousFuelSummary.liters;
         const sumBakim = aylikBakimlar.reduce((s, b) => s + (Number(b.toplam_tutar) || 0), 0);
+        const previousBakim = oncekiAyBakimlar.reduce((s, b) => s + (Number(b.toplam_tutar) || 0), 0);
         const sumHakedisTaseron = aylikTaseronHakedis.reduce((s, h) => s + (Number(h.net_hakedis || h.anlasilan_tutar) || 0), 0);
         const sumHakedisServis = aylikServisHakedis.reduce((s, h) => s + (Number(h.gunluk_ucret) || 0), 0);
+        const previousHakedisTaseron = oncekiAyTaseronHakedis.reduce((s, h) => s + (Number(h.net_hakedis || h.anlasilan_tutar) || 0), 0);
+        const previousHakedisServis = oncekiAyServisHakedis.reduce((s, h) => s + (Number(h.gunluk_ucret) || 0), 0);
         const ozmalAraçIds = araclar.filter(a => (a.mulkiyet_durumu || '').toUpperCase().trim() === 'ÖZMAL').map(a => a.id);
         
         // Özmal Araçların Cari Kartları (taseron_hakedis tablosundaki kayıtları)
@@ -264,6 +299,8 @@ async function _fetchDashboardData(activeRequest) {
         const sumCiro = ozmalServisGeliri;
         const sumFiloGider = sumYakit + sumBakim;
         const sumHakedis = sumHakedisTaseron + sumHakedisServis;
+        const previousFiloGider = previousYakit + previousBakim;
+        const previousHakedis = previousHakedisTaseron + previousHakedisServis;
 
         // Harici InfoMobil çağrısı ana dashboard render'ını bekletmez. İlgili alanlar
         // veritabanı özetiyle birlikte görünür, kilometre geldiğinde yerinde güncellenir.
@@ -285,6 +322,18 @@ async function _fetchDashboardData(activeRequest) {
         });
         const totalCardDebt = Object.values(cardSpendById).reduce((sum, value) => sum + value, 0);
         const totalCardLimit = kartlar.reduce((sum, card) => sum + (Number(card.limit_tutari) || 0), 0);
+        const cariExpenseById = {};
+        const cariPaymentById = {};
+        [...cariFaturalar, ...cariPoliceler, ...bakimlar].forEach(row => {
+            if (row?.cari_id) cariExpenseById[row.cari_id] = (cariExpenseById[row.cari_id] || 0) + (Number(row.toplam_tutar) || 0);
+        });
+        cariOdemeler.forEach(row => {
+            if (row?.cari_id) cariPaymentById[row.cari_id] = (cariPaymentById[row.cari_id] || 0) + (Number(row.tutar) || 0);
+        });
+        const totalOpenCariBalance = cariler.reduce((sum, cari) => {
+            const balance = (cariExpenseById[cari.id] || 0) - (cariPaymentById[cari.id] || 0);
+            return sum + Math.max(0, balance);
+        }, 0);
 
         setEl('kpi-arac-main', araclar.length);
         setEl('kpi-arac-ozmal', ozmal);
@@ -306,6 +355,22 @@ async function _fetchDashboardData(activeRequest) {
         setEl('dashboard-period-fuel', _fmt(sumYakit));
         setEl('dashboard-period-maintenance', _fmt(sumBakim));
         setEl('dashboard-period-fleet-expense', _fmt(sumFiloGider));
+        setEl('kpi-cari-balance', _fmt(totalOpenCariBalance));
+        setEl('kpi-card-debt', _fmt(totalCardDebt));
+        setEl('operation-fuel-litres', `${sumYakitLitre.toLocaleString('tr-TR', { maximumFractionDigits: 1 })} L`);
+        setEl('operation-maintenance-cost', _fmt(sumBakim));
+        setEl('finance-prev-accrual', _fmt(previousHakedis));
+        setEl('finance-prev-fuel', _fmt(previousYakit));
+        setEl('finance-prev-maintenance', _fmt(previousBakim));
+        setEl('finance-prev-fleet-expense', _fmt(previousFiloGider));
+        _setDashboardTrend('kpi-fuel-trend', sumYakitLitre, previousYakitLitre, { inverse: true });
+        _setDashboardTrend('kpi-hakedis-trend', sumHakedis, previousHakedis);
+        _setDashboardTrend('operation-fuel-trend', sumYakitLitre, previousYakitLitre, { inverse: true });
+        _setDashboardTrend('operation-maintenance-trend', sumBakim, previousBakim, { inverse: true });
+        _setDashboardTrend('finance-accrual-trend', sumHakedis, previousHakedis);
+        _setDashboardTrend('finance-fuel-trend', sumYakit, previousYakit, { inverse: true });
+        _setDashboardTrend('finance-maintenance-trend', sumBakim, previousBakim, { inverse: true });
+        _setDashboardTrend('finance-fleet-trend', sumFiloGider, previousFiloGider, { inverse: true });
 
         setEl('fuel-month-total', _fmt(sumYakit));
         setEl('fuel-month-km', araclar.length ? 'KM yükleniyor…' : '—');
@@ -359,6 +424,10 @@ async function _fetchDashboardData(activeRequest) {
 
         const customerMap = {};
         musteriler.forEach(item => { customerMap[item.id] = item.ad || 'Müşteri'; });
+        const cariMap = {};
+        cariler.forEach(item => { cariMap[item.id] = item.unvan || 'Cari'; });
+        const cardMap = {};
+        kartlar.forEach(item => { cardMap[item.id] = item.kart_adi || 'Şirket kartı'; });
         const accrualByParty = {};
         aylikTaseronHakedis.forEach(row => {
             const vehicle = araclar.find(item => item.id === row.arac_id);
@@ -374,6 +443,64 @@ async function _fetchDashboardData(activeRequest) {
         window.renderDashboardCards(kartlar, cardSpendById);
         window.renderDashboardPartners(cariler, cariFaturalar, cariOdemeler, cariPoliceler, bakimlar);
         window.renderMaintenanceService(araclar, bakimlar);
+        const recentActivity = [];
+        yakitlar.forEach(row => recentActivity.push({
+            date: row.tarih,
+            module: 'Yakıt & KM',
+            detail: `${plakaMap[row.arac_id] || 'Araç'} yakıt kaydı`,
+            amount: Number(row.toplam_tutar) || 0,
+            icon: 'fuel',
+            tone: 'fuel'
+        }));
+        bakimlar.forEach(row => recentActivity.push({
+            date: row.islem_tarihi,
+            module: 'Bakım',
+            detail: `${plakaMap[row.arac_id] || 'Araç'} · ${row.islem_turu || row.aciklama || 'Servis işlemi'}`,
+            amount: Number(row.toplam_tutar) || 0,
+            icon: 'wrench',
+            tone: 'maintenance'
+        }));
+        hakedisTaseron.forEach(row => recentActivity.push({
+            date: row.sefer_tarihi,
+            module: 'Hakediş',
+            detail: `${plakaMap[row.arac_id] || 'Taşeron'} hakedişi`,
+            amount: Number(row.net_hakedis || row.anlasilan_tutar) || 0,
+            icon: 'receipt-text',
+            tone: 'accrual'
+        }));
+        hakedisServis.forEach(row => recentActivity.push({
+            date: row.tarih,
+            module: 'Hakediş',
+            detail: `${customerMap[row.musteri_id] || plakaMap[row.arac_id] || 'Müşteri'} servis hakedişi`,
+            amount: Number(row.gunluk_ucret) || 0,
+            icon: 'receipt-text',
+            tone: 'accrual'
+        }));
+        cariFaturalar.forEach(row => recentActivity.push({
+            date: row.fatura_tarihi,
+            module: 'Cariler',
+            detail: `${cariMap[row.cari_id] || 'Cari'} · ${row.aciklama || 'Fatura kaydı'}`,
+            amount: Number(row.toplam_tutar) || 0,
+            icon: 'landmark',
+            tone: 'receivable'
+        }));
+        cariOdemeler.forEach(row => recentActivity.push({
+            date: row.tarih,
+            module: 'Tahsilat',
+            detail: `${cariMap[row.cari_id] || 'Cari'} · ${row.aciklama || 'Ödeme kaydı'}`,
+            amount: Number(row.tutar) || 0,
+            icon: 'circle-dollar-sign',
+            tone: 'payment'
+        }));
+        kartIslemleri.forEach(row => recentActivity.push({
+            date: row.islem_tarihi,
+            module: 'Kredi Kartı',
+            detail: `${cardMap[row.kart_id] || 'Şirket kartı'} · Kart işlemi`,
+            amount: Number(row.toplam_tutar) || 0,
+            icon: 'credit-card',
+            tone: 'card'
+        }));
+        window.renderDashboardRecentActivity(recentActivity);
 
         // Poliçelere plaka ekle
         let policelerEnriched = policeler90.map(p => ({
@@ -389,7 +516,7 @@ async function _fetchDashboardData(activeRequest) {
                 if (!dateValue) return;
                 const days = _daysDiff(dateValue);
                 // 90 günden az kalmışsa listeye dahil et
-                if (days <= 90) {
+                if (days >= -90 && days <= 90) {
                     policelerEnriched.push({
                         id: 'pseudo_' + a.id + '_' + typeName,
                         bitis_tarihi: dateValue,
@@ -424,7 +551,7 @@ async function _fetchDashboardData(activeRequest) {
 
         // Cache'e yaz ve tabloyu render et
         window._dashboardPolicelerCache = policelerEnriched;
-        window.renderPoliceDashboardTable(policelerEnriched, 'tumu');
+        window.renderPoliceDashboardTable(policelerEnriched, 'aksiyon');
 
         window._dashboardLoadMetrics = {
             queryCount: databaseRequestCount,
@@ -444,18 +571,32 @@ async function _fetchDashboardData(activeRequest) {
             ).then(infoPayload => {
                 if (window._dashboardActiveRequest !== activeRequest) return;
                 const mileageByPlate = {};
+                const previousMileageByPlate = {};
                 (infoPayload.results || []).forEach(row => {
-                    if (row.status === 'ready') mileageByPlate[row.plate] = Number(row.currentKm) || 0;
+                    if (row.status === 'ready') {
+                        mileageByPlate[row.plate] = Number(row.currentKm) || 0;
+                        previousMileageByPlate[row.plate] = Number(row.previousKm) || 0;
+                    }
                 });
-                const analyticsRows = window.FuelAnalytics.aggregateByVehicle(aylikYakitlar, araclar, mileageByPlate, [], {});
+                const analyticsRows = window.FuelAnalytics.aggregateByVehicle(aylikYakitlar, araclar, mileageByPlate, oncekiAyYakitlar, previousMileageByPlate);
                 dashboardKm = analyticsRows.reduce((sum, row) => sum + (Number(row.km) || 0), 0);
+                const previousDashboardKm = Object.values(previousMileageByPlate).reduce((sum, value) => sum + (Number(value) || 0), 0);
                 const comparableRows = analyticsRows.filter(row => row.km > 0 && row.receiptCount > 0);
                 const comparableKm = comparableRows.reduce((sum, row) => sum + row.km, 0);
                 const comparableLitres = comparableRows.reduce((sum, row) => sum + row.liters, 0);
                 dashboardConsumption = window.FuelAnalytics.metrics(comparableLitres, 0, comparableKm).litersPer100Km;
+                const previousAnalyticsRows = window.FuelAnalytics.aggregateByVehicle(oncekiAyYakitlar, araclar, previousMileageByPlate, [], {});
+                const previousComparableRows = previousAnalyticsRows.filter(row => row.km > 0 && row.receiptCount > 0);
+                const previousComparableKm = previousComparableRows.reduce((sum, row) => sum + row.km, 0);
+                const previousComparableLitres = previousComparableRows.reduce((sum, row) => sum + row.liters, 0);
+                const previousConsumption = window.FuelAnalytics.metrics(previousComparableLitres, 0, previousComparableKm).litersPer100Km;
                 setEl('kpi-fuel-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
                 setEl('fuel-month-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
                 setEl('fuel-month-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L` : '—');
+                setEl('operation-total-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
+                setEl('operation-avg-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L / 100 km` : '—');
+                _setDashboardTrend('operation-km-trend', dashboardKm, previousDashboardKm);
+                _setDashboardTrend('operation-consumption-trend', dashboardConsumption, previousConsumption, { inverse: true });
                 window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
                 window._dashboardLoadMetrics.infoMobileState = 'ready';
             }).catch(infoError => {
@@ -463,6 +604,10 @@ async function _fetchDashboardData(activeRequest) {
                 setEl('kpi-fuel-km', '—');
                 setEl('fuel-month-km', '—');
                 setEl('fuel-month-consumption', '—');
+                setEl('operation-total-km', 'Veri alınamadı');
+                setEl('operation-avg-consumption', '—');
+                _setDashboardTrend('operation-km-trend', 0, 0);
+                _setDashboardTrend('operation-consumption-trend', 0, 0, { inverse: true });
                 window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
                 window._dashboardLoadMetrics.infoMobileState = 'unavailable';
                 console.warn('[DASHBOARD] InfoMobil dönem özeti alınamadı:', infoError.message || infoError);
@@ -525,13 +670,14 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
 
     // Filtrele
     let filtered = policeler;
-    if (filtre === 'gecmis')  filtered = policeler.filter(p => p.days < 0);
+    if (filtre === 'aksiyon') filtered = policeler.filter(p => p.days !== null && p.days <= 30);
+    else if (filtre === 'gecmis')  filtered = policeler.filter(p => p.days < 0);
     else if (filtre === 'kritik')   filtered = policeler.filter(p => p.days >= 0 && p.days <= 7);
     else if (filtre === 'yaklasan') filtered = policeler.filter(p => p.days > 7 && p.days <= 30);
     else if (filtre === 'normal')   filtered = policeler.filter(p => p.days > 30);
 
     if (filtered.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" class="py-14 text-center">
+        tbody.innerHTML = `<tr><td colspan="5" class="py-14 text-center">
             <div class="flex flex-col items-center gap-3 text-gray-600">
                 <svg class="w-10 h-10 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                 <span class="text-xs font-bold uppercase tracking-widest">Bu kategoride poliçe bulunamadı</span>
@@ -593,42 +739,30 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
                            pLower.includes('koltuk') ? 'armchair' :
                            pLower.includes('vize') ? 'clipboard-check' : 'file-text';
 
-        return `<tr class="dashboard-policy-row hover:bg-white/[0.03] transition-all border-b border-white/5 ${rowClass} group" data-policy-state="${stateKey}">
-            <td class="policy-status py-3.5 px-3 whitespace-nowrap">${statusBadge}</td>
-            <td class="policy-plate py-3.5 px-3 whitespace-nowrap">
-                <span class="font-black text-sm text-white group-hover:text-orange-400 transition-colors font-mono">${p.plaka}</span>
-            </td>
-            <td class="policy-type py-3.5 px-3 whitespace-nowrap">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="${policeIcon}" class="policy-type-icon" aria-hidden="true"></i>
-                    <span class="text-xs font-bold text-gray-200">${policeAdi}</span>
-                </div>
-            </td>
-            <td class="policy-company py-3.5 px-3">
-                <span class="text-xs text-gray-400 font-medium">${p.firma}</span>
-            </td>
-            <td class="policy-start py-3.5 px-3 whitespace-nowrap">
-                <span class="text-xs text-gray-500 font-mono">${_fmtDate(p.baslangic_tarihi)}</span>
-            </td>
-            <td class="policy-end py-3.5 px-3 whitespace-nowrap">
-                <div>
-                    <span class="text-xs font-bold ${days !== null && days < 0 ? 'text-gray-500 line-through' : days !== null && days <= 7 ? 'text-red-400' : days !== null && days <= 30 ? 'text-amber-400' : 'text-gray-300'} font-mono">${_fmtDate(p.bitis_tarihi)}</span>
-                    ${progressBar}
-                </div>
-            </td>
-            <td class="policy-remaining py-3.5 px-3 text-center whitespace-nowrap">
-                ${days === null ? '<span class="text-gray-600 text-xs">—</span>' :
-                  days < 0 ? `<span class="text-gray-600 text-xs font-mono">${Math.abs(days)} gün önce</span>` :
-                  `<span class="text-xs font-black ${days <= 7 ? 'text-red-400' : days <= 30 ? 'text-amber-400' : 'text-emerald-400'} font-mono">${days} gün</span>`}
-            </td>
-            <td class="policy-price py-3.5 px-3 text-right whitespace-nowrap">
-                <span class="text-sm font-black text-white tabular-nums">${p.toplam_tutar !== null ? _fmt(p.toplam_tutar) : '—'}</span>
-            </td>
-            <td class="policy-installment py-3.5 px-3 text-center whitespace-nowrap">
-                <span class="text-[10px] font-bold ${p.taksit_sayisi > 1 ? 'text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md' : 'text-gray-600'}">${p.taksit_sayisi > 1 ? p.taksit_sayisi + ' Taksit' : (p.toplam_tutar !== null ? 'Peşin' : '—')}</span>
-            </td>
+        const policyMeta = [p.firma && p.firma !== '—' ? p.firma : '', p.toplam_tutar !== null ? _fmt(p.toplam_tutar) : ''].filter(Boolean).join(' · ');
+        const isVehicleRecord = String(p.id || '').startsWith('pseudo_');
+        return `<tr class="dashboard-policy-row ${rowClass}" data-policy-state="${stateKey}" data-policy-id="${_escapeDashboard(p.id || '')}" data-vehicle-id="${_escapeDashboard(p.arac_id || '')}" data-vehicle-record="${isVehicleRecord}" tabindex="0" role="button" aria-label="${_escapeDashboard(`${p.plaka} ${policeAdi} detayını aç`)}">
+            <td class="policy-plate"><strong>${_escapeDashboard(p.plaka)}</strong></td>
+            <td class="policy-type-cell"><strong><i data-lucide="${policeIcon}" class="policy-type-icon" aria-hidden="true"></i>${_escapeDashboard(policeAdi)}</strong><small>${_escapeDashboard(policyMeta || 'Sistem kaydı')}</small></td>
+            <td class="policy-end"><span>${_escapeDashboard(_fmtDate(p.bitis_tarihi))}</span>${progressBar}</td>
+            <td class="policy-remaining">${days === null ? '—' : days < 0 ? `${Math.abs(days)} gün önce` : `${days} gün`}</td>
+            <td class="policy-status">${statusBadge}</td>
         </tr>`;
     }).join('');
+
+    tbody.querySelectorAll('.dashboard-policy-row').forEach(row => {
+        const openDetail = () => window.openDashboardPolicyDetail(
+            row.dataset.policyId,
+            row.dataset.vehicleId,
+            row.dataset.vehicleRecord === 'true'
+        );
+        row.addEventListener('click', openDetail);
+        row.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            openDetail();
+        });
+    });
 
     if (footer && sayiSpan) {
         footer.classList.remove('hidden');
@@ -636,6 +770,20 @@ window.renderPoliceDashboardTable = function(policeler, filtre) {
     }
 
     if (window.lucide) window.lucide.createIcons();
+};
+
+window.openDashboardPolicyDetail = function (policyId, vehicleId, isVehicleRecord) {
+    if (typeof window.openModal === 'function') {
+        if (!isVehicleRecord && policyId) {
+            window.openModal('Poliçe Düzenle', policyId);
+            return;
+        }
+        if (vehicleId) {
+            window.openModal('Araç Evrak Güncelle', vehicleId);
+            return;
+        }
+    }
+    document.querySelector('#main-nav-buttons [data-target="module-filo"]')?.click();
 };
 
 // ─── Filtreleme ───────────────────────────────────────────────
@@ -719,6 +867,27 @@ window.renderDashboardCards = function (cards, spendById) {
     container.innerHTML = rows.length ? rows.map(({ card, debt }) => `<div class="dashboard-compact-row">
         <span class="dashboard-row-icon"><i data-lucide="credit-card"></i></span><div><strong>${_escapeDashboard(card.kart_adi || 'Kredi kartı')}</strong><small>${_escapeDashboard(card.kart_sahibi || 'Şirket kartı')}</small></div><span>${_fmt(debt)}</span>
     </div>`).join('') : '<div class="management-attention-empty"><i data-lucide="credit-card"></i><p>Kayıtlı kredi kartı bulunmuyor.</p></div>';
+};
+
+window.renderDashboardRecentActivity = function (items) {
+    const tbody = document.getElementById('dashboard-recent-activity');
+    if (!tbody) return;
+    const rows = (items || [])
+        .filter(item => item.date)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+        .slice(0, 8);
+    if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="4"><div class="management-attention-empty"><i data-lucide="history"></i><p>Gösterilecek güncel hareket bulunmuyor.</p></div></td></tr>';
+        if (window.lucide) window.lucide.createIcons();
+        return;
+    }
+    tbody.innerHTML = rows.map(item => `<tr>
+        <td class="dashboard-activity-date">${_escapeDashboard(_fmtDate(item.date))}</td>
+        <td><span class="dashboard-activity-module is-${_escapeDashboard(item.tone || 'neutral')}"><i data-lucide="${_escapeDashboard(item.icon || 'circle')}" aria-hidden="true"></i>${_escapeDashboard(item.module || 'İşlem')}</span></td>
+        <td class="dashboard-activity-detail" title="${_escapeDashboard(item.detail || '')}">${_escapeDashboard(item.detail || '—')}</td>
+        <td class="dashboard-activity-amount">${_fmt(item.amount)}</td>
+    </tr>`).join('');
+    if (window.lucide) window.lucide.createIcons();
 };
 
 window.renderDashboardPartners = function (cariler, faturalar, odemeler, policeler, bakimlar) {
@@ -1608,6 +1777,7 @@ if (typeof module === 'object' && module.exports) {
         dashboardDefaultMonth: _dashboardDefaultMonth,
         dashboardMonthBounds: _dashboardMonthBounds,
         dashboardShiftMonth: _dashboardShiftMonth,
-        dashboardRowsInPeriod: _dashboardRowsInPeriod
+        dashboardRowsInPeriod: _dashboardRowsInPeriod,
+        dashboardPercentChange: _dashboardPercentChange
     };
 }
