@@ -159,6 +159,87 @@
         }).sort(function (a, b) { return b.current.accrual - a.current.accrual; });
     }
 
+    function serviceGross(row, definition) {
+        row = row || {};
+        definition = definition || {};
+        return number(row.vardiya) * number(definition.vardiya_fiyat)
+            + number(row.tek) * number(definition.tek_fiyat)
+            + number(row.cikis_8) * number(definition.cikis_8_fiyat)
+            + number(row.giris_2030) * number(definition.giris_2030_fiyat)
+            + number(row.mesai) * number(definition.mesai_fiyat);
+    }
+
+    function groupCustomerServices(customers, vehicles, currentRows, previousRows, definitions, currentPeriod, previousPeriod, resolver) {
+        var customerNames = new Map((customers || []).map(function (row) { return [String(row.id), row.ad || 'İsimsiz Müşteri']; }));
+        var vehicleMap = new Map((vehicles || []).map(function (row) { return [String(row.id), row]; }));
+        var groups = new Map();
+        resolver = typeof resolver === 'function' ? resolver : function () { return null; };
+
+        function add(rows, periodKey, periodValue) {
+            (rows || []).forEach(function (row) {
+                var customerId = String(row && row.musteri_id || 'unknown');
+                var vehicleId = String(row && row.arac_id || 'unknown');
+                var region = row && row.bolge || 'Manisa';
+                var vehicle = vehicleMap.get(vehicleId) || {};
+                var group = groups.get(customerId) || { id: customerId, name: customerNames.get(customerId) || 'Kayıt Dışı Müşteri', current: { shifts: 0, trips: 0, accrual: 0 }, previous: { shifts: 0, trips: 0, accrual: 0 }, details: new Map() };
+                var detailKey = vehicleId + '|||' + region;
+                var detail = group.details.get(detailKey) || {
+                    key: detailKey, customerId: customerId, vehicleId: vehicleId, plate: vehicle.plaka || 'Eşleşmeyen araç', vehicleClass: vehicle.arac_sinifi || 'SINIFLANDIRILMAMIŞ', region: region,
+                    current: { shifts: 0, trips: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 },
+                    previous: { shifts: 0, trips: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 }
+                };
+                var definition = resolver(definitions || [], { musteriId: row.musteri_id, aracId: row.arac_id, bolge: region, donem: periodValue }) || {};
+                var bucket = detail[periodKey];
+                bucket.shifts += number(row.vardiya);
+                bucket.trips += number(row.tek);
+                bucket.gross += serviceGross(row, definition);
+                bucket.vardiyaPrice = number(definition.vardiya_fiyat);
+                bucket.tekPrice = number(definition.tek_fiyat);
+                group[periodKey].shifts += number(row.vardiya);
+                group[periodKey].trips += number(row.tek);
+                group[periodKey].accrual += serviceGross(row, definition);
+                group.details.set(detailKey, detail);
+                groups.set(customerId, group);
+            });
+        }
+
+        add(currentRows, 'current', currentPeriod);
+        add(previousRows, 'previous', previousPeriod);
+        return Array.from(groups.values()).map(function (group) {
+            group.details = Array.from(group.details.values()).sort(function (a, b) { return String(a.plate).localeCompare(String(b.plate), 'tr'); });
+            group.change = percentChange(group.current.accrual, group.previous.accrual);
+            return group;
+        }).sort(function (a, b) { return b.current.accrual - a.current.accrual; });
+    }
+
+    function mergeVehicleRevenue(expenseRows, customerRows, vehicles) {
+        var groups = new Map((expenseRows || []).map(function (row) { return [String(row.id), row]; }));
+        var vehicleMap = new Map((vehicles || []).map(function (row) { return [String(row.id), row]; }));
+        (customerRows || []).forEach(function (customer) {
+            (customer.details || []).forEach(function (detail) {
+                var id = String(detail.vehicleId);
+                var vehicle = vehicleMap.get(id) || {};
+                var item = groups.get(id) || {
+                    id: id, plate: vehicle.plaka || detail.plate || 'Eşleşmeyen araç',
+                    current: { fuel: 0, maintenance: 0, policies: 0, total: 0 },
+                    previous: { fuel: 0, maintenance: 0, policies: 0, total: 0 }
+                };
+                item.vehicleClass = vehicle.arac_sinifi || detail.vehicleClass || 'SINIFLANDIRILMAMIŞ';
+                item.current.revenue = number(item.current.revenue) + number(detail.current.gross);
+                item.previous.revenue = number(item.previous.revenue) + number(detail.previous.gross);
+                groups.set(id, item);
+            });
+        });
+        return Array.from(groups.values()).map(function (row) {
+            row.current.revenue = number(row.current.revenue);
+            row.previous.revenue = number(row.previous.revenue);
+            row.current.net = row.current.revenue - number(row.current.total);
+            row.previous.net = row.previous.revenue - number(row.previous.total);
+            row.netChange = percentChange(row.current.net, row.previous.net);
+            return row;
+        }).sort(function (a, b) { return b.current.revenue - a.current.revenue; });
+    }
+
     function groupCaris(caris, currentInvoices, currentPayments, previousInvoices, previousPayments) {
         var groups = new Map((caris || []).map(function (row) { return [String(row.id), { id: String(row.id), name: row.unvan, type: row.tur || 'Cari', currentDebt: 0, currentPayment: 0, previousDebt: 0, previousPayment: 0 }]; }));
         function add(rows, field) {
@@ -187,6 +268,9 @@
         groupVehicles: groupVehicles,
         groupPayroll: groupPayroll,
         groupCustomers: groupCustomers,
+        serviceGross: serviceGross,
+        groupCustomerServices: groupCustomerServices,
+        mergeVehicleRevenue: mergeVehicleRevenue,
         groupCaris: groupCaris
     };
 });

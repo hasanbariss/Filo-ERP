@@ -2,6 +2,7 @@
 
 const assert = require('node:assert/strict');
 const report = require('../report-analytics.js');
+const hakedis = require('../hakedis-calculations.js');
 
 assert.deepEqual(report.periodBounds('2026-08'), {
     value: '2026-08', start: '2026-08-01', end: '2026-08-31', label: 'Ağustos 2026',
@@ -57,6 +58,26 @@ const customerRows = report.groupCustomers(
 );
 assert.equal(customerRows[0].current.accrual, 3000);
 assert.equal(customerRows[0].change, 20);
+
+const serviceDefinitions = [
+    { id:'global', musteri_id:'m1', arac_id:'a1', bolge:'Manisa', donem:null, vardiya_fiyat:900, tek_fiyat:500 },
+    { id:'august', musteri_id:'m1', arac_id:'a1', bolge:'Manisa', donem:'2026-08', vardiya_fiyat:1000, tek_fiyat:600 }
+];
+const serviceRows = report.groupCustomerServices(
+    [{ id:'m1', ad:'Fabrika A' }],
+    [{ id:'a1', plaka:'45 ABC 123', arac_sinifi:'27+1' }],
+    [{ musteri_id:'m1', arac_id:'a1', bolge:'Manisa', vardiya:2, tek:1 }],
+    [{ musteri_id:'m1', arac_id:'a1', bolge:'Manisa', vardiya:1, tek:1 }],
+    serviceDefinitions, '2026-08', '2026-07', hakedis.selectPriceDefinition
+);
+assert.equal(serviceRows[0].current.accrual, 2600, 'seçili dönem fiyatı araç gelirinde kullanılmalı');
+assert.equal(serviceRows[0].previous.accrual, 1400, 'önceki dönem global fallback fiyatını kullanmalı');
+assert.equal(serviceRows[0].details[0].vehicleClass, '27+1');
+
+const profitableVehicles = report.mergeVehicleRevenue(vehicleRows, serviceRows, [{ id:'a1', plaka:'45 ABC 123', arac_sinifi:'27+1' }]);
+const profitableA1 = profitableVehicles.find(row => row.id === 'a1');
+assert.equal(profitableA1.current.revenue, 2600);
+assert.equal(profitableA1.current.net, -2400);
 
 const cariRows = report.groupCaris(
     [{ id:'c1', unvan:'Servis A', tur:'Tamirci' }],

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var state = { request: 0, period: null, current: null, previous: null, summary: null, previousSummary: null, vehicles: [], payroll: [], customers: [], caris: [] };
+    var state = { request: 0, period: null, current: null, previous: null, summary: null, previousSummary: null, vehicles: [], vehicleMeta: [], priceDefinitions: [], payroll: [], customers: [], caris: [] };
 
     function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
@@ -42,6 +42,42 @@
             if (batch.length < pageSize) break;
         }
         return { data: rows, error: null };
+    }
+    async function allRows(table, columns) {
+        var rows = [];
+        var pageSize = 1000;
+        for (var from = 0; ; from += pageSize) {
+            var response = await window.supabaseClient.from(table).select(columns).range(from, from + pageSize - 1);
+            if (response && response.error) throw response.error;
+            var batch = response && Array.isArray(response.data) ? response.data : [];
+            rows = rows.concat(batch);
+            if (batch.length < pageSize) break;
+        }
+        return { data: rows, error: null };
+    }
+    async function vehicleRows() {
+        var response = await window.supabaseClient.from('araclar').select('id, plaka, arac_sinifi');
+        if (response && response.error && /arac_sinifi|column|schema cache/i.test(response.error.message || '')) {
+            response = await window.supabaseClient.from('araclar').select('id, plaka');
+        }
+        if (response && response.error) throw response.error;
+        return response;
+    }
+    async function serviceRangeQuery(start, end) {
+        try {
+            return await rangeQuery('musteri_servis_puantaj', 'musteri_id, arac_id, bolge, vardiya, tek, cikis_8, giris_2030, mesai, gunluk_ucret', 'tarih', start, end);
+        } catch (error) {
+            if (!/cikis_8|giris_2030|mesai|column|schema cache/i.test(error.message || '')) throw error;
+            return rangeQuery('musteri_servis_puantaj', 'musteri_id, arac_id, bolge, vardiya, tek, gunluk_ucret', 'tarih', start, end);
+        }
+    }
+    async function priceRows() {
+        try {
+            return await allRows('musteri_arac_tanimlari', 'id, musteri_id, arac_id, bolge, donem, vardiya_fiyat, tek_fiyat, cikis_8_fiyat, giris_2030_fiyat, mesai_fiyat');
+        } catch (error) {
+            if (!/cikis_8_fiyat|giris_2030_fiyat|mesai_fiyat|column|schema cache/i.test(error.message || '')) throw error;
+            return allRows('musteri_arac_tanimlari', 'id, musteri_id, arac_id, bolge, donem, vardiya_fiyat, tek_fiyat');
+        }
     }
     async function safe(promise, label) {
         try {
@@ -134,10 +170,10 @@
     function renderVehicles() {
         var tbody = document.getElementById('rapor-arac-tbody');
         if (!tbody) return;
-        updateColumnHead('rapor-arac-table', 5, state.period.label);
-        updateColumnHead('rapor-arac-table', 6, state.period.previousLabel);
-        if (!state.vehicles.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Bu iki dönemde araç gideri bulunamadı.</div></td></tr>'; return; }
-        tbody.innerHTML = state.vehicles.map(function (row) { return '<tr><td><strong>' + esc(row.plate) + '</strong></td><td class="is-number">' + fmtMoney(row.current.fuel) + '</td><td class="is-number">' + fmtMoney(row.current.maintenance) + '</td><td class="is-number">' + fmtMoney(row.current.policies) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.current.total) + '</td><td class="is-number">' + fmtMoney(row.previous.total) + '</td><td class="is-number">' + changeMarkup(row.current.total, row.previous.total, true) + '</td></tr>'; }).join('');
+        updateColumnHead('rapor-arac-table', 7, state.period.label + ' Net');
+        updateColumnHead('rapor-arac-table', 8, state.period.previousLabel + ' Net');
+        if (!state.vehicles.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state">Bu iki dönemde araç geliri veya gideri bulunamadı.</div></td></tr>'; return; }
+        tbody.innerHTML = state.vehicles.map(function (row) { return '<tr><td><strong>' + esc(row.plate) + '</strong><small class="report-vehicle-class">' + esc(row.vehicleClass || 'SINIFLANDIRILMAMIŞ') + '</small></td><td class="is-number is-income">' + fmtMoney(row.current.revenue) + '</td><td class="is-number">' + fmtMoney(row.current.fuel) + '</td><td class="is-number">' + fmtMoney(row.current.maintenance) + '</td><td class="is-number">' + fmtMoney(row.current.policies) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.current.total) + '</td><td class="is-number ' + (row.current.net < 0 ? 'is-negative' : 'is-positive') + '">' + fmtMoney(row.current.net) + '</td><td class="is-number">' + fmtMoney(row.previous.net) + '</td><td class="is-number">' + changeMarkup(row.current.net, row.previous.net, false) + '</td></tr>'; }).join('');
     }
 
     function renderPayroll() {
@@ -155,11 +191,59 @@
     function renderCustomers() {
         var tbody = document.getElementById('rapor-musteri-tbody');
         if (!tbody) return;
-        updateColumnHead('rapor-musteri-table', 4, state.period.label + ' Hakediş');
-        updateColumnHead('rapor-musteri-table', 5, state.period.previousLabel + ' Hakediş');
-        if (!state.customers.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">Bu iki dönemde müşteri puantajı bulunamadı.</div></td></tr>'; return; }
-        tbody.innerHTML = state.customers.map(function (row) { return '<tr><td><strong>' + esc(row.name) + '</strong></td><td class="is-center">' + fmtNumber(row.current.shifts, 0) + '</td><td class="is-center">' + fmtNumber(row.current.trips, 0) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.current.accrual) + '</td><td class="is-number">' + fmtMoney(row.previous.accrual) + '</td><td class="is-number">' + changeMarkup(row.current.accrual, row.previous.accrual, false) + '</td></tr>'; }).join('');
+        updateColumnHead('rapor-musteri-table', 4, state.period.label + ' Gelir');
+        updateColumnHead('rapor-musteri-table', 5, state.period.previousLabel + ' Gelir');
+        if (!state.customers.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Bu iki dönemde müşteri puantajı bulunamadı.</div></td></tr>'; return; }
+        tbody.innerHTML = state.customers.map(function (row, customerIndex) {
+            var summary = '<tr class="report-customer-row"><td><button type="button" class="report-customer-toggle" onclick="window.toggleReportCustomer(' + customerIndex + ')"><i data-lucide="chevron-right"></i><span><strong>' + esc(row.name) + '</strong><small>' + row.details.length + ' araç / bölge kaydı</small></span></button></td><td class="is-center">' + fmtNumber(row.current.shifts, 0) + '</td><td class="is-center">' + fmtNumber(row.current.trips, 0) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.current.accrual) + '</td><td class="is-number">' + fmtMoney(row.previous.accrual) + '</td><td class="is-number">' + changeMarkup(row.current.accrual, row.previous.accrual, false) + '</td><td class="is-center"><button class="report-detail-button" type="button" onclick="window.toggleReportCustomer(' + customerIndex + ')">Araçlar</button></td></tr>';
+            var detail = '<tr class="report-customer-detail" data-report-customer="' + customerIndex + '" hidden><td colspan="7"><div class="report-customer-detail-panel"><div class="report-period-rate-note"><strong>' + esc(state.period.label) + ' dönem fiyatları</strong><span>Kaydetme yalnızca seçili dönemin müşteri + araç + bölge kaydını etkiler.</span></div><div class="report-service-head"><span>Araç / sınıf</span><span>Vardiya</span><span>Vardiya fiyatı</span><span>Tek</span><span>Tek fiyatı</span><span>Brüt gelir</span><span></span></div>' + row.details.map(function (item, detailIndex) {
+                return '<div class="report-service-line"><span><strong>' + esc(item.plate) + '</strong><small>' + esc(item.vehicleClass) + ' · ' + esc(item.region) + '</small></span><span>' + fmtNumber(item.current.shifts, 0) + '</span><label><span class="sr-only">Vardiya fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="vardiya" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.vardiyaPrice + '"></label><span>' + fmtNumber(item.current.trips, 0) + '</span><label><span class="sr-only">Tek sefer fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="tek" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.tekPrice + '"></label><span class="is-money">' + fmtMoney(item.current.gross) + '</span><button type="button" onclick="window.saveReportServicePrices(' + customerIndex + ',' + detailIndex + ',this)"><i data-lucide="save"></i>Kaydet</button></div>';
+            }).join('') + '</div></td></tr>';
+            return summary + detail;
+        }).join('');
+        if (window.lucide) window.lucide.createIcons();
     }
+
+    window.toggleReportCustomer = function (index) {
+        var row = document.querySelector('[data-report-customer="' + index + '"]');
+        if (!row) return;
+        row.hidden = !row.hidden;
+        var icon = row.previousElementSibling && row.previousElementSibling.querySelector('.report-customer-toggle svg');
+        if (icon) icon.style.transform = row.hidden ? '' : 'rotate(90deg)';
+    };
+
+    window.saveReportServicePrices = async function (customerIndex, detailIndex, button) {
+        var customer = state.customers[customerIndex];
+        var detail = customer && customer.details[detailIndex];
+        if (!detail || !state.period) return;
+        var line = button.closest('.report-service-line');
+        var vardiyaPrice = Math.max(0, Number(line.querySelector('[data-report-rate="vardiya"]').value) || 0);
+        var tekPrice = Math.max(0, Number(line.querySelector('[data-report-rate="tek"]').value) || 0);
+        function normalizedRegion(value) { return String(value || 'Manisa').trim().toLocaleUpperCase('tr-TR'); }
+        var exact = state.priceDefinitions.find(function (row) {
+            return String(row.musteri_id) === String(detail.customerId) && String(row.arac_id) === String(detail.vehicleId)
+                && normalizedRegion(row.bolge) === normalizedRegion(detail.region) && row.donem === state.period.value;
+        });
+        var original = button.innerHTML;
+        button.disabled = true;
+        button.textContent = 'Kaydediliyor…';
+        try {
+            var response;
+            if (exact) response = await window.supabaseClient.from('musteri_arac_tanimlari').update({ vardiya_fiyat: vardiyaPrice, tek_fiyat: tekPrice }).eq('id', exact.id);
+            else response = await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ musteri_id: detail.customerId, arac_id: detail.vehicleId, bolge: detail.region || 'Manisa', donem: state.period.value, vardiya_fiyat: vardiyaPrice, tek_fiyat: tekPrice, tarife_turu: 'Vardiya' }]);
+            if (response.error) throw response.error;
+            if (window.Toast) window.Toast.success('Dönemsel vardiya ve tek sefer fiyatları kaydedildi.');
+            await window.fetchRaporlar();
+        } catch (error) {
+            console.error('[Raporlar] fiyat kaydetme hatası:', error);
+            if (window.Toast) window.Toast.error('Fiyatlar kaydedilemedi: ' + (error.message || 'Bilinmeyen hata'));
+            else alert('Fiyatlar kaydedilemedi: ' + (error.message || 'Bilinmeyen hata'));
+        } finally {
+            button.disabled = false;
+            button.innerHTML = original;
+            if (window.lucide) window.lucide.createIcons();
+        }
+    };
 
     function renderCaris() {
         var tbody = document.getElementById('rapor-cari-tbody');
@@ -183,6 +267,36 @@
         setText('rapor-tuketim', currentConsumption !== null ? fmtNumber(currentConsumption, 2) + ' L/100 km' : '—');
         setText('rapor-tuketim-prev', state.period.previousLabel + ' ' + (previousConsumption !== null ? fmtNumber(previousConsumption, 2) + ' L/100 km' : '—'));
         setTrend('rapor-tuketim-trend', currentConsumption, previousConsumption, true);
+        renderConsumptionSegments(payload);
+    }
+
+    function renderConsumptionSegments(payload) {
+        var container = document.getElementById('report-consumption-segments');
+        if (!container || !window.FuelAnalytics) return;
+        var vehicleById = new Map(state.vehicleMeta.map(function (row) { return [String(row.id), row]; }));
+        var classByPlate = new Map(state.vehicleMeta.map(function (row) { return [window.FuelAnalytics.normalizePlate(row.plaka), row.arac_sinifi || 'SINIFLANDIRILMAMIŞ']; }));
+        var groups = new Map();
+        function ensure(name) {
+            if (!groups.has(name)) groups.set(name, { name:name, currentKm:0, previousKm:0, currentLiters:0, previousLiters:0, vehicles:new Set() });
+            return groups.get(name);
+        }
+        (payload && payload.results || []).forEach(function (row) {
+            if (row.status !== 'ready') return;
+            var name = classByPlate.get(window.FuelAnalytics.normalizePlate(row.plate)) || 'SINIFLANDIRILMAMIŞ';
+            var group = ensure(name);
+            group.currentKm += Number(row.currentKm) || 0;
+            group.previousKm += Number(row.previousKm) || 0;
+            group.vehicles.add(window.FuelAnalytics.normalizePlate(row.plate));
+        });
+        (state.current.fuel || []).forEach(function (row) { var vehicle = vehicleById.get(String(row.arac_id)) || {}; ensure(vehicle.arac_sinifi || 'SINIFLANDIRILMAMIŞ').currentLiters += Number(row.litre) || 0; });
+        (state.previous.fuel || []).forEach(function (row) { var vehicle = vehicleById.get(String(row.arac_id)) || {}; ensure(vehicle.arac_sinifi || 'SINIFLANDIRILMAMIŞ').previousLiters += Number(row.litre) || 0; });
+        var rows = Array.from(groups.values()).filter(function (group) { return group.currentKm > 0 || group.previousKm > 0; });
+        if (!rows.length) { container.innerHTML = ''; return; }
+        container.innerHTML = '<div class="report-segment-heading"><div><strong>Araç sınıfına göre tüketim</strong><span>16+1, 27+1 ve taksi birbirinden bağımsız karşılaştırılır.</span></div></div><div class="report-segment-grid">' + rows.map(function (group) {
+            var current = group.currentKm > 0 ? group.currentLiters / group.currentKm * 100 : null;
+            var previous = group.previousKm > 0 ? group.previousLiters / group.previousKm * 100 : null;
+            return '<article><span>' + esc(group.name) + '</span><strong>' + (current === null ? '—' : fmtNumber(current, 2) + ' L/100 km') + '</strong><small>' + state.period.previousLabel + ' ' + (previous === null ? '—' : fmtNumber(previous, 2) + ' L/100 km') + '</small>' + changeMarkup(current, previous, true) + '</article>';
+        }).join('') + '</div>';
     }
 
     window.fetchRaporlar = async function () {
@@ -211,17 +325,18 @@
             safe(rangeQuery('sofor_finans','sofor_id, tutar, islem_turu','tarih',p.previousStart,p.previousEnd),'önceki personel finans'),
             safe(rangeQuery('taseron_hakedis','net_hakedis, anlasilan_tutar','sefer_tarihi',p.start,p.end),'taşeron hakediş'),
             safe(rangeQuery('taseron_hakedis','net_hakedis, anlasilan_tutar','sefer_tarihi',p.previousStart,p.previousEnd),'önceki taşeron hakediş'),
-            safe(rangeQuery('musteri_servis_puantaj','musteri_id, vardiya, tek, gunluk_ucret','tarih',p.start,p.end),'müşteri puantajı'),
-            safe(rangeQuery('musteri_servis_puantaj','musteri_id, vardiya, tek, gunluk_ucret','tarih',p.previousStart,p.previousEnd),'önceki müşteri puantajı'),
+            safe(serviceRangeQuery(p.start,p.end),'müşteri puantajı'),
+            safe(serviceRangeQuery(p.previousStart,p.previousEnd),'önceki müşteri puantajı'),
             safe(window.supabaseClient.from('musteriler').select('id, ad'),'müşteriler'),
             safe(window.supabaseClient.from('cariler').select('id, unvan, tur'),'cariler'),
             safe(rangeQuery('cari_faturalar','cari_id, toplam_tutar','fatura_tarihi',p.start,p.end),'cari faturalar'),
             safe(rangeQuery('cari_faturalar','cari_id, toplam_tutar','fatura_tarihi',p.previousStart,p.previousEnd),'önceki cari faturalar'),
             safe(rangeQuery('cari_odemeler','cari_id, tutar','tarih',p.start,p.end),'cari ödemeler'),
             safe(rangeQuery('cari_odemeler','cari_id, tutar','tarih',p.previousStart,p.previousEnd),'önceki cari ödemeler'),
-            safe(window.supabaseClient.from('araclar').select('id, plaka'),'araçlar'),
+            safe(vehicleRows(),'araçlar'),
             safe(rangeQuery('kredi_karti_islemleri','toplam_tutar','islem_tarihi',p.start,p.end),'kredi kartı hareketleri'),
-            safe(rangeQuery('kredi_karti_islemleri','toplam_tutar','islem_tarihi',p.previousStart,p.previousEnd),'önceki kredi kartı hareketleri')
+            safe(rangeQuery('kredi_karti_islemleri','toplam_tutar','islem_tarihi',p.previousStart,p.previousEnd),'önceki kredi kartı hareketleri'),
+            safe(priceRows(),'hakediş fiyatları')
         ];
         var r = await Promise.all(promises);
         if (request !== state.request) return;
@@ -229,9 +344,17 @@
         state.previous = { fuel:r[1], maintenance:r[3], policies:r[5], payroll:r[7], finance:r[9], contractorAccrual:r[11], serviceAccrual:r[13], cardTransactions:r[22] };
         state.summary = window.ReportAnalytics.summarize(state.current);
         state.previousSummary = window.ReportAnalytics.summarize(state.previous);
-        state.vehicles = window.ReportAnalytics.groupVehicles(state.current, state.previous, r[20]);
+        state.vehicleMeta = r[20];
+        state.priceDefinitions = r[23];
+        state.customers = window.ReportAnalytics.groupCustomerServices(r[14], r[20], r[12], r[13], r[23], p.value, p.previousValue, window.HakedisCalculations && window.HakedisCalculations.selectPriceDefinition);
+        state.vehicles = window.ReportAnalytics.mergeVehicleRevenue(window.ReportAnalytics.groupVehicles(state.current, state.previous, r[20]), state.customers, r[20]);
         state.payroll = window.ReportAnalytics.groupPayroll(r[6], r[7]);
-        state.customers = window.ReportAnalytics.groupCustomers(r[14], r[12], r[13]);
+        state.summary.serviceAccrual = state.customers.reduce(function (total, row) { return total + row.current.accrual; }, 0);
+        state.previousSummary.serviceAccrual = state.customers.reduce(function (total, row) { return total + row.previous.accrual; }, 0);
+        state.summary.accrual = state.summary.contractorAccrual + state.summary.serviceAccrual;
+        state.previousSummary.accrual = state.previousSummary.contractorAccrual + state.previousSummary.serviceAccrual;
+        state.summary.operatingDifference = state.summary.accrual - state.summary.totalExpense;
+        state.previousSummary.operatingDifference = state.previousSummary.accrual - state.previousSummary.totalExpense;
         state.caris = window.ReportAnalytics.groupCaris(r[15], r[16].concat(r[2], r[4]), r[18], r[17].concat(r[3], r[5]), r[19]);
         window._raporData = { ay: p.value, period: p, current: state.current, previous: state.previous, vehicles: state.vehicles, payroll: state.payroll, customers: state.customers, caris: state.caris };
         renderSummary(); renderGeneral(); renderVehicles(); renderPayroll(); renderCustomers(); renderCaris();

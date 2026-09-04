@@ -87,6 +87,25 @@
         --bf-primary-hover: var(--erp-coral-strong);
     }
 
+    /* Native option panels must follow the active workspace theme. The legacy
+       global rule used the dark sidebar colour in light mode, which made
+       several filter/sort menus unreadable. */
+    :root:not(.dark) select,
+    :root:not(.dark) select option,
+    :root:not(.dark) select optgroup {
+        color-scheme: light;
+        color: var(--erp-text) !important;
+        background-color: var(--erp-panel) !important;
+    }
+
+    :root.dark select,
+    :root.dark select option,
+    :root.dark select optgroup {
+        color-scheme: dark;
+        color: var(--erp-text) !important;
+        background-color: var(--erp-panel) !important;
+    }
+
     html, body.bf-app { min-height: 100%; background: var(--erp-canvas); }
     body.bf-app {
         color: var(--erp-text);
@@ -2556,6 +2575,119 @@
     #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 43px; background: color-mix(in srgb, var(--erp-teal) 7%, var(--erp-panel)); }
     #cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { font-size: 9px !important; letter-spacing: .045em !important; }
     #cari-kart-modal-overlay #modal-net-total { font-size: 16px !important; }
+
+    .report-consumption-segments { margin: 0 0 14px; border: 1px solid var(--erp-line); background: var(--erp-panel); }
+    .report-segment-heading { display: flex; align-items: center; min-height: 48px; padding: 9px 13px; border-bottom: 1px solid var(--erp-line); }
+    .report-segment-heading strong, .report-segment-heading span { display: block; }
+    .report-segment-heading strong { color: var(--erp-text); font-size: 12px; }
+    .report-segment-heading span { margin-top: 2px; color: var(--erp-text-3); font-size: 9px; }
+    .report-segment-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    .report-segment-grid article { position: relative; min-width: 0; padding: 11px 13px; border-right: 1px solid var(--erp-line); }
+    .report-segment-grid article:last-child { border-right: 0; }
+    .report-segment-grid article > span, .report-segment-grid article > strong, .report-segment-grid article > small { display: block; }
+    .report-segment-grid article > span { color: var(--erp-text-3); font-size: 8px; font-weight: 750; letter-spacing: .045em; }
+    .report-segment-grid article > strong { margin-top: 4px; color: var(--erp-text); font-size: 15px; }
+    .report-segment-grid article > small { margin-top: 3px; color: var(--erp-text-3); font-size: 8px; }
+    .report-vehicle-class { display: block; margin-top: 3px; color: var(--erp-text-3); font-size: 8px; font-weight: 650; }
+    #rapor-arac-table .is-income, #rapor-arac-table .is-positive { color: var(--erp-green); font-weight: 750; }
+    #rapor-arac-table .is-negative { color: var(--erp-red); font-weight: 750; }
+    .report-customer-toggle { display: inline-flex; align-items: center; min-width: 0; gap: 7px; color: var(--erp-text); text-align: left; }
+    .report-customer-toggle svg { width: 13px; height: 13px; color: var(--erp-text-3); transition: transform .16s ease; }
+    .report-customer-toggle strong, .report-customer-toggle small { display: block; }
+    .report-customer-toggle small { margin-top: 2px; color: var(--erp-text-3); font-size: 8px; }
+    .report-detail-button { min-height: 27px; padding: 4px 9px; color: var(--erp-blue); border: 1px solid color-mix(in srgb, var(--erp-blue) 28%, var(--erp-line)); background: color-mix(in srgb, var(--erp-blue) 5%, var(--erp-panel)); font-size: 9px; font-weight: 750; }
+    .report-customer-detail > td { padding: 0 !important; background: var(--erp-panel-soft); }
+    .report-customer-detail-panel { padding: 10px 13px 13px 35px; }
+    .report-period-rate-note { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 10px; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--erp-coral) 30%, var(--erp-line)); border-radius: 8px; background: color-mix(in srgb, var(--erp-coral) 7%, var(--erp-panel)); color: var(--erp-coral-strong); font-size: 10px; }
+    .report-period-rate-note strong { font-size: 11px; }
+    .report-period-rate-note span { color: var(--erp-text-2); }
+    .report-service-head, .report-service-line { display: grid; grid-template-columns: minmax(150px, 1.35fr) 62px 120px 52px 120px 120px 78px; align-items: center; gap: 8px; }
+    .report-service-head { min-height: 27px; color: var(--erp-text-3); font-size: 8px; font-weight: 750; letter-spacing: .035em; text-transform: uppercase; }
+    .report-service-line { min-height: 47px; padding: 6px 0; border-top: 1px solid var(--erp-line); color: var(--erp-text-2); font-size: 10px; }
+    .report-service-line > span:first-child strong, .report-service-line > span:first-child small { display: block; }
+    .report-service-line > span:first-child strong { color: var(--erp-text); font-size: 11px; }
+    .report-service-line > span:first-child small { margin-top: 2px; color: var(--erp-text-3); font-size: 8px; }
+    .report-service-line input { width: 100%; min-height: 30px; padding: 5px 8px; color: var(--erp-text); border: 1px solid var(--erp-line-strong); border-radius: 3px; background: var(--erp-panel); font-size: 10px; text-align: right; }
+    .report-service-line .is-money { color: var(--erp-teal); font-weight: 750; text-align: right; }
+    .report-service-line > button { display: inline-flex; align-items: center; justify-content: center; min-height: 29px; gap: 4px; color: #fff; border-radius: 3px; background: var(--erp-coral); font-size: 9px; font-weight: 750; }
+    .report-service-line > button svg { width: 11px; height: 11px; }
+
+    .personnel-operations-content, .personnel-finance-content, #per-content-bordro { padding: 0 !important; background: var(--erp-panel); }
+    .personnel-operation-head { display: flex; align-items: center; justify-content: space-between; min-height: 76px; padding: 15px 18px; gap: 16px; border-bottom: 1px solid var(--erp-line); }
+    .personnel-operation-head > div { min-width: 0; }
+    .personnel-operation-head span, .personnel-operation-head h3, .personnel-operation-head p { display: block; margin: 0; }
+    .personnel-operation-head > div > span { color: var(--erp-coral-strong); font-size: 8px; font-weight: 800; letter-spacing: .075em; }
+    .personnel-operation-head h3 { margin-top: 3px; color: var(--erp-text); font-size: 16px; line-height: 1.25; }
+    .personnel-operation-head p { margin-top: 3px; color: var(--erp-text-3); font-size: 9px; }
+    .personnel-safe-badge, .personnel-source { display: inline-flex !important; align-items: center; width: fit-content; gap: 5px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--erp-green) 30%, var(--erp-line)); border-radius: 999px; color: var(--erp-green) !important; background: color-mix(in srgb, var(--erp-green) 6%, var(--erp-panel)); font-size: 8px !important; font-weight: 750; white-space: nowrap; }
+    .personnel-safe-badge svg { width: 12px; height: 12px; }
+    .personnel-operation-summary { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); border-bottom: 1px solid var(--erp-line); }
+    .personnel-operation-summary article { min-height: 66px; padding: 12px 16px; border-right: 1px solid var(--erp-line); }
+    .personnel-operation-summary article:last-child { border-right: 0; }
+    .personnel-operation-summary span, .personnel-operation-summary strong { display: block; }
+    .personnel-operation-summary span { color: var(--erp-text-3); font-size: 8px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+    .personnel-operation-summary strong { margin-top: 4px; color: var(--erp-text); font-size: 19px; }
+    .personnel-operation-toolbar { display: flex; align-items: center; padding: 9px 12px; gap: 7px; border-bottom: 1px solid var(--erp-line); background: var(--erp-filter-bar); }
+    .personnel-operation-toolbar label { display: flex; align-items: center; flex: 1 1 260px; min-width: 160px; max-width: 420px; gap: 6px; padding: 0 9px; border: 1px solid var(--erp-line); background: var(--erp-panel); }
+    .personnel-operation-toolbar label svg { width: 13px; height: 13px; color: var(--erp-text-3); }
+    .personnel-operation-toolbar input, .personnel-operation-toolbar select { min-height: 32px; padding: 5px 8px; border: 1px solid var(--erp-line); border-radius: 3px; color: var(--erp-text); background: var(--erp-panel); font-size: 9px; }
+    .personnel-operation-toolbar label input { flex: 1; min-width: 0; padding-left: 0; border: 0; }
+    .personnel-operation-note { display: flex; align-items: center; min-height: 34px; padding: 7px 13px; gap: 6px; color: var(--erp-text-2); border-bottom: 1px solid var(--erp-line); background: color-mix(in srgb, var(--erp-blue) 4%, var(--erp-panel)); font-size: 8px; }
+    .personnel-operation-note svg { width: 12px; height: 12px; color: var(--erp-blue); }
+    .personnel-operation-table-wrap { max-width: 100%; overflow-x: auto; }
+    .personnel-operation-table { width: 100%; min-width: 840px; border-collapse: collapse; }
+    .personnel-operation-table th { height: 35px; padding: 7px 10px; color: var(--erp-text-3); border-bottom: 1px solid var(--erp-line); background: var(--erp-panel-soft); font-size: 8px; font-weight: 750; letter-spacing: .035em; text-align: left; text-transform: uppercase; }
+    .personnel-operation-table td { height: 44px; padding: 7px 10px; color: var(--erp-text-2); border-bottom: 1px solid var(--erp-line); font-size: 9px; font-variant-numeric: tabular-nums; }
+    .personnel-operation-table td strong, .personnel-operation-table td small { display: block; }
+    .personnel-operation-table td strong { color: var(--erp-text); font-size: 10px; }
+    .personnel-operation-table td small { margin-top: 2px; color: var(--erp-text-3); font-size: 8px; }
+    .personnel-source.is-fallback { color: var(--erp-amber) !important; border-color: color-mix(in srgb, var(--erp-amber) 32%, var(--erp-line)); background: color-mix(in srgb, var(--erp-amber) 6%, var(--erp-panel)); }
+    .personnel-source.is-missing { color: var(--erp-red) !important; border-color: color-mix(in srgb, var(--erp-red) 32%, var(--erp-line)); background: color-mix(in srgb, var(--erp-red) 6%, var(--erp-panel)); }
+
+    /* Hakediş detayı: iç içe mini kartlar yerine okunabilir, satır tabanlı çalışma alanı. */
+    #cari-kart-modal-overlay .cari-card-sheet { width: min(1100px, calc(100vw - 40px)) !important; max-width: 1100px !important; }
+    #cari-kart-modal-overlay .cari-card-header { min-height: 68px; padding: 12px 16px !important; }
+    #cari-kart-modal-overlay .cari-card-header h2 { font-size: 19px !important; }
+    #cari-kart-modal-overlay .cari-hakedis-title { font-size: 12px !important; }
+    #cari-kart-modal-overlay .cari-card-meta p { font-size: 9px !important; }
+    #cari-kart-modal-overlay .cari-card-body { grid-template-columns: repeat(2, minmax(0,1fr)); padding: 14px 16px !important; gap: 12px !important; }
+    #cari-kart-modal-overlay .cari-card-section { padding: 13px !important; }
+    #cari-kart-modal-overlay .cari-card-section > h3, #cari-kart-modal-overlay .cari-card-section > div > h3 { margin-bottom: 10px !important; font-size: 10px !important; }
+    #cari-kart-modal-overlay .cari-service-section { grid-column: 1 / -1; }
+    #cari-kart-modal-overlay .cari-factory-list { gap: 7px !important; }
+    #cari-kart-modal-overlay .cari-factory-card { padding: 0 !important; overflow: hidden; border: 1px solid var(--erp-line) !important; border-radius: 4px !important; background: var(--erp-panel) !important; }
+    #cari-kart-modal-overlay .cari-factory-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 50px; padding: 8px 12px; color: var(--erp-text); background: var(--erp-panel-soft); text-align: left; }
+    #cari-kart-modal-overlay .cari-factory-toggle > span { display: grid; grid-template-columns: 18px auto; align-items: center; min-width: 0; column-gap: 7px; }
+    #cari-kart-modal-overlay .cari-factory-toggle > span > svg { grid-row: 1 / 3; width: 15px; height: 15px; color: var(--erp-blue); }
+    #cari-kart-modal-overlay .cari-factory-toggle strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    #cari-kart-modal-overlay .cari-factory-toggle small { margin-top: 2px; color: var(--erp-text-3); font-size: 9px; }
+    #cari-kart-modal-overlay .cari-factory-chevron { width: 15px; height: 15px; color: var(--erp-text-3); transition: transform .16s ease; }
+    #cari-kart-modal-overlay .cari-factory-content { display: none; padding: 0 12px 11px; }
+    #cari-kart-modal-overlay .cari-factory-card.is-open .cari-factory-content { display: block; }
+    #cari-kart-modal-overlay .cari-factory-card.is-open .cari-factory-chevron { transform: rotate(180deg); }
+    #cari-kart-modal-overlay .cari-rate-grid { display: grid !important; grid-template-columns: 1fr !important; gap: 0 !important; }
+    #cari-kart-modal-overlay .cari-rate-item, #cari-kart-modal-overlay .cari-rate-item.col-span-2 { display: grid !important; grid-template-columns: minmax(180px,1fr) 170px; align-items: center; grid-column: 1 !important; min-height: 48px; padding: 6px 2px !important; gap: 12px; border: 0 !important; border-bottom: 1px solid var(--erp-line) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+    #cari-kart-modal-overlay .cari-rate-item:last-child { border-bottom: 0 !important; }
+    #cari-kart-modal-overlay .cari-rate-item > div:first-child { margin: 0 !important; font-size: 10px !important; }
+    #cari-kart-modal-overlay .cari-rate-item > div:first-child span:first-child { color: var(--erp-text-2) !important; font-size: 10px; }
+    #cari-kart-modal-overlay .cari-rate-item input[class*="-count"] { width: 54px !important; min-height: 29px !important; color: var(--erp-text) !important; border: 1px solid var(--erp-line-strong) !important; background: var(--erp-panel) !important; font-size: 11px !important; }
+    #cari-kart-modal-overlay .cari-rate-item > div:last-child { min-width: 0; border: 1px solid var(--erp-line-strong); border-radius: 3px; background: var(--erp-panel-soft); }
+    #cari-kart-modal-overlay .cari-rate-item input[class*="-fiyat"] { min-height: 34px !important; color: var(--erp-text) !important; font-size: 12px !important; }
+    #cari-kart-modal-overlay .cari-tax-grid { margin-top: 8px !important; padding-top: 8px; gap: 8px !important; border-top: 1px solid var(--erp-line); }
+    #cari-kart-modal-overlay .cari-tax-item { min-height: 45px; padding: 7px 9px !important; background: var(--erp-panel-soft) !important; }
+    #cari-kart-modal-overlay .cari-tax-item > div:first-child { font-size: 9px !important; }
+    #cari-kart-modal-overlay .cari-tax-item input { color: var(--erp-text) !important; font-size: 12px !important; }
+    #cari-kart-modal-overlay .cari-factory-total { margin-top: 8px !important; grid-template-columns: repeat(3,minmax(0,1fr)); padding-top: 8px !important; }
+    #cari-kart-modal-overlay .cari-factory-total > div { min-height: 42px; padding: 6px 8px; border: 1px solid var(--erp-line); border-left: 3px solid var(--erp-line-strong); }
+    #cari-kart-modal-overlay .cari-factory-total span:first-child { font-size: 8px !important; }
+    #cari-kart-modal-overlay .cari-factory-total span:last-child { margin-top: 3px; font-size: 11px !important; }
+    #cari-kart-modal-overlay .cari-card-summary { padding: 9px 16px !important; }
+    #cari-kart-modal-overlay .cari-card-summary > div { display: grid !important; grid-template-columns: repeat(5,minmax(0,1fr)) minmax(180px,1.25fr); gap: 7px !important; }
+    #cari-kart-modal-overlay .cari-summary-row { display: flex !important; flex-direction: column; align-items: flex-start !important; justify-content: center; min-width: 0; min-height: 48px !important; padding: 6px 8px !important; border: 1px solid var(--erp-line) !important; background: var(--erp-panel) !important; }
+    #cari-kart-modal-overlay .cari-summary-row > span:first-child { font-size: 8px !important; }
+    #cari-kart-modal-overlay .cari-summary-row > span:last-child { margin-top: 3px; font-size: 12px !important; }
+    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 48px !important; margin: 0 !important; border-color: color-mix(in srgb, var(--erp-teal) 40%, var(--erp-line)) !important; background: color-mix(in srgb, var(--erp-teal) 7%, var(--erp-panel)) !important; }
+    #cari-kart-modal-overlay #modal-net-total { font-size: 17px !important; }
 
     /* Receivables submodules — one compact ledger language across policy, instalment,
        payroll and corporate-card views. Existing ids and event bindings stay intact. */

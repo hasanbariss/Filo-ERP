@@ -1325,6 +1325,9 @@
                         <button id="per-tab-puantaj" onclick="window.switchPersonelTab('puantaj')" class="personnel-tab">
                             <i data-lucide="calendar-days"></i>Günlük Puantaj
                         </button>
+                        <button id="per-tab-performans" onclick="window.switchPersonelTab('performans')" class="personnel-tab">
+                            <i data-lucide="gauge"></i>Şoför Değerlendirme
+                        </button>
                         <button id="per-tab-bordro" onclick="window.switchPersonelTab('bordro')" class="personnel-tab">
                             <i data-lucide="receipt"></i>Maaş Bordrosu
                         </button>
@@ -1419,6 +1422,8 @@
                             </div>
                         </div>
                     </div>
+
+                    <div id="per-content-performans" class="hidden personnel-operations-content"></div>
 
                     <!-- TAB: BORDRO -->
                     <div id="per-content-bordro" class="hidden p-6">
@@ -2179,15 +2184,16 @@
                 <div class="report-operations-band" aria-label="Operasyon dönem karşılaştırmaları">
                     <article><span>Toplam KM</span><strong id="rapor-km">—</strong><small id="rapor-km-prev">Önceki ay —</small><em id="rapor-km-trend" class="report-change is-neutral">—</em></article>
                     <article><span>Yakıt Litresi</span><strong id="rapor-litre">0 L</strong><small id="rapor-litre-prev">Önceki ay 0 L</small><em id="rapor-litre-trend" class="report-change is-neutral">—</em></article>
-                    <article><span>Ortalama Tüketim</span><strong id="rapor-tuketim">—</strong><small id="rapor-tuketim-prev">Önceki ay —</small><em id="rapor-tuketim-trend" class="report-change is-neutral">—</em></article>
+                    <article><span>Filo Geneli Tüketim</span><strong id="rapor-tuketim">—</strong><small id="rapor-tuketim-prev">Önceki ay —</small><em id="rapor-tuketim-trend" class="report-change is-neutral">—</em></article>
                     <article><span>Toplam Filo Gideri</span><strong id="rapor-toplam-gider">₺0</strong><small id="rapor-toplam-gider-prev">Önceki ay ₺0</small><em id="rapor-toplam-gider-trend" class="report-change is-neutral">—</em></article>
                     <article title="Kart hareketleri diğer giderlere yansımış olabileceği için toplam filo giderine ikinci kez eklenmez."><span>Kredi Kartı Hareketi</span><strong id="rapor-kart-harcama">₺0</strong><small id="rapor-kart-harcama-prev">Önceki ay ₺0</small><em id="rapor-kart-harcama-trend" class="report-change is-neutral">—</em></article>
                     <article><span>Vardiya / Tek Sefer</span><strong id="rapor-operasyon">0 / 0</strong><small id="rapor-operasyon-prev">Önceki ay 0 / 0</small><em id="rapor-operasyon-trend" class="report-change is-neutral">—</em></article>
                 </div>
+                <div id="report-consumption-segments" class="report-consumption-segments" aria-label="Araç sınıfına göre yakıt tüketimi"></div>
                 <div class="dashboard-card report-workspace p-0 overflow-hidden">
                     <div class="report-tabs flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;">
                         <button id="rapor-tab-genel" onclick="window.switchRaporTab('genel')" class="rapor-tab-btn active px-4 py-2 text-sm font-bold rounded-lg bg-orange-500 text-white shadow-lg transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Genel Ozet</button>
-                        <button id="rapor-tab-arac" onclick="window.switchRaporTab('arac')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4"></i>Arac Gider</button>
+                        <button id="rapor-tab-arac" onclick="window.switchRaporTab('arac')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="truck" class="w-4 h-4"></i>Araç Kârlılığı</button>
                         <button id="rapor-tab-personel" onclick="window.switchRaporTab('personel')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Personel</button>
                         <button id="rapor-tab-musteri" onclick="window.switchRaporTab('musteri')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Musteri/Sefer</button>
                         <button id="rapor-tab-cari" onclick="window.switchRaporTab('cari')" class="rapor-tab-btn px-4 py-2 text-sm font-bold rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all whitespace-nowrap flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>Cari Bakiye</button>
@@ -2261,7 +2267,7 @@
                     </div>
                     <div id="rapor-content-arac" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm">Arac Bazli Gider Dagilimi</h3>
+                            <h3 class="font-bold text-sm">Araç Bazlı Gelir, Gider ve Net Katkı</h3>
                             <div class="flex gap-2">
                                 <button onclick="window.exportRaporExcel('arac')" class="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
                                 <button onclick="window.exportRaporPDF('arac')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
@@ -2269,8 +2275,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-arac-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Araç</th><th class="p-3 text-right">Yakıt</th><th class="p-3 text-right">Bakım</th><th class="p-3 text-right">Sigorta</th><th class="p-3 text-right text-orange-400">Seçilen Toplam</th><th class="p-3 text-right">Önceki Toplam</th><th class="p-3 text-right">Değişim</th></tr></thead>
-                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5"><tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Araç / Sınıf</th><th class="p-3 text-right">Araç Geliri</th><th class="p-3 text-right">Yakıt</th><th class="p-3 text-right">Bakım</th><th class="p-3 text-right">Sigorta</th><th class="p-3 text-right text-orange-400">Araç Gideri</th><th class="p-3 text-right">Seçilen Net</th><th class="p-3 text-right">Önceki Net</th><th class="p-3 text-right">Değişim</th></tr></thead>
+                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5"><tr><td colspan="9" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2291,7 +2297,7 @@
                     </div>
                     <div id="rapor-content-musteri" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm">Fabrika / Musteri Sefer Raporu</h3>
+                            <h3 class="font-bold text-sm">Fabrika / Müşteri Sefer ve Fiyat Raporu</h3>
                             <div class="flex gap-2">
                                 <button onclick="window.exportRaporExcel('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
                                 <button onclick="window.exportRaporPDF('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
@@ -2299,8 +2305,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-musteri-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Müşteri</th><th class="p-3 text-center">Vardiya</th><th class="p-3 text-center">Tek Sefer</th><th class="p-3 text-right text-orange-400">Seçilen Hakediş</th><th class="p-3 text-right">Önceki Hakediş</th><th class="p-3 text-right">Değişim</th></tr></thead>
-                                <tbody id="rapor-musteri-tbody" class="divide-y divide-white/5"><tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Müşteri</th><th class="p-3 text-center">Vardiya</th><th class="p-3 text-center">Tek Sefer</th><th class="p-3 text-right text-orange-400">Seçilen Gelir</th><th class="p-3 text-right">Önceki Gelir</th><th class="p-3 text-right">Değişim</th><th class="p-3 text-center">Detay</th></tr></thead>
+                                <tbody id="rapor-musteri-tbody" class="divide-y divide-white/5"><tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2914,6 +2920,8 @@
 
 <!-- 5. FIXES -->
 <script defer src="app-fixes.js?v=2.1.1"></script>
+<script defer src="turkish-month-select.js?v=1.0.0"></script>
+<script defer src="personnel-operations.js?v=1.0.0"></script>
 <script defer src="ios-mobile.js?v=2.0.1"></script>
 
 <!-- 6. NEW SRP MODULES -->

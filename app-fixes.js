@@ -246,7 +246,7 @@ function initSidebarCollapse() {
 // ============================================================
 function initPersonelModule() {
     window.switchPersonelTab = function (tab) {
-        ['kadro', 'puantaj', 'bordro', 'avans'].forEach(function (t) {
+        ['kadro', 'puantaj', 'performans', 'bordro', 'avans'].forEach(function (t) {
             const btn = document.getElementById('per-tab-' + t);
             const content = document.getElementById('per-content-' + t);
             if (btn) {
@@ -259,12 +259,13 @@ function initPersonelModule() {
             if (typeof fetchSoforler === 'function') fetchSoforler();
         } else if (tab === 'puantaj') {
             syncPersonelAyInputs();
-            if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
-            setTimeout(mirrorPuantajToPersonel, 1500);
+            if (typeof window.fetchPersonnelOperations === 'function') window.fetchPersonnelOperations();
+        } else if (tab === 'performans') {
+            syncPersonelAyInputs();
+            if (typeof window.fetchPersonnelOperations === 'function') window.fetchPersonnelOperations();
         } else if (tab === 'bordro') {
             syncPersonelAyInputs();
-            if (typeof fetchSoforMaaslar === 'function') fetchSoforMaaslar();
-            setTimeout(mirrorBordroToPersonel, 1500);
+            if (typeof window.fetchPersonnelPayrollOverview === 'function') window.fetchPersonnelPayrollOverview();
         } else if (tab === 'avans') {
             if (typeof fetchSoforFinans === 'function') fetchSoforFinans();
             setTimeout(mirrorAvansToPersonel, 1500);
@@ -275,7 +276,8 @@ function initPersonelModule() {
         const ay = document.getElementById('personel-ay');
         if (!ay || !ay.value) return;
         syncPersonelAyInputs(ay.value);
-        if (typeof fetchSoforMaasBordro === 'function') fetchSoforMaasBordro();
+        if (typeof window.fetchPersonnelOperations === 'function') window.fetchPersonnelOperations();
+        if (typeof window.fetchPersonnelPayrollOverview === 'function') window.fetchPersonnelPayrollOverview();
     };
 }
 

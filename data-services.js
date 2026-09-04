@@ -112,10 +112,15 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
             const plaka = document.getElementById('arac-plaka').value;
             const marka = document.getElementById('arac-marka').value;
             const mulkiyet = document.getElementById('arac-mulkiyet').value;
+            const arac_sinifi = document.getElementById('arac-sinifi')?.value || null;
             const belge_turu = document.getElementById('arac-belge').value;
             const sirket = document.getElementById('arac-sirket').value;
             if (!plaka) throw new Error("Plaka zorunludur.");
-            const { error } = await window.supabaseClient.from('araclar').insert([{ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket }]);
+            let { error } = await window.supabaseClient.from('araclar').insert([{ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, arac_sinifi, belge_turu, sirket }]);
+            if (error && /arac_sinifi|column|schema cache/i.test(error.message || '')) {
+                const fallback = await window.supabaseClient.from('araclar').insert([{ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket }]);
+                error = fallback.error;
+            }
             if (error) throw error;
             if (typeof fetchAraclar === 'function') fetchAraclar();
         } else if (formTitle === 'Araç Güncelle') {
@@ -123,6 +128,7 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
             const plaka = document.getElementById('edit-arac-plaka').value;
             const marka = document.getElementById('edit-arac-marka').value;
             const mulkiyet = document.getElementById('edit-arac-mulkiyet').value;
+            const arac_sinifi = document.getElementById('edit-arac-sinifi')?.value || null;
             const belge_turu = document.getElementById('edit-arac-belge').value;
             const sirket = document.getElementById('edit-arac-sirket').value;
             const firma_adi = document.getElementById('edit-arac-firma')?.value || null;
@@ -130,11 +136,11 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
             if (!plaka || !id) throw new Error("Plaka zorunludur.");
 
             // Önce firma_adi dahil güncellemeyi dene (sütun yoksa graceful fallback)
-            let updatePayload = { plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket, firma_adi };
+            let updatePayload = { plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, arac_sinifi, belge_turu, sirket, firma_adi };
             let { error } = await window.supabaseClient.from('araclar').update(updatePayload).eq('id', id);
 
-            if (error && error.message && error.message.includes('firma_adi')) {
-                // firma_adi sütunu henüz yoksa, onsuz güncelle
+            if (error && /arac_sinifi|firma_adi|column|schema cache/i.test(error.message || '')) {
+                // Yeni opsiyonel alanlardan biri henüz yoksa temel araç kaydını koru.
                 const { plaka: p, marka_model, mulkiyet_durumu, belge_turu: bt, sirket: s } = { plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket };
                 const fallbackRes = await window.supabaseClient.from('araclar').update({ plaka, marka_model: marka, mulkiyet_durumu: mulkiyet, belge_turu, sirket }).eq('id', id);
                 error = fallbackRes.error;
@@ -3410,6 +3416,20 @@ async function fetchTaseronAylikRapor() {
     }
 }
 
+window.toggleCariFactory = function(button) {
+    const card = button?.closest('.cari-factory-card');
+    if (!card) return;
+    const willOpen = !card.classList.contains('is-open');
+    const list = card.closest('.cari-factory-list');
+    list?.querySelectorAll('.cari-factory-card.is-open').forEach(item => {
+        if (item === card) return;
+        item.classList.remove('is-open');
+        item.querySelector('.cari-factory-toggle')?.setAttribute('aria-expanded', 'false');
+    });
+    card.classList.toggle('is-open', willOpen);
+    button.setAttribute('aria-expanded', String(willOpen));
+};
+
 window.openCariHakedisDetay = async function(arac_id) {
     if(!window._taseronCariData || !window._taseronCariData[arac_id]) return;
     const data = window._taseronCariData[arac_id];
@@ -3471,14 +3491,16 @@ window.openCariHakedisDetay = async function(arac_id) {
             factoriesHTML = '<div class="text-sm text-gray-500 italic p-4 text-center border dashed border-white/5 rounded-xl">Bu ay hiç servis kaydı bulunmuyor.</div>';
         } else {
             factoriesHTML = `<div class="cari-factory-list space-y-4">`;
-            mIds.forEach(mId => {
+            mIds.forEach((mId, factoryIndex) => {
                 const md = data.musteriDetay[mId];
                 const unvan = md.musteri_ad || musteriMap[mId] || `Fabrika ID: ${mId}`;
                 factoriesHTML += `
-                    <div class="cari-factory-card bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
-                        <div class="cari-factory-title font-black text-sm text-white mb-4 flex items-center gap-2">
-                            <i data-lucide="building-2" class="w-4 h-4 text-gray-400"></i> ${unvan}
-                        </div>
+                    <div class="cari-factory-card${factoryIndex === 0 ? ' is-open' : ''} bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
+                        <button type="button" class="cari-factory-toggle" onclick="window.toggleCariFactory(this)" aria-expanded="${factoryIndex === 0 ? 'true' : 'false'}">
+                            <span><i data-lucide="building-2"></i><strong>${unvan}</strong><small>${md.vardiya || 0} vardiya · ${md.tek || 0} tek sefer</small></span>
+                            <i data-lucide="chevron-down" class="cari-factory-chevron"></i>
+                        </button>
+                        <div class="cari-factory-content">
                         <div class="cari-rate-grid grid grid-cols-2 gap-4">
                             <div class="cari-rate-item is-shift bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
@@ -3588,6 +3610,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 <span class="text-[10px] text-yellow-400 uppercase font-bold tracking-widest">- TEV:</span>
                                 <span class="text-yellow-300 font-bold text-xs row-tev-tutar">-₺0,00</span>
                             </div>
+                        </div>
                         </div>
                     </div>
                 `;

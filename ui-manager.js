@@ -820,6 +820,18 @@ window.openModal = function (title, id = null, extra = null) {
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Sınıfı</label>
+                                <select id="arac-sinifi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
+                                    <option value="">Sınıflandırılmamış</option>
+                                    <option value="TAKSİ">Taksi</option>
+                                    <option value="16+1">16+1 Minibüs</option>
+                                    <option value="27+1">27+1 Midibüs</option>
+                                    <option value="46+1">46+1 Otobüs</option>
+                                    <option value="DİĞER">Diğer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Türü</label>
                                 <select id="arac-belge" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Yok">Yok</option>
@@ -828,7 +840,6 @@ window.openModal = function (title, id = null, extra = null) {
                                     <option value="U-ETDS">U-ETDS Sistemi</option>
                                     <option value="Diğer">Diğer</option>
                                 </select>
-                            </div>
                         </div>
                     </div>
                 `;
@@ -2339,6 +2350,18 @@ window.openModal = function (title, id = null, extra = null) {
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Araç Sınıfı</label>
+                                <select id="edit-arac-sinifi" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
+                                    <option value="">Sınıflandırılmamış</option>
+                                    <option value="TAKSİ">Taksi</option>
+                                    <option value="16+1">16+1 Minibüs</option>
+                                    <option value="27+1">27+1 Midibüs</option>
+                                    <option value="46+1">46+1 Otobüs</option>
+                                    <option value="DİĞER">Diğer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Belge Türü</label>
                                 <select id="edit-arac-belge" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="Yok">Yok</option>
@@ -2347,7 +2370,6 @@ window.openModal = function (title, id = null, extra = null) {
                                     <option value="U-ETDS">U-ETDS Sistemi</option>
                                     <option value="Diğer">Diğer</option>
                                 </select>
-                            </div>
                         </div>
                     </div>
                 `;
@@ -2598,6 +2620,7 @@ window.openModal = function (title, id = null, extra = null) {
                         document.getElementById('edit-arac-marka').value = data.marka_model || '';
                         document.getElementById('edit-arac-mulkiyet').value = data.mulkiyet_durumu || 'ÖZMAL';
                         document.getElementById('edit-arac-sirket').value = data.sirket || 'Belirtilmemiş';
+                        document.getElementById('edit-arac-sinifi').value = data.arac_sinifi || '';
                         const firmaInput = document.getElementById('edit-arac-firma');
                         if(firmaInput) firmaInput.value = data.firma_adi || '';
                     }
