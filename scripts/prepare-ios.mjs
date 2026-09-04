@@ -14,6 +14,7 @@ const webFiles = [
   'design-system.css',
   'web-premium.css',
   'web-executive.css',
+  'auth-v2.css',
   'manifest.json',
   'service-worker.js',
   'ornek_puantaj_sablonu.xlsx',

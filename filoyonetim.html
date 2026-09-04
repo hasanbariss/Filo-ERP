@@ -88,6 +88,7 @@
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
     <link rel="stylesheet" href="web-executive.css?v=2.0.11">
+    <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -152,33 +153,13 @@
 
     <!-- === AUTH OVERLAY === -->
     <div id="auth-overlay" class="auth-overlay fixed inset-0 z-[10000] flex items-center justify-center">
-        <div class="auth-orb auth-orb-one" aria-hidden="true"></div>
-        <div class="auth-orb auth-orb-two" aria-hidden="true"></div>
         <div class="auth-shell">
-            <section class="auth-story" aria-label="Baris.Flow">
-                <div class="auth-story-grid" aria-hidden="true"></div>
-                <img class="auth-brand-logo platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
-                <div class="auth-story-copy">
-                    <p class="auth-kicker">Filo yönetimi</p>
-                    <h1>Operasyonun<br><em>ritmini</em> yönetin.</h1>
-                    <p class="auth-story-text">Filonuz. Tek akışta. Filo, puantaj ve finans süreçlerinizi tek bir sakin ve güvenilir çalışma alanında yönetin.</p>
-                </div>
-                <div class="auth-story-metrics">
-                    <div><strong>01</strong><span>Merkezden<br>kontrol</span></div>
-                    <div><strong>24/7</strong><span>Canlı<br>erişim</span></div>
-                    <div><strong>∞</strong><span>Akışta<br>netlik</span></div>
-                </div>
-                <p class="auth-story-footer"><span></span> Kurumsal operasyon alanı</p>
-            </section>
-
             <section class="auth-login-area">
                 <div class="auth-login-card">
-                    <div class="auth-mobile-brand">
-                        <img class="platform-logo platform-logo--dark-bg" src="./icons/baris-flow-logo.png" alt="Baris.Flow" data-platform-logo="dark-background">
-                    </div>
+                    <span class="auth-wordmark" aria-label="Baris.Flow"><b>baris.</b><strong>Flow</strong></span>
                     <p class="auth-kicker">Güvenli erişim</p>
-                    <h2>Tekrar hoş geldiniz.</h2>
-                    <p class="auth-login-subtitle">Günlük operasyonunuza kaldığınız yerden devam edin.</p>
+                    <h2>Hesabınıza giriş yapın</h2>
+                    <p class="auth-login-subtitle">Baris.Flow Drive</p>
 
                     <div id="auth-error" class="auth-error hidden"></div>
 
@@ -189,7 +170,12 @@
                         </div>
                         <div class="auth-field">
                             <label for="auth-password">Şifre</label>
-                            <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" autocomplete="current-password">
+                            <div class="auth-password-wrap">
+                                <input type="password" id="auth-password" class="auth-input" placeholder="••••••••" autocomplete="current-password">
+                                <button type="button" class="auth-password-toggle" onclick="window.toggleAuthPassword(this)" aria-label="Şifreyi göster" aria-pressed="false">
+                                    <i data-lucide="eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -199,12 +185,23 @@
                     </label>
 
                     <button onclick="doLogin()" id="auth-login-btn" class="auth-submit">
-                        Güvenli giriş yap
+                        Giriş yap
                         <span aria-hidden="true">→</span>
                     </button>
-                    <p class="auth-help">Şifrenizi mi unuttunuz? <span>Yöneticinizle iletişime geçin.</span></p>
+                    <p class="auth-help">Giriş sorunu için yöneticinizle iletişime geçin.</p>
                 </div>
             </section>
+
+            <aside class="auth-context" aria-label="Baris.Flow Drive">
+                <span class="auth-context-chip">Baris.Flow Drive</span>
+                <h1>Filo operasyonunuz.<br><em>Tek akışta.</em></h1>
+                <div class="auth-context-list">
+                    <div><i data-lucide="truck" aria-hidden="true"></i><span>Filo</span></div>
+                    <div><i data-lucide="wallet-cards" aria-hidden="true"></i><span>Finans</span></div>
+                    <div><i data-lucide="chart-no-axes-combined" aria-hidden="true"></i><span>Raporlama</span></div>
+                </div>
+                <p><span aria-hidden="true"></span> Güvenli kurumsal erişim</p>
+            </aside>
         </div>
     </div>
 
@@ -259,7 +256,7 @@
                 <i data-lucide="menu" class="w-5 h-5"></i>
             </button>
             <div class="bf-topbar-company">
-                <strong data-company-name>IDEOL</strong>
+                <strong data-platform-name>Baris.Flow</strong>
                 <i data-lucide="chevron-down" aria-hidden="true"></i>
                 <h1 id="page-title" class="sr-only">Genel Bakış</h1>
             </div>

@@ -626,6 +626,19 @@ window.exportRaporPDF = async function (tab) {
     }
 };
 
+window.toggleAuthPassword = function (button) {
+    const passwordInput = document.getElementById('auth-password');
+    if (!passwordInput) return;
+
+    const reveal = passwordInput.type === 'password';
+    passwordInput.type = reveal ? 'text' : 'password';
+    button.setAttribute('aria-pressed', String(reveal));
+    button.setAttribute('aria-label', reveal ? 'Şifreyi gizle' : 'Şifreyi göster');
+    button.innerHTML = '<i data-lucide="' + (reveal ? 'eye-off' : 'eye') + '" aria-hidden="true"></i>';
+    if (window.lucide) window.lucide.createIcons();
+    passwordInput.focus({ preventScroll: true });
+};
+
 // ============================================================
 // 8. FIX: Modal null error — musteri-arac-tanim
 // ============================================================
