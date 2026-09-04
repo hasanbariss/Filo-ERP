@@ -30,8 +30,8 @@
     </style>
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=1">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-transparent-192.png?v=2">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-transparent-192.png?v=2">
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link rel="preconnect" href="https://unpkg.com" crossorigin>
@@ -99,7 +99,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.15">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.13">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.14">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
     <link rel="stylesheet" href="ui-final-pass.css?v=1.0.0">
     <!-- Chart.js -->
@@ -162,7 +162,7 @@
 <body class="bf-app">
 
     <div id="auth-boot-screen" aria-label="Oturum kontrol ediliyor">
-        <img src="icons/baris-flow-logo.png" alt="Platform logosu">
+        <img src="icons/baris-flow-logo-transparent.png?v=2" alt="Platform logosu">
     </div>
 
     <!-- Mobile Sidebar Overlay -->
@@ -173,7 +173,7 @@
         <div class="auth-shell">
             <section class="auth-login-area">
                 <div class="auth-login-card">
-                    <img src="icons/baris-flow-logo.png" alt="Platform logosu" class="auth-brand-logo">
+                    <img src="icons/baris-flow-logo-transparent.png?v=2" alt="Platform logosu" class="auth-brand-logo">
                     <p class="auth-kicker">Güvenli erişim</p>
                     <h2>Hesabınıza giriş yapın</h2>
                     <p class="auth-login-subtitle">Kurumsal filo yönetimi</p>
@@ -225,7 +225,10 @@
     <!-- Fixed Sidebar -->
     <aside class="sidebar bf-sidebar" id="main-sidebar" aria-label="Ana navigasyon">
         <div class="bf-sidebar-brand">
-            <img src="icons/baris-flow-logo.png" alt="Platform logosu" class="sidebar-brand-logo">
+            <span class="sidebar-brand-composite" aria-label="Platform logosu">
+                <img src="icons/baris-flow-logo-transparent.png?v=2" alt="" aria-hidden="true" class="sidebar-brand-logo sidebar-brand-logo-base">
+                <img src="icons/baris-flow-logo-transparent.png?v=2" alt="" aria-hidden="true" class="sidebar-brand-logo sidebar-brand-logo-accent">
+            </span>
         </div>
 
         <div class="bf-company-context" aria-label="Aktif şirket">
@@ -2958,7 +2961,7 @@
 <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <!-- 3. CORE APP FILES (defer, SIRA ÖNEMLİ) -->
-<script defer src="company-branding.js?v=2.0.3"></script>
+<script defer src="company-branding.js?v=2.0.4"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.2"></script>

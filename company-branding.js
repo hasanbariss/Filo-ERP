@@ -11,8 +11,8 @@
         name: 'Baris.Flow',
         productName: 'Baris.Flow',
         tagline: 'Filonuz. Tek akışta.',
-        logoDarkBackground: './icons/baris-flow-logo.png',
-        logoLightBackground: './icons/baris-flow-logo.png'
+        logoDarkBackground: './icons/baris-flow-logo-transparent.png?v=2',
+        logoLightBackground: './icons/baris-flow-logo-transparent.png?v=2'
     });
 
     const currentCompany = Object.freeze({
@@ -82,7 +82,7 @@
     }
 
     function getFaviconLink() {
-        return '<link rel="icon" type="image/png" sizes="192x192" href="' + escapeHTML(absoluteAsset('./icons/icon-192.png?v=1')) + '">';
+        return '<link rel="icon" type="image/png" sizes="192x192" href="' + escapeHTML(absoluteAsset('./icons/icon-transparent-192.png?v=2')) + '">';
     }
 
     function getPrintStyles() {
