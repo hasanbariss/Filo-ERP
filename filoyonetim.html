@@ -87,7 +87,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.10">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.11">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -2094,7 +2094,7 @@
                     <div>
                         <p class="report-eyebrow">Yönetim raporları</p>
                         <h2 class="text-2xl font-bold">Finansal Analiz &amp; Raporlar</h2>
-                        <p class="text-sm text-gray-500 mt-1">Donemsel gelir, gider ve operasyonel verimlilik takibi.</p>
+                        <p class="text-sm text-gray-500 mt-1" id="report-period-copy">Seçilen ay ile önceki ayın finansal ve operasyonel karşılaştırması.</p>
                     </div>
                     <div class="report-period-control flex items-center gap-3 bg-white/5 p-2 rounded-xl border border-white/10">
                         <label class="text-xs font-bold text-gray-500 uppercase px-2">Donem:</label>
@@ -2109,7 +2109,7 @@
                             </div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Yakıt</span>
                         </div>
-                        <div class="text-xl font-black text-blue-500" id="rapor-yakit">0 TL</div>
+                        <div class="text-xl font-black text-blue-500" id="rapor-yakit">0 TL</div><small id="rapor-yakit-prev">Önceki ay ₺0</small><span id="rapor-yakit-trend" class="report-change is-neutral">—</span>
                     </div>
                     <div class="dashboard-card border-none bg-orange-500/5 hover:bg-orange-500/10 transition-all p-4 rounded-3xl border border-orange-500/20">
                         <div class="flex items-center gap-3 mb-2">
@@ -2118,7 +2118,7 @@
                             </div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Bakım</span>
                         </div>
-                        <div class="text-xl font-black text-orange-500" id="rapor-bakim">0 TL</div>
+                        <div class="text-xl font-black text-orange-500" id="rapor-bakim">0 TL</div><small id="rapor-bakim-prev">Önceki ay ₺0</small><span id="rapor-bakim-trend" class="report-change is-neutral">—</span>
                     </div>
                     <div class="dashboard-card border-none bg-pink-500/5 hover:bg-pink-500/10 transition-all p-4 rounded-3xl border border-pink-500/20">
                         <div class="flex items-center gap-3 mb-2">
@@ -2127,7 +2127,7 @@
                             </div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Sigorta</span>
                         </div>
-                        <div class="text-xl font-black text-pink-500" id="rapor-police">0 TL</div>
+                        <div class="text-xl font-black text-pink-500" id="rapor-police">0 TL</div><small id="rapor-police-prev">Önceki ay ₺0</small><span id="rapor-police-trend" class="report-change is-neutral">—</span>
                     </div>
                     <div class="dashboard-card border-none bg-yellow-500/5 hover:bg-yellow-500/10 transition-all p-4 rounded-3xl border border-yellow-500/20">
                         <div class="flex items-center gap-3 mb-2">
@@ -2136,7 +2136,7 @@
                             </div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Maaş</span>
                         </div>
-                        <div class="text-xl font-black text-yellow-400" id="rapor-maas">0 TL</div>
+                        <div class="text-xl font-black text-yellow-400" id="rapor-maas">0 TL</div><small id="rapor-maas-prev">Önceki ay ₺0</small><span id="rapor-maas-trend" class="report-change is-neutral">—</span>
                     </div>
                     <div class="dashboard-card border-none bg-purple-500/5 hover:bg-purple-500/10 transition-all p-4 rounded-3xl border border-purple-500/20">
                         <div class="flex items-center gap-3 mb-2">
@@ -2145,17 +2145,25 @@
                             </div>
                             <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Avans</span>
                         </div>
-                        <div class="text-xl font-black text-purple-400" id="rapor-avans">0 TL</div>
+                        <div class="text-xl font-black text-purple-400" id="rapor-avans">0 TL</div><small id="rapor-avans-prev">Önceki ay ₺0</small><span id="rapor-avans-trend" class="report-change is-neutral">—</span>
                     </div>
                     <div class="dashboard-card border-none bg-cyan-500/5 hover:bg-cyan-500/10 transition-all p-4 rounded-3xl border border-cyan-500/20">
                         <div class="flex items-center gap-3 mb-2">
                             <div class="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-600">
                                 <i data-lucide="trending-up" class="w-4 h-4"></i>
                             </div>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Ciro</span>
+                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cari Hakediş</span>
                         </div>
-                        <div class="text-xl font-black text-cyan-600" id="rapor-ciro">0 TL</div>
+                        <div class="text-xl font-black text-cyan-600" id="rapor-ciro">0 TL</div><small id="rapor-ciro-prev">Önceki ay ₺0</small><span id="rapor-ciro-trend" class="report-change is-neutral">—</span>
                     </div>
+                </div>
+                <div class="report-operations-band" aria-label="Operasyon dönem karşılaştırmaları">
+                    <article><span>Toplam KM</span><strong id="rapor-km">—</strong><small id="rapor-km-prev">Önceki ay —</small><em id="rapor-km-trend" class="report-change is-neutral">—</em></article>
+                    <article><span>Yakıt Litresi</span><strong id="rapor-litre">0 L</strong><small id="rapor-litre-prev">Önceki ay 0 L</small><em id="rapor-litre-trend" class="report-change is-neutral">—</em></article>
+                    <article><span>Ortalama Tüketim</span><strong id="rapor-tuketim">—</strong><small id="rapor-tuketim-prev">Önceki ay —</small><em id="rapor-tuketim-trend" class="report-change is-neutral">—</em></article>
+                    <article><span>Toplam Filo Gideri</span><strong id="rapor-toplam-gider">₺0</strong><small id="rapor-toplam-gider-prev">Önceki ay ₺0</small><em id="rapor-toplam-gider-trend" class="report-change is-neutral">—</em></article>
+                    <article title="Kart hareketleri diğer giderlere yansımış olabileceği için toplam filo giderine ikinci kez eklenmez."><span>Kredi Kartı Hareketi</span><strong id="rapor-kart-harcama">₺0</strong><small id="rapor-kart-harcama-prev">Önceki ay ₺0</small><em id="rapor-kart-harcama-trend" class="report-change is-neutral">—</em></article>
+                    <article><span>Vardiya / Tek Sefer</span><strong id="rapor-operasyon">0 / 0</strong><small id="rapor-operasyon-prev">Önceki ay 0 / 0</small><em id="rapor-operasyon-trend" class="report-change is-neutral">—</em></article>
                 </div>
                 <div class="dashboard-card report-workspace p-0 overflow-hidden">
                     <div class="report-tabs flex overflow-x-auto gap-1 p-3 bg-white/5 border-b border-white/10 flex-nowrap" style="scrollbar-width:none;-webkit-overflow-scrolling:touch;">
@@ -2211,8 +2219,8 @@
                             <!-- Tables -->
                             <div class="report-table-panel lg:col-span-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5">
                                 <table class="w-full" id="rapor-genel-table">
-                                    <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/10 bg-white/5"><th class="p-4 text-left">Gider Kalemi</th><th class="p-4 text-center">Tür</th><th class="p-4 text-right">Aylık Toplam</th></tr></thead>
-                                    <tbody id="rapor-gelir-gider-tbody" class="divide-y divide-white/5"><tr><td colspan="3" class="py-10 text-center text-gray-500 italic">Dönem seçiniz...</td></tr></tbody>
+                                    <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/10 bg-white/5"><th class="p-4 text-left">Rapor Kalemi</th><th class="p-4 text-center">Tür</th><th class="p-4 text-right" id="report-general-current-head">Seçilen Ay</th><th class="p-4 text-right" id="report-general-previous-head">Önceki Ay</th><th class="p-4 text-right">Değişim</th></tr></thead>
+                                    <tbody id="rapor-gelir-gider-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-10 text-center text-gray-500 italic">Dönem seçiniz...</td></tr></tbody>
                                 </table>
                             </div>
                         </div>
@@ -2242,8 +2250,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-arac-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Arac</th><th class="p-3 text-right">Yakit</th><th class="p-3 text-right">Bakim</th><th class="p-3 text-right">Sigorta</th><th class="p-3 text-right text-orange-400">Toplam</th></tr></thead>
-                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Araç</th><th class="p-3 text-right">Yakıt</th><th class="p-3 text-right">Bakım</th><th class="p-3 text-right">Sigorta</th><th class="p-3 text-right text-orange-400">Seçilen Toplam</th><th class="p-3 text-right">Önceki Toplam</th><th class="p-3 text-right">Değişim</th></tr></thead>
+                                <tbody id="rapor-arac-tbody" class="divide-y divide-white/5"><tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2257,8 +2265,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-personel-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Personel</th><th class="p-3 text-right">Net Maas</th><th class="p-3 text-right">Avans</th><th class="p-3 text-right">Ceza/Haciz</th><th class="p-3 text-right text-green-400">Toplam Odeme</th></tr></thead>
-                                <tbody id="rapor-personel-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Personel</th><th class="p-3 text-right">Net Maaş</th><th class="p-3 text-right">Avans</th><th class="p-3 text-right">Ceza/Haciz</th><th class="p-3 text-right text-green-400">Seçilen Ödeme</th><th class="p-3 text-right">Önceki Ödeme</th><th class="p-3 text-right">Değişim</th></tr></thead>
+                                <tbody id="rapor-personel-tbody" class="divide-y divide-white/5"><tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2272,8 +2280,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-musteri-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Musteri</th><th class="p-3 text-center">Vardiya Arac</th><th class="p-3 text-center">Tek Sefer Arac</th><th class="p-3 text-right text-orange-400">Aylik Hakedis</th></tr></thead>
-                                <tbody id="rapor-musteri-tbody" class="divide-y divide-white/5"><tr><td colspan="4" class="py-12 text-center text-gray-500 italic">Donem secin...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Müşteri</th><th class="p-3 text-center">Vardiya</th><th class="p-3 text-center">Tek Sefer</th><th class="p-3 text-right text-orange-400">Seçilen Hakediş</th><th class="p-3 text-right">Önceki Hakediş</th><th class="p-3 text-right">Değişim</th></tr></thead>
+                                <tbody id="rapor-musteri-tbody" class="divide-y divide-white/5"><tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Dönem seçin...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2287,8 +2295,8 @@
                         </div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-cari-table">
-                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Cari / Firma</th><th class="p-3 text-left">Tur</th><th class="p-3 text-right">Toplam Borc</th><th class="p-3 text-right">Odenen</th><th class="p-3 text-right text-orange-400">Net Bakiye</th></tr></thead>
-                                <tbody id="rapor-cari-tbody" class="divide-y divide-white/5"><tr><td colspan="5" class="py-12 text-center text-gray-500 italic">Yukleniyor...</td></tr></tbody>
+                                <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Cari / Firma</th><th class="p-3 text-left">Tür</th><th class="p-3 text-right">Seçilen Borç</th><th class="p-3 text-right">Seçilen Ödeme</th><th class="p-3 text-right text-orange-400">Seçilen Net</th><th class="p-3 text-right">Önceki Net</th><th class="p-3 text-right">Değişim</th></tr></thead>
+                                <tbody id="rapor-cari-tbody" class="divide-y divide-white/5"><tr><td colspan="7" class="py-12 text-center text-gray-500 italic">Yükleniyor...</td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -2871,7 +2879,9 @@
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.1"></script>
-<script defer src="data-services.js?v=2.0.9"></script>
+<script defer src="report-analytics.js?v=2.0.0"></script>
+<script defer src="data-services.js?v=2.0.10"></script>
+<script defer src="report-comparison-ui.js?v=2.0.0"></script>
 <script defer src="ui-manager.js?v=2.0.10"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.3"></script>
 

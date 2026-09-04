@@ -8820,7 +8820,7 @@ window.handleRaporPrint = function(tab) {
             { label: 'Sigorta', val: document.getElementById('rapor-police')?.textContent || '0 TL', color: '#ec4899' },
             { label: 'Maaş', val: document.getElementById('rapor-maas')?.textContent || '0 TL', color: '#eab308' },
             { label: 'Avans', val: document.getElementById('rapor-avans')?.textContent || '0 TL', color: '#a855f7' },
-            { label: 'Ciro', val: document.getElementById('rapor-ciro')?.textContent || '0 TL', color: '#0891b2' }
+            { label: 'Cari Hakediş', val: document.getElementById('rapor-ciro')?.textContent || '0 TL', color: '#0891b2' }
         ];
 
         printHTML += `
@@ -8855,25 +8855,29 @@ window.handleRaporPrint = function(tab) {
             <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 20px; margin-bottom: 30px;">
                 <!-- Tables -->
                 <div class="print-card" style="margin-bottom: 0;">
-                    <h3 style="font-size: 12px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 1px solid #EEE; padding-bottom: 6px;">Gider Kalemleri</h3>
+                    <h3 style="font-size: 12px; font-weight: 700; margin: 0 0 12px 0; border-bottom: 1px solid #EEE; padding-bottom: 6px;">Dönem Karşılaştırması</h3>
                     <table id="print-table-genel">
                         <thead>
                             <tr>
                                 <th style="text-align: left;">Kalem</th>
                                 <th style="text-align: center;">Tür</th>
-                                <th style="text-align: right;">Tutar (₺)</th>
+                                <th style="text-align: right;">Seçilen Ay</th>
+                                <th style="text-align: right;">Önceki Ay</th>
+                                <th style="text-align: right;">Değişim</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${Array.from(document.querySelectorAll('#rapor-gelir-gider-tbody tr')).map(tr => {
                                 const cells = tr.querySelectorAll('td');
-                                if (cells.length < 3) return '';
+                                if (cells.length < 5) return '';
                                 const isTotal = tr.classList.contains('font-black');
                                 return `
                                     <tr style="${isTotal ? 'background: #f1f5f9; font-weight: 800;' : ''}">
                                         <td style="padding: 8px 6px;">${cells[0].textContent}</td>
                                         <td style="padding: 8px 6px; text-align: center;">${cells[1].textContent}</td>
                                         <td style="padding: 8px 6px; text-align: right;">${cells[2].textContent}</td>
+                                        <td style="padding: 8px 6px; text-align: right;">${cells[3].textContent}</td>
+                                        <td style="padding: 8px 6px; text-align: right;">${cells[4].textContent}</td>
                                     </tr>
                                 `;
                             }).join('')}

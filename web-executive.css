@@ -1585,7 +1585,7 @@
     #module-raporlar .report-summary-band > .dashboard-card {
         display: grid;
         min-width: 0;
-        min-height: 66px;
+        min-height: 92px;
         margin: 0;
         padding: 10px 12px;
         align-content: center;
@@ -1600,7 +1600,54 @@
     #module-raporlar .report-summary-band > .dashboard-card > .flex { min-width: 0; margin: 0; gap: 7px; }
     #module-raporlar .report-summary-band > .dashboard-card .w-8 { width: 24px; height: 24px; flex: 0 0 24px; border-radius: 3px; }
     #module-raporlar .report-summary-band > .dashboard-card span { overflow: hidden; color: var(--erp-text-3); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
-    #module-raporlar .report-summary-band > .dashboard-card > div:last-child { overflow: hidden; color: var(--erp-text); font-size: 14px; line-height: 1.15; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-summary-band > .dashboard-card > div:nth-child(2) { overflow: hidden; color: var(--erp-text); font-size: 14px; line-height: 1.15; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-summary-band > .dashboard-card > small { overflow: hidden; color: var(--erp-text-3); font-size: 8px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-change {
+        display: inline-flex;
+        width: max-content;
+        max-width: 100%;
+        min-height: 18px;
+        padding: 0 6px;
+        align-items: center;
+        border: 1px solid var(--erp-line);
+        border-radius: 3px;
+        color: var(--erp-text-3);
+        background: var(--erp-panel-soft);
+        font-size: 8px;
+        font-style: normal;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+    }
+    #module-raporlar .report-change.is-positive { color: var(--erp-green); border-color: color-mix(in srgb, var(--erp-green) 30%, var(--erp-line)); background: color-mix(in srgb, var(--erp-green) 7%, var(--erp-panel)); }
+    #module-raporlar .report-change.is-negative { color: var(--erp-red); border-color: color-mix(in srgb, var(--erp-red) 30%, var(--erp-line)); background: color-mix(in srgb, var(--erp-red) 7%, var(--erp-panel)); }
+    #module-raporlar .report-change.is-neutral { color: var(--erp-text-3); }
+    #module-raporlar .report-summary-band > .dashboard-card > .report-change.is-positive { color: var(--erp-green); }
+    #module-raporlar .report-summary-band > .dashboard-card > .report-change.is-negative { color: var(--erp-red); }
+    #module-raporlar .report-operations-band {
+        display: grid;
+        margin: 0 0 14px;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        overflow: hidden;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        background: var(--erp-panel);
+    }
+    #module-raporlar .report-operations-band article {
+        display: grid;
+        min-width: 0;
+        min-height: 70px;
+        padding: 10px 12px;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-content: center;
+        gap: 3px 8px;
+        border-right: 1px solid var(--erp-line);
+    }
+    #module-raporlar .report-operations-band article:last-child { border-right: 0; }
+    #module-raporlar .report-operations-band article > span { color: var(--erp-text-3); font-size: 8px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+    #module-raporlar .report-operations-band article > strong { color: var(--erp-text); font-size: 14px; font-weight: 700; text-align: right; white-space: nowrap; }
+    #module-raporlar .report-operations-band article > small { min-width: 0; overflow: hidden; color: var(--erp-text-3); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+    #module-raporlar .report-operations-band article > .report-change { justify-self: end; }
     #module-raporlar .report-workspace { border-radius: 4px; }
     #module-raporlar .report-tabs {
         display: flex;
@@ -1701,6 +1748,14 @@
     #module-raporlar .report-content > .overflow-x-auto table { width: 100%; min-width: 720px; }
     #module-raporlar table th { padding: 9px 12px; color: var(--erp-text-3); background: var(--erp-panel-soft); font-size: 9px; white-space: nowrap; }
     #module-raporlar table td { padding: 10px 12px; color: var(--erp-text-2); font-size: 11px; line-height: 1.35; }
+    #module-raporlar table tbody tr { border-bottom: 1px solid var(--erp-line); }
+    #module-raporlar table tbody tr:hover { background: var(--erp-panel-hover); }
+    #module-raporlar table td.is-number { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #module-raporlar table td.is-center { text-align: center; }
+    #module-raporlar table td.is-emphasis { color: var(--erp-text); font-weight: 700; }
+    #module-raporlar .report-kind { display: inline-flex; min-height: 19px; padding: 0 6px; align-items: center; border: 1px solid var(--erp-line); border-radius: 3px; color: var(--erp-text-2); background: var(--erp-panel-soft); font-size: 8px; font-weight: 700; white-space: nowrap; }
+    #module-raporlar .report-kind.is-gelir { color: var(--erp-green); }
+    #module-raporlar .report-kind.is-gider { color: var(--erp-red); }
     #module-raporlar .report-chart-grid { display: grid; margin: 14px; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     #module-raporlar .report-chart-panel { min-width: 0; padding: 14px; overflow: hidden; border: 1px solid var(--erp-line); border-radius: 4px; background: var(--erp-panel); }
     #module-raporlar .report-chart-panel > .flex { min-width: 0; margin-bottom: 10px; }
@@ -2692,6 +2747,13 @@
         .fleet-schedule-page-header .page-actions { justify-content: flex-start; }
         .fleet-toolbar-controls { flex-basis: 100%; justify-content: flex-start; }
         .dashboard-reference-grid { grid-template-columns: minmax(0, 1fr); }
+        #module-raporlar .report-summary-band { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        #module-raporlar .report-summary-band > .dashboard-card:nth-child(3) { border-right: 0; }
+        #module-raporlar .report-summary-band > .dashboard-card:nth-child(-n+3) { border-bottom: 1px solid var(--erp-line); }
+        #module-raporlar .report-operations-band { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        #module-raporlar .report-operations-band article:nth-child(2) { border-right: 0; }
+        #module-raporlar .report-operations-band article:nth-child(-n+4) { border-bottom: 1px solid var(--erp-line); }
+        #module-raporlar .report-operations-band article:last-child { grid-column: 1 / -1; }
     }
 
     @media (min-width: 2000px) {
