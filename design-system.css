@@ -3384,6 +3384,36 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 .fuel-insights > div:last-child { border-right: 0; }
 .fuel-insights span { color: var(--bf-text-muted); font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
 .fuel-insights strong { overflow: hidden; color: var(--bf-text-primary); font-size: var(--bf-text-sm); text-overflow: ellipsis; white-space: nowrap; }
+.fuel-efficiency-guide { display: grid; grid-template-columns: minmax(230px,.8fr) minmax(0,2.2fr); margin-bottom: var(--bf-space-5); overflow: hidden; border: 1px solid color-mix(in srgb, #c87416 24%, var(--bf-border)); border-radius: var(--bf-radius-card); background: color-mix(in srgb, #c87416 4%, var(--bf-surface)); }
+.fuel-efficiency-guide-title { display: flex; min-width: 0; align-items: flex-start; padding: var(--bf-space-4); gap: var(--bf-space-3); border-right: 1px solid var(--bf-border); }
+.fuel-efficiency-guide-title > span { display: grid; width: 32px; height: 32px; flex: 0 0 32px; place-items: center; border-radius: 9px; color: #b8670f; background: rgba(200,116,22,.11); }
+.fuel-efficiency-guide-title svg { width: 16px; height: 16px; }
+.fuel-efficiency-guide-title div { display: grid; min-width: 0; gap: 3px; }
+.fuel-efficiency-guide-title strong { color: var(--bf-text-primary); font-size: var(--bf-text-sm); }
+.fuel-efficiency-guide-title p { margin: 0; color: var(--bf-text-muted); font-size: var(--bf-text-xs); line-height: 1.45; }
+.fuel-efficiency-guide-items { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); }
+.fuel-efficiency-guide-items > div { display: grid; min-width: 0; align-content: center; padding: var(--bf-space-3) var(--bf-space-4); gap: 4px; border-right: 1px solid var(--bf-border); }
+.fuel-efficiency-guide-items > div:last-child { border-right: 0; }
+.fuel-efficiency-guide-items b { color: #a95e0d; font-size: 11px; font-weight: 800; letter-spacing: .035em; }
+.fuel-efficiency-guide-items span { color: var(--bf-text-secondary); font-size: 11px; line-height: 1.45; }
+.fuel-efficiency-table { min-width: 1320px; }
+.fuel-efficiency-table td { height: auto; min-height: 68px; padding-block: 11px; }
+.fuel-efficiency-column { min-width: 290px; }
+.fuel-efficiency-cell { display: grid; min-width: 260px; gap: 5px; text-align: left; }
+.fuel-efficiency-primary { display: flex; align-items: baseline; gap: 5px; }
+.fuel-efficiency-primary strong { color: var(--bf-text-primary); font-size: 15px; font-weight: 800; }
+.fuel-efficiency-primary span { color: var(--bf-text-secondary); font-size: 11px; font-weight: 700; }
+.fuel-efficiency-breakdown { display: flex; flex-wrap: wrap; gap: 5px 14px; }
+.fuel-efficiency-breakdown span { display: inline-flex; align-items: center; gap: 5px; color: var(--bf-text-secondary); font-size: 10px; }
+.fuel-efficiency-breakdown b { color: var(--bf-text-muted); font-weight: 650; }
+.fuel-efficiency-previous { color: var(--bf-text-muted); font-size: 10px; }
+.fuel-efficiency-cell.is-missing { align-content: center; gap: 5px; }
+.fuel-efficiency-cell.is-missing .badge { width: fit-content; }
+.fuel-efficiency-cell.is-missing small { color: var(--bf-text-muted); font-size: 10px; }
+.fuel-change-detail { display: inline-grid; justify-items: end; gap: 3px; }
+.fuel-change-detail small { color: var(--bf-text-muted); font-size: 9px; font-weight: 650; white-space: nowrap; }
+.fuel-change.is-increase { color: #1f6da3; background: rgba(31,109,163,.1); }
+.fuel-change.is-decrease { color: var(--bf-text-secondary); background: var(--bf-surface-subtle); }
 .fuel-record-filters { display: flex; align-items: flex-end; justify-content: flex-end; padding: var(--bf-space-3) var(--bf-space-5); gap: var(--bf-space-3); border-bottom: 1px solid var(--bf-border); }
 .fuel-record-filters label { display: grid; min-width: 220px; gap: 4px; color: var(--bf-text-muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
 .fuel-record-filters select { min-height: 38px; padding: 0 var(--bf-space-3); border: 1px solid var(--bf-border); border-radius: var(--bf-radius-control); color: var(--bf-text-primary); background: var(--bf-surface); }
@@ -3416,6 +3446,11 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     .fuel-insights { grid-template-columns: repeat(2, minmax(0,1fr)); }
     .fuel-insights > div:nth-child(2) { border-right: 0; }
     .fuel-insights > div:nth-child(-n+2) { border-bottom: 1px solid var(--bf-border); }
+    .fuel-efficiency-guide { grid-template-columns: minmax(0,1fr); }
+    .fuel-efficiency-guide-title { border-right: 0; border-bottom: 1px solid var(--bf-border); }
+    .fuel-efficiency-guide-items { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    .fuel-efficiency-guide-items > div:nth-child(2) { border-right: 0; }
+    .fuel-efficiency-guide-items > div:nth-child(-n+2) { border-bottom: 1px solid var(--bf-border); }
 }
 
 @media (max-width: 760px) {
@@ -3433,6 +3468,9 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     .fuel-insights { grid-template-columns: minmax(0,1fr); }
     .fuel-insights > div { border-right: 0; border-bottom: 1px solid var(--bf-border); }
     .fuel-insights > div:last-child { border-bottom: 0; }
+    .fuel-efficiency-guide-items { grid-template-columns: minmax(0,1fr); }
+    .fuel-efficiency-guide-items > div { border-right: 0; border-bottom: 1px solid var(--bf-border); }
+    .fuel-efficiency-guide-items > div:last-child { border-bottom: 0; }
     .fuel-record-filters { align-items: stretch; flex-direction: column; }
     .fuel-record-filters label { width: 100%; }
     .fuel-entry-grid { grid-template-columns: minmax(0,1fr); }

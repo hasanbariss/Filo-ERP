@@ -185,6 +185,9 @@
                 receiptCount: current.count,
                 litersPer100Km: currentMetrics.litersPer100Km,
                 costPerKm: currentMetrics.costPerKm,
+                previousKm: previousKm,
+                previousLitersPer100Km: previousMetrics.litersPer100Km,
+                previousCostPerKm: previousMetrics.costPerKm,
                 kmChangePercent: km > 0 && previousKm > 0 ? percentChange(km, previousKm) : null,
                 consumptionChangePercent: currentMetrics.litersPer100Km !== null && previousMetrics.litersPer100Km !== null
                     ? percentChange(currentMetrics.litersPer100Km, previousMetrics.litersPer100Km) : null

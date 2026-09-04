@@ -33,6 +33,10 @@ const rows = fuel.aggregateByVehicle(
 );
 assert.equal(rows.length, 2);
 assert.equal(rows.find(row => row.vehicleId === 'a1').litersPer100Km, 10);
+assert.equal(rows.find(row => row.vehicleId === 'a1').previousLitersPer100Km, 9);
+assert.equal(rows.find(row => row.vehicleId === 'a1').previousCostPerKm, 4.5);
+assert.equal(rows.find(row => row.vehicleId === 'a1').previousKm, 500);
+assert.ok(Math.abs(rows.find(row => row.vehicleId === 'a1').consumptionChangePercent - 11.11111111111111) < 0.000001);
 assert.equal(rows.find(row => row.vehicleId === 'a2').costPerKm, null);
 assert.equal(rows.find(row => row.vehicleId === 'a2').litersPer100Km, null);
 assert.equal(rows.find(row => row.vehicleId === 'a1').ownership, 'ÖZMAL');

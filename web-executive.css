@@ -880,6 +880,7 @@
     .fuel-analysis-filters .fuel-filter-reset { min-height: 31px; flex: 0 0 auto; }
     .fuel-analysis-filters .fuel-filter-reset svg { width: 13px; height: 13px; }
     .fuel-table { width: 100%; min-width: 820px; table-layout: fixed; border-collapse: collapse; }
+    .fuel-table.fuel-efficiency-table { min-width: 1120px; }
     .fuel-table th, .fuel-table td { height: auto; padding: 10px 12px; border-bottom: 1px solid var(--erp-line); vertical-align: middle; }
     .fuel-table th { color: var(--erp-text-3); background: var(--erp-panel-soft); font-size: 8px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
     .fuel-table td { color: var(--erp-text-2); font-size: 10px; line-height: 1.3; }
@@ -888,6 +889,12 @@
     .fuel-table th:nth-child(3) { width: 19%; }
     .fuel-table th:nth-child(4) { width: 22%; }
     .fuel-table th:nth-child(5), .fuel-table th:nth-child(6) { width: 14.5%; }
+    .fuel-efficiency-table th:nth-child(1) { width: 12%; }
+    .fuel-efficiency-table th:nth-child(2) { width: 13%; }
+    .fuel-efficiency-table th:nth-child(3) { width: 17%; }
+    .fuel-efficiency-table th:nth-child(4) { width: 30%; }
+    .fuel-efficiency-table th:nth-child(5), .fuel-efficiency-table th:nth-child(6) { width: 14%; }
+    .fuel-efficiency-table td { font-size: 11px; }
     .fuel-table .is-number { text-align: right; font-variant-numeric: tabular-nums; }
     .fuel-plate { display: block; color: var(--erp-text); font-size: 11px; }
     .fuel-owner { display: block; margin-top: 2px; color: var(--erp-text-3); font-size: 7px; font-weight: 700; letter-spacing: .05em; }

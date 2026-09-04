@@ -126,23 +126,44 @@
             return;
         }
         var tableRows = visible.map(function (row) {
-            function changeBadge(change) {
-                var changeClass = change === null ? 'is-neutral' : change > 10 ? 'is-danger' : change > 0 ? 'is-warning' : 'is-success';
+            function changeBadge(change, metric) {
+                var isConsumption = metric === 'consumption';
+                var changeClass = 'is-neutral';
+                if (change !== null && change !== 0) {
+                    if (isConsumption) changeClass = change < 0 ? 'is-success' : change > 10 ? 'is-danger' : 'is-warning';
+                    else changeClass = change > 0 ? 'is-increase' : 'is-decrease';
+                }
                 var changeLabel = change === null ? '—' : (change > 0 ? '+' : '') + fmtNumber(change, 1) + '%';
-                return '<span class="fuel-change ' + changeClass + '">' + changeLabel + '</span>';
+                var meaning = change === null ? 'Karşılaştırma yok' : change === 0 ? 'Değişmedi' :
+                    isConsumption ? (change < 0 ? 'Daha verimli' : 'Tüketim arttı') :
+                    (change > 0 ? 'Daha fazla yol' : 'Daha az yol');
+                return '<span class="fuel-change-detail"><span class="fuel-change ' + changeClass + '">' + changeLabel + '</span><small>' + meaning + '</small></span>';
             }
-            var consumption = row.km <= 0 && row.receiptCount > 0 ? '<span class="badge badge-warning">KM verisi yok</span>' : row.receiptCount === 0 ? '<span class="badge badge-neutral">Kayıt yok</span>' : fmtNumber(row.litersPer100Km, 2);
+            var previousPeriodLabel = state.period === 'month' ? 'Önceki ay' : 'Önceki hafta';
+            var efficiency;
+            if (row.km <= 0 && row.receiptCount > 0) {
+                efficiency = '<div class="fuel-efficiency-cell is-missing"><span class="badge badge-warning">KM verisi yok</span><small>Tüketim için GPS kilometresi gerekli</small></div>';
+            } else if (row.receiptCount === 0) {
+                efficiency = '<div class="fuel-efficiency-cell is-missing"><span class="badge badge-neutral">Yakıt kaydı yok</span><small>Bu dönem hesaplanamaz</small></div>';
+            } else {
+                efficiency = '<div class="fuel-efficiency-cell">' +
+                    '<div class="fuel-efficiency-primary"><strong>' + fmtNumber(row.litersPer100Km, 2) + '</strong><span>L / 100 km</span></div>' +
+                    '<div class="fuel-efficiency-breakdown"><span><b>KM maliyeti</b>' + (row.costPerKm !== null ? fmtMoney(row.costPerKm) + ' / km' : '—') + '</span>' +
+                    '<span><b>Ort. litre</b>' + (row.averageUnitPrice !== null ? fmtMoney(row.averageUnitPrice) + ' / L' : '—') + '</span></div>' +
+                    '<small class="fuel-efficiency-previous">' + previousPeriodLabel + ': ' + (row.previousLitersPer100Km !== null ? fmtNumber(row.previousLitersPer100Km, 2) + ' L / 100 km' : 'karşılaştırma verisi yok') + '</small>' +
+                    '</div>';
+            }
             return '<tr>' +
                 '<td><strong class="fuel-plate">' + esc(row.plate) + '</strong><span class="fuel-owner">' + esc(row.ownership) + '</span></td>' +
                 '<td class="is-number">' + (row.km > 0 ? fmtNumber(row.km, 1) + ' km' : '—') + '</td>' +
                 '<td class="is-number fuel-stacked-value"><strong>' + fmtMoney(row.cost) + '</strong><span>' + fmtNumber(row.liters, 2) + ' L · ' + row.receiptCount + ' kayıt</span></td>' +
-                '<td class="is-number fuel-stacked-value is-emphasis"><strong>' + consumption + '</strong><span>' + (row.costPerKm !== null ? fmtMoney(row.costPerKm) + '/km' : 'TL/KM —') + ' · ' + (row.averageUnitPrice !== null ? fmtMoney(row.averageUnitPrice) + '/L' : 'Ort. litre —') + '</span></td>' +
-                '<td class="is-number">' + changeBadge(row.kmChangePercent) + '</td>' +
-                '<td class="is-number">' + changeBadge(row.consumptionChangePercent) + '</td>' +
+                '<td class="fuel-efficiency-column">' + efficiency + '</td>' +
+                '<td class="is-number">' + changeBadge(row.kmChangePercent, 'km') + '</td>' +
+                '<td class="is-number">' + changeBadge(row.consumptionChangePercent, 'consumption') + '</td>' +
                 '</tr>';
         }).join('');
         var comparisonLabel = state.period === 'month' ? 'Önceki aya göre' : 'Önceki haftaya göre';
-        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Araç</th><th class="is-number">Toplam KM</th><th class="is-number">Yakıt</th><th class="is-number">Verimlilik</th><th class="is-number"><span class="fuel-column-label">KM Değişimi<small>' + comparisonLabel + '</small></span></th><th class="is-number"><span class="fuel-column-label">Tüketim Değişimi<small>' + comparisonLabel + '</small></span></th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
+        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table fuel-efficiency-table"><thead><tr><th>Araç</th><th class="is-number">Toplam KM</th><th class="is-number">Yakıt</th><th><span class="fuel-column-label">Tüketim ve KM Maliyeti<small>Seçili dönem değerleri</small></span></th><th class="is-number"><span class="fuel-column-label">KM Değişimi<small>' + comparisonLabel + '</small></span></th><th class="is-number"><span class="fuel-column-label">Tüketim Değişimi<small>' + comparisonLabel + '</small></span></th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
     }
 
     function renderKpis(rows, fuelRows) {
@@ -160,12 +181,12 @@
         setText('fuel-kpi-km', totalKm > 0 ? fmtNumber(totalKm, 1) + ' km' : '—');
         setText('fuel-kpi-litres', fmtNumber(summary.liters, 1) + ' L');
         setText('fuel-kpi-cost', fmtMoney(summary.cost));
-        setText('fuel-kpi-consumption', fleetMetrics.litersPer100Km !== null ? fmtNumber(fleetMetrics.litersPer100Km, 2) + ' L' : '—');
-        setText('fuel-kpi-cost-per-km', fleetMetrics.costPerKm !== null ? fmtMoney(fleetMetrics.costPerKm) : '—');
+        setText('fuel-kpi-consumption', fleetMetrics.litersPer100Km !== null ? fmtNumber(fleetMetrics.litersPer100Km, 2) + ' L / 100 km' : '—');
+        setText('fuel-kpi-cost-per-km', fleetMetrics.costPerKm !== null ? fmtMoney(fleetMetrics.costPerKm) + ' / km' : '—');
         setText('fuel-kpi-top-km', topKm ? topKm.plate + ' · ' + fmtNumber(topKm.km, 0) + ' km' : '—');
         setText('fuel-kpi-top-cost', topCost ? topCost.plate + ' · ' + fmtMoney(topCost.cost) : '—');
-        setText('fuel-kpi-top-consumption', topConsumption ? topConsumption.plate + ' · ' + fmtNumber(topConsumption.litersPer100Km, 1) + ' L' : '—');
-        setText('fuel-kpi-low-consumption', lowConsumption ? lowConsumption.plate + ' · ' + fmtNumber(lowConsumption.litersPer100Km, 1) + ' L' : '—');
+        setText('fuel-kpi-top-consumption', topConsumption ? topConsumption.plate + ' · ' + fmtNumber(topConsumption.litersPer100Km, 1) + ' L/100 km' : '—');
+        setText('fuel-kpi-low-consumption', lowConsumption ? lowConsumption.plate + ' · ' + fmtNumber(lowConsumption.litersPer100Km, 1) + ' L/100 km' : '—');
     }
 
     function renderRecords(fuelRows, vehicles) {

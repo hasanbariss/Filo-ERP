@@ -97,9 +97,9 @@
     </script>
     <link rel="stylesheet" href="style.css?v=2.0.6">
     <link rel="stylesheet" href="ios-mobile.css">
-    <link rel="stylesheet" href="design-system.css?v=2.0.14">
+    <link rel="stylesheet" href="design-system.css?v=2.0.15">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.12">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.13">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
     <link rel="stylesheet" href="ui-final-pass.css?v=1.0.0">
     <!-- Chart.js -->
@@ -465,12 +465,21 @@
                                 <article><span class="fuel-kpi-icon"><i data-lucide="route"></i></span><div><small>Toplam KM</small><strong id="fuel-kpi-km">—</strong></div></article>
                                 <article><span class="fuel-kpi-icon"><i data-lucide="droplets"></i></span><div><small>Toplam Litre</small><strong id="fuel-kpi-litres">—</strong></div></article>
                                 <article><span class="fuel-kpi-icon"><i data-lucide="wallet-cards"></i></span><div><small>Yakıt Gideri</small><strong id="fuel-kpi-cost">—</strong></div></article>
-                                <article><span class="fuel-kpi-icon"><i data-lucide="gauge"></i></span><div><small>Ort. L/100 KM</small><strong id="fuel-kpi-consumption">—</strong></div></article>
-                                <article><span class="fuel-kpi-icon"><i data-lucide="circle-dollar-sign"></i></span><div><small>Ort. TL/KM</small><strong id="fuel-kpi-cost-per-km">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="gauge"></i></span><div><small>100 KM'de Tüketim</small><strong id="fuel-kpi-consumption">—</strong></div></article>
+                                <article><span class="fuel-kpi-icon"><i data-lucide="circle-dollar-sign"></i></span><div><small>1 KM'nin Yakıt Maliyeti</small><strong id="fuel-kpi-cost-per-km">—</strong></div></article>
                             </div>
                             <div class="fuel-insights"><div><span>En çok KM</span><strong id="fuel-kpi-top-km">—</strong></div><div><span>En yüksek gider</span><strong id="fuel-kpi-top-cost">—</strong></div><div><span>En yüksek tüketim</span><strong id="fuel-kpi-top-consumption">—</strong></div><div><span>En düşük tüketim</span><strong id="fuel-kpi-low-consumption">—</strong></div></div>
+                            <aside class="fuel-efficiency-guide" aria-label="Yakıt verimliliği açıklaması">
+                                <div class="fuel-efficiency-guide-title"><span><i data-lucide="info"></i></span><div><strong>Verimlilik nasıl okunur?</strong><p>Değerler seçili dönem ile bir önceki eşdeğer dönem arasında karşılaştırılır.</p></div></div>
+                                <div class="fuel-efficiency-guide-items">
+                                    <div><b>L/100 KM</b><span>Aracın 100 kilometrede tükettiği yakıt. Değer düştükçe tüketim iyileşir.</span></div>
+                                    <div><b>TL/KM</b><span>Bir kilometrenin yakıt maliyeti. Yakıt fiyatı değişimleri bu değeri etkiler.</span></div>
+                                    <div><b>Değişim</b><span>Tüketimde düşüş olumlu, artış ise daha fazla yakıt kullanıldığını gösterir.</span></div>
+                                    <div><b>Doğru kıyas</b><span>27'lik, 16'lık ve taksi gibi farklı araç sınıflarını kendi sınıfı içinde değerlendirin.</span></div>
+                                </div>
+                            </aside>
                             <div class="fuel-analysis-surface">
-                                <div class="fuel-section-head"><div><h2>Araç Bazlı Analiz</h2><p>L/100 KM ve TL/KM yalnızca geçerli GPS kilometresi olduğunda hesaplanır.</p></div><span id="fuel-analysis-count" class="badge badge-neutral">0 araç</span></div>
+                                <div class="fuel-section-head"><div><h2>Araç Bazlı Analiz</h2><p>Tüketim ve kilometre maliyeti yalnızca aynı dönemde hem yakıt hem GPS kilometresi bulunan araçlarda hesaplanır.</p></div><span id="fuel-analysis-count" class="badge badge-neutral">0 araç</span></div>
                                 <div class="fuel-analysis-filters" aria-label="Araç analizi filtreleri">
                                     <label><span>Veri durumu</span><select id="fuel-analysis-availability" onchange="window.filterYakitKm()"><option value="complete">KM + yakıt verisi olan</option><option value="km">KM verisi olan</option><option value="fuel">Yakıt verisi olan</option><option value="all">Tüm araçlar</option></select></label>
                                     <label><span>Filo türü</span><select id="fuel-analysis-ownership" onchange="window.filterYakitKm()"><option value="">Tüm filo türleri</option><option value="ÖZMAL">Özmal</option><option value="TAŞERON">Taşeron</option><option value="KİRALIK">Kiralık</option></select></label>
@@ -2952,12 +2961,12 @@
 <script defer src="company-branding.js?v=2.0.3"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
-<script defer src="fuel-analytics.js?v=2.0.1"></script>
+<script defer src="fuel-analytics.js?v=2.0.2"></script>
 <script defer src="report-analytics.js?v=2.0.0"></script>
 <script defer src="data-services.js?v=2.0.12"></script>
 <script defer src="report-comparison-ui.js?v=2.0.0"></script>
 <script defer src="ui-manager.js?v=2.0.12"></script>
-<script defer src="fuel-analytics-ui.js?v=2.0.4"></script>
+<script defer src="fuel-analytics-ui.js?v=2.0.5"></script>
 
 
 <!-- 3. FEATURE MODULES -->
