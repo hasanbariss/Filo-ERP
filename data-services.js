@@ -3502,6 +3502,11 @@ window.openCariHakedisDetay = async function(arac_id) {
                         </button>
                         <div class="cari-factory-content">
                         <div class="cari-rate-grid grid grid-cols-2 gap-4">
+                            <div class="cari-rate-head" aria-hidden="true">
+                                <span>Hizmet</span>
+                                <span>Adet / Puantaj</span>
+                                <span>Birim fiyat</span>
+                            </div>
                             <div class="cari-rate-item is-shift bg-white/5 p-3 rounded-xl border border-white/10 shadow-sm focus-within:border-orange-500/50 transition-colors">
                                 <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">

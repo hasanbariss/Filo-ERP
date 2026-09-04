@@ -2925,13 +2925,32 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-factory-content { padding: 8px 10px 9px; }
 #cari-kart-modal-overlay .cari-factory-title { color: var(--bf-text-primary) !important; }
 #cari-kart-modal-overlay .cari-rate-grid {
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-    gap: 1px !important;
+    display: block !important;
     overflow: hidden;
     border: 1px solid var(--bf-border);
     border-radius: 7px;
-    background: var(--bf-border);
+    background: var(--bf-surface);
+}
+#cari-kart-modal-overlay .cari-rate-head,
+#cari-kart-modal-overlay .cari-rate-item {
+    display: grid !important;
+    grid-template-columns: minmax(140px, 1fr) 132px 170px;
+    align-items: center;
+}
+#cari-kart-modal-overlay .cari-rate-head {
+    min-height: 27px;
+    padding: 0 10px;
+    color: var(--bf-text-tertiary);
+    border-bottom: 1px solid var(--bf-border);
+    background: var(--bf-surface-subtle);
+    font-size: 9px;
+    font-weight: 750;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+#cari-kart-modal-overlay .cari-rate-head span:nth-child(n + 2) {
+    padding-left: 12px;
+    text-align: right;
 }
 #cari-kart-modal-overlay .cari-rate-item,
 #cari-kart-modal-overlay .cari-tax-item {
@@ -2943,14 +2962,34 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     background: var(--bf-surface) !important;
     box-shadow: none !important;
 }
+#cari-kart-modal-overlay .cari-rate-item {
+    min-height: 39px;
+    padding: 5px 10px !important;
+    border-bottom: 1px solid var(--bf-border) !important;
+}
+#cari-kart-modal-overlay .cari-rate-item:last-child { border-bottom: 0 !important; }
 #cari-kart-modal-overlay .cari-rate-item.col-span-2 { grid-column: auto !important; }
 #cari-kart-modal-overlay .cari-rate-item::before,
 #cari-kart-modal-overlay .cari-tax-item::before {
     display: none;
 }
-#cari-kart-modal-overlay .cari-rate-item > div:first-child { margin-bottom: 4px !important; }
 #cari-kart-modal-overlay .cari-rate-item > div:first-child,
-#cari-kart-modal-overlay .cari-rate-item > div:first-child span { font-size: 9px !important; line-height: 1.15; }
+#cari-kart-modal-overlay .cari-rate-item > div:first-child > div { display: contents !important; }
+#cari-kart-modal-overlay .cari-rate-item > div:first-child > div > span:first-child {
+    color: var(--bf-text-secondary) !important;
+    font-size: 10px !important;
+    line-height: 1.2;
+    letter-spacing: .025em;
+}
+#cari-kart-modal-overlay .cari-rate-item > div:first-child > div > div {
+    display: flex !important;
+    justify-content: flex-end;
+    padding-left: 12px;
+}
+#cari-kart-modal-overlay .cari-rate-item > div:last-child {
+    width: 100%;
+    padding-left: 12px;
+}
 #cari-kart-modal-overlay .cari-rate-item input[type="number"] { min-height: 28px; font-size: 12px !important; }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-count"] { width: 42px !important; height: 27px; padding: 2px 5px !important; }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-fiyat"] { height: 27px; padding-top: 2px !important; padding-bottom: 2px !important; }
@@ -3070,8 +3109,8 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     #cari-kart-modal-overlay .cari-card-actions { width: 100%; }
     #cari-kart-modal-overlay .cari-card-action { flex: 1; justify-content: center; }
     #cari-kart-modal-overlay .cari-card-close { margin-left: auto; }
-    #cari-kart-modal-overlay .cari-rate-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-    #cari-kart-modal-overlay .cari-rate-item.col-span-2 { grid-column: 1 / -1 !important; }
+    #cari-kart-modal-overlay .cari-rate-head,
+    #cari-kart-modal-overlay .cari-rate-item { grid-template-columns: minmax(110px, 1fr) 106px 138px; }
     #cari-kart-modal-overlay .cari-factory-total { grid-template-columns: 1fr; }
     #cari-kart-modal-overlay .cari-factory-total > div { border-right: 0; border-bottom: 1px solid var(--bf-border); }
     #cari-kart-modal-overlay .cari-factory-total > div:last-child { border-bottom: 0; }
