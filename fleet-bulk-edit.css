@@ -16,7 +16,7 @@
     display: grid;
     width: min(980px, calc(100vw - 48px));
     max-height: min(820px, calc(100dvh - 48px));
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
     overflow: hidden;
     border: 1px solid var(--bf-border, #dfe3e7);
     border-radius: 8px;
@@ -100,6 +100,21 @@
 .fleet-bulk-toolbar > span { margin-left: auto; color: var(--bf-text-muted, #7e8993); font-size: 10px; font-weight: 700; white-space: nowrap; }
 
 .fleet-bulk-body { position: relative; min-height: 260px; overflow: auto; background: var(--bf-surface, #fff); }
+.fleet-bulk-schema-notice {
+    display: flex;
+    min-height: 38px;
+    padding: 8px 18px;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid color-mix(in srgb, #c8842f 24%, var(--bf-border, #dfe3e7));
+    color: #89520f;
+    background: color-mix(in srgb, #c8842f 10%, var(--bf-surface, #fff));
+    font-size: 10px;
+    font-weight: 650;
+}
+.fleet-bulk-schema-notice[hidden] { display: none; }
+.fleet-bulk-schema-notice svg { width: 14px; height: 14px; flex: 0 0 14px; }
+.fleet-bulk-table select:disabled { color: var(--bf-text-muted, #7e8993); background: var(--bf-surface-raised, #f8f9fa); cursor: not-allowed; }
 .fleet-bulk-table { width: 100%; min-width: 760px; border-collapse: collapse; table-layout: fixed; }
 .fleet-bulk-table th {
     position: sticky;

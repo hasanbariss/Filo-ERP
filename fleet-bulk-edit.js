@@ -13,6 +13,7 @@
     var state = {
         vehicles: [],
         drivers: [],
+        supportsVehicleClass: true,
         dirtyIds: new Set(),
         previousBodyOverflow: ''
     };
@@ -127,6 +128,8 @@
             classSelect.setAttribute('aria-label', (vehicle.plaka || 'Araç') + ' araç sınıfı');
             VEHICLE_CLASSES.forEach(function (item) { classSelect.appendChild(buildOption(item.value, item.label)); });
             classSelect.value = vehicleClass;
+            classSelect.disabled = !state.supportsVehicleClass;
+            if (!state.supportsVehicleClass) classSelect.title = 'Araç sınıfı alanı production veritabanında henüz etkin değil.';
             classCell.appendChild(classSelect);
 
             var driverCell = document.createElement('td');
@@ -173,10 +176,17 @@
                 window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id, arac_sinifi').eq('mulkiyet_durumu', 'ÖZMAL').order('plaka'),
                 window.supabaseClient.from('soforler').select('id, ad_soyad, sirket').order('ad_soyad')
             ]);
+            state.supportsVehicleClass = true;
+            if (results[0].error && /arac_sinifi|column|schema cache/i.test(results[0].error.message || '')) {
+                results[0] = await window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id').eq('mulkiyet_durumu', 'ÖZMAL').order('plaka');
+                state.supportsVehicleClass = false;
+            }
             if (results[0].error) throw results[0].error;
             if (results[1].error) throw results[1].error;
             state.vehicles = results[0].data || [];
             state.drivers = results[1].data || [];
+            var schemaNotice = document.getElementById('fleet-bulk-schema-notice');
+            if (schemaNotice) schemaNotice.hidden = state.supportsVehicleClass;
             renderRows();
         } catch (error) {
             console.error('[FLEET BULK EDIT]', error);
@@ -210,10 +220,9 @@
                 var batch = rows.slice(start, start + 8);
                 var responses = await Promise.all(batch.map(function (row) {
                     var values = currentVehicleValues(row);
-                    return window.supabaseClient.from('araclar').update({
-                        sofor_id: values.driverId || null,
-                        arac_sinifi: values.vehicleClass || null
-                    }).eq('id', row.dataset.vehicleId).then(function (response) {
+                    var payload = { sofor_id: values.driverId || null };
+                    if (state.supportsVehicleClass) payload.arac_sinifi = values.vehicleClass || null;
+                    return window.supabaseClient.from('araclar').update(payload).eq('id', row.dataset.vehicleId).then(function (response) {
                         return { response: response, row: row };
                     });
                 }));
@@ -246,6 +255,7 @@
         state.previousBodyOverflow = document.body.style.overflow;
         state.vehicles = [];
         state.drivers = [];
+        state.supportsVehicleClass = true;
         state.dirtyIds.clear();
 
         var overlay = document.createElement('div');
@@ -274,6 +284,7 @@
                     </select>
                     <span id="fleet-bulk-total-count">Araçlar yükleniyor</span>
                 </div>
+                <div id="fleet-bulk-schema-notice" class="fleet-bulk-schema-notice" hidden><i data-lucide="info"></i><span>Şoför ataması kullanılabilir. Araç sınıfı alanı veritabanında etkinleştirildikten sonra 16+1 / 27+1 seçimleri açılacak.</span></div>
                 <div id="fleet-bulk-body" class="fleet-bulk-body">
                     <table class="fleet-bulk-table">
                         <thead><tr><th>Araç</th><th>Araç Sınıfı</th><th>Atanan Şoför</th><th>Durum</th></tr></thead>
