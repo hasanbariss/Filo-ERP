@@ -3190,9 +3190,9 @@ async function fetchTaseronFinans() {
                     <span class="service-pill is-single" title="Tek Sefer"><strong>${group.tek}</strong> Tek</span>
                     <span class="service-pill is-overtime" title="Mesai"><strong>${group.mesai}</strong> Mesai</span>
                 </td>
-                <td class="cari-card-money is-gross" data-label="Brüt"><span>Hizmet</span><strong>₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
-                <td class="cari-card-money is-deduction" data-label="Yakıt"><span>Yakıt kesintisi</span><strong>-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
-                <td class="cari-card-money cari-card-net${net < 0 ? ' is-negative' : ''}" data-label="Net Hakediş"><span>Net hakediş</span><strong>₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-money is-gross" data-label="Brüt Hizmet"><strong>₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-money is-deduction" data-label="Yakıt Kesintisi"><strong>-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
+                <td class="cari-card-money cari-card-net${net < 0 ? ' is-negative' : ''}" data-label="Net Hakediş"><strong>₺${net.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
                 <td class="cari-card-detail" data-label="Detaylar">
                     ${isSingle ? '<span class="hakedis-detail-action">İncele <i data-lucide="arrow-up-right"></i></span>' : `<span class="cari-card-count">${group.plakaList.length} araç</span>`}
                 </td>
