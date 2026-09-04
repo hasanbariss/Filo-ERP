@@ -3077,10 +3077,10 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { color: var(--bf-text-primary) !important; }
 #cari-kart-modal-overlay #modal-net-total { color: var(--bf-flow-coral-600) !important; font-size: 20px !important; filter: none; }
 
-/* Cari Hakediş — compact two-column modal */
+/* Cari Hakediş — narrow receipt modal */
 #cari-kart-modal-overlay .cari-card-sheet {
-    width: min(520px, calc(100vw - clamp(28px, 12vw, 180px))) !important;
-    max-width: 520px !important;
+    width: min(460px, calc(100vw - clamp(28px, 16vw, 220px))) !important;
+    max-width: 460px !important;
     border-radius: 12px !important;
 }
 #cari-kart-modal-overlay .cari-card-header {
@@ -3111,25 +3111,52 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-factory-toggle small { font-size: 11px; }
 #cari-kart-modal-overlay .cari-factory-content { padding: 8px; }
 #cari-kart-modal-overlay .cari-rate-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px !important;
-    overflow: visible;
-    border: 0;
-    background: transparent;
+    display: block !important;
+    overflow: hidden;
+    border: 1px solid var(--bf-border);
+    border-radius: 7px;
+    background: var(--bf-surface);
 }
+#cari-kart-modal-overlay .cari-rate-head {
+    display: grid !important;
+    min-height: 28px;
+    grid-template-columns: minmax(105px, 1fr) 98px 116px;
+    align-items: center;
+    padding: 0 8px;
+    color: var(--bf-text-secondary);
+    border-bottom: 1px solid var(--bf-border);
+    background: var(--bf-surface-subtle);
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+}
+#cari-kart-modal-overlay .cari-rate-head span:nth-child(n + 2) { text-align: right; }
+#cari-kart-modal-overlay .cari-rate-head span:last-child { padding-right: 8px; }
 #cari-kart-modal-overlay .cari-rate-item {
-    min-height: 76px;
-    grid-template-columns: minmax(0, 1fr);
-    padding: 8px !important;
-    gap: 7px;
-    border: 1px solid var(--bf-border) !important;
-    border-radius: 7px !important;
-    background: var(--bf-surface-subtle) !important;
+    display: grid !important;
+    min-height: 42px;
+    grid-template-columns: minmax(105px, 1fr) 98px 116px;
+    align-items: center;
+    padding: 5px 8px !important;
+    gap: 0;
+    border: 0 !important;
+    border-bottom: 1px solid var(--bf-border) !important;
+    border-radius: 0 !important;
+    background: var(--bf-surface) !important;
 }
-#cari-kart-modal-overlay .cari-rate-item > div:first-child { grid-column: 1; }
+#cari-kart-modal-overlay .cari-rate-item:last-child { border-bottom: 0 !important; }
+#cari-kart-modal-overlay .cari-rate-item > div:first-child,
+#cari-kart-modal-overlay .cari-rate-item > div:first-child > div { display: contents !important; }
 #cari-kart-modal-overlay .cari-rate-item > div:first-child > div > span:first-child {
     color: var(--bf-text-primary) !important;
     font-size: 12px !important;
+}
+#cari-kart-modal-overlay .cari-rate-item > div:first-child > div > div {
+    display: flex !important;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3px !important;
 }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-count"] {
     width: 46px !important;
@@ -3139,26 +3166,23 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #cari-kart-modal-overlay .cari-rate-item > div:last-child {
     display: flex !important;
     width: 100%;
-    grid-column: 1;
+    grid-column: 3;
     align-items: center;
     justify-content: flex-end;
-    padding-left: 72px;
+    padding-left: 0;
 }
 #cari-kart-modal-overlay .cari-rate-item > div:last-child::before {
-    right: auto;
-    left: 0;
-    color: var(--bf-text-secondary);
-    font-size: 11px;
+    display: none;
 }
 #cari-kart-modal-overlay .cari-rate-item > div:last-child > span {
-    right: 96px;
-    left: auto !important;
+    right: auto;
+    left: 8px !important;
     z-index: 1;
 }
 #cari-kart-modal-overlay .cari-rate-item input[class*="-fiyat"] {
-    width: 112px !important;
+    width: 108px !important;
     height: 30px;
-    flex: 0 0 112px;
+    flex: 0 0 108px;
     padding: 2px 7px 2px 24px !important;
     border: 1px solid var(--bf-border) !important;
     border-radius: 6px;
@@ -3225,9 +3249,8 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 @media (max-width: 620px) {
     #cari-kart-modal-overlay .cari-card-sheet {
         width: calc(100vw - 20px) !important;
-        max-width: 520px !important;
+        max-width: 460px !important;
     }
-    #cari-kart-modal-overlay .cari-rate-grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Cari hakediş listesinde başlık ve tutarlar aynı kolon eksenini kullanır. */
