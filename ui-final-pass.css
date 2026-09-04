@@ -144,6 +144,26 @@
         max-height: 330px;
     }
 
+    body.bf-app .dashboard-policy-head > div:first-child {
+        min-width: 230px;
+    }
+
+    body.bf-app .dashboard-policy-summary {
+        display: flex;
+        min-height: 40px;
+        padding: 7px 13px;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 5px;
+        overflow-x: auto;
+        border-bottom: 1px solid var(--erp-line);
+        background: #fbfcfc;
+    }
+
+    body.bf-app .dashboard-policy-summary:empty {
+        display: none;
+    }
+
     body.bf-app .dashboard-policy-table th {
         padding: 10px 13px;
         font-size: 10px;
