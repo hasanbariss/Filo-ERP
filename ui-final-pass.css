@@ -1,0 +1,292 @@
+/* Baris.Flow — approved final desktop legibility and alignment pass. */
+@media (min-width: 769px) {
+    :root:not(.dark) {
+        --erp-text-2: #3f4d59;
+        --erp-text-3: #65727d;
+        --bf-text-secondary: var(--erp-text-2);
+        --bf-text-muted: var(--erp-text-3);
+    }
+
+    body.bf-app {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    /* Supporting copy must remain readable without competing with headings. */
+    body.bf-app .main-module:not(#module-dashboard) .page-subtitle,
+    body.bf-app .bf-offers-page .bf-page-header p,
+    body.bf-app .fleet-driver-page-header .page-subtitle,
+    body.bf-app .fleet-schedule-page-header .page-subtitle {
+        max-width: 760px;
+        color: var(--erp-text-2);
+        font-size: 12px;
+        line-height: 1.55;
+    }
+
+    body.bf-app .main-module:not(#module-dashboard) [class$="-eyebrow"],
+    body.bf-app .bf-offers-page .bf-page-eyebrow {
+        font-size: 10px;
+    }
+
+    body.bf-app .main-module th {
+        color: var(--erp-text-3);
+        font-size: 10.5px;
+    }
+
+    body.bf-app .main-module td {
+        color: var(--erp-text-2);
+        font-size: 12px;
+    }
+
+    body.bf-app .main-module .loading-state,
+    body.bf-app .main-module .empty-state,
+    body.bf-app .main-module .form-helper {
+        color: var(--erp-text-2);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* Dashboard: four aligned executive surfaces instead of nested card stacks. */
+    body.bf-app .bf-management-dashboard {
+        gap: 18px;
+    }
+
+    body.bf-app .dashboard-reference-grid {
+        grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr);
+        gap: 16px;
+        align-items: stretch;
+    }
+
+    body.bf-app .dashboard-panel {
+        height: 100%;
+        border-color: #d9dee3;
+        border-radius: 6px;
+        background: var(--erp-panel);
+    }
+
+    body.bf-app .dashboard-panel-head {
+        min-height: 70px;
+        padding: 14px 18px;
+        align-items: center;
+        background: var(--erp-panel);
+    }
+
+    body.bf-app .dashboard-panel-head h3 {
+        font-size: 17px;
+        font-weight: 680;
+    }
+
+    body.bf-app .dashboard-panel-head p,
+    body.bf-app .dashboard-page-header p {
+        color: var(--erp-text-2);
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    body.bf-app .dashboard-page-header small {
+        color: var(--erp-text-3);
+        font-size: 11px;
+    }
+
+    body.bf-app .dashboard-kpi-card > div > span {
+        color: var(--erp-text-2);
+        font-size: 12px;
+    }
+
+    body.bf-app .dashboard-kpi-card small {
+        color: var(--erp-text-3);
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
+    body.bf-app .dashboard-operation-metrics article {
+        min-height: 64px;
+        padding: 10px 17px;
+    }
+
+    body.bf-app .dashboard-operation-metrics article > div > span {
+        color: var(--erp-text-2);
+        font-size: 12px;
+    }
+
+    body.bf-app .dashboard-operation-metrics article > div > strong {
+        font-size: 14px;
+    }
+
+    body.bf-app .dashboard-trend {
+        min-width: 104px;
+        font-size: 10px;
+    }
+
+    body.bf-app .dashboard-maintenance-layout h4,
+    body.bf-app .dashboard-subsection h4 {
+        padding: 10px 16px;
+        color: var(--erp-text-2);
+        background: #f7f8f9;
+        font-size: 10px;
+    }
+
+    body.bf-app .management-attention-list {
+        color: var(--erp-text-2);
+        font-size: 12px;
+    }
+
+    /* Removes the legacy dark header that survived on the light policy table. */
+    :root:not(.dark) body.bf-app .dashboard-policy-table thead,
+    :root:not(.dark) body.bf-app .dashboard-policy-table thead tr,
+    :root:not(.dark) body.bf-app .dashboard-policy-table thead th {
+        color: #5e6b76 !important;
+        border-color: #dfe3e7 !important;
+        background: #f5f7f8 !important;
+    }
+
+    body.bf-app .dashboard-table-wrap {
+        max-height: 330px;
+    }
+
+    body.bf-app .dashboard-policy-table th {
+        padding: 10px 13px;
+        font-size: 10px;
+    }
+
+    body.bf-app .dashboard-policy-table td {
+        padding: 11px 13px;
+        color: var(--erp-text-2);
+        font-size: 11px;
+    }
+
+    body.bf-app .dashboard-policy-table .policy-type-cell strong,
+    body.bf-app .dashboard-policy-table .policy-plate strong {
+        font-size: 12px;
+    }
+
+    body.bf-app .dashboard-policy-table .policy-type-cell small,
+    body.bf-app .dashboard-panel-footer {
+        color: var(--erp-text-3);
+        font-size: 10px;
+    }
+
+    body.bf-app .dashboard-finance-table td,
+    body.bf-app .dashboard-recent-table td {
+        color: var(--erp-text-2);
+        font-size: 11.5px;
+    }
+
+    body.bf-app .dashboard-finance-foot {
+        color: var(--erp-text-2);
+        font-size: 10.5px;
+    }
+
+    body.bf-app .dashboard-activity-module {
+        font-size: 10.5px;
+    }
+
+    body.bf-app .panel-link {
+        font-size: 11px;
+    }
+
+    /* Fleet modules: module identity first, navigation second, workspace third. */
+    body.bf-app #module-filo:not(.hidden) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.bf-app #module-filo > .bf-fleet-tabs {
+        order: 2;
+    }
+
+    body.bf-app #module-filo > #sub-araclar:not(.hidden),
+    body.bf-app #module-filo > #sub-soforler:not(.hidden),
+    body.bf-app #module-filo > #sub-cizelge:not(.hidden) {
+        display: contents;
+    }
+
+    body.bf-app #module-filo > #sub-araclar > .page-header,
+    body.bf-app #module-filo > #sub-soforler > .page-header,
+    body.bf-app #module-filo > #sub-cizelge > .page-header {
+        order: 1;
+        margin-bottom: 14px;
+    }
+
+    body.bf-app #module-filo > #sub-araclar > .fleet-kpi-grid {
+        order: 3;
+    }
+
+    body.bf-app #module-filo > #sub-araclar > .fleet-surface,
+    body.bf-app #module-filo > #sub-soforler > .fleet-driver-surface,
+    body.bf-app #module-filo > #sub-cizelge > .fleet-schedule-surface,
+    body.bf-app #module-filo > #sub-cizelge > div:not(.page-header) {
+        order: 4;
+    }
+
+    body.bf-app .fleet-result-strip,
+    body.bf-app .fleet-result-note,
+    body.bf-app .erp-result-count,
+    body.bf-app .fleet-table td,
+    body.bf-app .fleet-driver-table td,
+    body.bf-app .fleet-schedule-table td {
+        color: var(--erp-text-2);
+        font-size: 11px;
+    }
+
+    body.bf-app .fleet-driver-identity strong,
+    body.bf-app .cizelge-plate {
+        font-size: 12px;
+    }
+
+    body.bf-app .fleet-driver-identity small,
+    body.bf-app .fleet-driver-money span,
+    body.bf-app .cizelge-model {
+        color: var(--erp-text-3);
+        font-size: 10px;
+    }
+
+    /* Reporting and finance used 8–9 px helper copy in the compact redesign. */
+    body.bf-app #module-raporlar .report-summary-band > .dashboard-card span,
+    body.bf-app #module-raporlar .report-summary-band > .dashboard-card > small,
+    body.bf-app #module-raporlar .report-operations-band article > span,
+    body.bf-app #module-raporlar .report-operations-band article > small,
+    body.bf-app #module-raporlar .report-change,
+    body.bf-app .cari-card-context,
+    body.bf-app .cari-card-count,
+    body.bf-app .cari-card-money span,
+    body.bf-app .hakedis-detail-action {
+        color: var(--erp-text-2);
+        font-size: 10.5px;
+        line-height: 1.4;
+    }
+
+    body.bf-app .service-pill {
+        color: var(--erp-text-2);
+        font-size: 10px;
+    }
+
+    body.bf-app .service-pill strong,
+    body.bf-app .cari-card-money strong {
+        font-size: 12px;
+    }
+
+    /* Keep alerts clear of the top bar and content title. */
+    body.bf-app #toast-container {
+        top: 76px;
+        max-width: min(390px, calc(100vw - 32px));
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1180px) {
+    body.bf-app .dashboard-reference-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (min-width: 2000px) {
+    body.bf-app .dashboard-reference-grid {
+        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+        gap: 20px;
+    }
+
+    body.bf-app .dashboard-panel-head p,
+    body.bf-app .main-module:not(#module-dashboard) .page-subtitle {
+        font-size: 13px;
+    }
+}
