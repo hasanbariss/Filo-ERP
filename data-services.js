@@ -3496,8 +3496,10 @@ window.openCariHakedisDetay = async function(arac_id) {
             mIds.forEach((mId, factoryIndex) => {
                 const md = data.musteriDetay[mId];
                 const unvan = md.musteri_ad || musteriMap[mId] || `Fabrika ID: ${mId}`;
+                const normalizedFactoryName = String(unvan).toUpperCase();
+                const isDikkanFactory = normalizedFactoryName.includes('DİKKAN') || normalizedFactoryName.includes('DIKKAN');
                 factoriesHTML += `
-                    <div class="cari-factory-card${factoryIndex === 0 ? ' is-open' : ''} bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
+                    <div class="cari-factory-card${factoryIndex === 0 ? ' is-open' : ''}${isDikkanFactory ? ' is-dikkan' : ''} bg-black/30 p-5 rounded-xl border border-white/5 musteri-calc-row shadow-inner" data-mid="${mId}">
                         <button type="button" class="cari-factory-toggle" onclick="window.toggleCariFactory(this)" aria-expanded="${factoryIndex === 0 ? 'true' : 'false'}">
                             <span><i data-lucide="building-2"></i><strong>${unvan}</strong><small>${md.vardiya || 0} vardiya · ${md.tek || 0} tek sefer</small></span>
                             <i data-lucide="chevron-down" class="cari-factory-chevron"></i>
@@ -3539,8 +3541,9 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-tek-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.tek_fiyat}">
                                 </div>
                             </div>
+                            ${isDikkanFactory ? `
                             <!-- 8 Çıkışı Satırı (Dikkan Özel) -->
-                            <div class="cari-rate-item bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
+                            <div class="cari-rate-item is-cikis8 bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-sm focus-within:border-amber-500/50 transition-colors">
                                 <div class="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>8 Çıkışı</span>
@@ -3556,7 +3559,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                 </div>
                             </div>
                             <!-- 20:30 Girişi Satırı (Dikkan Özel) -->
-                            <div class="cari-rate-item bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
+                            <div class="cari-rate-item is-giris2030 bg-purple-500/5 p-3 rounded-xl border border-purple-500/20 shadow-sm focus-within:border-purple-500/50 transition-colors">
                                 <div class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-2">
                                     <div class="flex justify-between items-center">
                                         <span>20:30 Giriş</span>
@@ -3587,6 +3590,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                                     <input type="number" step="0.01" class="calc-mesai-fiyat w-full bg-transparent text-white text-base font-black border-none focus:outline-none transition-all pl-6 pr-2 py-1 placeholder-white/20" value="${md.mesai_fiyat || 0}">
                                 </div>
                             </div>
+                            ` : ''}
                         </div>
                         <div class="cari-tax-grid grid grid-cols-2 gap-3 mt-3">
                             <div class="cari-tax-item is-vat bg-white/5 p-3 rounded-xl border border-blue-500/20 focus-within:border-blue-500/50 transition-colors">
@@ -3784,7 +3788,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                 const tFiyat = parseFloat(row.querySelector('.calc-tek-fiyat').value)         || 0;
                 const c8Fiyat= parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)    || 0;
                 const g2Fiyat= parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value) || 0;
-                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat').value)       || 0;
+                const mFiyat = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value)      || 0;
 
                 const vCount  = parseFloat(row.querySelector('.calc-vardiya-count')?.value)  || 0;
                 const tCount  = parseFloat(row.querySelector('.calc-tek-count')?.value)       || 0;
@@ -4085,6 +4089,7 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             const rowBolge   = midParts[1] || 'Manisa';
             const tk   = parseFloat(row.querySelector('.calc-tek-fiyat')?.value)        || 0;
             const vd   = parseFloat(row.querySelector('.calc-vardiya-fiyat')?.value)    || 0;
+            const isDikkanRow = row.classList.contains('is-dikkan');
             const c8f  = parseFloat(row.querySelector('.calc-cikis8-fiyat')?.value)     || 0;
             const g2f  = parseFloat(row.querySelector('.calc-giris2030-fiyat')?.value)  || 0;
             const mf   = parseFloat(row.querySelector('.calc-mesai-fiyat')?.value)      || 0;
@@ -4107,6 +4112,8 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             const oc8 = readOverride('.calc-cikis8-count');
             const og2 = readOverride('.calc-giris2030-count');
             const om  = readOverride('.calc-mesai-count');
+            const dikkanPrices = isDikkanRow ? { cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf } : {};
+            const dikkanOverrides = isDikkanRow ? { override_cikis_8: oc8, override_giris_2030: og2, override_mesai: om } : {};
 
             // Sutun hatasi kontrolcu (schema cache veya eksik kolon)
             const isColErr = (e) => e && e.message && (
@@ -4118,11 +4125,11 @@ window.saveHakedisFiyatlar = async function(arac_id, btnEl, specificDonem) {
             // Kademeli payload (bazi tablolarda kdv/tev veya dikkan alanlari olmayabilir)
             // 1. tam, 2. kdv/tev'siz, 3. sadece temel
             const payloads = [
-                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya',
-                  override_vardiya: ov, override_tek: ot, override_cikis_8: oc8, override_giris_2030: og2, override_mesai: om },
-                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, kdv_oran, tev_oran, tarife_turu: 'Vardiya' },
-                { tek_fiyat: tk, vardiya_fiyat: vd, cikis_8_fiyat: c8f, giris_2030_fiyat: g2f, mesai_fiyat: mf, tarife_turu: 'Vardiya' },
-                { tek_fiyat: tk, vardiya_fiyat: vd, mesai_fiyat: mf, tarife_turu: 'Vardiya' }
+                { tek_fiyat: tk, vardiya_fiyat: vd, ...dikkanPrices, kdv_oran, tev_oran, tarife_turu: 'Vardiya',
+                  override_vardiya: ov, override_tek: ot, ...dikkanOverrides },
+                { tek_fiyat: tk, vardiya_fiyat: vd, ...dikkanPrices, kdv_oran, tev_oran, tarife_turu: 'Vardiya' },
+                { tek_fiyat: tk, vardiya_fiyat: vd, ...dikkanPrices, tarife_turu: 'Vardiya' },
+                { tek_fiyat: tk, vardiya_fiyat: vd, ...(isDikkanRow ? { mesai_fiyat: mf } : {}), tarife_turu: 'Vardiya' }
             ];
 
             // Yalnızca seçili dönemin tam kaydını güncelle. Global fiyat fallback kaydı
