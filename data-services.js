@@ -3507,7 +3507,7 @@ window.openCariHakedisDetay = async function(arac_id) {
                         <div class="cari-factory-content">
                         <div class="cari-rate-grid grid grid-cols-2 gap-4">
                             <div class="cari-rate-head" aria-hidden="true">
-                                <span>Hizmet</span>
+                                <span>Sefer Türü</span>
                                 <span>Adet / Puantaj</span>
                                 <span>Birim fiyat</span>
                             </div>
@@ -3697,7 +3697,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
                 <div class="cari-card-body p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
                     <div class="cari-card-section cari-service-section">
-                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> Hizmet Fiyatlandırma</h3>
+                        <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i> Fabrika Bazlı Seferler</h3>
                         ${factoriesHTML}
                     </div>
 
