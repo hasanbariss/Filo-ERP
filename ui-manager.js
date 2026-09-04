@@ -2703,12 +2703,15 @@ window.showConfirm = function (message, onConfirm, options = {}) {
 }
 // === DARK MODE ===
 function applyTheme(isDark) {
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
     if (isDark) {
         document.documentElement.classList.add('dark');
+        if (themeMeta) themeMeta.content = '#0b1014';
         document.getElementById('theme-icon-dark').classList.remove('hidden');
         document.getElementById('theme-icon-light').classList.add('hidden');
     } else {
         document.documentElement.classList.remove('dark');
+        if (themeMeta) themeMeta.content = '#f3f4f2';
         document.getElementById('theme-icon-dark').classList.add('hidden');
         document.getElementById('theme-icon-light').classList.remove('hidden');
     }
@@ -2723,9 +2726,9 @@ window.toggleDarkMode = function () {
 };
 
 window.addEventListener('DOMContentLoaded', () => {
-    // Night Transit web dili ilk açılışta koyudur; sonraki seçim kullanıcıya aittir.
+    // Executive ERP web dili ilk açılışta açıktır; sonraki seçim kullanıcıya aittir.
     const saved = localStorage.getItem('baris-flow-web-theme-v3');
-    const prefDark = saved ? saved === 'dark' : true;
+    const prefDark = saved ? saved === 'dark' : false;
     applyTheme(prefDark);
 
     const searchInput = document.getElementById('top-search');

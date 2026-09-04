@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" class="dark">
+<html lang="tr">
 
 <head>
     <meta charset="UTF-8">
@@ -11,7 +11,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Baris.Flow">
-    <meta name="theme-color" content="#080d12">
+    <meta name="theme-color" content="#f3f4f2">
+    <script>
+        try {
+            document.documentElement.classList.toggle('dark', localStorage.getItem('baris-flow-web-theme-v3') === 'dark');
+        } catch (_) { /* Light theme remains the safe first paint. */ }
+    </script>
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png">
@@ -82,6 +87,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
+    <link rel="stylesheet" href="web-executive.css?v=1.0.0">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -2944,7 +2950,7 @@
 <!-- puantaj.js removed: belongs exclusively to puantaj.html -->
 
 <!-- 5. FIXES -->
-<script defer src="app-fixes.js?v=2.0.2"></script>
+<script defer src="app-fixes.js?v=2.1.0"></script>
 <script defer src="ios-mobile.js?v=2.0.1"></script>
 
 <!-- 6. NEW SRP MODULES -->

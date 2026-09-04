@@ -1,0 +1,460 @@
+/*
+ * Baris.Flow — Executive ERP
+ * Final desktop presentation layer. Light-first, with an equivalent dark theme.
+ * Mobile/iOS presentation is intentionally untouched.
+ */
+
+@media (min-width: 769px) {
+    :root:not(.dark) {
+        color-scheme: light;
+        --bf-bg: #f3f4f2;
+        --bf-workspace: #f7f7f5;
+        --bf-surface: #ffffff;
+        --bf-surface-raised: #f7f8f7;
+        --bf-surface-hover: #eef1f1;
+        --bf-surface-float: #ffffff;
+        --bf-border: #dde2e2;
+        --bf-border-strong: #c7cecf;
+        --bf-text: #172027;
+        --bf-text-secondary: #53616a;
+        --bf-text-muted: #849098;
+        --bf-primary: #e45e4b;
+        --bf-primary-hover: #cf4e3d;
+        --bf-cyan: #168da0;
+        --bf-orange: #c97926;
+        --bf-violet: #7661a8;
+        --bf-gold: #a7771d;
+        --bf-teal: #228d82;
+        --bf-indigo: #526ca8;
+        --bf-rose: #b95672;
+        --bf-success: #25855c;
+        --bf-warning: #a66b12;
+        --bf-danger: #c34750;
+        --bf-info: #356fa8;
+        --bf-canvas: var(--bf-bg);
+        --bf-surface-soft: var(--bf-workspace);
+        --bf-surface-subtle: var(--bf-surface-raised);
+        --bf-divider: var(--bf-border);
+        --bf-text-primary: var(--bf-text);
+        --bf-shadow-xs: 0 1px 1px rgba(30, 43, 49, .025);
+        --bf-shadow-sm: 0 8px 24px rgba(30, 43, 49, .055);
+        --bf-shadow-md: 0 18px 44px rgba(30, 43, 49, .09);
+        --bf-shadow-modal: 0 28px 80px rgba(24, 34, 40, .2);
+    }
+
+    :root.dark {
+        --bf-bg: #0b1014;
+        --bf-workspace: #10171c;
+        --bf-surface: #151e25;
+        --bf-surface-raised: #1b262e;
+        --bf-surface-hover: #22313a;
+        --bf-surface-float: #263640;
+        --bf-border: #2c3b44;
+        --bf-border-strong: #43535d;
+        --bf-text: #edf2f3;
+        --bf-text-secondary: #b1bdc2;
+        --bf-text-muted: #7c8c94;
+        --bf-primary: #ff6b55;
+        --bf-primary-hover: #ff806d;
+    }
+
+    body.bf-app {
+        color: var(--bf-text);
+        background: var(--bf-bg);
+        font-size: 13px;
+    }
+
+    /* Two-layer command navigation */
+    body.bf-app .bf-sidebar.is-executive-nav,
+    :root.dark body.bf-app .bf-sidebar.is-executive-nav {
+        top: 16px;
+        bottom: 16px;
+        left: 16px;
+        display: flex;
+        width: 308px;
+        padding: 0;
+        flex-direction: row;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 16px;
+        color: #dce4e7;
+        background: #172129;
+        box-shadow: 0 18px 46px rgba(22, 31, 37, .18);
+        transition: width 200ms cubic-bezier(.2,.7,.2,1);
+    }
+    .bf-sidebar.is-executive-nav::after { display: none; }
+    .bf-command-rail {
+        display: flex;
+        width: 72px;
+        min-width: 72px;
+        padding: 14px 10px 12px;
+        flex-direction: column;
+        align-items: center;
+        border-right: 1px solid rgba(255,255,255,.08);
+        background: #111920;
+    }
+    .bf-command-brand {
+        display: grid;
+        width: 42px;
+        height: 42px;
+        margin-bottom: 24px;
+        place-items: center;
+        border: 1px solid rgba(255,107,85,.28);
+        border-radius: 12px;
+        color: #fff;
+        background: rgba(255,107,85,.1);
+        cursor: pointer;
+    }
+    .bf-command-brand span { font-size: 19px; font-weight: 820; letter-spacing: -.08em; }
+    .bf-command-sections { display: grid; width: 100%; gap: 8px; }
+    .bf-command-section {
+        position: relative;
+        display: grid;
+        width: 50px;
+        height: 48px;
+        place-items: center;
+        border: 0;
+        border-radius: 11px;
+        color: #84939b;
+        background: transparent;
+        cursor: pointer;
+        transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+    .bf-command-section::before {
+        position: absolute;
+        top: 12px;
+        bottom: 12px;
+        left: -10px;
+        width: 3px;
+        border-radius: 0 3px 3px 0;
+        content: "";
+        background: transparent;
+    }
+    .bf-command-section:hover { color: #eef3f4; background: rgba(255,255,255,.055); transform: translateY(-1px); }
+    .bf-command-section.is-active { color: #ff7966; background: rgba(255,107,85,.105); }
+    .bf-command-section.is-active::before { background: #ff6b55; }
+    .bf-command-section svg { width: 18px; height: 18px; stroke-width: 1.8; }
+    .bf-command-section > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .bf-command-rail-footer { display: flex; margin-top: auto; min-height: 32px; align-items: center; }
+    .bf-command-status { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.045); }
+    .bf-command-status i { width: 7px; height: 7px; border-radius: 50%; background: #55c58a; box-shadow: 0 0 0 4px rgba(85,197,138,.1); }
+
+    .bf-sidebar-panel {
+        display: flex;
+        width: 236px;
+        min-width: 236px;
+        padding: 18px 14px 14px;
+        flex-direction: column;
+        overflow: hidden;
+        background: #18232b;
+        transition: opacity 150ms ease, transform 180ms ease;
+    }
+    .bf-sidebar-panel .bf-sidebar-brand { height: 42px; min-height: 42px; margin: 0 4px 14px; padding: 0 0 12px; }
+    .bf-sidebar-panel .sidebar-brand-logo { display: block; width: 146px; }
+    .bf-sidebar-panel .bf-company-context { min-height: 48px; margin: 0 0 16px; padding: 9px 11px; border-radius: 9px; background: rgba(255,255,255,.035); }
+    .bf-sidebar-panel-context { display: flex; margin: 0 5px 13px; align-items: baseline; justify-content: space-between; }
+    .bf-sidebar-panel-context span { color: #758791; font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+    .bf-sidebar-panel-context strong { color: #eef3f4; font-size: 14px; font-weight: 680; }
+    .bf-sidebar-panel .bf-sidebar-nav { display: block; flex: 1 1 auto; min-height: 0; padding: 0; overflow-y: auto; }
+    .bf-sidebar-panel .nav-section { display: grid; gap: 3px; }
+    .bf-sidebar-panel .nav-section.is-rail-filtered-out { display: none; }
+    .bf-sidebar-panel .nav-section-label { display: none; }
+    .bf-sidebar-panel .nav-link,
+    :root.dark body.bf-app .bf-sidebar-panel .nav-link {
+        min-height: 42px;
+        margin: 0;
+        padding: 0 12px;
+        gap: 11px;
+        border: 0;
+        border-radius: 9px;
+        color: #aebac0;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 560;
+    }
+    .bf-sidebar-panel .nav-link:hover,
+    :root.dark body.bf-app .bf-sidebar-panel .nav-link:hover { color: #fff; background: rgba(255,255,255,.055); }
+    .bf-sidebar-panel .nav-link.active,
+    :root.dark body.bf-app .bf-sidebar-panel .nav-link.active { color: #fff; background: rgba(255,107,85,.1); }
+    .bf-sidebar-panel .nav-link::before { top: 9px; bottom: 9px; left: 0; width: 2px; }
+    .bf-sidebar-panel .nav-link svg { width: 17px; min-width: 17px; height: 17px; }
+    .bf-sidebar-panel .bf-sidebar-footer { display: grid; margin-top: 12px; padding-top: 10px; gap: 2px; }
+
+    body.bf-app .bf-sidebar.is-executive-nav.is-collapsed,
+    :root.dark body.bf-app .bf-sidebar.is-executive-nav.is-collapsed { width: 72px; padding: 0; }
+    .bf-sidebar.is-executive-nav.is-collapsed .bf-sidebar-panel { opacity: 0; transform: translateX(-12px); pointer-events: none; }
+    .bf-sidebar.is-executive-nav.is-collapsed .bf-command-rail { border-right-color: transparent; }
+    .bf-sidebar.is-executive-nav.is-collapsed .bf-sidebar-brand::before { display: none; }
+
+    body.bf-app > .bf-main-shell { margin-left: 336px; padding: 16px 24px 48px 0; background: transparent; }
+    body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 104px; }
+    .bf-content { max-width: 1680px; }
+
+    /* Dark command bar works in both themes. */
+    body.bf-app .bf-topbar {
+        min-height: 58px;
+        margin: 0 0 30px;
+        padding: 8px 12px 8px 14px;
+        border: 0;
+        border-radius: 10px;
+        color: #edf2f3;
+        background: #20272d;
+        box-shadow: 0 5px 16px rgba(20, 28, 33, .09);
+        backdrop-filter: none;
+    }
+    body.bf-app .bf-topbar .page-title { color: #f4f6f7; font-size: 13px; }
+    body.bf-app .bf-topbar .page-subtitle { color: #919da4; font-size: 10px; }
+    body.bf-app .bf-topbar .sidebar-collapse-toggle { color: #aeb9bf; border-color: rgba(255,255,255,.1); background: rgba(255,255,255,.04); }
+    body.bf-app .bf-topbar .sidebar-collapse-toggle:hover { color: #ff7a66; background: rgba(255,255,255,.07); }
+    body.bf-app .bf-topbar .sidebar-collapse-toggle::after { background: rgba(255,255,255,.1); }
+    body.bf-app .bf-top-search-input { color: #e7edef; border-color: rgba(255,255,255,.1); background: #293138; }
+    body.bf-app .bf-top-search-input::placeholder { color: #8f9aa0; }
+    body.bf-app .bf-user-menu { color: #ffd8d2; border-color: rgba(255,107,85,.22); background: rgba(255,107,85,.095); }
+
+    /* Shared executive hierarchy */
+    .main-module:not(.hidden) { color: var(--bf-text-secondary); animation: bf-executive-enter 180ms ease-out both; }
+    @keyframes bf-executive-enter { from { opacity: .25; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+    .main-module h1, .main-module h2, .main-module .page-title { color: var(--bf-text); font-weight: 720; letter-spacing: -.035em; }
+    .main-module h3 { color: var(--bf-text); font-weight: 680; letter-spacing: -.02em; }
+    .main-module h4 { color: var(--bf-text-secondary); font-weight: 650; }
+    .main-module p, .main-module small { color: var(--bf-text-muted); line-height: 1.5; }
+    .main-module label { color: var(--bf-text-secondary); }
+    .main-module:not(#module-dashboard) > .page-header,
+    .owned-fleet-page-header, .contractor-page-header, .factory-page-header,
+    .personnel-page-header, .receivables-page-header, .progress-page-header, .fuel-page-header {
+        margin-bottom: 24px;
+        padding: 0 0 18px;
+        border-bottom: 1px solid var(--bf-border);
+    }
+    .main-module:not(#module-dashboard) > .page-header::before,
+    .owned-fleet-page-header::before, .contractor-page-header::before, .factory-page-header::before,
+    .personnel-page-header::before, .receivables-page-header::before, .progress-page-header::before, .fuel-page-header::before { display: none; }
+
+    .app-card, .kpi-card, .action-card, .data-section, .bf-table-shell,
+    .fleet-surface, .contractor-surface, .factory-workspace, .personnel-workspace,
+    .receivables-workspace, .progress-workspace, .fuel-workspace,
+    .dashboard-card, [class*="workspace"] {
+        color: var(--bf-text);
+        border-color: var(--bf-border);
+        border-radius: 10px;
+        background: var(--bf-surface);
+        box-shadow: var(--bf-shadow-xs);
+    }
+
+    .btn-primary, body.bf-app button.bg-orange-500 {
+        color: #fff;
+        border-color: #d95846;
+        border-radius: 7px;
+        background: #e45e4b;
+        box-shadow: none;
+    }
+    .btn-primary:hover, body.bf-app button.bg-orange-500:hover { background: #cf4e3d; }
+    .btn-secondary, .btn-ghost, .btn-icon {
+        color: var(--bf-text-secondary);
+        border-color: var(--bf-border);
+        border-radius: 7px;
+        background: var(--bf-surface);
+        box-shadow: none;
+    }
+    .btn-secondary:hover, .btn-ghost:hover, .btn-icon:hover { color: var(--bf-text); border-color: var(--bf-border-strong); background: var(--bf-surface-hover); }
+
+    .form-control,
+    body.bf-app input:not([type="checkbox"]):not([type="radio"]),
+    body.bf-app select,
+    body.bf-app textarea {
+        min-height: 38px;
+        color: var(--bf-text);
+        border-color: var(--bf-border);
+        border-radius: 7px;
+        background: var(--bf-surface);
+        box-shadow: none;
+    }
+    .form-control:focus,
+    body.bf-app input:not([type="checkbox"]):not([type="radio"]):focus,
+    body.bf-app select:focus,
+    body.bf-app textarea:focus { border-color: rgba(228,94,75,.65); box-shadow: 0 0 0 3px rgba(228,94,75,.09); }
+
+    /* Flat, precise table system */
+    .bf-data-table, .factory-table, .contractor-table, .personnel-table, .fleet-table,
+    .receivables-table, .progress-table, .fuel-table, .premium-table, .dashboard-policy-table,
+    #module-raporlar table, #module-finans table {
+        color: var(--bf-text);
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+    }
+    .bf-data-table th, .factory-table th, #module-taseron .contractor-table th,
+    .personnel-table th, .fleet-table th, .receivables-table th, .progress-table th,
+    .fuel-table th, .premium-table th, .dashboard-policy-table thead th,
+    #module-raporlar table thead th, #module-finans table thead th {
+        height: 40px;
+        padding: 9px 12px;
+        color: var(--bf-text-muted);
+        border-color: var(--bf-border);
+        background: var(--bf-surface-raised);
+        font-size: 9px;
+        font-weight: 760;
+        letter-spacing: .065em;
+    }
+    .bf-data-table td, .factory-table td, #module-taseron .contractor-table td,
+    .personnel-table td, .fleet-table td, .receivables-table td, .progress-table td,
+    .fuel-table td, .premium-table td, .dashboard-policy-table td,
+    #module-raporlar table tbody td, #module-finans table tbody td {
+        min-height: 44px;
+        padding: 11px 12px;
+        color: var(--bf-text-secondary);
+        border-color: var(--bf-border);
+        background: transparent;
+    }
+    .bf-data-table tbody tr:hover td, .factory-table tbody tr:hover td,
+    #module-taseron .contractor-table tbody tr:hover td, .personnel-table tbody tr:hover td,
+    .fleet-table tbody tr:hover td, .receivables-table tbody tr:hover td,
+    .progress-table tbody tr:hover td, .fuel-table tbody tr:hover td,
+    .premium-table tbody tr:hover td, .dashboard-policy-table tbody tr:hover td { color: var(--bf-text); background: var(--bf-surface-hover); }
+
+    /* Dashboard mirrors the approved executive concept. */
+    .bf-management-dashboard { display: grid; gap: 22px; max-width: 1640px; }
+    .dashboard-page-header {
+        min-height: 92px;
+        padding: 2px 0 20px;
+        overflow: visible;
+        border: 0;
+        border-bottom: 1px solid var(--bf-border);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .dashboard-page-header::after { display: none; }
+    .dashboard-page-header .page-title { font-size: clamp(26px, 2vw, 32px); }
+    .bf-management-dashboard .dashboard-eyebrow { color: var(--bf-primary); font-size: 10px; }
+    .dashboard-updated-at { margin-top: 9px; font-size: 10px; }
+    .dashboard-reporting-period { border-color: var(--bf-border); border-radius: 8px; background: var(--bf-surface); }
+    .dashboard-reporting-period .form-control { background: var(--bf-surface); }
+
+    .bf-management-dashboard .dashboard-kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+        overflow: hidden;
+        border: 1px solid var(--bf-border);
+        border-radius: 10px;
+        background: var(--bf-surface);
+        box-shadow: var(--bf-shadow-sm);
+    }
+    .bf-management-dashboard .dashboard-kpi-card {
+        min-height: 126px;
+        padding: 20px 22px;
+        border: 0;
+        border-right: 1px solid var(--bf-border);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .bf-management-dashboard .dashboard-kpi-card:last-child { border-right: 0; }
+    .bf-management-dashboard .dashboard-kpi-card::after { display: none; }
+    .dashboard-kpi-icon { border: 0; border-radius: 9px; background: color-mix(in srgb, var(--dashboard-accent) 10%, transparent); }
+    .bf-management-dashboard .dashboard-kpi-card h3 { margin-top: 13px; color: var(--bf-text-muted); font-size: 9px; }
+    .dashboard-kpi-value { margin-top: 4px; color: var(--bf-text); font-size: clamp(25px,2vw,32px); }
+    .dashboard-kpi-meta { margin-top: 13px; padding-top: 10px; border-top: 1px solid var(--bf-border); }
+    .dashboard-kpi-meta strong { color: var(--bf-text-secondary); }
+
+    .dashboard-live-zone { padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+    .dashboard-live-zone .dashboard-scope-heading { padding: 0 0 12px; border-bottom: 1px solid var(--bf-border); }
+    .dashboard-scope-heading h2 { color: var(--bf-text); font-size: 18px; }
+    .dashboard-scope-heading > p { max-width: 520px; }
+    .dashboard-live-grid { grid-template-columns: minmax(0,1.45fr) minmax(340px,.8fr); gap: 18px; }
+    .dashboard-domain-card {
+        border: 1px solid var(--bf-border);
+        border-radius: 10px;
+        background: var(--bf-surface);
+        box-shadow: var(--bf-shadow-xs);
+    }
+    .dashboard-domain-card::before { display: none; }
+    .dashboard-live-grid .is-maintenance-domain { padding: 20px; }
+    .dashboard-policy-head, .dashboard-section-head { padding-bottom: 14px; border-bottom: 1px solid var(--bf-border); }
+    .dashboard-section-icon { border-radius: 8px; }
+
+    .dashboard-dual-finance { grid-template-columns: minmax(0,1.55fr) minmax(380px,.7fr); gap: 18px; }
+    .dashboard-finance-zone, .dashboard-current-finance {
+        border: 1px solid var(--bf-border);
+        border-radius: 10px;
+        background: var(--bf-surface);
+        box-shadow: var(--bf-shadow-xs);
+    }
+    .dashboard-finance-zone { padding: 20px; }
+    .dashboard-zone-head { padding-bottom: 15px; border-bottom: 1px solid var(--bf-border); }
+    .dashboard-period-totals { margin-top: 14px; border-radius: 8px; background: var(--bf-surface-raised); }
+    .dashboard-finance-zone .dashboard-finance-grid { gap: 0; border: 1px solid var(--bf-border); border-radius: 8px; background: transparent; }
+    .dashboard-finance-zone .dashboard-domain-card { border: 0; border-right: 1px solid var(--bf-border); border-radius: 0; box-shadow: none; }
+    .dashboard-finance-zone .dashboard-domain-card:last-child { border-right: 0; }
+    .dashboard-current-column { gap: 12px; }
+    .dashboard-current-finance .dashboard-domain-card { border: 0; border-bottom: 1px solid var(--bf-border); border-radius: 0; box-shadow: none; }
+    .dashboard-stat-grid, .dashboard-partner-grid > div { border-color: var(--bf-border); border-radius: 7px; background: var(--bf-surface-raised); }
+    .dashboard-primary-total { color: var(--bf-text); }
+    .is-accrual-domain .dashboard-primary-total { color: var(--bf-gold); }
+    .is-fuel-domain .dashboard-primary-total { color: var(--bf-orange); }
+
+    /* Modal, drawer and overlay language */
+    #general-modal > div:first-child, #cari-detail-modal > div:first-child,
+    #kredi-karti-detail-modal > div:first-child, #confirm-modal,
+    #cari-kart-modal-overlay, #modal-taseron-detay-rapor { background: rgba(22,29,34,.46); backdrop-filter: blur(3px); }
+    #general-modal .general-modal-sheet, #cari-detail-modal .cari-detail-sheet,
+    #kredi-karti-detail-modal .kredi-detail-sheet, #confirm-modal > div,
+    .ios-modal-sheet, .modal-content, #cari-kart-modal-overlay .cari-card-sheet {
+        color: var(--bf-text);
+        border: 1px solid var(--bf-border);
+        border-radius: 12px;
+        background: var(--bf-surface);
+        box-shadow: var(--bf-shadow-modal);
+    }
+    #general-modal .general-modal-header, #general-modal .general-modal-footer,
+    #cari-detail-modal .cari-detail-header, #kredi-karti-detail-modal .premium-modal-header,
+    #cari-kart-modal-overlay .cari-card-header {
+        color: var(--bf-text);
+        border-color: var(--bf-border);
+        background: var(--bf-surface-raised);
+    }
+    #general-modal #modal-dynamic-body, #cari-detail-modal .cari-detail-scroll,
+    #kredi-karti-detail-modal .ios-modal-body, #cari-kart-modal-overlay .cari-card-body { color: var(--bf-text); background: var(--bf-surface); }
+
+    /* Translate common legacy dark utilities in light mode. */
+    :root:not(.dark) body.bf-app .main-module .text-white { color: var(--bf-text); }
+    :root:not(.dark) body.bf-app .main-module .text-gray-300,
+    :root:not(.dark) body.bf-app .main-module .text-gray-400 { color: var(--bf-text-secondary); }
+    :root:not(.dark) body.bf-app .main-module .text-gray-500,
+    :root:not(.dark) body.bf-app .main-module .text-gray-600 { color: var(--bf-text-muted); }
+    :root:not(.dark) body.bf-app .main-module .bg-white\/5,
+    :root:not(.dark) body.bf-app .main-module [class*="bg-black"],
+    :root:not(.dark) body.bf-app .main-module [class*="bg-[#0d0f11]"],
+    :root:not(.dark) body.bf-app .main-module [class*="bg-[#111418]"] { background-color: var(--bf-surface-raised); }
+    :root:not(.dark) body.bf-app .main-module .border-white\/5,
+    :root:not(.dark) body.bf-app .main-module .border-white\/10 { border-color: var(--bf-border); }
+
+    /* Light login belongs to the same product. */
+    :root:not(.dark) .auth-overlay { background: #f2f3f1; }
+    :root:not(.dark) .auth-story { color: #eef3f4; background: #172129; }
+    :root:not(.dark) .auth-login-area { background: #f6f6f4; }
+    :root:not(.dark) .auth-login-card { color: var(--bf-text); border-color: var(--bf-border); background: #fff; box-shadow: var(--bf-shadow-md); }
+    :root:not(.dark) .auth-login-card h2 { color: var(--bf-text); }
+    :root:not(.dark) .auth-input { color: var(--bf-text); border-color: var(--bf-border); background: #fff; }
+
+    @media (max-width: 1450px) {
+        body.bf-app .bf-sidebar.is-executive-nav { width: 288px; }
+        .bf-sidebar-panel { width: 216px; min-width: 216px; }
+        body.bf-app > .bf-main-shell { margin-left: 310px; padding-right: 16px; }
+        body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 100px; }
+        .bf-management-dashboard { gap: 18px; }
+        .dashboard-live-grid, .dashboard-dual-finance { gap: 14px; }
+        .bf-management-dashboard .dashboard-kpi-card { padding: 17px 16px; }
+    }
+
+    @media (min-width: 2000px) {
+        body.bf-app .bf-sidebar.is-executive-nav { top: 22px; bottom: 22px; left: 22px; width: 324px; }
+        .bf-sidebar-panel { width: 252px; min-width: 252px; padding-inline: 16px; }
+        body.bf-app > .bf-main-shell { margin-left: 370px; padding: 22px 34px 56px 0; }
+        body.bf-app.sidebar-collapsed > .bf-main-shell { margin-left: 122px; }
+        .bf-content { max-width: 1960px; }
+        .bf-management-dashboard { max-width: 1880px; gap: 26px; }
+        .bf-management-dashboard .dashboard-kpi-card { min-height: 134px; padding: 22px 25px; }
+        .dashboard-live-grid, .dashboard-dual-finance { gap: 22px; }
+    }
+}
