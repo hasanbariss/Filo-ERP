@@ -35,16 +35,23 @@ function _setDashboardTrend(id, current, previous, options = {}) {
     const element = document.getElementById(id);
     if (!element) return;
     const change = _dashboardPercentChange(current, previous);
+    const previousLabel = options.previousLabel || 'Önceki ay';
     element.classList.remove('is-positive', 'is-negative', 'is-neutral');
     if (change === null) {
         element.classList.add('is-neutral');
-        element.textContent = 'Önceki ay —';
+        element.textContent = 'Önceki ay: veri yok';
+        element.title = `${previousLabel} için karşılaştırılabilir veri bulunmuyor.`;
+        element.setAttribute('aria-label', element.title);
         return;
     }
     const direction = change > 0 ? '▲' : change < 0 ? '▼' : '•';
     const isFavourable = options.inverse ? change <= 0 : change >= 0;
     element.classList.add(change === 0 ? 'is-neutral' : isFavourable ? 'is-positive' : 'is-negative');
-    element.textContent = `${direction} %${Math.abs(change).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    const percentage = `%${Math.abs(change).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    const movement = change > 0 ? 'artış' : change < 0 ? 'azalış' : 'değişim yok';
+    element.textContent = `Önceki aya göre ${direction} ${percentage}`;
+    element.title = `${previousLabel} ile karşılaştırıldığında ${percentage} ${movement}.`;
+    element.setAttribute('aria-label', element.title);
 }
 
 function _dashboardMonthValue(date) {
@@ -64,15 +71,18 @@ function _dashboardMonthBounds(value, now = new Date()) {
     const previousDate = new Date(year, month - 2, 1);
     const previousValue = _dashboardMonthValue(previousDate);
     const [previousYear, previousMonth] = previousValue.split('-').map(Number);
+    const monthFormatter = new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' });
     return {
         value: safeValue,
         start,
         end,
         infoStart: start + ' 00:00',
         infoEnd: end + ' 23:59',
+        previousValue,
         previousStart: `${previousYear}-${String(previousMonth).padStart(2, '0')}-01`,
         previousEnd: `${previousYear}-${String(previousMonth).padStart(2, '0')}-${String(new Date(previousYear, previousMonth, 0).getDate()).padStart(2, '0')}`,
-        label: new Intl.DateTimeFormat('tr-TR', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1))
+        label: monthFormatter.format(new Date(year, month - 1, 1)),
+        previousLabel: monthFormatter.format(previousDate)
     };
 }
 
@@ -352,6 +362,10 @@ async function _fetchDashboardData(activeRequest) {
         setEl('kpi-hakedis-servis', _fmt(sumHakedisServis));
         document.querySelectorAll('.dashboard-period-badge').forEach(element => { element.textContent = period.label; });
         setEl('dashboard-period-label', period.label);
+        setEl('finance-current-period-heading', period.label);
+        setEl('finance-previous-period-heading', period.previousLabel);
+        setEl('dashboard-operation-period-copy', `${period.label} ile ${period.previousLabel} karşılaştırması`);
+        setEl('dashboard-finance-period-copy', `${period.label} finans kalemleri ve ${period.previousLabel} farkı`);
         setEl('dashboard-period-fuel', _fmt(sumYakit));
         setEl('dashboard-period-maintenance', _fmt(sumBakim));
         setEl('dashboard-period-fleet-expense', _fmt(sumFiloGider));
@@ -363,14 +377,15 @@ async function _fetchDashboardData(activeRequest) {
         setEl('finance-prev-fuel', _fmt(previousYakit));
         setEl('finance-prev-maintenance', _fmt(previousBakim));
         setEl('finance-prev-fleet-expense', _fmt(previousFiloGider));
-        _setDashboardTrend('kpi-fuel-trend', sumYakitLitre, previousYakitLitre, { inverse: true });
-        _setDashboardTrend('kpi-hakedis-trend', sumHakedis, previousHakedis);
-        _setDashboardTrend('operation-fuel-trend', sumYakitLitre, previousYakitLitre, { inverse: true });
-        _setDashboardTrend('operation-maintenance-trend', sumBakim, previousBakim, { inverse: true });
-        _setDashboardTrend('finance-accrual-trend', sumHakedis, previousHakedis);
-        _setDashboardTrend('finance-fuel-trend', sumYakit, previousYakit, { inverse: true });
-        _setDashboardTrend('finance-maintenance-trend', sumBakim, previousBakim, { inverse: true });
-        _setDashboardTrend('finance-fleet-trend', sumFiloGider, previousFiloGider, { inverse: true });
+        const previousTrend = { previousLabel: period.previousLabel };
+        _setDashboardTrend('kpi-fuel-trend', sumYakitLitre, previousYakitLitre, { ...previousTrend, inverse: true });
+        _setDashboardTrend('kpi-hakedis-trend', sumHakedis, previousHakedis, previousTrend);
+        _setDashboardTrend('operation-fuel-trend', sumYakitLitre, previousYakitLitre, { ...previousTrend, inverse: true });
+        _setDashboardTrend('operation-maintenance-trend', sumBakim, previousBakim, { ...previousTrend, inverse: true });
+        _setDashboardTrend('finance-accrual-trend', sumHakedis, previousHakedis, previousTrend);
+        _setDashboardTrend('finance-fuel-trend', sumYakit, previousYakit, { ...previousTrend, inverse: true });
+        _setDashboardTrend('finance-maintenance-trend', sumBakim, previousBakim, { ...previousTrend, inverse: true });
+        _setDashboardTrend('finance-fleet-trend', sumFiloGider, previousFiloGider, { ...previousTrend, inverse: true });
 
         setEl('fuel-month-total', _fmt(sumYakit));
         setEl('fuel-month-km', araclar.length ? 'KM yükleniyor…' : '—');
@@ -595,8 +610,8 @@ async function _fetchDashboardData(activeRequest) {
                 setEl('fuel-month-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L` : '—');
                 setEl('operation-total-km', dashboardKm > 0 ? `${dashboardKm.toLocaleString('tr-TR', { maximumFractionDigits: 0 })} km` : '—');
                 setEl('operation-avg-consumption', dashboardConsumption !== null ? `${dashboardConsumption.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L / 100 km` : '—');
-                _setDashboardTrend('operation-km-trend', dashboardKm, previousDashboardKm);
-                _setDashboardTrend('operation-consumption-trend', dashboardConsumption, previousConsumption, { inverse: true });
+                _setDashboardTrend('operation-km-trend', dashboardKm, previousDashboardKm, previousTrend);
+                _setDashboardTrend('operation-consumption-trend', dashboardConsumption, previousConsumption, { ...previousTrend, inverse: true });
                 window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
                 window._dashboardLoadMetrics.infoMobileState = 'ready';
             }).catch(infoError => {
@@ -606,8 +621,8 @@ async function _fetchDashboardData(activeRequest) {
                 setEl('fuel-month-consumption', '—');
                 setEl('operation-total-km', 'Veri alınamadı');
                 setEl('operation-avg-consumption', '—');
-                _setDashboardTrend('operation-km-trend', 0, 0);
-                _setDashboardTrend('operation-consumption-trend', 0, 0, { inverse: true });
+                _setDashboardTrend('operation-km-trend', 0, 0, previousTrend);
+                _setDashboardTrend('operation-consumption-trend', 0, 0, { ...previousTrend, inverse: true });
                 window._dashboardLoadMetrics.infoMobileMs = Math.round(performance.now() - infoStartedAt);
                 window._dashboardLoadMetrics.infoMobileState = 'unavailable';
                 console.warn('[DASHBOARD] InfoMobil dönem özeti alınamadı:', infoError.message || infoError);

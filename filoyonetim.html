@@ -87,7 +87,7 @@
     <link rel="stylesheet" href="ios-mobile.css">
     <link rel="stylesheet" href="design-system.css?v=2.0.7">
     <link rel="stylesheet" href="web-premium.css?v=3.2.0">
-    <link rel="stylesheet" href="web-executive.css?v=2.0.9">
+    <link rel="stylesheet" href="web-executive.css?v=2.0.10">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -355,11 +355,11 @@
                     </article>
                     <article class="dashboard-kpi-card is-fuel">
                         <span class="dashboard-kpi-icon"><i data-lucide="fuel"></i></span>
-                        <div><span>Toplam Yakıt Tüketimi</span><strong id="kpi-fuel-litres">0 L</strong><small>Gider <b id="kpi-finans-main">₺0</b> · <b id="kpi-fuel-trend">Önceki ay —</b></small></div>
+                        <div><span>Toplam Yakıt Tüketimi</span><strong id="kpi-fuel-litres">0 L</strong><small>Gider <b id="kpi-finans-main">₺0</b> · Litre <b id="kpi-fuel-trend">Önceki ay —</b></small></div>
                     </article>
                     <article class="dashboard-kpi-card is-accrual">
                         <span class="dashboard-kpi-icon"><i data-lucide="receipt-text"></i></span>
-                        <div><span>Toplam Cari Hakediş</span><strong id="kpi-hakedis-main">₺0</strong><small>Taşeron <b id="kpi-hakedis-taseron">₺0</b> · <b id="kpi-hakedis-trend">Önceki ay —</b></small></div>
+                        <div><span>Toplam Cari Hakediş</span><strong id="kpi-hakedis-main">₺0</strong><small>Taşeron <b id="kpi-hakedis-taseron">₺0</b> · Değişim <b id="kpi-hakedis-trend">Önceki ay —</b></small></div>
                     </article>
                     <article class="dashboard-kpi-card is-balance">
                         <span class="dashboard-kpi-icon"><i data-lucide="wallet-cards"></i></span>
@@ -369,7 +369,7 @@
 
                 <div class="dashboard-reference-grid">
                     <section class="dashboard-panel is-operations" aria-labelledby="dashboard-live-title">
-                        <header class="dashboard-panel-head"><div><h3 id="dashboard-live-title">Operasyon Özeti</h3><p>Seçilen ayın kilometre, tüketim ve bakım görünümü</p></div><button type="button" class="panel-link" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-yakit-km\']').click()">Detaylar <i data-lucide="arrow-right"></i></button></header>
+                        <header class="dashboard-panel-head"><div><h3 id="dashboard-live-title">Operasyon Özeti</h3><p id="dashboard-operation-period-copy">Seçilen ayın kilometre, tüketim ve bakım görünümü</p></div><button type="button" class="panel-link" onclick="document.querySelector('#main-nav-buttons [data-target=\'module-yakit-km\']').click()">Detaylar <i data-lucide="arrow-right"></i></button></header>
                         <div class="dashboard-operation-metrics">
                             <article><span class="dashboard-row-icon is-blue"><i data-lucide="route"></i></span><div><span>Toplam KM</span><strong id="operation-total-km">Yükleniyor…</strong></div><em id="operation-km-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
                             <article><span class="dashboard-row-icon is-amber"><i data-lucide="gauge"></i></span><div><span>Ortalama Yakıt Tüketimi</span><strong id="operation-avg-consumption">—</strong></div><em id="operation-consumption-trend" class="dashboard-trend is-neutral">Önceki ay —</em></article>
@@ -388,7 +388,7 @@
 
                     <section class="dashboard-panel is-finance" aria-labelledby="dashboard-finance-zone-title">
                         <header class="dashboard-panel-head"><div><h3 id="dashboard-finance-zone-title">Finansal Görünüm</h3><p id="dashboard-finance-period-copy">Seçilen dönemin filo ve hakediş özeti</p></div><div class="dashboard-zone-period"><span id="dashboard-period-label">—</span><small>Dönem</small></div></header>
-                        <div class="dashboard-finance-table-wrap"><table class="dashboard-finance-table"><thead><tr><th>Kalem</th><th>Seçilen Ay</th><th>Önceki Ay</th><th>Değişim</th></tr></thead><tbody>
+                        <div class="dashboard-finance-table-wrap"><table class="dashboard-finance-table"><thead><tr><th>Kalem</th><th id="finance-current-period-heading">Seçilen Ay</th><th id="finance-previous-period-heading">Önceki Ay</th><th>Değişim</th></tr></thead><tbody>
                             <tr><td>Cari Hakediş</td><td id="accrual-month-total">₺0</td><td id="finance-prev-accrual">₺0</td><td><span id="finance-accrual-trend" class="dashboard-trend is-neutral">—</span></td></tr>
                             <tr><td>Yakıt Gideri</td><td id="dashboard-period-fuel">₺0</td><td id="finance-prev-fuel">₺0</td><td><span id="finance-fuel-trend" class="dashboard-trend is-neutral">—</span></td></tr>
                             <tr><td>Bakım / Servis</td><td id="dashboard-period-maintenance">₺0</td><td id="finance-prev-maintenance">₺0</td><td><span id="finance-maintenance-trend" class="dashboard-trend is-neutral">—</span></td></tr>
@@ -2896,7 +2896,7 @@
 <script defer src="operasyon-merkezi.js"></script>
 
 <!-- 7. DASHBOARD (en son yüklenir — tüm override'ları kazanır) -->
-<script defer src="dashboard-funcs.js?v=2.0.9"></script>
+<script defer src="dashboard-funcs.js?v=2.0.10"></script>
 
 <!-- 6. INITIALIZATION SCRIPT -->
 <script>

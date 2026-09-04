@@ -1832,8 +1832,22 @@
     .dashboard-kpi-card > div { min-width: 0; }
     .dashboard-kpi-card > div > span { display: block; color: var(--erp-text-2); font-size: 12px; }
     .dashboard-kpi-card > div > strong { display: block; margin-top: 4px; overflow: hidden; color: var(--erp-text); font-size: clamp(22px, 1.65vw, 29px); line-height: 1.1; font-weight: 620; letter-spacing: -.035em; text-overflow: ellipsis; white-space: nowrap; }
-    .dashboard-kpi-card small { display: block; margin-top: 9px; overflow: hidden; color: var(--erp-text-3); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .dashboard-kpi-card small {
+        display: flex;
+        min-width: 0;
+        margin-top: 7px;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 5px;
+        overflow: visible;
+        color: var(--erp-text-3);
+        font-size: 10px;
+        line-height: 1.3;
+        white-space: normal;
+    }
     .dashboard-kpi-card small b { color: var(--metric-accent); font-weight: 650; }
+    .dashboard-kpi-card #kpi-fuel-trend,
+    .dashboard-kpi-card #kpi-hakedis-trend { flex: 1 0 100%; }
 
     .dashboard-reference-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
     .dashboard-panel { min-width: 0; overflow: hidden; border: 1px solid var(--erp-line); border-radius: 4px; background: var(--erp-panel); box-shadow: none; }

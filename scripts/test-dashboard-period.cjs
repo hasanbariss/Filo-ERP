@@ -14,9 +14,11 @@ assert.deepEqual(dashboard.dashboardMonthBounds('', september), {
     end: '2026-08-31',
     infoStart: '2026-08-01 00:00',
     infoEnd: '2026-08-31 23:59',
+    previousValue: '2026-07',
     previousStart: '2026-07-01',
     previousEnd: '2026-07-31',
-    label: 'Ağustos 2026'
+    label: 'Ağustos 2026',
+    previousLabel: 'Temmuz 2026'
 });
 assert.equal(dashboard.dashboardShiftMonth('2026-08', -1), '2026-07');
 assert.equal(dashboard.dashboardShiftMonth('2026-08', 1), '2026-09');
@@ -51,6 +53,9 @@ assert.match(source, /_dashboardFetchPeriodRows\('taseron_hakedis',[\s\S]*?'sefe
 assert.match(source, /_dashboardFetchPeriodRows\('musteri_servis_puantaj',[\s\S]*?'tarih', previousMonthStart, monthEnd/);
 assert.match(source, /const aylikYakitlar = yakitlar\.filter\(row => isCurrentMonth/);
 assert.match(source, /const oncekiAyYakitlar = yakitlar\.filter\(row => isPreviousMonth/);
+assert.match(source, /finance-current-period-heading[\s\S]*?period\.label/);
+assert.match(source, /finance-previous-period-heading[\s\S]*?period\.previousLabel/);
+assert.match(source, /operation-km-trend[\s\S]*?previousDashboardKm[\s\S]*?previousTrend/);
 assert.match(source, /\.range\(from, from \+ pageSize - 1\)/);
 assert.match(source, /renderPoliceDashboardTable\(policelerEnriched, 'aksiyon'\);[\s\S]*?fetchInfoMobileMileage\(/);
 assert.match(source, /filtre === 'aksiyon'[\s\S]*?p\.days <= 30/);
