@@ -3186,9 +3186,11 @@ async function fetchTaseronFinans() {
                     ${!isSingle ? `<div class="cari-card-plates">${plakaHTML}</div>` : '<span class="cari-card-context">Tek araç · detaya açılabilir</span>'}
                 </td>
                 <td class="cari-card-services" data-label="Seferler">
-                    <span class="service-pill is-shift" title="Vardiya"><strong>${group.vardiya}</strong> Vardiya</span>
-                    <span class="service-pill is-single" title="Tek Sefer"><strong>${group.tek}</strong> Tek</span>
-                    <span class="service-pill is-overtime" title="Mesai"><strong>${group.mesai}</strong> Mesai</span>
+                    <div class="work-summary-line">
+                        <span class="work-summary-item"><strong>${group.vardiya}</strong><span>Vardiya</span></span>
+                        <span class="work-summary-item"><strong>${group.tek}</strong><span>Tek</span></span>
+                        <span class="work-summary-item"><strong>${group.mesai}</strong><span>Mesai</span></span>
+                    </div>
                 </td>
                 <td class="cari-card-money is-gross" data-label="Brüt Hizmet"><strong>₺${group.brut.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>
                 <td class="cari-card-money is-deduction" data-label="Yakıt Kesintisi"><strong>-₺${group.yakit.toLocaleString('tr-TR', {minimumFractionDigits:2})}</strong></td>

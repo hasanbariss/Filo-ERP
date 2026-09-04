@@ -3269,10 +3269,28 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
 #content-taseron-finans .progress-table th:nth-child(6),
 #content-taseron-finans .progress-table td:nth-child(6) { width: 7%; text-align: right; }
 #content-taseron-finans .hakedis-ledger-row { height: 58px; }
-#content-taseron-finans .cari-card-services { display: flex; align-items: center; justify-content: flex-start; flex-wrap: nowrap; gap: 7px; white-space: nowrap; }
-#content-taseron-finans .cari-card-services .service-pill { min-height: 0; margin: 0; padding: 0; gap: 3px; border: 0 !important; border-radius: 0; background: transparent; font-size: 11px; }
-#content-taseron-finans .cari-card-services .service-pill strong { font-size: 12px; }
-#content-taseron-finans .cari-card-services .service-pill + .service-pill::before { content: "·"; margin-right: 4px; color: var(--bf-text-tertiary); }
+#content-taseron-finans .work-summary-line {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(54px, auto));
+    align-items: center;
+    justify-content: start;
+    gap: 12px;
+    white-space: nowrap;
+}
+#content-taseron-finans .work-summary-item {
+    display: inline-flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--bf-text-secondary);
+    font-size: 11px;
+    line-height: 1.2;
+}
+#content-taseron-finans .work-summary-item strong {
+    color: var(--bf-text-primary);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
 #content-taseron-finans .cari-card-money { font-variant-numeric: tabular-nums; }
 #content-taseron-finans .cari-card-money strong { display: block; font-size: 13px; line-height: 1.2; white-space: nowrap; }
 
@@ -3293,7 +3311,7 @@ body.mobile-preview-mode .mobile-primary-nav .nav-item svg {
     #content-taseron-finans .progress-table { min-width: 0; table-layout: auto; }
     #content-taseron-finans .progress-table th,
     #content-taseron-finans .progress-table td { width: auto; }
-    #content-taseron-finans .cari-card-services { justify-content: flex-end; }
+    #content-taseron-finans .work-summary-line { justify-content: end; }
 }
 
 @media (max-width: 560px) {
