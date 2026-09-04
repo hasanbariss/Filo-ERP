@@ -65,5 +65,7 @@ assert.match(source, /renderDashboardRecentActivity\(recentActivity\)/);
 assert.match(source, /window\.renderDashboardRecentActivity = function/);
 assert.doesNotMatch(source, /await window\.fetchInfoMobileMileage/);
 assert.match(source, /_dashboardInflight\?\.key === requestKey/);
+assert.match(source, /const displayedChange = Math\.round\(change \* 10\) \/ 10/);
+assert.match(source, /displayedChange === 0 \? 'is-neutral'/);
 
 console.log('Dashboard varsayılan dönem, ay geçişi ve dönem izolasyonu fixture testleri başarılı.');

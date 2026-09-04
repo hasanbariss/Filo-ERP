@@ -1154,8 +1154,15 @@
     .cari-card-money > span { display: block; color: var(--erp-text-3); font-size: 8px; line-height: 1.2; }
     .cari-card-money > strong { display: block; margin-top: 2px; color: var(--erp-text); font-size: 11px; line-height: 1.25; white-space: nowrap; }
     .cari-card-money.is-deduction > strong { color: var(--erp-red); }
-    .cari-card-net { border-left: 2px solid color-mix(in srgb, var(--erp-teal) 58%, var(--erp-line)); background: color-mix(in srgb, var(--erp-teal) 5%, var(--erp-panel)); }
-    .cari-card-net > strong { color: color-mix(in srgb, var(--erp-teal) 84%, var(--erp-text)); font-size: 12px; }
+    #content-taseron-finans .cari-card-money.cari-card-net {
+        padding-right: 12px;
+        border-left: 2px solid color-mix(in srgb, var(--erp-teal) 58%, var(--erp-line));
+        background: color-mix(in srgb, var(--erp-teal) 5%, var(--erp-panel)) !important;
+    }
+    #content-taseron-finans .cari-card-money.cari-card-net > span { color: var(--erp-text-3); }
+    #content-taseron-finans .cari-card-money.cari-card-net > strong { color: color-mix(in srgb, var(--erp-teal) 84%, var(--erp-text)); font-size: 12px; }
+    #content-taseron-finans .cari-card-money.cari-card-net.is-negative { border-left-color: color-mix(in srgb, var(--erp-red) 58%, var(--erp-line)); background: color-mix(in srgb, var(--erp-red) 5%, var(--erp-panel)) !important; }
+    #content-taseron-finans .cari-card-money.cari-card-net.is-negative > strong { color: var(--erp-red); }
     .cari-card-net.is-negative > strong,
     .cari-card-money strong.is-negative { color: var(--erp-red); }
     .cari-card-detail { text-align: right; white-space: nowrap; }

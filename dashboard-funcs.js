@@ -44,11 +44,12 @@ function _setDashboardTrend(id, current, previous, options = {}) {
         element.setAttribute('aria-label', element.title);
         return;
     }
-    const direction = change > 0 ? '▲' : change < 0 ? '▼' : '•';
-    const isFavourable = options.inverse ? change <= 0 : change >= 0;
-    element.classList.add(change === 0 ? 'is-neutral' : isFavourable ? 'is-positive' : 'is-negative');
-    const percentage = `%${Math.abs(change).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
-    const movement = change > 0 ? 'artış' : change < 0 ? 'azalış' : 'değişim yok';
+    const displayedChange = Math.round(change * 10) / 10;
+    const direction = displayedChange > 0 ? '▲' : displayedChange < 0 ? '▼' : '•';
+    const isFavourable = options.inverse ? displayedChange <= 0 : displayedChange >= 0;
+    element.classList.add(displayedChange === 0 ? 'is-neutral' : isFavourable ? 'is-positive' : 'is-negative');
+    const percentage = `%${Math.abs(displayedChange).toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    const movement = displayedChange > 0 ? 'artış' : displayedChange < 0 ? 'azalış' : 'değişim yok';
     element.textContent = `Önceki aya göre ${direction} ${percentage}`;
     element.title = `${previousLabel} ile karşılaştırıldığında ${percentage} ${movement}.`;
     element.setAttribute('aria-label', element.title);
