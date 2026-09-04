@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.26';
+var CACHE_NAME = 'filo-erp-v1.0.27';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
@@ -73,6 +73,12 @@ self.addEventListener('fetch', function (event) {
     // Supabase API → Doğrudan Network (Asla cache'lenmez, canlı data şart)
     if (url.hostname.includes('supabase.co')) {
         event.respondWith(fetch(event.request));
+        return;
+    }
+
+    // Runtime config ve diğer sunucu fonksiyonları hiçbir zaman cache'lenmez.
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(fetch(event.request, { cache: 'no-store' }));
         return;
     }
 

@@ -4,17 +4,32 @@
 // ============================================================
 
 // --- Supabase Bağlantı Bilgileri ---
-// Vercel'de Environment Variable tanımlandıysa o kullanılır,
-// yoksa hardcoded fallback (local dev için).
-window.supabaseUrl = (typeof process !== 'undefined' && process.env && process.env.VITE_SUPABASE_URL)
-    ? process.env.VITE_SUPABASE_URL
-    : 'https://tegpcyfhjuwfjufjjuig.supabase.co';
+// Public tarayıcı yapılandırması Vercel endpoint'inden çalışma anında gelir.
+// Böylece proje bilgileri kaynak kodda ve GitHub'ın güncel dalında tutulmaz.
+const runtimePublicConfig = window.__BARIS_FLOW_PUBLIC_CONFIG__ || {};
+const processPublicConfig = (typeof process !== 'undefined' && process.env) ? process.env : {};
 
-window.supabaseKey = (typeof process !== 'undefined' && process.env && process.env.VITE_SUPABASE_ANON_KEY)
-    ? process.env.VITE_SUPABASE_ANON_KEY
-    : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlZ3BjeWZoanV3Zmp1ZmpqdWlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1ODc2NzAsImV4cCI6MjA4NzE2MzY3MH0.reu-qWRg0GA3LPcwWPIGGM7-AgzTgWmIRuzSjdW85qg';
+window.supabaseUrl = String(
+    runtimePublicConfig.supabaseUrl || processPublicConfig.VITE_SUPABASE_URL || ''
+).trim();
+window.supabaseKey = String(
+    runtimePublicConfig.supabaseAnonKey || processPublicConfig.VITE_SUPABASE_ANON_KEY || ''
+).trim();
 
-window.supabaseClient = window.supabase.createClient(window.supabaseUrl, window.supabaseKey);
+if (window.supabaseUrl && window.supabaseKey && window.supabase) {
+    window.supabaseClient = window.supabase.createClient(window.supabaseUrl, window.supabaseKey);
+} else {
+    window.supabaseClient = null;
+    document.addEventListener('DOMContentLoaded', function () {
+        const errorBox = document.getElementById('auth-error');
+        const loginButton = document.getElementById('auth-login-btn');
+        if (errorBox) {
+            errorBox.textContent = 'Güvenli bağlantı yapılandırması yüklenemedi. Lütfen sayfayı yenileyin.';
+            errorBox.classList.remove('hidden');
+        }
+        if (loginButton) loginButton.disabled = true;
+    });
+}
 
 // --- Debug Mode ---
 // Localhost'ta true, production'da false (console.log kapatılır)
