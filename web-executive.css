@@ -842,6 +842,40 @@
     .erp-result-count b { color: var(--erp-text); font-size: 11px; }
     .factory-toolbar { background: var(--erp-filter-bar); }
 
+    /* Fuel analysis filters stay separate from the period toolbar. */
+    .fuel-analysis-filters {
+        display: flex;
+        min-height: 52px;
+        padding: 8px 11px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 7px;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-filter-bar);
+    }
+    .fuel-analysis-filters label { display: grid; min-width: 150px; flex: 1 1 180px; gap: 3px; }
+    .fuel-analysis-filters label > span { color: var(--erp-text-3); font-size: 8px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .fuel-analysis-filters select { width: 100%; min-height: 31px; padding-inline: 9px; color: var(--erp-text-2); border: 1px solid var(--erp-line); border-radius: 4px; background: var(--erp-panel); font-size: 9px; }
+    .fuel-analysis-filters .fuel-filter-reset { min-height: 31px; flex: 0 0 auto; }
+    .fuel-analysis-filters .fuel-filter-reset svg { width: 13px; height: 13px; }
+    .fuel-table { width: 100%; min-width: 820px; table-layout: fixed; border-collapse: collapse; }
+    .fuel-table th, .fuel-table td { height: auto; padding: 10px 12px; border-bottom: 1px solid var(--erp-line); vertical-align: middle; }
+    .fuel-table th { color: var(--erp-text-3); background: var(--erp-panel-soft); font-size: 8px; font-weight: 700; letter-spacing: .045em; text-transform: uppercase; }
+    .fuel-table td { color: var(--erp-text-2); font-size: 10px; line-height: 1.3; }
+    .fuel-table th:nth-child(1) { width: 15%; }
+    .fuel-table th:nth-child(2) { width: 15%; }
+    .fuel-table th:nth-child(3) { width: 19%; }
+    .fuel-table th:nth-child(4) { width: 22%; }
+    .fuel-table th:nth-child(5), .fuel-table th:nth-child(6) { width: 14.5%; }
+    .fuel-table .is-number { text-align: right; font-variant-numeric: tabular-nums; }
+    .fuel-plate { display: block; color: var(--erp-text); font-size: 11px; }
+    .fuel-owner { display: block; margin-top: 2px; color: var(--erp-text-3); font-size: 7px; font-weight: 700; letter-spacing: .05em; }
+    .fuel-stacked-value strong, .fuel-stacked-value span { display: block; }
+    .fuel-stacked-value strong { color: var(--erp-text); font-size: 10px; }
+    .fuel-stacked-value span { margin-top: 2px; color: var(--erp-text-3); font-size: 8px; white-space: normal; }
+    .fuel-column-label { display: inline-grid; gap: 1px; }
+    .fuel-column-label small { color: var(--erp-text-3); font-size: 7px; font-weight: 550; letter-spacing: 0; text-transform: none; }
+
     .fleet-card-grid,
     .contractor-card-grid,
     .factory-card-grid,
@@ -1120,7 +1154,8 @@
     .cari-card-money > span { display: block; color: var(--erp-text-3); font-size: 8px; line-height: 1.2; }
     .cari-card-money > strong { display: block; margin-top: 2px; color: var(--erp-text); font-size: 11px; line-height: 1.25; white-space: nowrap; }
     .cari-card-money.is-deduction > strong { color: var(--erp-red); }
-    .cari-card-net > strong { color: var(--erp-teal); font-size: 12px; }
+    .cari-card-net { border-left: 2px solid color-mix(in srgb, var(--erp-teal) 58%, var(--erp-line)); background: color-mix(in srgb, var(--erp-teal) 5%, var(--erp-panel)); }
+    .cari-card-net > strong { color: color-mix(in srgb, var(--erp-teal) 84%, var(--erp-text)); font-size: 12px; }
     .cari-card-net.is-negative > strong,
     .cari-card-money strong.is-negative { color: var(--erp-red); }
     .cari-card-detail { text-align: right; white-space: nowrap; }
@@ -1153,6 +1188,17 @@
     .hakedis-ledger-total td:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
     .hakedis-ledger-total td:nth-child(n+3) span { display: block; color: var(--erp-text-3); font-size: 8px; }
     .hakedis-ledger-total td:nth-child(n+3) strong { white-space: nowrap; }
+    #content-taseron-finans .cari-hakedis-controls {
+        flex: 1 1 720px;
+        min-height: 0;
+        padding: 0;
+        justify-content: flex-end;
+        border: 0;
+        background: transparent;
+    }
+    #content-taseron-finans .cari-hakedis-controls input { width: min(230px, 100%); flex: 1 1 190px; }
+    #content-taseron-finans .cari-hakedis-controls select { width: auto; min-width: 154px; flex: 0 1 190px; }
+    #content-taseron-finans .cari-hakedis-controls .erp-result-count { min-width: auto; flex: 0 0 auto; }
 
     /* Cari hesaplar — simple ledger rows with one clear identity block. */
     #content-cariler .receivables-table { min-width: 900px; table-layout: fixed; }
@@ -1802,6 +1848,11 @@
     .bf-factory-module .factory-import-card button,
     .bf-factory-module .factory-import-card a { min-height: 32px; padding: 0 10px; border-radius: 4px; line-height: 1.2; }
     .bf-factory-module .factory-import-card select { min-height: 34px; min-width: 0; border-width: 1px; border-radius: 4px; font-size: 10px; }
+    #module-musteri:not(.hidden) { display: flex; flex-direction: column; }
+    #module-musteri > .factory-page-header { order: 1; }
+    #module-musteri > .factory-import-section { order: 2; margin: 0 0 14px; }
+    #module-musteri > .factory-kpi-grid { order: 3; }
+    #module-musteri > .factory-workspace { order: 4; }
 
     /* Stop legacy cards and long labels from colliding at desktop breakpoints. */
     .main-module *,
@@ -2209,13 +2260,15 @@
 
     /* Cari account statement — compact, document-like modal. */
     #cari-detail-modal .cari-detail-backdrop { background: rgba(10, 17, 23, .68); backdrop-filter: blur(5px); }
-    #cari-detail-modal .cari-detail-dialog { position: relative; z-index: 1; width: 100%; padding: 18px; }
+    #cari-detail-modal .cari-detail-dialog { position: relative; z-index: 1; display: flex; width: 100%; height: 100%; min-height: 0 !important; margin: 0; padding: 18px; align-items: center; justify-content: center; }
     #cari-detail-modal .cari-detail-sheet {
         width: min(1080px, calc(100vw - 36px));
         max-width: 1080px;
         height: auto !important;
         min-height: 0;
         max-height: calc(100vh - 36px);
+        margin: auto;
+        transform: none !important;
         border-radius: 6px !important;
     }
     #cari-detail-modal .cari-detail-header {
@@ -2389,8 +2442,8 @@
     /* Hakediş detail — an editable reconciliation workspace. */
     #cari-kart-modal-overlay.hakedis-detail-overlay { padding: 18px !important; background: rgba(10, 17, 23, .72) !important; backdrop-filter: blur(5px); }
     #cari-kart-modal-overlay .cari-card-sheet {
-        width: min(1120px, calc(100vw - 36px)) !important;
-        max-width: 1120px !important;
+        width: min(980px, calc(100vw - 36px)) !important;
+        max-width: 980px !important;
         max-height: calc(100vh - 36px) !important;
         border-radius: 6px !important;
     }
@@ -2435,16 +2488,16 @@
     #cari-kart-modal-overlay .cari-card-close svg { width: 16px !important; height: 16px !important; }
     #cari-kart-modal-overlay .cari-card-body {
         display: grid;
-        padding: 12px !important;
+        padding: 10px !important;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         align-items: start;
-        gap: 12px !important;
+        gap: 10px !important;
         background: var(--erp-canvas) !important;
     }
     #cari-kart-modal-overlay .cari-card-body > * { min-width: 0; margin: 0 !important; }
     #cari-kart-modal-overlay .cari-service-section { grid-column: 1 / -1; }
     #cari-kart-modal-overlay .cari-card-section {
-        padding: 12px !important;
+        padding: 10px !important;
         border-width: 1px !important;
         border-left-width: 1px !important;
         border-top: 2px solid var(--section-accent, var(--erp-line-strong)) !important;
@@ -2458,7 +2511,7 @@
     #cari-kart-modal-overlay .cari-factory-list { display: grid; gap: 8px !important; }
     #cari-kart-modal-overlay .cari-factory-card { padding: 11px !important; border-radius: 4px !important; }
     #cari-kart-modal-overlay .cari-factory-title { margin-bottom: 9px !important; font-size: 10px !important; }
-    #cari-kart-modal-overlay .cari-rate-grid { gap: 7px !important; }
+    #cari-kart-modal-overlay .cari-rate-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; }
     #cari-kart-modal-overlay .cari-rate-item,
     #cari-kart-modal-overlay .cari-tax-item { padding: 8px 9px !important; border-radius: 4px !important; }
     #cari-kart-modal-overlay .cari-rate-item > div:first-child,
@@ -2474,7 +2527,7 @@
     #cari-kart-modal-overlay #yakitlar-list-container > div { padding: 8px !important; border-radius: 4px !important; }
     #cari-kart-modal-overlay .manuel-kalem-row input,
     #cari-kart-modal-overlay .manuel-kalem-row select { min-height: 29px !important; font-size: 9px !important; }
-    #cari-kart-modal-overlay .cari-card-summary { padding: 10px 12px !important; }
+    #cari-kart-modal-overlay .cari-card-summary { padding: 8px 10px !important; }
     #cari-kart-modal-overlay .cari-card-summary > div {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -2482,7 +2535,7 @@
     }
     #cari-kart-modal-overlay .cari-summary-row {
         min-width: 0;
-        min-height: 48px;
+        min-height: 43px;
         padding: 7px 9px !important;
         flex-direction: column;
         align-items: flex-start !important;
@@ -2493,7 +2546,7 @@
     }
     #cari-kart-modal-overlay .cari-summary-row > span:first-child { font-size: 8px !important; line-height: 1.2; }
     #cari-kart-modal-overlay .cari-summary-row > span:last-child { font-size: 12px !important; line-height: 1.25; }
-    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 48px; }
+    #cari-kart-modal-overlay .cari-summary-row.is-net { min-height: 43px; background: color-mix(in srgb, var(--erp-teal) 7%, var(--erp-panel)); }
     #cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { font-size: 9px !important; letter-spacing: .045em !important; }
     #cari-kart-modal-overlay #modal-net-total { font-size: 16px !important; }
 
@@ -2695,6 +2748,17 @@
     :root:not(.dark) .auth-input { color: var(--erp-text); border-color: var(--erp-line); border-radius: 4px; background: #fff; }
 
     @media (max-width: 1450px) {
+        body.bf-app:not(.sidebar-collapsed) .bf-sidebar,
+        :root.dark body.bf-app:not(.sidebar-collapsed) .bf-sidebar { width: 212px; }
+        body.bf-app:not(.sidebar-collapsed) > .bf-main-shell { margin-left: 212px; }
+        body.bf-app:not(.sidebar-collapsed) .bf-topbar { left: 212px; }
+        .bf-sidebar .bf-sidebar-brand { height: 72px; min-height: 72px; padding-inline: 20px; }
+        .bf-sidebar-wordmark { font-size: 24px; }
+        .bf-sidebar .bf-sidebar-nav { padding-top: 12px; }
+        .bf-sidebar .nav-link { min-height: 43px; padding-inline: 20px; gap: 13px; font-size: 12px; }
+        .bf-sidebar .nav-link svg { width: 18px; min-width: 18px; height: 18px; }
+        .bf-sidebar-more > summary { min-height: 42px; padding-inline: 20px; gap: 13px; }
+        body.bf-app .sidebar-collapse-toggle { min-height: 56px; padding-inline: 20px; }
         body.bf-app .bf-content { padding: 22px 24px 46px; }
         .main-module:not(#module-dashboard) > .page-header,
         .bf-offers-page .bf-page-header,
@@ -2727,14 +2791,21 @@
         .dashboard-policy-head { flex-wrap: wrap; }
         .dashboard-policy-head > div:first-child { flex: 1 1 180px; }
         .dashboard-policy-head > div:last-child { flex: 1 1 260px; flex-wrap: wrap; justify-content: flex-end; }
+        .fuel-analysis-filters label { flex-basis: 160px; }
+        #cari-kart-modal-overlay .cari-card-sheet { width: min(920px, calc(100vw - 28px)) !important; }
     }
 
     @media (max-width: 1180px) {
-        body.bf-app .bf-sidebar { width: 196px; }
-        :root.dark body.bf-app .bf-sidebar { width: 196px; }
-        body.bf-app > .bf-main-shell { margin-left: 196px; }
-        body.bf-app .bf-topbar { left: 196px; }
-        body.bf-app .bf-content { padding-inline: 22px; }
+        body.bf-app:not(.sidebar-collapsed) .bf-sidebar { width: 176px; }
+        :root.dark body.bf-app:not(.sidebar-collapsed) .bf-sidebar { width: 176px; }
+        body.bf-app:not(.sidebar-collapsed) > .bf-main-shell { margin-left: 176px; }
+        body.bf-app:not(.sidebar-collapsed) .bf-topbar { left: 176px; }
+        body.bf-app .bf-content { padding-inline: 16px; }
+        .bf-sidebar .nav-link { min-height: 40px; padding-inline: 16px; gap: 11px; font-size: 11px; }
+        .bf-sidebar .bf-sidebar-brand { padding-inline: 16px; }
+        .bf-sidebar-wordmark { font-size: 22px; }
+        .main-module:not(#module-dashboard) .page-title { font-size: 20px; }
+        .main-module:not(#module-dashboard) > .page-header { min-height: 54px; margin-bottom: 10px; padding-bottom: 10px; }
         .dashboard-kpi-card { padding-inline: 13px; grid-template-columns: 40px minmax(0,1fr); gap: 10px; }
         .dashboard-kpi-icon { width: 40px; height: 40px; }
         .main-module:not(#module-dashboard) > .page-header,
@@ -2754,13 +2825,18 @@
         #module-raporlar .report-operations-band article:nth-child(2) { border-right: 0; }
         #module-raporlar .report-operations-band article:nth-child(-n+4) { border-bottom: 1px solid var(--erp-line); }
         #module-raporlar .report-operations-band article:last-child { grid-column: 1 / -1; }
+        .fuel-insights { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .fuel-analysis-filters label { min-width: 138px; flex-basis: 150px; }
+        #content-taseron-finans .cari-hakedis-controls { justify-content: flex-start; }
+        #cari-kart-modal-overlay .cari-card-body { grid-template-columns: minmax(0, 1fr); }
+        #cari-kart-modal-overlay .cari-rate-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
     }
 
     @media (min-width: 2000px) {
-        body.bf-app .bf-sidebar { width: 256px; }
-        :root.dark body.bf-app .bf-sidebar { width: 256px; }
-        body.bf-app > .bf-main-shell { margin-left: 256px; }
-        body.bf-app .bf-topbar { left: 256px; }
+        body.bf-app:not(.sidebar-collapsed) .bf-sidebar { width: 256px; }
+        :root.dark body.bf-app:not(.sidebar-collapsed) .bf-sidebar { width: 256px; }
+        body.bf-app:not(.sidebar-collapsed) > .bf-main-shell { margin-left: 256px; }
+        body.bf-app:not(.sidebar-collapsed) .bf-topbar { left: 256px; }
         body.bf-app .bf-content { padding: 34px 44px 64px; }
         .bf-management-dashboard { max-width: 1840px; gap: 22px; }
         .dashboard-reference-grid { gap: 22px; }

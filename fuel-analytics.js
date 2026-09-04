@@ -150,14 +150,14 @@
         (vehicles || []).forEach(function (vehicle) {
             var plate = vehicle && vehicle.plaka ? vehicle.plaka : 'Eşleşmemiş';
             var normalized = normalizePlate(plate) || 'ESLESMEMIS';
-            grouped.set(normalized, { plate: plate, vehicleId: vehicle && vehicle.id, current: [], previous: [] });
+            grouped.set(normalized, { plate: plate, vehicleId: vehicle && vehicle.id, ownership: vehicle && vehicle.mulkiyet_durumu, current: [], previous: [] });
         });
         function add(rows, key) {
             (rows || []).forEach(function (row) {
                 var vehicle = vehicleById.get(String(row.arac_id));
                 var plate = vehicle && vehicle.plaka ? vehicle.plaka : (row.araclar && row.araclar.plaka) || 'Eşleşmemiş';
                 var normalized = normalizePlate(plate) || 'ESLESMEMIS';
-                var current = grouped.get(normalized) || { plate: plate, vehicleId: vehicle && vehicle.id, current: [], previous: [] };
+                var current = grouped.get(normalized) || { plate: plate, vehicleId: vehicle && vehicle.id, ownership: vehicle && vehicle.mulkiyet_durumu, current: [], previous: [] };
                 current[key].push(row);
                 grouped.set(normalized, current);
             });
@@ -177,6 +177,7 @@
                 plate: group.plate,
                 normalizedPlate: normalized,
                 vehicleId: group.vehicleId || null,
+                ownership: String(group.ownership || 'DİĞER').toUpperCase(),
                 km: km,
                 liters: current.liters,
                 cost: current.cost,

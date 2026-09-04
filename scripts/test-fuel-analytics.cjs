@@ -26,7 +26,7 @@ assert.equal(infoMobile.validRange({ start: '2026-01-01 00:00', end: '2026-09-30
 
 const rows = fuel.aggregateByVehicle(
     [{ arac_id: 'a1', tarih: '2026-09-03', litre: 50, toplam_tutar: 2500, birim_fiyat: 50 }],
-    [{ id: 'a1', plaka: '34 ABC 123' }, { id: 'a2', plaka: '35 TEST 01' }],
+    [{ id: 'a1', plaka: '34 ABC 123', mulkiyet_durumu: 'Özmal' }, { id: 'a2', plaka: '35 TEST 01', mulkiyet_durumu: 'Taşeron' }],
     { '34ABC123': 500, '35TEST01': 250 },
     [{ arac_id: 'a1', tarih: '2026-08-03', litre: 45, toplam_tutar: 2250, birim_fiyat: 50 }],
     { '34ABC123': 500 }
@@ -35,6 +35,8 @@ assert.equal(rows.length, 2);
 assert.equal(rows.find(row => row.vehicleId === 'a1').litersPer100Km, 10);
 assert.equal(rows.find(row => row.vehicleId === 'a2').costPerKm, null);
 assert.equal(rows.find(row => row.vehicleId === 'a2').litersPer100Km, null);
+assert.equal(rows.find(row => row.vehicleId === 'a1').ownership, 'ÖZMAL');
+assert.equal(rows.find(row => row.vehicleId === 'a2').ownership, 'TAŞERON');
 
 const importRows = [
     { arac_id: 'a1', tarih: '2026-09-01', litre: 40, birim_fiyat: 50, toplam_tutar: 2000 },

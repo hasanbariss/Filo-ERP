@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var state = { period: 'week', tab: 'analysis', rows: [], fuelRows: [], vehicles: [], bounds: null };
+    var state = { period: 'month', tab: 'analysis', rows: [], fuelRows: [], vehicles: [], bounds: null };
 
     function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
@@ -96,7 +96,27 @@
     function renderAnalysis(rows) {
         state.rows = rows;
         var query = String(document.getElementById('yakit-km-search')?.value || '').toLocaleLowerCase('tr-TR');
-        var visible = rows.filter(function (row) { return String(row.plate).toLocaleLowerCase('tr-TR').includes(query); });
+        var availability = document.getElementById('fuel-analysis-availability')?.value || 'complete';
+        var ownership = String(document.getElementById('fuel-analysis-ownership')?.value || '').toUpperCase();
+        var sort = document.getElementById('fuel-analysis-sort')?.value || 'cost-desc';
+        var visible = rows.filter(function (row) {
+            var matchesQuery = String(row.plate).toLocaleLowerCase('tr-TR').includes(query);
+            var matchesOwnership = !ownership || row.ownership === ownership;
+            var matchesAvailability = availability === 'all' ||
+                (availability === 'complete' && row.km > 0 && row.receiptCount > 0) ||
+                (availability === 'km' && row.km > 0) ||
+                (availability === 'fuel' && row.receiptCount > 0);
+            return matchesQuery && matchesOwnership && matchesAvailability;
+        });
+        var sorters = {
+            'cost-desc': function (a, b) { return b.cost - a.cost; },
+            'km-desc': function (a, b) { return b.km - a.km; },
+            'consumption-desc': function (a, b) { return Number(b.litersPer100Km || -1) - Number(a.litersPer100Km || -1); },
+            'consumption-asc': function (a, b) { return Number(a.litersPer100Km == null ? Infinity : a.litersPer100Km) - Number(b.litersPer100Km == null ? Infinity : b.litersPer100Km); },
+            'liters-desc': function (a, b) { return b.liters - a.liters; },
+            'plate-asc': function (a, b) { return String(a.plate).localeCompare(String(b.plate), 'tr'); }
+        };
+        visible.sort(sorters[sort] || sorters['cost-desc']);
         var container = document.getElementById('yakit-km-container');
         setText('fuel-analysis-count', visible.length + ' araç');
         if (!container) return;
@@ -113,19 +133,16 @@
             }
             var consumption = row.km <= 0 && row.receiptCount > 0 ? '<span class="badge badge-warning">KM verisi yok</span>' : row.receiptCount === 0 ? '<span class="badge badge-neutral">Kayıt yok</span>' : fmtNumber(row.litersPer100Km, 2);
             return '<tr>' +
-                '<td><strong class="fuel-plate">' + esc(row.plate) + '</strong></td>' +
+                '<td><strong class="fuel-plate">' + esc(row.plate) + '</strong><span class="fuel-owner">' + esc(row.ownership) + '</span></td>' +
                 '<td class="is-number">' + (row.km > 0 ? fmtNumber(row.km, 1) + ' km' : '—') + '</td>' +
-                '<td class="is-number">' + fmtNumber(row.liters, 2) + ' L</td>' +
-                '<td class="is-number">' + fmtMoney(row.cost) + '</td>' +
-                '<td class="is-number">' + (row.averageUnitPrice !== null ? fmtMoney(row.averageUnitPrice) : '—') + '</td>' +
-                '<td class="is-number is-emphasis">' + consumption + '</td>' +
-                '<td class="is-number">' + (row.costPerKm !== null ? fmtMoney(row.costPerKm) : '—') + '</td>' +
-                '<td class="is-number">' + row.receiptCount + '</td>' +
+                '<td class="is-number fuel-stacked-value"><strong>' + fmtMoney(row.cost) + '</strong><span>' + fmtNumber(row.liters, 2) + ' L · ' + row.receiptCount + ' kayıt</span></td>' +
+                '<td class="is-number fuel-stacked-value is-emphasis"><strong>' + consumption + '</strong><span>' + (row.costPerKm !== null ? fmtMoney(row.costPerKm) + '/km' : 'TL/KM —') + ' · ' + (row.averageUnitPrice !== null ? fmtMoney(row.averageUnitPrice) + '/L' : 'Ort. litre —') + '</span></td>' +
                 '<td class="is-number">' + changeBadge(row.kmChangePercent) + '</td>' +
                 '<td class="is-number">' + changeBadge(row.consumptionChangePercent) + '</td>' +
                 '</tr>';
         }).join('');
-        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Plaka</th><th class="is-number">Toplam KM</th><th class="is-number">Litre</th><th class="is-number">Yakıt Maliyeti</th><th class="is-number">Ort. Litre</th><th class="is-number">L/100 KM</th><th class="is-number">TL/KM</th><th class="is-number">Kayıt</th><th class="is-number">KM Değişimi</th><th class="is-number">Tüketim Değişimi</th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
+        var comparisonLabel = state.period === 'month' ? 'Önceki aya göre' : 'Önceki haftaya göre';
+        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table"><thead><tr><th>Araç</th><th class="is-number">Toplam KM</th><th class="is-number">Yakıt</th><th class="is-number">Verimlilik</th><th class="is-number"><span class="fuel-column-label">KM Değişimi<small>' + comparisonLabel + '</small></span></th><th class="is-number"><span class="fuel-column-label">Tüketim Değişimi<small>' + comparisonLabel + '</small></span></th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
     }
 
     function renderKpis(rows, fuelRows) {
@@ -192,6 +209,18 @@
     };
 
     window.filterYakitKm = function () { renderAnalysis(state.rows); renderRecords(state.fuelRows, state.vehicles); };
+    window.clearFuelAnalysisFilters = function () {
+        var search = document.getElementById('yakit-km-search');
+        var availability = document.getElementById('fuel-analysis-availability');
+        var ownership = document.getElementById('fuel-analysis-ownership');
+        var sort = document.getElementById('fuel-analysis-sort');
+        if (search) search.value = '';
+        if (availability) availability.value = 'complete';
+        if (ownership) ownership.value = '';
+        if (sort) sort.value = 'cost-desc';
+        renderAnalysis(state.rows);
+        renderRecords(state.fuelRows, state.vehicles);
+    };
     window.filterFuelRecords = function () { renderRecords(state.fuelRows, state.vehicles); };
     window.clearFuelRecordFilters = function () {
         var search = document.getElementById('yakit-km-search');
@@ -215,7 +244,7 @@
         setText('fuel-period-label', periodLabel(bounds));
         try {
             var results = await Promise.all([
-                safeQuery(window.supabaseClient.from('araclar').select('id, plaka').order('plaka')),
+                safeQuery(window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu').order('plaka')),
                 safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', bounds.start).lte('tarih', bounds.end).order('tarih', { ascending: false })),
                 safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', previous.start).lte('tarih', previous.end))
             ]);

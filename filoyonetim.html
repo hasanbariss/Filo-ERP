@@ -433,8 +433,8 @@
 
                         <div class="fuel-toolbar">
                             <div class="fuel-period-toggle" aria-label="Dönem tipi">
-                                <button type="button" class="is-active" data-fuel-period="week" onclick="window.setFuelAnalyticsPeriod('week')">Haftalık</button>
-                                <button type="button" data-fuel-period="month" onclick="window.setFuelAnalyticsPeriod('month')">Aylık</button>
+                                <button type="button" data-fuel-period="week" onclick="window.setFuelAnalyticsPeriod('week')">Haftalık</button>
+                                <button type="button" class="is-active" data-fuel-period="month" onclick="window.setFuelAnalyticsPeriod('month')">Aylık</button>
                             </div>
                             <button type="button" class="btn-icon" onclick="window.shiftFuelAnalyticsPeriod(-1)" title="Önceki dönem" aria-label="Önceki döneme git"><i data-lucide="chevron-left"></i></button>
                             <label class="fuel-date-control"><span>Referans tarih</span><input type="date" id="fuel-period-anchor" onchange="window.fetchFuelAnalytics()"></label>
@@ -456,6 +456,12 @@
                             <div class="fuel-insights"><div><span>En çok KM</span><strong id="fuel-kpi-top-km">—</strong></div><div><span>En yüksek gider</span><strong id="fuel-kpi-top-cost">—</strong></div><div><span>En yüksek tüketim</span><strong id="fuel-kpi-top-consumption">—</strong></div><div><span>En düşük tüketim</span><strong id="fuel-kpi-low-consumption">—</strong></div></div>
                             <div class="fuel-analysis-surface">
                                 <div class="fuel-section-head"><div><h2>Araç Bazlı Analiz</h2><p>L/100 KM ve TL/KM yalnızca geçerli GPS kilometresi olduğunda hesaplanır.</p></div><span id="fuel-analysis-count" class="badge badge-neutral">0 araç</span></div>
+                                <div class="fuel-analysis-filters" aria-label="Araç analizi filtreleri">
+                                    <label><span>Veri durumu</span><select id="fuel-analysis-availability" onchange="window.filterYakitKm()"><option value="complete">KM + yakıt verisi olan</option><option value="km">KM verisi olan</option><option value="fuel">Yakıt verisi olan</option><option value="all">Tüm araçlar</option></select></label>
+                                    <label><span>Filo türü</span><select id="fuel-analysis-ownership" onchange="window.filterYakitKm()"><option value="">Tüm filo türleri</option><option value="ÖZMAL">Özmal</option><option value="TAŞERON">Taşeron</option><option value="KİRALIK">Kiralık</option></select></label>
+                                    <label><span>Sırala</span><select id="fuel-analysis-sort" onchange="window.filterYakitKm()"><option value="cost-desc">Yakıt gideri · yüksekten</option><option value="km-desc">Kilometre · yüksekten</option><option value="consumption-desc">Tüketim · yüksekten</option><option value="consumption-asc">Tüketim · düşükten</option><option value="liters-desc">Litre · yüksekten</option><option value="plate-asc">Plaka · A–Z</option></select></label>
+                                    <button type="button" class="btn-ghost fuel-filter-reset" onclick="window.clearFuelAnalysisFilters()"><i data-lucide="rotate-ccw"></i>Temizle</button>
+                                </div>
                                 <div id="yakit-km-container" class="fuel-table-state"><div class="loading-state">Veriler hazırlanıyor...</div></div>
                             </div>
                         </section>
@@ -1560,6 +1566,19 @@
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 font-bold cursor-pointer transition-all hover:border-white/20">
                                     <option value="">Dönem seçin</option>
                                 </select>
+                                <select id="filter-cari-hakedis-status" onchange="fetchTaseronFinans()" aria-label="Net hakediş durumuna göre filtrele">
+                                    <option value="">Tüm tutar durumları</option>
+                                    <option value="positive">Ödenecek tutarı olan</option>
+                                    <option value="zero">Sıfır bakiye</option>
+                                    <option value="negative">Negatif bakiye</option>
+                                </select>
+                                <select id="sort-cari-hakedis" onchange="fetchTaseronFinans()" aria-label="Cari hakedişleri sırala">
+                                    <option value="net-desc">Net hakediş · yüksekten</option>
+                                    <option value="gross-desc">Brüt hizmet · yüksekten</option>
+                                    <option value="fuel-desc">Yakıt kesintisi · yüksekten</option>
+                                    <option value="name-asc">Cari / firma · A–Z</option>
+                                </select>
+                                <span class="erp-result-count"><b id="hakedis-visible-count">—</b> cari</span>
                                 <button onclick="window.openDetayliTaseronRaporu()" class="btn-secondary">
                                     <i data-lucide="table" class="w-4 h-4"></i> Detaylı Rapor
                                 </button>

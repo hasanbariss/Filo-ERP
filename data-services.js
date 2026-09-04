@@ -3124,7 +3124,32 @@ async function fetchTaseronFinans() {
             firmaGroups[key].brut    += row.brut;
             firmaGroups[key].yakit   += row.yakit;
         });
-        const groupedRows = Object.values(firmaGroups).sort((a,b) => a.label.localeCompare(b.label));
+        let groupedRows = Object.values(firmaGroups);
+        const amountStatus = document.getElementById('filter-cari-hakedis-status')?.value || '';
+        if (amountStatus) {
+            groupedRows = groupedRows.filter(group => {
+                const net = group.brut - group.yakit;
+                if (amountStatus === 'positive') return net > 0;
+                if (amountStatus === 'negative') return net < 0;
+                return Math.abs(net) < 0.005;
+            });
+        }
+        const hakedisSort = document.getElementById('sort-cari-hakedis')?.value || 'net-desc';
+        const hakedisSorters = {
+            'net-desc': (a, b) => (b.brut - b.yakit) - (a.brut - a.yakit),
+            'gross-desc': (a, b) => b.brut - a.brut,
+            'fuel-desc': (a, b) => b.yakit - a.yakit,
+            'name-asc': (a, b) => a.label.localeCompare(b.label, 'tr')
+        };
+        groupedRows.sort(hakedisSorters[hakedisSort] || hakedisSorters['net-desc']);
+        const visibleCount = document.getElementById('hakedis-visible-count');
+        if (visibleCount) visibleCount.textContent = groupedRows.length;
+
+        if (groupedRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6"><div class="progress-state"><i data-lucide="file-search"></i><strong>Filtreye uygun cari hakediş bulunamadı.</strong><p>Tutar filtresini veya arama ölçütünü değiştirin.</p></div></td></tr>';
+            if (window.lucide) window.lucide.createIcons();
+            return;
+        }
 
         let totalVardiya=0, totalTek=0, totalMesai=0, totalBrut=0, totalYakit=0, totalNet=0;
 
