@@ -2428,6 +2428,184 @@
     #cari-kart-modal-overlay .cari-summary-row.is-net > span:first-child { font-size: 9px !important; letter-spacing: .045em !important; }
     #cari-kart-modal-overlay #modal-net-total { font-size: 16px !important; }
 
+    /* Receivables submodules — one compact ledger language across policy, instalment,
+       payroll and corporate-card views. Existing ids and event bindings stay intact. */
+    #content-police,
+    #content-taksitler,
+    #content-maaslar,
+    #content-kredi-kartlari {
+        padding: 0 !important;
+        color: var(--erp-text);
+        background: var(--erp-panel);
+    }
+    #content-police > div:first-child,
+    #content-taksitler > div:first-child,
+    #content-maaslar > div:first-child,
+    #content-kredi-kartlari > div:first-child {
+        display: flex !important;
+        width: 100%;
+        min-width: 0;
+        min-height: 54px;
+        margin: 0 !important;
+        padding: 9px 12px;
+        flex-flow: row wrap !important;
+        align-items: center !important;
+        justify-content: space-between;
+        gap: 8px 12px !important;
+        border-bottom: 1px solid var(--erp-line);
+        background: var(--erp-filter-bar);
+    }
+    #content-police > div:first-child > h3,
+    #content-taksitler > div:first-child > h3,
+    #content-maaslar > div:first-child > h3,
+    #content-kredi-kartlari > div:first-child > h3 {
+        margin: 0;
+        color: var(--erp-text);
+        font-size: 12px !important;
+        font-weight: 700;
+        line-height: 1.25;
+    }
+    #content-police > div:first-child > div,
+    #content-taksitler > div:first-child > div,
+    #content-kredi-kartlari > div:first-child > div {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px !important;
+    }
+    #content-police > div:first-child label,
+    #content-taksitler > div:first-child label {
+        min-height: 30px;
+        padding: 0 8px !important;
+        border: 1px solid var(--erp-line);
+        border-radius: 4px;
+        color: var(--erp-text-2) !important;
+        background: var(--erp-panel);
+        font-size: 9px !important;
+        font-weight: 600 !important;
+        white-space: nowrap;
+    }
+    #content-police > div:first-child label input,
+    #content-taksitler > div:first-child label input {
+        width: 14px;
+        height: 14px;
+        border-color: var(--erp-line-strong) !important;
+        background: var(--erp-panel) !important;
+    }
+    #content-police > div:first-child .bg-white\/5,
+    #content-taksitler > div:first-child .bg-white\/5 {
+        padding: 2px !important;
+        gap: 2px !important;
+        border-color: var(--erp-line) !important;
+        border-radius: 4px !important;
+        background: var(--erp-panel-soft) !important;
+        box-shadow: none !important;
+    }
+    #content-police [id^="police-btn-"],
+    #content-taksitler [id^="taksit-btn-"] {
+        min-height: 28px;
+        padding: 0 9px !important;
+        border: 0 !important;
+        border-radius: 3px !important;
+        color: var(--erp-text-2) !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        font-size: 9px !important;
+        font-weight: 650 !important;
+        white-space: nowrap;
+    }
+    #content-police [id^="police-btn-"].bg-orange-500,
+    #content-taksitler [id^="taksit-btn-"].bg-orange-500 {
+        color: #fff !important;
+        background: var(--erp-coral) !important;
+    }
+    #content-police > div:first-child > div > button,
+    #content-maaslar > div:first-child > button,
+    #content-kredi-kartlari > div:first-child button {
+        display: inline-flex;
+        min-height: 32px;
+        padding: 0 10px !important;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        border: 1px solid var(--erp-line-strong) !important;
+        border-radius: 4px !important;
+        color: var(--erp-text-2) !important;
+        background: var(--erp-panel) !important;
+        box-shadow: none !important;
+        font-size: 9px !important;
+        font-weight: 650 !important;
+        white-space: nowrap;
+    }
+    #content-police > div:first-child > div > button:last-child,
+    #content-maaslar > div:first-child > button,
+    #content-kredi-kartlari > div:first-child button:last-child {
+        color: #fff !important;
+        border-color: var(--erp-coral) !important;
+        background: var(--erp-coral) !important;
+    }
+    #content-police > div:first-child button svg,
+    #content-maaslar > div:first-child button svg,
+    #content-kredi-kartlari > div:first-child button svg { width: 13px !important; height: 13px !important; }
+    #content-police > .overflow-x-auto,
+    #content-taksitler > .overflow-x-auto,
+    #content-maaslar > .overflow-x-auto,
+    #content-kredi-kartlari > .overflow-x-auto {
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        background: var(--erp-panel);
+    }
+    #content-police table,
+    #content-taksitler table,
+    #content-maaslar table,
+    #content-kredi-kartlari table {
+        width: 100%;
+        min-width: 820px;
+        table-layout: auto;
+        border-collapse: collapse;
+    }
+    #content-police th,
+    #content-taksitler th,
+    #content-maaslar th,
+    #content-kredi-kartlari th {
+        height: 36px;
+        padding: 8px 12px !important;
+        color: var(--erp-text-3) !important;
+        background: var(--erp-panel-soft) !important;
+        font-size: 9px !important;
+        font-weight: 700 !important;
+        line-height: 1.15;
+        letter-spacing: .045em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+    #content-police td,
+    #content-taksitler td,
+    #content-maaslar td,
+    #content-kredi-kartlari td {
+        padding: 10px 12px !important;
+        color: var(--erp-text-2);
+        font-size: 11px;
+        line-height: 1.35;
+        vertical-align: middle;
+    }
+    #content-police tbody tr,
+    #content-taksitler tbody tr,
+    #content-maaslar tbody tr,
+    #content-kredi-kartlari tbody tr { border-bottom: 1px solid var(--erp-line) !important; }
+    #content-police tbody tr:hover,
+    #content-taksitler tbody tr:hover,
+    #content-maaslar tbody tr:hover,
+    #content-kredi-kartlari tbody tr:hover { background: var(--erp-panel-hover) !important; }
+    #content-taksitler tfoot tr {
+        border-top: 1px solid var(--erp-line-strong) !important;
+        background: var(--erp-panel-soft) !important;
+    }
+    #content-taksitler tfoot td { color: var(--erp-text) !important; }
+
     :root:not(.dark) body.bf-app .main-module .text-white { color: var(--erp-text); }
     :root:not(.dark) body.bf-app .main-module .text-gray-300,
     :root:not(.dark) body.bf-app .main-module .text-gray-400 { color: var(--erp-text-2); }
