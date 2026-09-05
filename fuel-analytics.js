@@ -72,6 +72,31 @@
         };
     }
 
+    function matchesReportPreset(vehicle, preset) {
+        var owner = String(vehicle.mulkiyet_durumu || '').toLocaleUpperCase('tr-TR');
+        var company = String(vehicle.sirket || '').toLocaleUpperCase('tr-TR').replace(/[^A-ZÇĞİÖŞÜ0-9]/g, '');
+        var dikkan = company === 'DİKKAN' || company === 'DIKKAN';
+        var ideolMk = ['IDEOL', 'İDEOL', 'MK', 'MKALIPCI', 'MKALIPÇI'].includes(company);
+        if (preset === 'owned') return owner === 'ÖZMAL';
+        if (preset === 'subcontract') return owner === 'TAŞERON';
+        if (preset === 'dikkan-owned') return owner === 'ÖZMAL' && dikkan;
+        if (preset === 'ideol-mk-owned') return owner === 'ÖZMAL' && ideolMk;
+        if (preset === 'dikkan-subcontract') return owner === 'TAŞERON' && dikkan;
+        if (preset === 'other-subcontract') return owner === 'TAŞERON' && !!company && !dikkan;
+        return true;
+    }
+
+    function mileageIntervals(rows) {
+        var previous = new Map();
+        return (rows || []).slice().sort(function(a,b) {return String(a.tarih).localeCompare(String(b.tarih)) || number(a.kilometre)-number(b.kilometre);}).map(function(row) {
+            var key=String(row.arac_id); var before=previous.get(key); var km=number(row.kilometre);
+            var valid=km>=0 && (before===undefined || km>=before);
+            var result=Object.assign({},row,{fark_km:valid && before!==undefined ? km-before:0, km_status:!valid?'Tutarsız KM':before===undefined?'Başlangıç kaydı':'Kontrol edildi'});
+            if(valid)previous.set(key,km);
+            return result;
+        });
+    }
+
     function metrics(liters, cost, km) {
         var totalLiters = number(liters);
         var totalCost = number(cost);
@@ -196,6 +221,8 @@
     }
 
     return {
+        mileageIntervals: mileageIntervals,
+        matchesReportPreset: matchesReportPreset,
         normalizePlate: normalizePlate,
         periodBounds: periodBounds,
         previousBounds: previousBounds,

@@ -240,6 +240,19 @@
         }).sort(function (a, b) { return b.current.revenue - a.current.revenue; });
     }
 
+    function groupServiceClasses(details) {
+        var groups = new Map();
+        (details || []).forEach(function(detail) {
+            var current = detail.current;
+            var key = JSON.stringify([detail.vehicleClass, current.vardiyaPrice, current.tekPrice]);
+            var group = groups.get(key) || {vehicleClass:detail.vehicleClass, shifts:0, trips:0, gross:0, vardiyaPrice:current.vardiyaPrice, tekPrice:current.tekPrice, regions:new Set(), vehicles:new Set()};
+            group.shifts += number(current.shifts); group.trips += number(current.trips); group.gross += number(current.gross);
+            group.regions.add(detail.region); group.vehicles.add(detail.vehicleId);
+            groups.set(key, group);
+        });
+        return Array.from(groups.values());
+    }
+
     function groupCaris(caris, currentInvoices, currentPayments, previousInvoices, previousPayments) {
         var groups = new Map((caris || []).map(function (row) { return [String(row.id), { id: String(row.id), name: row.unvan, type: row.tur || 'Cari', currentDebt: 0, currentPayment: 0, previousDebt: 0, previousPayment: 0 }]; }));
         function add(rows, field) {
@@ -271,6 +284,7 @@
         serviceGross: serviceGross,
         groupCustomerServices: groupCustomerServices,
         mergeVehicleRevenue: mergeVehicleRevenue,
+        groupServiceClasses: groupServiceClasses,
         groupCaris: groupCaris
     };
 });

@@ -254,7 +254,9 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                 if (tutar < 0) tutar = -tutar; // ensure positive for salary
             }
 
-            const { error } = await window.supabaseClient.from('sofor_finans').insert([{ sofor_id, islem_turu, tutar, aciklama }]);
+            const tarih = document.getElementById('finans-tarih')?.value;
+            if (!tarih || !Number.isFinite(tutar) || tutar === 0) throw new Error('Geçerli tarih ve sıfırdan farklı tutar girin.');
+            const { error } = await window.supabaseClient.from('sofor_finans').insert([{ sofor_id, islem_turu, tutar, aciklama, tarih }]);
             if (error) throw error;
             if (typeof fetchSoforFinans === 'function') fetchSoforFinans();
         }
@@ -493,24 +495,17 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                 throw new Error("Lütfen Araç, Tarih ve KM alanlarını eksiksiz doldurun.");
             }
 
-            // Önce aracın bir önceki KM kaydını bulalım (farkı hesaplamak için)
-            let fark_km = 0;
-            try {
-                const { data: lastRecord } = await window.supabaseClient
-                    .from('manuel_yakit_fisleri')
-                    .select('kilometre')
-                    .eq('arac_id', arac_id)
-                    .order('kilometre', { ascending: false })
-                    .limit(1)
-                    .single();
-
-                if (lastRecord && lastRecord.kilometre) {
-                    fark_km = kilometre - lastRecord.kilometre;
-                    if (fark_km < 0) fark_km = 0; // Yanlış giriş ihtimaline karşı
-                }
-            } catch (err) {
-                // Kayıt yoksa hata verir, fark 0 kalır. Normal durum.
+            const neighbours = [];
+            for (let offset = 0; ; offset += 1000) {
+                const {data, error} = await window.supabaseClient.from('manuel_yakit_fisleri').select('id, tarih, kilometre').eq('arac_id', arac_id).order('tarih', {ascending:false}).order('kilometre', {ascending:false}).order('id').range(offset, offset+999);
+                if (error) throw error;
+                neighbours.push(...(data || []));
+                if (!data || data.length < 1000) break;
             }
+            const before = (neighbours || []).find(row => row.tarih <= tarih && (row.tarih !== tarih || Number(row.kilometre) <= kilometre));
+            const after = (neighbours || []).filter(row => row.tarih > tarih || (row.tarih === tarih && Number(row.kilometre) > kilometre)).sort((a,b) => String(a.tarih).localeCompare(String(b.tarih)) || Number(a.kilometre)-Number(b.kilometre))[0];
+            if (kilometre < 0 || (before && kilometre < Number(before.kilometre)) || (after && kilometre > Number(after.kilometre))) throw new Error('Kilometre önceki ve sonraki tarihli kayıtlarla tutarlı olmalı.');
+            const fark_km = before ? kilometre - Number(before.kilometre) : 0;
 
             // Yeni kaydı oluştur
             const insertData = { arac_id, tarih, sofor_adi, tutar, kilometre, fark_km };
@@ -2800,29 +2795,47 @@ async function fetchSoforler(sirketFilter) {
     }
 }
 
+let soforFinanceRequest = 0;
 async function fetchSoforFinans() {
-    const tbody = document.getElementById('sofor-finans-tbody');
+    const request = ++soforFinanceRequest;
+    const tbody = document.getElementById('per-sofor-finans-tbody') || document.getElementById('sofor-finans-tbody');
     if (!tbody) return;
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
-        const { data: islemler, error } = await window.supabaseClient
+        let query = window.supabaseClient
             .from('sofor_finans')
             .select('*, soforler(ad_soyad)')
-            .order('olusturulma_tarihi', { ascending: false });
-        if (error) throw error;
+            .order('tarih', { ascending: false });
+        const month = document.getElementById('personel-ay')?.value;
+        if (month) {
+            const [year, m] = month.split('-').map(Number);
+            query = query.gte('tarih', month + '-01').lt('tarih', new Date(Date.UTC(year, m, 1)).toISOString().slice(0,10));
+        }
+        const islemler = [];
+        for (let offset = 0; ; offset += 1000) {
+            const {data, error} = await query.order('id').range(offset,offset+999);
+            if (request !== soforFinanceRequest) return;
+            if (error) throw error;
+            islemler.push(...(data || []));
+            if (!data || data.length < 1000) break;
+        }
         tbody.innerHTML = '';
         if (islemler.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">İşlem bulunmuyor.</td></tr>';
             return;
         }
-        islemler.forEach(islem => {
+        const search = (document.getElementById('avans-search')?.value || '').toLocaleLowerCase('tr-TR');
+        const type = document.getElementById('avans-type')?.value || '';
+        const visible = islemler.filter(row => (!type || row.islem_turu === type) && (!search || ((row.soforler?.ad_soyad || '')+' '+(row.aciklama || '')).toLocaleLowerCase('tr-TR').includes(search)));
+        if (!visible.length) tbody.innerHTML = '<tr><td colspan="6">Seçili filtrelerde işlem bulunamadı.</td></tr>';
+        visible.forEach(islem => {
             const tr = document.createElement('tr');
             tr.className = "hover:bg-gray-50 transition-colors";
             const tutarClass = islem.tutar < 0 ? 'text-danger' : 'text-primary';
             const tutarPrefix = islem.tutar < 0 ? '' : '+';
 
             tr.innerHTML = `
-                    < td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500" > ${islem.tarih}</td >
+                    <td class="px-6 py-5 whitespace-nowrap text-sm text-gray-500">${islem.tarih}</td>
                         <td class="px-6 py-5 whitespace-nowrap text-sm font-medium text-primary">${islem.soforler ? islem.soforler.ad_soyad : 'Bilinmiyor'}</td>
                         <td class="px-6 py-5 whitespace-nowrap">
                             <span class="px-2 py-1 text-[10px] uppercase tracking-wider font-semibold border border-gray-200 text-gray-600 bg-gray-50">${islem.islem_turu}</span>
@@ -2835,7 +2848,7 @@ async function fetchSoforFinans() {
                 `;
             tbody.appendChild(tr);
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { if (request !== soforFinanceRequest) return; console.error(e); tbody.innerHTML = '<tr><td colspan="6">Avans kayıtları yüklenemedi. Lütfen tekrar deneyin.</td></tr>'; }
 }
 
 async function fetchTaseronFinans() {
@@ -9771,22 +9784,15 @@ window.fetchManuelYakitFisleri = async function() {
     container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-gray-500 shadow-2xl">Kayıtlar yükleniyor...</div>';
 
     try {
-        const { data: fisler, error } = await window.supabaseClient
-            .from('manuel_yakit_fisleri')
-            .select('*, araclar(plaka)')
-            .order('tarih', { ascending: false })
-            .order('olusturulma_tarihi', { ascending: false })
-            .limit(200);
-
-        if (error) {
-            if (error.message && error.message.includes('relation "public.manuel_yakit_fisleri" does not exist')) {
-                container.innerHTML = '<div class="bg-white/5 border border-white/10 rounded-2xl p-14 text-center text-amber-500 font-bold shadow-2xl">Lütfen "manuel_yakit_fisleri" tablosunu SQL Editor ile oluşturun. İlgili SQL betiği ana dizindedir.</div>';
-                return;
-            }
-            throw error;
+        const fisler = [];
+        for (let offset = 0; ; offset += 1000) {
+            const {data, error} = await window.supabaseClient.from('manuel_yakit_fisleri').select('*, araclar(plaka)').order('tarih').order('id').range(offset, offset+999);
+            if (error) throw error;
+            fisler.push(...(data || []));
+            if (!data || data.length < 1000) break;
         }
-
-        window.allYakitKmRecords = fisler || [];
+        // Derive intervals from chronology, including after backdated entry or deletion.
+        window.allYakitKmRecords = window.FuelAnalytics.mileageIntervals(fisler).reverse();
         renderYakitKmTable(window.allYakitKmRecords);
 
     } catch (err) {
@@ -9825,7 +9831,7 @@ function renderYakitKmTable(records) {
             const tarih = r.tarih ? r.tarih.split('-').reverse().join('.') : '-';
             const sofor = r.sofor_adi || '-';
             const km = r.kilometre ? r.kilometre.toLocaleString('tr-TR') : '0';
-            const fark = r.fark_km ? r.fark_km.toLocaleString('tr-TR') : '0';
+            const fark = r.km_status === 'Tutarsız KM' ? 'Tutarsız KM' : r.fark_km ? r.fark_km.toLocaleString('tr-TR') : '0';
             const tutar = r.tutar ? Number(r.tutar).toLocaleString('tr-TR', { minimumFractionDigits: 2 }) : '0,00';
             
             tableRows += `

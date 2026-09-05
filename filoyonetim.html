@@ -102,7 +102,7 @@
     <link rel="stylesheet" href="web-executive.css?v=2.0.19">
     <link rel="stylesheet" href="fleet-bulk-edit.css?v=1.0.1">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
-    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.0">
+    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.1">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -1505,8 +1505,9 @@
                                 <h3 class="text-lg font-bold">Avans &amp; Kesinti Gecmisi</h3>
                                 <p class="text-xs text-gray-500">Sofor avans, ceza, haciz ve diger kesinti kayitlari.</p>
                             </div>
-                            <button onclick="openModal('Yeni Finans Islemi')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20">+ Yeni Islem</button>
+                            <button onclick="openModal('Yeni Finans İşlemi')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-xl text-sm transition-all shadow-lg shadow-blue-500/20">+ Yeni Islem</button>
                         </div>
+                        <div class="personnel-operation-toolbar"><label>Şoför / açıklama<input id="avans-search" type="search" oninput="fetchSoforFinans()" placeholder="Ara"></label><label>İşlem türü<select id="avans-type" onchange="fetchSoforFinans()"><option value="">Tüm işlemler</option><option value="AVANS">Avans</option><option value="KESİNTİ (Ceza/Hasar)">Kesinti</option><option value="MAAŞ">Maaş</option><option value="PRİM/HARCIRAH">Prim / harcırah</option></select></label></div>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="premium-table w-full">
                                 <thead>
@@ -2981,12 +2982,12 @@
 <script defer src="company-branding.js?v=2.0.4"></script>
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
-<script defer src="fuel-analytics.js?v=2.0.2"></script>
-<script defer src="report-analytics.js?v=2.0.0"></script>
-<script defer src="data-services.js?v=2.0.15"></script>
-<script defer src="report-comparison-ui.js?v=2.0.0"></script>
-<script defer src="ui-manager.js?v=2.0.13"></script>
-<script defer src="fuel-analytics-ui.js?v=2.0.5"></script>
+<script defer src="fuel-analytics.js?v=2.0.3"></script>
+<script defer src="report-analytics.js?v=2.0.1"></script>
+<script defer src="data-services.js?v=2.0.16"></script>
+<script defer src="report-comparison-ui.js?v=2.0.1"></script>
+<script defer src="ui-manager.js?v=2.0.14"></script>
+<script defer src="fuel-analytics-ui.js?v=2.0.6"></script>
 <script defer src="fleet-bulk-edit.js?v=1.0.1"></script>
 
 
@@ -2998,9 +2999,9 @@
 <!-- puantaj.js removed: belongs exclusively to puantaj.html -->
 
 <!-- 5. FIXES -->
-<script defer src="app-fixes.js?v=2.1.1"></script>
+<script defer src="app-fixes.js?v=2.0.2"></script>
 <script defer src="turkish-month-select.js?v=1.0.0"></script>
-<script defer src="personnel-operations.js?v=1.0.0"></script>
+<script defer src="personnel-operations.js?v=1.0.1"></script>
 <script defer src="ios-mobile.js?v=2.0.1"></script>
 
 <!-- 6. NEW SRP MODULES -->

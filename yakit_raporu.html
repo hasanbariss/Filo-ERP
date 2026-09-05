@@ -96,7 +96,9 @@
             accent-color: #ea580c;
         }
     </style>
-</head>
+<style>
+.glass-header{flex-wrap:wrap;gap:16px;height:auto!important;padding:20px!important}.fuel-report-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;background:white;border:1px solid #e2e8f0;border-radius:16px;padding:18px;margin-bottom:20px}.fuel-report-controls label{display:grid;gap:6px;font-size:12px;color:#475569}.fuel-report-controls select,.fuel-report-controls input,.fuel-report-controls button{border:1px solid #cbd5e1;border-radius:8px;padding:9px;background:white;color:#0f172a}.fuel-report-kpis{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px}.fuel-report-kpis article{flex:1;min-width:150px;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px}.fuel-report-kpis strong{display:block;font-size:22px;color:#0f172a}.fuel-summary-table{width:100%;background:white;border-collapse:collapse}.fuel-summary-table th,.fuel-summary-table td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:13px}#fuel-report-status{color:#b45309;margin-bottom:12px}#view-list{max-width:1200px;overflow-x:auto}@media(max-width:700px){.glass-header>div{flex-wrap:wrap;max-width:100%}.fuel-report-controls label{width:100%}.fuel-report-controls select,.fuel-report-controls input{max-width:100%}.fuel-summary-table{min-width:520px}}
+</style></head>
 
 <body class="h-screen w-screen flex flex-col overflow-hidden text-slate-800">
 
@@ -140,7 +142,7 @@
 
         <!-- Right: Filters & Action -->
         <div class="flex items-center gap-5 no-print">
-            <span class="text-[8px] text-slate-300 font-mono">v1.0.4</span>
+            <span class="text-[8px] text-slate-300 font-mono">v1.1.0</span>
             <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1 rounded-xl">
                 <div class="flex items-center gap-2 px-2 border-r border-slate-200">
                     <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
@@ -203,6 +205,16 @@
 
     <!-- Main Content Container -->
     <main class="flex-1 overflow-auto p-6 md:p-8" id="main-content">
+        <section class="fuel-report-controls no-print">
+            <label>Hazır kapsam<select id="fuel-preset" onchange="window.applyFuelPreset(this.value)"><option value="all">Tüm araçlar</option><option value="owned">Tüm özmallar</option><option value="subcontract">Tüm taşeronlar</option><option value="dikkan-owned">Dikkan özmal</option><option value="ideol-mk-owned">İdeol / M. Kalıpçı özmal</option><option value="dikkan-subcontract">Dikkan taşeron</option><option value="other-subcontract">Dikkan dışı taşeron</option><option value="custom">Özel seçim</option></select></label>
+            <label>Başlangıç<input id="fuel-start" type="date" onchange="fetchData()"></label>
+            <label>Bitiş<input id="fuel-end" type="date" onchange="fetchData()"></label>
+            <label>Araç sınıfı<select id="fuel-class" onchange="window.filterSearch()"><option value="">Tüm sınıflar</option><option>TAKSİ</option><option>16+1</option><option>27+1</option><option>46+1</option><option>DİĞER</option><option>SINIFLANDIRILMAMIŞ</option></select></label>
+            <label>Plakalar (çoklu seçim)<select id="fuel-plates" multiple size="3" onchange="window.filterSearch()" aria-label="Plakalar"></select></label>
+            <button onclick="window.exportFuelExcel()">Excel indir</button>
+        </section>
+        <div id="fuel-report-status" role="status" aria-live="polite"></div>
+        <div id="fuel-report-kpis" class="fuel-report-kpis"></div>
         <!-- Grid View -->
         <div id="view-grid" class="block">
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mx-auto" style="width: max-content; min-width: max-content; padding-bottom: 20px;">
@@ -231,6 +243,9 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://filo-erp-pi.vercel.app/api/public-config?v=1"></script>
+    <script src="fuel-analytics.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');
     </script>

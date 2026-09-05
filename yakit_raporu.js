@@ -4,7 +4,10 @@ const monthStr = urlParams.get('ay') || new Date().toISOString().substring(0, 7)
 
 let isolatedAraclar = [];
 let isolatedYakitlar = [];
-window.currentView = 'grid';
+window.currentView = 'summary';
+let reportVehicles = [], reportFuel = [];
+let fuelRequest = 0, fuelReady = false;
+function fuelEscape(value) { return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 window.searchQuery = '';
 
 async function initYakitRaporu() {
@@ -39,85 +42,106 @@ async function initYakitRaporu() {
             });
         }
 
+        const bounds = window.FuelAnalytics.periodBounds('month', monthStr + '-01');
+        document.getElementById('fuel-start').value = bounds.start;
+        document.getElementById('fuel-end').value = bounds.end;
         await fetchData();
-        renderView();
+        if (fuelReady) window.switchView('summary');
     } catch (e) {
-        console.error("Init Hatası:", e);
+        showFuelError(e);
     }
 }
 
+function showFuelError(error) {
+    fuelReady = false;
+    isolatedAraclar = []; isolatedYakitlar = [];
+    document.getElementById('fuel-report-status').innerHTML = 'Yakıt raporu yüklenemedi: ' + fuelEscape(error.message || error) + ' <button onclick="location.reload()">Tekrar dene</button>';
+    document.getElementById('yakit-tbody').innerHTML = '';
+    document.getElementById('view-list').innerHTML = '';
+    document.getElementById('fuel-report-kpis').innerHTML = '';
+    document.getElementById('total-summary-tutar').textContent = '—';
+}
+async function fuelPages(makeQuery) {
+    const rows = [];
+    for (let from = 0; ; from += 1000) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 20000);
+        let response;
+        try {
+            const query = makeQuery().order('id').range(from, from + 999);
+            response = await (query.abortSignal ? query.abortSignal(controller.signal) : query);
+        } finally { clearTimeout(timer); }
+        const {data, error} = response;
+        if (error) throw error;
+        rows.push(...(data || []));
+        if (!data || data.length < 1000) return rows;
+    }
+}
 async function fetchData() {
+    const request = ++fuelRequest;
+    fuelReady = false;
+    document.getElementById('fuel-report-status').textContent = 'Veriler çekiliyor…';
+    const start = document.getElementById('fuel-start').value;
+    const end = document.getElementById('fuel-end').value;
     try {
-        const [year, mStr] = monthStr.split('-');
-        const ay = parseInt(mStr, 10);
-        const daysInMonth = new Date(year, ay, 0).getDate();
-        const startDate = `${year}-${String(ay).padStart(2, '0')}-01`;
-        const endDate = `${year}-${String(ay).padStart(2, '0')}-${daysInMonth}`;
-
-        const mulkiyetChecks = document.querySelectorAll('#dropdown-mulkiyet input[type="checkbox"]:checked');
-        const sirketChecks = document.querySelectorAll('#dropdown-sirket input[type="checkbox"]:checked');
-        
-        const mulkiyetValues = Array.from(mulkiyetChecks).map(c => c.value);
-        const sirketValues = Array.from(sirketChecks).map(c => c.value);
-
-        // Update labels
-        const labelMulkiyet = document.getElementById('label-mulkiyet');
-        const labelSirket = document.getElementById('label-sirket');
-        
-        if (labelMulkiyet) labelMulkiyet.textContent = mulkiyetValues.length === 0 ? 'Mülkiyet' : (mulkiyetValues.length === 2 ? 'Mülkiyet' : mulkiyetValues[0]);
-        if (labelSirket) labelSirket.textContent = sirketValues.length === 0 ? 'Şirket' : (sirketValues.length > 1 ? `Şirket (${sirketValues.length})` : sirketValues[0]);
-
-        let aracQuery = window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket, sofor_id, firma_adi');
-        
-        // Only apply filter if something is selected. If nothing is selected, show all (more resilient).
-        if (mulkiyetValues.length > 0) {
-            aracQuery = aracQuery.in('mulkiyet_durumu', mulkiyetValues);
+        if (!window.supabaseClient) throw new Error('Bağlantı yapılandırması yüklenemedi.');
+        if (!start || !end || start > end) throw new Error('Geçerli bir tarih aralığı seçin.');
+        let vehicles;
+        try { vehicles = await fuelPages(() => window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket, sofor_id, firma_adi, arac_sinifi')); }
+        catch (error) {
+            if (!/arac_sinifi/i.test(error.message || '')) throw error;
+            vehicles = await fuelPages(() => window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket, sofor_id, firma_adi'));
         }
-
-        if (sirketValues.length > 0) {
-            aracQuery = aracQuery.in('sirket', sirketValues);
-        }
-        
-        const { data: araclar, error: aracErr } = await aracQuery.order('plaka');
-        
-        if (aracErr) throw aracErr;
-        
-        // Fetch driver names for mapping
-        const { data: drivers } = await window.supabaseClient.from('soforler').select('id, ad_soyad');
-        const driverMap = {};
-        if (drivers) drivers.forEach(d => driverMap[d.id] = d.ad_soyad);
-        isolatedAraclar = (araclar || []).map(a => ({
-            ...a,
-            display_name: a.mulkiyet_durumu === 'TAŞERON' ? (a.firma_adi || 'Bilinmiyor') : (driverMap[a.sofor_id] || 'Atanmamış')
-        }));
-
-        if (isolatedAraclar.length > 0) {
-            const { data: yakitlar, error: yakitErr } = await window.supabaseClient
-                .from('yakit_takip')
-                .select('*')
-                .gte('tarih', startDate)
-                .lte('tarih', endDate)
-                .in('arac_id', isolatedAraclar.map(a => a.id));
-
-            if (yakitErr) throw yakitErr;
-            isolatedYakitlar = yakitlar || [];
-        } else {
-            isolatedYakitlar = [];
-        }
-
-        const totalTutar = isolatedYakitlar.reduce((sum, y) => sum + (parseFloat(y.toplam_tutar) || 0), 0);
-        const sumEl = document.getElementById('total-summary-tutar');
-        if (sumEl) {
-            sumEl.textContent = `₺${totalTutar.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
-            sumEl.title = `Araç: ${isolatedAraclar.length}, Kayıt: ${isolatedYakitlar.length}`;
-        }
-        
-        console.log(`Fetch: ${isolatedAraclar.length} araç, ${isolatedYakitlar.length} yakıt kaydı.`);
-
-    } catch (e) {
-        console.error("Fetch Data Error:", e);
-    }
+        const [drivers, rows] = await Promise.all([
+            fuelPages(() => window.supabaseClient.from('soforler').select('id, ad_soyad')),
+            fuelPages(() => window.supabaseClient.from('yakit_takip').select('*').gte('tarih', start).lte('tarih', end))
+        ]);
+        if (request !== fuelRequest) return;
+        const driverMap = new Map(drivers.map(d => [String(d.id), d.ad_soyad]));
+        reportVehicles = vehicles.map(v => ({...v, display_name:v.mulkiyet_durumu === 'TAŞERON' ? v.firma_adi || 'Bilinmiyor' : driverMap.get(String(v.sofor_id)) || 'Atanmamış'}));
+        reportFuel = rows;
+        const select = document.getElementById('fuel-plates');
+        const selected = new Set(Array.from(select.selectedOptions).map(o => o.value));
+        select.innerHTML = vehicles.sort((a,b) => a.plaka.localeCompare(b.plaka,'tr')).map(v => '<option value="'+fuelEscape(v.id)+'"'+(selected.has(String(v.id))?' selected':'')+'>'+fuelEscape(v.plaka)+'</option>').join('');
+        fuelReady = true;
+        applyReportFilters();
+    } catch (error) { if (request === fuelRequest) showFuelError(error); }
 }
+window.applyFuelPreset = function(value) {
+    document.querySelectorAll('#dropdown-mulkiyet input, #dropdown-sirket input').forEach(cb => cb.checked = false);
+    applyReportFilters();
+};
+function applyReportFilters() {
+    if (!fuelReady) return;
+    const preset = document.getElementById('fuel-preset').value;
+    const owners = Array.from(document.querySelectorAll('#dropdown-mulkiyet input:checked')).map(cb => cb.value);
+    const companies = Array.from(document.querySelectorAll('#dropdown-sirket input:checked')).map(cb => cb.value);
+    const plates = Array.from(document.getElementById('fuel-plates').selectedOptions).map(o => o.value);
+    const vehicleClass = document.getElementById('fuel-class').value;
+    const query = window.FuelAnalytics.normalizePlate(document.getElementById('search-plaka').value);
+    isolatedAraclar = reportVehicles.filter(v => window.FuelAnalytics.matchesReportPreset(v, preset) &&
+        (!owners.length || owners.includes(v.mulkiyet_durumu)) && (!companies.length || companies.includes(v.sirket)) &&
+        (!plates.length || plates.includes(String(v.id))) && (!vehicleClass || (v.arac_sinifi || 'SINIFLANDIRILMAMIŞ') === vehicleClass) &&
+        (!query || window.FuelAnalytics.normalizePlate(v.plaka).includes(query)));
+    const ids = new Set(isolatedAraclar.map(v => String(v.id)));
+    isolatedYakitlar = reportFuel.filter(r => ids.has(String(r.arac_id)));
+    const summary = window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar);
+    document.getElementById('total-summary-tutar').textContent = '₺' + summary.cost.toLocaleString('tr-TR');
+    document.getElementById('fuel-report-kpis').innerHTML = [['Araç', isolatedAraclar.length],['Kayıt',summary.count],['Litre',summary.liters],['Tutar (₺)',summary.cost]].map(([label,value]) => '<article>'+label+'<strong>'+value.toLocaleString('tr-TR',{maximumFractionDigits:2})+'</strong></article>').join('');
+    const unmatched = reportFuel.filter(r => !reportVehicles.some(v => String(v.id) === String(r.arac_id))).length;
+    document.getElementById('fuel-report-status').textContent = (!summary.count ? 'Seçili filtrelerde yakıt kaydı yok. ' : '') + (unmatched ? unmatched+' kayıt araçla eşleşmedi; toplamlara dahil edilmedi. ' : '') + (preset === 'other-subcontract' ? 'Şirketi boş taşeronlar bu kapsama dahil edilmez.' : '');
+    document.getElementById('header-subtitle').textContent = document.getElementById('fuel-start').value+' – '+document.getElementById('fuel-end').value+' · '+document.getElementById('fuel-preset').selectedOptions[0].textContent + (owners.length ? ' · '+owners.join(', ') : '') + (companies.length ? ' · '+companies.join(', ') : '') + (vehicleClass ? ' · '+vehicleClass : '') + (plates.length || query ? ' · Seçili plakalar' : '');
+    renderView();
+}
+window.exportFuelExcel = function() {
+    if (!fuelReady) return;
+    const vehicles = new Map(isolatedAraclar.map(v => [String(v.id),v]));
+    const rows = isolatedYakitlar.map(r => { const v=vehicles.get(String(r.arac_id)); return {'Tarih':r.tarih,'Plaka':v.plaka,'Şirket':v.sirket,'Mülkiyet':v.mulkiyet_durumu,'Litre':Number(r.litre)||0,'Birim fiyat':Number(r.birim_fiyat)||0,'Tutar':Number(r.toplam_tutar)||0}; });
+    const sheet = XLSX.utils.aoa_to_sheet([[document.getElementById('header-subtitle').textContent]]);
+    XLSX.utils.sheet_add_json(sheet, rows, {origin:'A3'});
+    const book = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(book,sheet,'Yakıt');
+    XLSX.writeFile(book,'Yakit_'+document.getElementById('fuel-start').value+'.xlsx');
+};
 
 function renderView() {
     document.getElementById('view-list').innerHTML = '';
@@ -137,25 +161,23 @@ function renderView() {
     if (window.lucide) window.lucide.createIcons();
 }
 
-window.filterSearch = function() {
-    window.searchQuery = document.getElementById('search-plaka').value;
-    renderView();
-};
+window.filterSearch = applyReportFilters;
 
 function renderGridView(araclar = isolatedAraclar) {
     const thead = document.getElementById('yakit-thead');
     const tbody = document.getElementById('yakit-tbody');
     document.getElementById('view-grid').classList.remove('hidden');
     document.getElementById('view-list').classList.add('hidden');
-    const [year, mStr] = monthStr.split('-');
-    const ay = parseInt(mStr, 10);
-    const daysInMonth = new Date(year, ay, 0).getDate();
+    const dates = [];
+    const end = document.getElementById('fuel-end').value;
+    for (let date = new Date(document.getElementById('fuel-start').value+'T12:00:00Z'); date.toISOString().slice(0,10) <= end; date.setUTCDate(date.getUTCDate()+1)) dates.push(date.toISOString().slice(0,10));
+    const daysInMonth = dates.length;
     if (araclar.length === 0) {
         tbody.innerHTML = `<tr><td colspan="35" class="p-20 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">Seçili kriterlerde araç bulunamadı.</td></tr>`;
         return;
     }
     let thHtml = `<tr><th class="px-4 py-3 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-white z-20 border-b border-r border-slate-100" style="width: 110px;">ARAÇ</th>`;
-    for (let i = 1; i <= daysInMonth; i++) thHtml += `<th class="p-0 py-3 text-center text-[10px] font-bold text-slate-400 border-r border-b border-slate-50" style="width: 45px;">${i}</th>`;
+    for (let i = 1; i <= daysInMonth; i++) thHtml += `<th class="p-0 py-3 text-center text-[10px] font-bold text-slate-400 border-r border-b border-slate-50" style="width: 45px;">${dates[i-1].slice(5).split('-').reverse().join('.')}</th>`;
     thHtml += `<th class="px-0 py-3 text-center text-[10px] font-black text-slate-500 border-r border-b border-slate-100 uppercase tracking-widest sticky right-[75px] bg-slate-50 z-20" style="width: 75px;">LİTRE</th>`;
     thHtml += `<th class="px-0 py-3 text-center text-[10px] font-black text-slate-500 border-b border-slate-100 uppercase tracking-widest sticky right-0 bg-slate-50 z-20" style="width: 85px;">TUTAR</th></tr>`;
     thead.innerHTML = thHtml;
@@ -165,7 +187,7 @@ function renderGridView(araclar = isolatedAraclar) {
         tblHtml += `<tr class="hover:bg-slate-50 transition-colors"><td class="px-4 py-2 text-[11px] font-black text-slate-900 sticky left-0 bg-white z-10 border-r border-b border-slate-50 uppercase text-center">${plateDisplay}</td>`;
         let rowLitreTotal = 0; let rowTutarTotal = 0;
         for (let i = 1; i <= daysInMonth; i++) {
-            const dateCode = `${year}-${String(ay).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+            const dateCode = dates[i-1];
             const records = isolatedYakitlar.filter(y => String(y.arac_id) === String(arac.id) && y.tarih === dateCode);
             const dayLitre = records.reduce((sum, r) => sum + (parseFloat(r.litre) || 0), 0);
             const dayTutar = records.reduce((sum, r) => sum + (parseFloat(r.toplam_tutar) || 0), 0);
@@ -251,139 +273,10 @@ function renderVehicleView(araclar = isolatedAraclar) {
 }
 
 function renderSummaryView(araclar = isolatedAraclar) {
-    const listContainer = document.getElementById('view-list');
     document.getElementById('view-grid').classList.add('hidden');
     document.getElementById('view-list').classList.remove('hidden');
-    
-    // Filter yakitlar by the current filtered set of araclar
-    const validAracIds = new Set(araclar.map(a => String(a.id)));
-    const filteredYakitlar = isolatedYakitlar.filter(y => validAracIds.has(String(y.arac_id)));
-
-    if (filteredYakitlar.length === 0 && araclar.length === 0) { 
-        listContainer.innerHTML = `<div class="p-20 text-center text-slate-300 font-black uppercase tracking-widest text-xs">Seçili kriterlerde araç bulunamadı.</div>`; 
-        return; 
-    }
-
-    const grouped = {};
-    filteredYakitlar.forEach(y => {
-        if (!grouped[y.arac_id]) grouped[y.arac_id] = { totalLitre: 0, totalTutar: 0 };
-        grouped[y.arac_id].totalLitre += (parseFloat(y.litre) || 0); 
-        grouped[y.arac_id].totalTutar += (parseFloat(y.toplam_tutar) || 0);
-    });
-
-    const sortedAraclar = [...araclar].sort((a, b) => (a.plaka || '').localeCompare(b.plaka || ''));
-    
-    const totalLitreAll = Object.values(grouped).reduce((acc, curr) => acc + curr.totalLitre, 0);
-    const totalTutarAll = Object.values(grouped).reduce((acc, curr) => acc + curr.totalTutar, 0);
-
-    let html = `
-        <div class="max-w-5xl mx-auto space-y-8 pb-12">
-            <!-- Premium Totals Section -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="group bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <i data-lucide="fuel" class="w-6 h-6 text-blue-600 group-hover:text-white"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">TOPLAM TÜKETİM</p>
-                            <p class="text-2xl font-black text-slate-900">${totalLitreAll.toLocaleString('tr-TR', {maximumFractionDigits:1})} <span class="text-sm font-medium text-slate-400 uppercase">LT</span></p>
-                        </div>
-                    </div>
-                    <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                        <div class="h-full bg-blue-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-
-                <div class="group bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
-                            <i data-lucide="coins" class="w-6 h-6 text-orange-600 group-hover:text-white"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">TOPLAM TUTAR</p>
-                            <p class="text-2xl font-black text-orange-600">₺${totalTutarAll.toLocaleString('tr-TR', {minimumFractionDigits:2})}</p>
-                        </div>
-                    </div>
-                    <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                        <div class="h-full bg-orange-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-
-                <div class="group bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                            <i data-lucide="truck" class="w-6 h-6 text-amber-600 group-hover:text-white"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">FİLO GENELİ</p>
-                            <p class="text-2xl font-black text-slate-900">${sortedAraclar.length} <span class="text-sm font-medium text-slate-400 uppercase">ARAÇ</span></p>
-                        </div>
-                    </div>
-                    <div class="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                        <div class="h-full bg-amber-500 rounded-full" style="width: 100%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Enhanced List Section -->
-            <div class="bg-white rounded-[40px] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
-                <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
-                            <i data-lucide="clipboard-list" class="w-5 h-5 text-slate-400"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-black text-slate-900 uppercase tracking-tight">ARAÇ BAZLI ÖZET RAPOR</h4>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Dönem içi tüm yakıt hareketleri</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="px-4 py-2 bg-white border border-slate-200 rounded-2xl text-[10px] font-black text-slate-500 uppercase shadow-sm flex items-center gap-2">
-                             <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                             ${new Date().toLocaleString('tr-TR', { month: 'long', year: 'numeric' })}
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-x-8 gap-y-2">
-                        <!-- Table Header (Hidden on Mobile) -->
-                        <div class="hidden md:flex items-center px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                            <span class="flex-1">PLAKA / ARAÇ</span>
-                            <span class="w-24 text-center">LİTRE</span>
-                            <span class="w-32 text-right">TOPLAM TUTAR</span>
-                        </div>
-                        <div class="hidden lg:flex items-center px-6 py-2 text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">
-                            <span class="flex-1">PLAKA / ARAÇ</span>
-                            <span class="w-24 text-center">LİTRE</span>
-                            <span class="w-32 text-right">TOPLAM TUTAR</span>
-                        </div>
-
-                        ${sortedAraclar.map(arac => {
-                            const data = grouped[arac.id] || { totalLitre: 0, totalTutar: 0 };
-                            return `
-                                <div class="group flex items-center px-6 py-4 hover:bg-slate-50 rounded-2xl transition-all border border-transparent hover:border-slate-100">
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-black text-slate-900 uppercase truncate">${arac.plaka || '---'}</p>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">${arac.display_name || 'BİLİNMİYOR'}</p>
-                                    </div>
-                                    <div class="w-24 text-center">
-                                        <p class="text-xs font-bold text-slate-600">${data.totalLitre.toLocaleString('tr-TR', {maximumFractionDigits:1})} <span class="text-[9px] font-medium opacity-50">L</span></p>
-                                    </div>
-                                    <div class="w-32 text-right">
-                                        <p class="text-xs font-black text-orange-600">₺${data.totalTutar.toLocaleString('tr-TR', {minimumFractionDigits:2})}</p>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    
-    listContainer.innerHTML = html;
-    if (window.lucide) window.lucide.createIcons();
+    const rows = araclar.map(v => { const total=window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar.filter(r => String(r.arac_id) === String(v.id))); return '<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelEscape(v.sirket || 'Belirtilmemiş')+'</td><td>'+fuelEscape(v.mulkiyet_durumu)+'</td><td>'+total.liters.toLocaleString('tr-TR')+'</td><td>₺'+total.cost.toLocaleString('tr-TR')+'</td></tr>'; }).join('');
+    document.getElementById('view-list').innerHTML = '<table class="fuel-summary-table"><thead><tr><th>Plaka</th><th>Şirket</th><th>Mülkiyet</th><th>Litre</th><th>Tutar</th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
 
 window.switchView = function(view) {
@@ -396,10 +289,10 @@ window.switchView = function(view) {
     renderView();
 }
 
-window.filterYakit = function() { fetchData().then(() => renderView()); }
+window.filterYakit = function() { document.getElementById('fuel-preset').value = 'custom'; fetchData(); }
 window.changeDonem = function() {
     const newDonem = document.getElementById('filter-donem').value;
-    if (newDonem) { urlParams.set('ay', newDonem); window.location.search = urlParams.toString(); }
+    if (newDonem) { const bounds = window.FuelAnalytics.periodBounds('month', newDonem+'-01'); document.getElementById('fuel-start').value=bounds.start; document.getElementById('fuel-end').value=bounds.end; fetchData(); }
 }
 
 window.onbeforeprint = () => {
@@ -431,18 +324,20 @@ document.addEventListener('click', (e) => {
 });
 
 window.handlePrint = function() {
+    if (!fuelReady) return;
     const branding = window.CompanyBranding;
     const title = document.getElementById('header-title').textContent;
     const subtitle = document.getElementById('header-subtitle').textContent;
     const totalLitre = isolatedYakitlar.reduce((sum, y) => sum + (parseFloat(y.litre) || 0), 0);
     const totalTutar = isolatedYakitlar.reduce((sum, y) => sum + (parseFloat(y.toplam_tutar) || 0), 0);
-    const vehicleCount = new Set(isolatedYakitlar.map(y => y.arac_id)).size;
+    const vehicleCount = isolatedAraclar.length;
 
     let contentHtml = '';
     const view = window.currentView || 'list';
     
     if (view === 'summary') {
         const grouped = {};
+        isolatedAraclar.forEach(v => { grouped[v.id] = {totalLitre:0,totalTutar:0}; });
         isolatedYakitlar.forEach(y => { 
             if (!grouped[y.arac_id]) grouped[y.arac_id] = { totalLitre: 0, totalTutar: 0 }; 
             grouped[y.arac_id].totalLitre += (parseFloat(y.litre) || 0); 

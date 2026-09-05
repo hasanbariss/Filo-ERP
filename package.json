@@ -19,7 +19,8 @@
     "ios:sync": "npm run ios:prepare && cap sync ios",
     "ios:open": "cap open ios",
     "build-win": "electron-builder --win --x64",
-    "build-portable": "electron-builder --win portable --x64"
+    "build-portable": "electron-builder --win portable --x64",
+    "test:workflows": "node scripts/test-erp-workflows.cjs"
   },
   "build": {
     "appId": "com.ideol.filoerpm",

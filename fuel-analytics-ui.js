@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    var state = { period: 'month', tab: 'analysis', rows: [], fuelRows: [], vehicles: [], bounds: null };
+    var state = { request: 0, period: 'month', tab: 'analysis', rows: [], fuelRows: [], vehicles: [], bounds: null };
 
     function esc(value) {
         return String(value == null ? '' : value).replace(/[&<>'"]/g, function (char) {
@@ -50,6 +50,15 @@
         } catch (error) {
             if (optional) return [];
             throw error;
+        }
+    }
+
+    async function fuelRange(start, end) {
+        var rows = [];
+        for (var offset = 0; ; offset += 1000) {
+            var batch = await safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', start).lte('tarih', end).order('tarih', {ascending:false}).order('id').range(offset, offset + 999));
+            rows = rows.concat(batch);
+            if (batch.length < 1000) return rows;
         }
     }
 
@@ -135,7 +144,7 @@
                 }
                 var changeLabel = change === null ? '—' : (change > 0 ? '+' : '') + fmtNumber(change, 1) + '%';
                 var meaning = change === null ? 'Karşılaştırma yok' : change === 0 ? 'Değişmedi' :
-                    isConsumption ? (change < 0 ? 'Daha verimli' : 'Tüketim arttı') :
+                    isConsumption ? (change < 0 ? 'Alım / km azaldı' : 'Alım / km arttı') :
                     (change > 0 ? 'Daha fazla yol' : 'Daha az yol');
                 return '<span class="fuel-change-detail"><span class="fuel-change ' + changeClass + '">' + changeLabel + '</span><small>' + meaning + '</small></span>';
             }
@@ -163,7 +172,7 @@
                 '</tr>';
         }).join('');
         var comparisonLabel = state.period === 'month' ? 'Önceki aya göre' : 'Önceki haftaya göre';
-        container.innerHTML = '<div class="fuel-table-wrap"><table class="fuel-table fuel-efficiency-table"><thead><tr><th>Araç</th><th class="is-number">Toplam KM</th><th class="is-number">Yakıt</th><th><span class="fuel-column-label">Tüketim ve KM Maliyeti<small>Seçili dönem değerleri</small></span></th><th class="is-number"><span class="fuel-column-label">KM Değişimi<small>' + comparisonLabel + '</small></span></th><th class="is-number"><span class="fuel-column-label">Tüketim Değişimi<small>' + comparisonLabel + '</small></span></th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
+        container.innerHTML = '<p class="personnel-operation-note">Dönemsel yakıt alımı / 100 km: depo seviyesi bilinmediği için gerçek tüketimden farklı olabilir. Devam eden dönem, tamamlanmış önceki dönemle karşılaştırılır.</p><div class="fuel-table-wrap"><table class="fuel-table fuel-efficiency-table"><thead><tr><th>Araç</th><th class="is-number">Toplam KM</th><th class="is-number">Yakıt</th><th><span class="fuel-column-label">Tüketim ve KM Maliyeti<small>Seçili dönem değerleri</small></span></th><th class="is-number"><span class="fuel-column-label">KM Değişimi<small>' + comparisonLabel + '</small></span></th><th class="is-number"><span class="fuel-column-label">Tüketim Değişimi<small>' + comparisonLabel + '</small></span></th></tr></thead><tbody>' + tableRows + '</tbody></table></div>';
     }
 
     function renderKpis(rows, fuelRows) {
@@ -226,7 +235,7 @@
         var value = anchor && anchor.value ? anchor.value : window.FuelAnalytics.todayIstanbul();
         var date = new Date(value + 'T12:00:00Z');
         if (state.period === 'week') date.setUTCDate(date.getUTCDate() + Number(direction || 0) * 7);
-        else date.setUTCMonth(date.getUTCMonth() + Number(direction || 0));
+        else { date.setUTCDate(1); date.setUTCMonth(date.getUTCMonth() + Number(direction || 0)); }
         if (anchor) anchor.value = date.toISOString().slice(0, 10);
         window.fetchFuelAnalytics();
     };
@@ -261,6 +270,7 @@
         setProviderStatus('loading', 'InfoMobil bağlanıyor');
         var anchor = document.getElementById('fuel-period-anchor');
         if (anchor && !anchor.value) anchor.value = window.FuelAnalytics.todayIstanbul();
+        var request = ++state.request;
         var bounds = window.FuelAnalytics.periodBounds(state.period, anchor && anchor.value);
         var previous = window.FuelAnalytics.previousBounds(bounds);
         state.bounds = bounds;
@@ -268,9 +278,10 @@
         try {
             var results = await Promise.all([
                 safeQuery(window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu').order('plaka')),
-                safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', bounds.start).lte('tarih', bounds.end).order('tarih', { ascending: false })),
-                safeQuery(window.supabaseClient.from('yakit_takip').select('*').gte('tarih', previous.start).lte('tarih', previous.end))
+                fuelRange(bounds.start, bounds.end),
+                fuelRange(previous.start, previous.end)
             ]);
+            if (request !== state.request) return;
             var vehicles = results[0];
             var fuelRows = results[1];
             var previousFuelRows = results[2];
@@ -285,10 +296,12 @@
             var infoPayload = null;
             try {
                 infoPayload = await fetchInfoMobile(vehicles.map(function (vehicle) { return vehicle.plaka; }), bounds, previous);
+                if (request !== state.request) return;
                 var ready = infoPayload.results.filter(function (row) { return row.status === 'ready'; }).length;
                 var unmatchedCount = (infoPayload.unmatched || []).length;
                 setProviderStatus(ready > 0 ? 'ready' : 'warning', ready + ' araç eşleşti · InfoMobil eşleşmesi olmayan araçlar: ' + unmatchedCount);
             } catch (infoError) {
+                if (request !== state.request) return;
                 setProviderStatus('warning', infoError.message || 'InfoMobil kullanılamıyor');
             }
             var maps = mileageMaps(infoPayload);
@@ -298,6 +311,7 @@
             renderRecords(fuelRows, vehicles);
             if (window.lucide) window.lucide.createIcons();
         } catch (error) {
+            if (request !== state.request) return;
             console.error('[FUEL ANALYTICS]', error);
             setProviderStatus('error', 'Veri yüklenemedi');
             container.innerHTML = '<div class="error-state"><span class="empty-state-icon"><i data-lucide="triangle-alert"></i></span><strong>Yakıt analizi yüklenemedi</strong><p>' + esc(error.message || 'Bilinmeyen hata') + '</p><button class="btn-secondary" onclick="window.fetchFuelAnalytics()">Tekrar dene</button></div>';

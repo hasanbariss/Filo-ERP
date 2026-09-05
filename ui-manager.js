@@ -1171,7 +1171,7 @@ window.openModal = function (title, id = null, extra = null) {
     } else if (title === 'Yeni Finans İşlemi') {
         content = `
                     <p class="text-sm text-gray-400 mb-8">Şoför bazlı finansal işlem (maaş, avans, kesinti vb.) girişi yapın.</p>
-                    <div class="space-y-6">
+                    <div class="space-y-6"><div><label class="block text-xs font-bold text-gray-500 mb-2">İşlem tarihi</label><input id="finans-tarih" type="date" value="${window.FuelAnalytics.todayIstanbul()}" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3"></div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Şoför Seçin</label>
                             <select id="finans-sofor" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>

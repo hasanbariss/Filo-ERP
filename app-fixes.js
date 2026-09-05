@@ -268,7 +268,7 @@ function initPersonelModule() {
             if (typeof window.fetchPersonnelPayrollOverview === 'function') window.fetchPersonnelPayrollOverview();
         } else if (tab === 'avans') {
             if (typeof fetchSoforFinans === 'function') fetchSoforFinans();
-            setTimeout(mirrorAvansToPersonel, 1500);
+
         }
     };
 
@@ -276,6 +276,7 @@ function initPersonelModule() {
         const ay = document.getElementById('personel-ay');
         if (!ay || !ay.value) return;
         syncPersonelAyInputs(ay.value);
+        if (typeof fetchSoforFinans === 'function') fetchSoforFinans();
         if (typeof window.fetchPersonnelOperations === 'function') window.fetchPersonnelOperations();
         if (typeof window.fetchPersonnelPayrollOverview === 'function') window.fetchPersonnelPayrollOverview();
     };
