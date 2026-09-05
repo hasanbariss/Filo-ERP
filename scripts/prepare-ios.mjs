@@ -64,6 +64,8 @@ const webFiles = [
   'toast-manager.js',
   'vehicle-deletion.js',
   'feedback-ui.css',
+  'interface-polish.css',
+  'interface-polish.js',
   'ui-manager.js',
   'whatsapp-reporter.js',
   'yakit_raporu.js'

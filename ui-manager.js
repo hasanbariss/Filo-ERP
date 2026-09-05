@@ -685,6 +685,7 @@ window.openCariDetail = function (cariId) {
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
+    window.prepareDetailDrawer?.(modal, () => window.closeCariDetail());
     document.body.style.overflow = 'hidden';
 
     const statementLabels = {

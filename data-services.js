@@ -1836,6 +1836,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                                 ${kaskoHtml}
                                 ${koltukHtml}
                             </div>
+                            ${window.renderFleetIndicators ? window.renderFleetIndicators(arac) : ''}
                         </div>
                     </div>
 
@@ -2164,6 +2165,7 @@ window.openAracDetay = async function(aracId) {
         </div>
     `;
     document.body.appendChild(overlay);
+    window.prepareDetailDrawer?.(overlay, () => overlay.remove());
     if (window.lucide) window.lucide.createIcons();
 
     try {
@@ -2196,6 +2198,7 @@ window.openAracDetay = async function(aracId) {
             return `<span class="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[10px] font-bold rounded uppercase">${label}: ${fmt(d)}</span>`;
         };
 
+        if (!overlay.isConnected) return;
         document.getElementById('arac-detay-plaka-header').textContent = a.plaka || 'Bilinmiyor';
         document.getElementById('arac-detay-body').innerHTML = `
             <div class="grid grid-cols-2 gap-3 text-sm">
@@ -2276,6 +2279,7 @@ window.openAracDetay = async function(aracId) {
         dossierButton.textContent = 'Araç dosyası / PDF';
         dossierButton.onclick = () => { overlay.remove(); window.openERPVehicle(aracId); };
         document.getElementById('arac-detay-body').append(dossierButton);
+        window.prepareVehicleDrawerTabs?.(document.getElementById('arac-detay-body'));
 
         // P&L datalarını asenkron yükle
         window.loadAracPL(aracId);
@@ -2351,6 +2355,7 @@ window.openSoforDetay = async function(soforId, ev) {
             </div>
         </div>`;
     document.body.appendChild(overlay);
+    window.prepareDetailDrawer?.(overlay, () => overlay.remove());
     if (window.lucide) window.lucide.createIcons();
 
     try {
@@ -2374,6 +2379,7 @@ window.openSoforDetay = async function(soforId, ev) {
             : 'text-red-400 bg-red-500/10 border-red-500/20';
         const maasStr = s.aylik_maas ? fmt(s.aylik_maas) + ' ₺/ay' : (s.gunluk_ucret ? fmt(s.gunluk_ucret) + ' ₺/gün' : '—');
 
+        if (!overlay.isConnected) return;
         document.getElementById('sofor-detay-isim').textContent = s.ad_soyad || 'Bilinmiyor';
         document.getElementById('sofor-detay-body').innerHTML = `
             <div class="grid grid-cols-2 gap-3 text-sm">

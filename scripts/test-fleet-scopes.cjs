@@ -10,6 +10,7 @@ const start=data.indexOf('window.fetchAraclar ='),end=data.indexOf('\n}',start)+
 await page.addScriptTag({content:data.slice(start,end)});
 await page.addScriptTag({content:ui.slice(ui.indexOf('window.applyOwnedFleetFilters ='),ui.indexOf('window.applyFleetDriverFilters'))});
 await page.addScriptTag({path:process.cwd()+'/fleet-scope.js'});
+await page.addScriptTag({path:process.cwd()+'/interface-polish.js'});
 await page.evaluate(()=>window.fetchAraclar());
 assert.equal(await page.locator('#arac-list-tbody tr').count(),1);assert.match(await page.locator('#arac-list-tbody').innerText(),/35 OWN/);
 await page.evaluate(()=>window.fetchAraclar('hepsi','hepsi','TAŞERON'));
@@ -22,7 +23,7 @@ assert.equal(await page.locator('#contractor-arac-list-tbody button').count(),aw
 const ids=await page.locator('[id]').evaluateAll(els=>els.map(el=>el.id));const duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);assert.ok(!duplicates.some(id=>id.startsWith('contractor-')||id.startsWith('fleet-')));
 await page.evaluate(()=>window.setFleetView('TAŞERON','grid'));assert.equal(await page.locator('#taseron-content-liste .fleet-surface').getAttribute('data-view-mode'),'grid');
 // Exercise the production CSS cascade: desktop previously forced every card grid off.
-for (const css of ['style.css','design-system.css','web-premium.css','web-executive.css','ui-final-pass.css']) await page.addStyleTag({content:fs.readFileSync(css,'utf8').replace(/@import[^;]+;/g,'')});
+for (const css of ['style.css','design-system.css','web-premium.css','web-executive.css','ui-final-pass.css','feedback-ui.css','interface-polish.css']) await page.addStyleTag({content:fs.readFileSync(css,'utf8').replace(/@import[^;]+;/g,'')});
 for (const width of [1280,390]) {
  await page.setViewportSize({width,height:844});
  for (const scope of ['ÖZMAL','TAŞERON']) {
@@ -34,6 +35,8 @@ for (const width of [1280,390]) {
   }
  }
 }
+assert.equal(await page.locator('#arac-cards-grid .fleet-glance').count(),1);
+assert.equal(await page.locator('#contractor-arac-cards-grid .fleet-glance').count(),1);
 console.log('Owned/contractor cards and list visibility with production desktop/mobile styles PASS');
 console.log('Ownership query isolation, shared vehicle actions, independent filters, owner labels and view controls PASS');
 await page.addScriptTag({path:process.cwd()+'/maintenance-workspace.js'});

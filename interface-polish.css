@@ -1,0 +1,434 @@
+/* Common presentation layer; scoped away from printed reports and form tables. */
+@media screen {
+  body.bf-app .main-module .page-header,
+  body.bf-app .main-module .bf-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 0;
+    margin: 0 0 22px;
+    border-bottom: 1px solid var(--feedback-line);
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  body.bf-app .main-module .page-header h1,
+  body.bf-app .main-module .page-header h2 {
+    font-size: 26px;
+    line-height: 1.2;
+    letter-spacing: -0.035em;
+    color: var(--feedback-text);
+  }
+  body.bf-app .main-module .page-subtitle {
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--feedback-muted);
+    margin-top: 7px;
+  }
+  body.bf-app .page-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  body.bf-app .page-actions .btn-primary {
+    order: -1;
+  }
+  body.bf-app .page-actions button {
+    min-height: 38px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+  body.bf-app .fleet-view-controls {
+    display: inline-flex;
+    gap: 3px;
+    padding: 3px;
+    border: 1px solid var(--feedback-line);
+    border-radius: 10px;
+    background: var(--feedback-soft);
+  }
+  body.bf-app .fleet-view-controls button {
+    border: 0;
+    box-shadow: none;
+    border-radius: 7px;
+    min-height: 30px;
+    padding: 6px 11px;
+  }
+  body.bf-app
+    .fleet-surface[data-view-mode="grid"]
+    .fleet-view-controls
+    button:nth-child(2),
+  body.bf-app
+    .fleet-surface:not([data-view-mode="grid"])
+    .fleet-view-controls
+    button:first-child {
+    background: var(--feedback-bg);
+    color: var(--feedback-text);
+    box-shadow: 0 1px 4px #0001;
+  }
+  body.bf-app .fleet-vehicle-card {
+    border: 1px solid var(--feedback-line);
+    border-radius: 16px;
+    box-shadow: 0 3px 12px #00000005;
+    overflow: hidden;
+    transition:
+      border-color 0.15s,
+      box-shadow 0.15s;
+  }
+  body.bf-app .fleet-vehicle-card:hover {
+    border-color: var(--feedback-muted);
+    box-shadow: 0 8px 24px #0000000b;
+  }
+  body.bf-app .fleet-vehicle-identity h3 {
+    font-size: 23px;
+    letter-spacing: -0.035em;
+  }
+  body.bf-app .fleet-vehicle-summary {
+    cursor: pointer;
+  }
+  .fleet-glance {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    margin: 16px 0 0;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--feedback-line);
+  }
+  .fleet-glance > div {
+    padding: 0 9px;
+    border-right: 1px solid var(--feedback-line);
+    min-width: 0;
+  }
+  .fleet-glance > div:first-child {
+    padding-left: 0;
+  }
+  .fleet-glance > div:last-child {
+    border: 0;
+    padding-right: 0;
+  }
+  .fleet-glance span {
+    display: block;
+    font-size: 10px;
+    color: var(--feedback-muted);
+    margin-bottom: 5px;
+  }
+  .fleet-glance strong {
+    display: block;
+    font-size: 12px;
+    color: var(--feedback-text);
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .fleet-glance .is-critical strong {
+    color: #d45159;
+  }
+  .fleet-glance .is-attention strong {
+    color: #b87918;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    z-index: 9999;
+    justify-content: flex-end !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: rgba(12, 20, 29, 0.3) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) > .ios-modal-sheet,
+  body.bf-app #cari-detail-modal .cari-detail-sheet {
+    width: min(720px, 100vw) !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    border-radius: 20px 0 0 20px !important;
+    margin: 0 !important;
+    background: var(--feedback-bg) !important;
+    color: var(--feedback-text);
+    border: 1px solid var(--feedback-line) !important;
+    box-shadow: -16px 0 60px #0002;
+    display: flex;
+    flex-direction: column;
+    animation: bf-drawer-in 0.22s ease-out;
+  }
+  body.bf-app #cari-detail-modal .cari-detail-sheet {
+    width: min(960px, 100vw) !important;
+    overflow: auto;
+  }
+  body.bf-app #cari-detail-modal .cari-detail-dialog {
+    position: absolute !important;
+    inset: 0 0 0 auto !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    display: block !important;
+    width: min(960px, 100vw) !important;
+  }
+  body.bf-app #cari-detail-modal .cari-detail-backdrop {
+    background: rgba(12, 20, 29, 0.3) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .ios-modal-header {
+    flex-shrink: 0;
+    padding: 22px 24px !important;
+    border-color: var(--feedback-line) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .ios-modal-body {
+    overflow: auto;
+    overscroll-behavior: contain;
+    flex: 1;
+    min-height: 0;
+    padding: 24px !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .text-white {
+    color: var(--feedback-text) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .bg-white\/5 {
+    background: var(--feedback-soft) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .border-white\/10 {
+    border-color: var(--feedback-line) !important;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .text-gray-400,
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .text-gray-500 {
+    color: var(--feedback-muted) !important;
+  }
+  body.bf-app :is(.fleet-table, .fleet-driver-table, .receivables-table) {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  body.bf-app
+    :is(.fleet-table, .fleet-driver-table, .receivables-table)
+    tbody
+    tr:hover
+    > td,
+  body.bf-app
+    :is(.fleet-table, .fleet-driver-table, .receivables-table)
+    tbody
+    tr:focus-within
+    > td {
+    background: var(--feedback-soft) !important;
+  }
+  body.bf-app :is(.fleet-table, .fleet-driver-table, .receivables-table) td {
+    font-variant-numeric: tabular-nums;
+    transition: background 0.12s;
+  }
+  @media (min-width: 769px) {
+    body.bf-app
+      :is(.fleet-table, .fleet-driver-table, .receivables-table)
+      :is(th, td):first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      background: var(--feedback-bg);
+      box-shadow: 1px 0 var(--feedback-line);
+    }
+    body.bf-app
+      :is(.fleet-table, .fleet-driver-table, .receivables-table)
+      :is(th, td):last-child {
+      position: sticky;
+      right: 0;
+      z-index: 1;
+      background: var(--feedback-bg);
+      box-shadow: -1px 0 var(--feedback-line);
+    }
+    body.bf-app
+      :is(.fleet-table, .fleet-driver-table, .receivables-table)
+      thead
+      th {
+      background: var(--feedback-soft) !important;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) {
+    body.bf-app
+      :is(.fleet-table, .fleet-driver-table, .receivables-table)
+      tbody
+      tr:not(:hover):not(:focus-within)
+      td:last-child
+      button {
+      opacity: 0;
+    }
+    body.bf-app
+      :is(.fleet-table, .fleet-driver-table, .receivables-table)
+      td:last-child
+      button {
+      transition: opacity 0.15s;
+    }
+  }
+  @media (max-width: 768px) {
+    body.bf-app .main-module .page-header,
+    body.bf-app .main-module .bf-page-header {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 14px;
+      padding: 12px 0 16px;
+    }
+    body.bf-app .main-module .page-header h1,
+    body.bf-app .main-module .page-header h2 {
+      font-size: 23px;
+    }
+    body.bf-app .page-actions {
+      justify-content: flex-start;
+      width: 100%;
+    }
+    body.bf-app
+      :is(#arac-detay-overlay, #sofor-detay-overlay)
+      > .ios-modal-sheet,
+    body.bf-app #cari-detail-modal .cari-detail-sheet {
+      border-radius: 0 !important;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  @keyframes bf-drawer-in {
+    from {
+      transform: translateX(35px);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body.bf-app
+      :is(#arac-detay-overlay, #sofor-detay-overlay)
+      > .ios-modal-sheet,
+    body.bf-app #cari-detail-modal .cari-detail-sheet {
+      animation: none;
+    }
+  }
+}
+@media screen and (min-width: 769px) {
+  body.bf-app
+    :is(
+      #rapor-arac-table,
+      #rapor-personel-table,
+      #rapor-musteri-table,
+      #rapor-cari-table
+    ) {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  body.bf-app
+    :is(
+      #rapor-arac-table,
+      #rapor-personel-table,
+      #rapor-musteri-table,
+      #rapor-cari-table
+    )
+    :is(td, th):first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--feedback-bg);
+  }
+  body.bf-app
+    :is(
+      #rapor-arac-table,
+      #rapor-personel-table,
+      #rapor-musteri-table,
+      #rapor-cari-table
+    )
+    :is(td, th):last-child {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: var(--feedback-bg);
+    font-variant-numeric: tabular-nums;
+  }
+  body.bf-app
+    :is(
+      #rapor-arac-table,
+      #rapor-personel-table,
+      #rapor-musteri-table,
+      #rapor-cari-table
+    )
+    tbody
+    tr:hover
+    td {
+    background: var(--feedback-soft);
+  }
+}
+@media screen {
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .ios-modal-header {
+    background: var(--feedback-bg) !important;
+    box-shadow: none !important;
+  }
+  body.bf-app
+    :is(#arac-detay-overlay, #sofor-detay-overlay)
+    .ios-modal-header
+    button {
+    background: var(--feedback-soft) !important;
+    color: var(--feedback-text) !important;
+    min-width: 36px;
+    min-height: 36px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px !important;
+  }
+  body.bf-app
+    :is(#arac-detay-overlay, #sofor-detay-overlay)
+    .ios-modal-header
+    button
+    i {
+    display: block;
+    width: 18px;
+    height: 18px;
+  }
+}
+@media screen {
+  body.bf-app
+    :is(#arac-detay-overlay, #sofor-detay-overlay)
+    > .ios-modal-sheet:focus {
+    outline: none;
+  }
+  body.bf-app :is(#arac-detay-overlay, #sofor-detay-overlay) .bg-gray-700 {
+    background: var(--feedback-soft) !important;
+  }
+  html:not(.dark)
+    body.bf-app
+    :is(#arac-detay-overlay, #sofor-detay-overlay)
+    :is(.text-blue-400, .text-indigo-400) {
+    color: #3864a5 !important;
+  }
+  html:not(.dark)
+    body.bf-app
+    :is(#arac-detay-overlay, #sofor-detay-overlay)
+    .text-orange-400 {
+    color: #ad5b2c !important;
+  }
+}
+@media screen {
+  .detail-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--feedback-soft);
+    border-radius: 11px;
+    margin: 0 0 20px !important;
+  }
+  .detail-tabs button {
+    flex: 1;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--feedback-muted);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .detail-tabs button[aria-selected="true"] {
+    background: var(--feedback-bg);
+    color: var(--feedback-text);
+    box-shadow: 0 1px 5px #0001;
+  }
+  .detail-tab-panel[hidden] {
+    display: none !important;
+  }
+  .detail-tab-panel > div + div {
+    margin-top: 16px;
+  }
+}
