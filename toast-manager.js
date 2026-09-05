@@ -1,151 +1,145 @@
-// ============================================================
-// TOAST-MANAGER.JS
-// alert() yerine kullanılan animasyonlu bildirim sistemi
-// ============================================================
 (function () {
-    'use strict';
-
-    window.Toast = {
-        show: function (message, type, duration) {
-            type = type || 'info';
-            duration = duration || 4000;
-
-            var container = this._getContainer();
-            var toast = this._createToast(message, type);
-            container.appendChild(toast);
-
-            // Animate in (requestAnimationFrame ensures CSS transition fires)
-            requestAnimationFrame(function () {
-                requestAnimationFrame(function () {
-                    toast.style.transform = 'translateX(0)';
-                    toast.style.opacity = '1';
-                });
-            });
-
-            // Auto remove
-            var self = this;
-            var removeTimeout = setTimeout(function () {
-                self._remove(toast);
-            }, duration);
-
-            // Click to close early
-            toast.addEventListener('click', function () {
-                clearTimeout(removeTimeout);
-                self._remove(toast);
-            });
-
-            return toast;
-        },
-
-        success: function (msg) { return this.show(msg, 'success', 4000); },
-        error: function (msg) { return this.show(msg, 'error', 6000); },
-        warning: function (msg) { return this.show(msg, 'warning', 5000); },
-        info: function (msg) { return this.show(msg, 'info', 4000); },
-
-        _remove: function (toast) {
-            toast.style.transform = 'translateX(420px)';
-            toast.style.opacity = '0';
-            setTimeout(function () {
-                if (toast.parentElement) toast.parentElement.removeChild(toast);
-            }, 350);
-        },
-
-        _getContainer: function () {
-            var container = document.getElementById('toast-container');
-            if (!container) {
-                container = document.createElement('div');
-                container.id = 'toast-container';
-                container.setAttribute('aria-live', 'polite');
-                container.setAttribute('aria-label', 'Bildirimler');
-                container.style.cssText = [
-                    'position:fixed',
-                    'top:88px',
-                    'right:28px',
-                    'z-index:99999',
-                    'display:flex',
-                    'flex-direction:column',
-                    'gap:10px',
-                    'max-width:380px',
-                    'width:calc(100vw - 40px)',
-                    'pointer-events:none'
-                ].join(';');
-                document.body.appendChild(container);
-            }
-            return container;
-        },
-
-        _createToast: function (message, type) {
-            var TYPES = {
-                success: { icon: '✓', border: '#55c58a' },
-                error:   { icon: '✕', border: '#ef6373' },
-                warning: { icon: '⚠', border: '#e6aa4b' },
-                info:    { icon: 'ℹ', border: '#61a9ec' }
-            };
-
-            var t = TYPES[type] || TYPES.info;
-
-            var toast = document.createElement('div');
-            toast.setAttribute('role', 'alert');
-            toast.style.cssText = [
-                'background:linear-gradient(145deg,#1a2630,#111920)',
-                'color:#f3f7f8',
-                'padding:13px 16px',
-                'border:1px solid #2b3a45',
-                'border-left:3px solid ' + t.border,
-                'border-radius:14px',
-                'box-shadow:0 18px 44px rgba(0,0,0,0.42),inset 0 1px 0 rgba(255,255,255,.035)',
-                'display:flex',
-                'align-items:center',
-                'gap:10px',
-                'font-size:13.5px',
-                'font-weight:600',
-                'line-height:1.4',
-                'transform:translateX(420px)',
-                'opacity:0',
-                'transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s ease',
-                'cursor:pointer',
-                'pointer-events:all',
-                'max-width:100%',
-                'word-break:break-word',
-                'user-select:none'
-            ].join(';');
-
-            // Icon
-            var iconEl = document.createElement('span');
-            iconEl.textContent = t.icon;
-            iconEl.style.cssText = 'font-size:17px;flex-shrink:0;min-width:20px;text-align:center;color:' + t.border;
-
-            // Message (textContent = XSS safe)
-            var msgEl = document.createElement('span');
-            msgEl.style.flex = '1';
-            msgEl.textContent = message;
-
-            // Close button
-            var closeBtn = document.createElement('button');
-            closeBtn.textContent = '×';
-            closeBtn.setAttribute('aria-label', 'Kapat');
-            closeBtn.style.cssText = [
-                'background:none',
-                'border:none',
-                'color:rgba(255,255,255,.75)',
-                'font-size:20px',
-                'line-height:1',
-                'cursor:pointer',
-                'padding:0 2px',
-                'flex-shrink:0',
-                'transition:color .2s'
-            ].join(';');
-            closeBtn.addEventListener('mouseover', function () { this.style.color = '#fff'; });
-            closeBtn.addEventListener('mouseout', function () { this.style.color = 'rgba(255,255,255,.75)'; });
-
-            toast.appendChild(iconEl);
-            toast.appendChild(msgEl);
-            toast.appendChild(closeBtn);
-
-            return toast;
-        }
-    };
-
-    window.log && window.log('[Toast] Toast Manager hazır');
-
+  "use strict";
+  const types = {
+    success: { title: "İşlem tamamlandı", icon: "✓" },
+    error: { title: "İşlem tamamlanamadı", icon: "!" },
+    warning: { title: "Kontrol gerekiyor", icon: "!" },
+    info: { title: "Bilgilendirme", icon: "i" },
+  };
+  const timers = new WeakMap();
+  function stop(toast) {
+    const state = timers.get(toast);
+    if (state && state.timer !== null) {
+      clearTimeout(state.timer);
+      state.remaining = Math.max(
+        0,
+        state.remaining - (Date.now() - state.started),
+      );
+      state.timer = null;
+    }
+  }
+  function start(toast) {
+    const state = timers.get(toast);
+    if (
+      !state ||
+      state.timer ||
+      toast.matches(":hover") ||
+      toast.contains(document.activeElement)
+    )
+      return;
+    state.started = Date.now();
+    state.timer = setTimeout(
+      () => window.Toast._remove(toast),
+      state.remaining,
+    );
+  }
+  window.Toast = {
+    show(message, type = "info", duration = 4000) {
+      type = types[type] ? type : "info";
+      message = String(message ?? "");
+      duration =
+        Number.isFinite(Number(duration)) && Number(duration) > 0
+          ? Number(duration)
+          : 4000;
+      const container = this._getContainer();
+      const duplicate = [...container.children].find(
+        (t) =>
+          t.dataset.message === message &&
+          t.dataset.type === type &&
+          !t.classList.contains("is-leaving"),
+      );
+      if (duplicate) {
+        const count = Number(duplicate.dataset.count || 1) + 1;
+        duplicate.dataset.count = count;
+        duplicate.querySelector(".bf-toast-count").textContent = "×" + count;
+        stop(duplicate);
+        timers.set(duplicate, {
+          remaining: duration,
+          timer: null,
+          started: Date.now(),
+        });
+        start(duplicate);
+        return duplicate;
+      }
+      const toast = this._createToast(message, type);
+      container.append(toast);
+      // Bound stacked notifications without hiding the newest result.
+      while (container.children.length > 4) {
+        const oldest = container.firstElementChild;
+        stop(oldest);
+        oldest.remove();
+      }
+      timers.set(toast, {
+        remaining: duration,
+        timer: null,
+        started: Date.now(),
+      });
+      start(toast);
+      toast.addEventListener("mouseenter", () => stop(toast));
+      toast.addEventListener("mouseleave", () => start(toast));
+      toast.addEventListener("focusin", () => stop(toast));
+      toast.addEventListener("focusout", () =>
+        setTimeout(() => start(toast), 0),
+      );
+      return toast;
+    },
+    success(msg) {
+      return this.show(msg, "success", 4000);
+    },
+    error(msg) {
+      return this.show(msg, "error", 8000);
+    },
+    warning(msg) {
+      return this.show(msg, "warning", 6000);
+    },
+    info(msg) {
+      return this.show(msg, "info", 4000);
+    },
+    _remove(toast) {
+      stop(toast);
+      toast.classList.add("is-leaving");
+      setTimeout(() => toast.remove(), 180);
+    },
+    _getContainer() {
+      let container = document.getElementById("toast-container");
+      if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        container.setAttribute("aria-label", "Bildirimler");
+        document.body.append(container);
+      }
+      return container;
+    },
+    _createToast(message, type) {
+      const meta = types[type] || types.info;
+      const toast = document.createElement("div");
+      toast.className = "bf-toast";
+      toast.dataset.type = type;
+      toast.dataset.message = message;
+      toast.setAttribute("role", type === "error" ? "alert" : "status");
+      toast.setAttribute("aria-atomic", "true");
+      const icon = document.createElement("span");
+      icon.className = "bf-toast-icon";
+      icon.textContent = meta.icon;
+      icon.setAttribute("aria-hidden", "true");
+      const body = document.createElement("div");
+      body.className = "bf-toast-body";
+      const heading = document.createElement("strong");
+      heading.textContent = meta.title;
+      const count = document.createElement("small");
+      count.className = "bf-toast-count";
+      heading.append(count);
+      const text = document.createElement("p");
+      text.textContent = message;
+      body.append(heading, text);
+      const close = document.createElement("button");
+      close.type = "button";
+      close.className = "bf-toast-close";
+      close.setAttribute("aria-label", "Bildirimi kapat");
+      close.textContent = "×";
+      close.onclick = () => this._remove(toast);
+      toast.append(icon, body, close);
+      return toast;
+    },
+  };
 })();

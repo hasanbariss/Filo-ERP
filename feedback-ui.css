@@ -1,0 +1,397 @@
+/* Shared feedback surfaces follow the application's active theme. */
+:root {
+  --feedback-bg: #fff;
+  --feedback-text: #17212b;
+  --feedback-muted: #62707e;
+  --feedback-line: #dfe5eb;
+  --feedback-soft: #f5f7f9;
+  --feedback-shadow: 0 14px 42px rgba(22, 33, 43, 0.14);
+}
+:root.dark {
+  --feedback-bg: #182129;
+  --feedback-text: #edf2f6;
+  --feedback-muted: #a9b6c0;
+  --feedback-line: #35434f;
+  --feedback-soft: #212e39;
+  --feedback-shadow: 0 14px 42px rgba(0, 0, 0, 0.28);
+}
+body.bf-app #toast-container,
+#toast-container {
+  position: fixed;
+  top: max(76px, env(safe-area-inset-top));
+  right: 20px;
+  z-index: 100050;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(380px, calc(100vw - 28px));
+  pointer-events: none;
+}
+body #toast-container > .bf-toast {
+  --feedback-accent: #3178c6;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  background: var(--feedback-bg) !important;
+  color: var(--feedback-text);
+  border: 1px solid var(--feedback-line) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--feedback-shadow);
+  font:
+    13px/1.5 Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  pointer-events: auto;
+  animation: feedback-in 0.2s ease-out;
+  backdrop-filter: none;
+}
+#toast-container > .bf-toast[data-type="success"] {
+  --feedback-accent: #298463;
+}
+#toast-container > .bf-toast[data-type="error"] {
+  --feedback-accent: #db5360;
+}
+#toast-container > .bf-toast[data-type="warning"] {
+  --feedback-accent: #b87918;
+}
+.bf-toast-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  color: var(--feedback-accent);
+  font-size: 16px;
+  font-weight: 700;
+}
+.bf-toast-body {
+  min-width: 0;
+  flex: 1;
+}
+.bf-toast-body strong {
+  font-size: 12px;
+  font-weight: 650;
+}
+.bf-toast-body p {
+  margin: 3px 0 0;
+  font-size: 13px;
+  color: var(--feedback-muted);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.bf-toast-count {
+  margin-left: 8px;
+  color: var(--feedback-accent);
+}
+.bf-toast-close {
+  border: 0;
+  background: transparent;
+  color: var(--feedback-muted);
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 23px;
+  line-height: 1;
+}
+.bf-toast-close:hover {
+  background: var(--feedback-soft);
+  color: var(--feedback-text);
+}
+.bf-toast-close:focus-visible {
+  outline: 2px solid var(--feedback-accent);
+  outline-offset: 2px;
+}
+#toast-container > .bf-toast.is-leaving {
+  opacity: 0;
+  transform: translateX(12px);
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+}
+.vehicle-delete-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  width: min(760px, calc(100vw - 28px));
+  max-height: calc(100dvh - 40px);
+  border: 1px solid var(--feedback-line);
+  border-radius: 18px;
+  background: var(--feedback-bg);
+  color: var(--feedback-text);
+  box-shadow: var(--feedback-shadow);
+  font:
+    14px/1.5 Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  overflow: auto;
+}
+.vehicle-delete-dialog::backdrop {
+  background: rgba(12, 20, 29, 0.6);
+  backdrop-filter: blur(3px);
+}
+.vehicle-delete-dialog header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--feedback-bg);
+  border-bottom: 1px solid var(--feedback-line);
+}
+.vehicle-delete-dialog h2 {
+  margin: 4px 0 0;
+  font-size: 25px;
+  font-weight: 700;
+}
+.vehicle-delete-dialog small {
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  color: var(--feedback-muted);
+}
+.vehicle-delete-dialog header button {
+  font-size: 25px;
+  border: 0;
+  background: transparent;
+  color: var(--feedback-muted);
+  cursor: pointer;
+}
+.vd-body {
+  padding: 20px 24px;
+}
+.vd-body > p {
+  margin: 0 0 16px;
+  color: var(--feedback-muted);
+}
+.vd-preserved {
+  padding: 12px 14px;
+  border: 1px solid var(--feedback-line);
+  background: var(--feedback-soft);
+  border-radius: 10px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+.vd-groups {
+  display: grid;
+  gap: 12px;
+}
+.vd-group {
+  padding: 16px;
+  border: 1px solid var(--feedback-line);
+  border-radius: 12px;
+}
+.vd-group > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.vd-group > div > span {
+  white-space: nowrap;
+  color: var(--feedback-muted);
+  font-size: 12px;
+}
+.vd-group label,
+.vd-plate {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  margin-top: 12px;
+}
+.vd-group select,
+.vd-plate input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--feedback-line);
+  border-radius: 8px;
+  background: var(--feedback-bg);
+  color: var(--feedback-text);
+  font: inherit;
+}
+.vd-group details {
+  margin-top: 12px;
+  font-size: 12px;
+}
+.vd-group summary {
+  cursor: pointer;
+  color: var(--feedback-muted);
+}
+.vd-group ul {
+  padding-left: 18px;
+  margin: 8px 0;
+}
+.vd-group li {
+  padding: 5px 0;
+  border-top: 1px solid var(--feedback-line);
+  overflow-wrap: anywhere;
+}
+.vd-extra {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--feedback-muted);
+}
+.vd-warning {
+  font-size: 12px;
+  color: #b87525 !important;
+  margin-top: 12px !important;
+}
+#vd-summary {
+  padding: 16px;
+  margin: 18px 0;
+  background: var(--feedback-soft);
+  border-radius: 12px;
+}
+#vd-summary h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 650;
+}
+#vd-summary > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  font-size: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--feedback-line);
+}
+#vd-summary strong {
+  text-align: right;
+  font-weight: 600;
+}
+.vd-ack {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+}
+.vd-ack input {
+  margin-top: 4px;
+  accent-color: #d45159;
+}
+.vehicle-delete-dialog footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 16px 24px;
+  border-top: 1px solid var(--feedback-line);
+  background: var(--feedback-bg);
+}
+.vehicle-delete-dialog footer button,
+.vd-body > button {
+  padding: 10px 14px;
+  border: 1px solid var(--feedback-line);
+  border-radius: 8px;
+  background: var(--feedback-soft);
+  color: var(--feedback-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.vehicle-delete-dialog footer .vd-danger {
+  background: #c94550;
+  border-color: #c94550;
+  color: white;
+}
+.vehicle-delete-dialog button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.vehicle-delete-dialog :focus-visible {
+  outline: 2px solid #cf6566;
+  outline-offset: 2px;
+}
+#vd-status {
+  color: #d45159;
+  margin-top: 14px;
+}
+@keyframes feedback-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 768px) {
+  body.bf-app #toast-container {
+    top: max(70px, env(safe-area-inset-top));
+    right: 14px;
+    width: calc(100vw - 28px);
+  }
+  .vd-body,
+  .vehicle-delete-dialog header {
+    padding: 16px;
+  }
+  .vehicle-delete-dialog footer {
+    padding: 12px;
+  }
+  .vd-group > div,
+  #vd-summary > div {
+    flex-direction: column;
+    gap: 4px;
+  }
+  #vd-summary strong {
+    text-align: left;
+  }
+  .vehicle-delete-dialog {
+    max-height: calc(100dvh - 24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body #toast-container > .bf-toast {
+    animation: none;
+  }
+  .bf-toast.is-leaving {
+    transition: none !important;
+  }
+}
+.vd-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+.vd-pages button {
+  border: 1px solid var(--feedback-line);
+  background: var(--feedback-soft);
+  color: var(--feedback-text);
+  border-radius: 7px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+body.bf-app #confirm-modal > div {
+  background: var(--feedback-bg) !important;
+  color: var(--feedback-text);
+  border: 1px solid var(--feedback-line) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--feedback-shadow);
+}
+body.bf-app #confirm-modal #confirm-modal-title {
+  color: var(--feedback-text);
+}
+body.bf-app #confirm-modal #confirm-modal-message {
+  color: var(--feedback-muted);
+  line-height: 1.6;
+}
+body.bf-app #confirm-modal #confirm-modal-cancel {
+  color: var(--feedback-text);
+  background: var(--feedback-soft);
+  border: 1px solid var(--feedback-line);
+}
