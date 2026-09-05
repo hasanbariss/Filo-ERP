@@ -98,7 +98,9 @@
   window.prepareDetailDrawer = function (overlay, close) {
     if (!overlay || overlay.dataset.drawerReady) return;
     overlay.dataset.drawerReady = "true";
-    const sheet = overlay.querySelector(".ios-modal-sheet, .cari-detail-sheet");
+    const sheet = overlay.querySelector(
+      ".ios-modal-sheet, .cari-detail-sheet, .cari-card-sheet",
+    );
     if (!sheet) return;
     const previousFocus = document.activeElement;
     sheet.setAttribute("role", "dialog");
@@ -109,7 +111,9 @@
         ? "Araç detayları"
         : overlay.id === "sofor-detay-overlay"
           ? "Şoför detayları"
-          : "Cari hesap detayları",
+          : overlay.id === "cari-kart-modal-overlay"
+            ? "Hakediş cari kartı"
+            : "Cari hesap detayları",
     );
     sheet.tabIndex = -1;
     const closeButton = sheet.querySelector("button");

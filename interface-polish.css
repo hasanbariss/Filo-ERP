@@ -432,3 +432,89 @@
     margin-top: 16px;
   }
 }
+/* Hakediş cari kartı uses the same drawer while retaining its editable summary. */
+@media screen {
+  body.bf-app #cari-kart-modal-overlay.hakedis-detail-overlay {
+    justify-content: flex-end !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+    background: rgba(12, 20, 29, 0.3) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-sheet {
+    width: min(960px, 100vw) !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    min-height: 0;
+    margin: 0 !important;
+    border-radius: 20px 0 0 20px !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--feedback-line) !important;
+    background: var(--feedback-bg) !important;
+    box-shadow: -16px 0 60px #0002;
+    animation: bf-drawer-in 0.22s ease-out;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-sheet:focus {
+    outline: none;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-header {
+    flex-shrink: 0;
+    background: var(--feedback-bg) !important;
+    border-color: var(--feedback-line) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-summary {
+    flex-shrink: 0;
+    max-height: 40dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  @media (max-width: 768px) {
+    body.bf-app #cari-kart-modal-overlay .cari-card-sheet {
+      border-radius: 0 !important;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body.bf-app #cari-kart-modal-overlay .cari-card-sheet {
+      animation: none;
+    }
+  }
+}
+@media screen {
+  body.bf-app
+    #cari-kart-modal-overlay
+    :is(.cari-card-body, .cari-card-summary) {
+    background: var(--feedback-bg) !important;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    :is(.cari-card-section, .cari-factory-card) {
+    background: var(--feedback-soft) !important;
+    border-color: var(--feedback-line) !important;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    :is(
+      .cari-hakedis-title,
+      .cari-hakedis-plate,
+      .cari-card-header h2,
+      .text-white
+    ) {
+    color: var(--feedback-text) !important;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    :is(.text-gray-400, .text-gray-500, .text-gray-600) {
+    color: var(--feedback-muted) !important;
+  }
+}

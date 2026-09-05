@@ -3711,6 +3711,8 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         if(window.lucide) window.lucide.createIcons();
 
+        window.prepareDetailDrawer?.(overlay, () => overlay.remove());
+
         // === HESAPLAMA FONKSİYONU (önce tanımla) ===
         const calculateTotals = () => {
             let totalBrut = 0;

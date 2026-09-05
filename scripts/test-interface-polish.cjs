@@ -172,6 +172,66 @@ const assert = require("node:assert/strict");
     path: "/tmp/ideol-drawer-mobile.png",
     animations: "disabled",
   });
+  await page.keyboard.press("Escape");
+  await page.addScriptTag({ path: process.cwd() + "/hakedis-calculations.js" });
+  await page.addScriptTag({
+    content: source.slice(
+      source.indexOf("window.openCariHakedisDetay ="),
+      source.indexOf("window.saveHakedisFiyatlar ="),
+    ),
+  });
+  await page.evaluate(() => {
+    window._taseronCariAy = "2026-09";
+    window._taseronCariData = {
+      v: { plaka: "35 TEST", musteriDetay: {}, mulkiyet_durumu: "TAŞERON" },
+    };
+    window.supabaseClient = {
+      from() {
+        const q = {
+          select() {
+            return q;
+          },
+          eq() {
+            return q;
+          },
+          gte() {
+            return q;
+          },
+          lte() {
+            return q;
+          },
+          order() {
+            return q;
+          },
+          then(resolve) {
+            return Promise.resolve({ data: [] }).then(resolve);
+          },
+        };
+        return q;
+      },
+    };
+  });
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(() => openCariHakedisDetay("v"));
+    const drawer = page.locator("#cari-kart-modal-overlay .cari-card-sheet");
+    assert.equal(
+      await drawer.count(),
+      1,
+      await page.locator("#cari-kart-modal-overlay").innerText(),
+    );
+    const rect = await drawer.boundingBox();
+    assert.ok(Math.abs(rect.x + rect.width - width) < 2);
+    assert.ok(rect.height >= 895);
+    assert.ok(await page.locator("#modal-net-total").isVisible());
+    assert.ok(await page.locator(".cari-card-action.is-save").isVisible());
+    await page.screenshot({
+      path: "/tmp/hakedis-drawer-" + width + ".png",
+      animations: "disabled",
+    });
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator("#cari-kart-modal-overlay").count(), 0);
+  }
   assert.deepEqual(errors, []);
   await browser.close();
   console.log(
