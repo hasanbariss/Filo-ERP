@@ -249,6 +249,26 @@ const assert = require("node:assert/strict");
     const rect = await drawer.boundingBox();
     assert.ok(Math.abs(rect.x + rect.width - width) < 2);
     assert.ok(rect.height >= 895);
+    if (width >= 1024) {
+      const bodyBox = await page
+        .locator("#cari-kart-modal-overlay .cari-card-body")
+        .boundingBox();
+      const summaryBox = await page
+        .locator("#cari-kart-modal-overlay .cari-card-summary")
+        .boundingBox();
+      assert.ok(
+        bodyBox.width > width * 0.65,
+        "Calculations use most of the desktop width",
+      );
+      assert.ok(
+        bodyBox.height > 900 * 0.75,
+        "Summary does not consume calculation height",
+      );
+      assert.ok(
+        summaryBox.x >= bodyBox.x + bodyBox.width - 2,
+        "Summary is beside calculations",
+      );
+    }
     assert.ok(await page.locator("#modal-net-total").isVisible());
     assert.ok(await page.locator(".cari-card-action.is-save").isVisible());
     await page.screenshot({
