@@ -259,9 +259,13 @@ function ownerPrintTable(group, detail) {
     return '<table class="owner-print-table"><thead><tr class="owner-title"><th colspan="'+columns+'">'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></th></tr><tr class="column-titles">'+head+'</tr></thead><tbody>'+rows+'<tr class="owner-subtotal">'+subtotal+'<td class="num">'+fuelNumber(group.cost)+'</td></tr></tbody></table>';
 }
 function buildFuelPrintDocument() {
+    const fueledIds = new Set(isolatedYakitlar.map(row => String(row.arac_id)));
+    const printVehicles = isolatedAraclar.filter(vehicle => fueledIds.has(String(vehicle.id)));
+    const printGroups = window.FuelAnalytics.ownerGroups(printVehicles, isolatedYakitlar);
+    if (!printVehicles.length) return '<p class="empty-report">Seçili dönemde yazdırılacak yakıt kaydı bulunmuyor.</p>';
     const summary=window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar);
     const detail=document.getElementById('fuel-print-format').value==='detail';
-    return '<article class="fuel-document"><header class="document-header"><div><h2>Yakıt raporu</h2><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p><p>'+(detail?'Detaylı yakıt hareketleri':'Araç sahibi ve plaka bazında özet')+'</p></div><div class="document-brand">Baris.Flow<small>DRIVE</small></div></header><div class="document-totals"><span>Araç sayısı<strong>'+isolatedAraclar.length+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+currentOwnerGroups().map(group=>ownerPrintTable(group,detail)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer">Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</footer></article>';
+    return '<article class="fuel-document"><header class="document-header"><div><h2>Yakıt raporu</h2><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p><p>'+(detail?'Detaylı yakıt hareketleri':'Araç sahibi ve plaka bazında özet')+'</p></div><div class="document-brand">Baris.Flow<small>DRIVE</small></div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicles.length+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer">Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</footer></article>';
 }
 window.refreshFuelPrintPreview = function() {
     if(!fuelReady)return;
@@ -274,7 +278,7 @@ window.openFuelPrintPreview = function() {
 };
 window.onbeforeprint = function() { document.getElementById('print-section').innerHTML=fuelReady?buildFuelPrintDocument():'<p>Yazdırmak için rapor verilerinin yüklenmesini bekleyin.</p>'; };
 window.handlePrint = function() {
-    if(!fuelReady)return;
+    if(!fuelReady || !isolatedYakitlar.length)return;
     document.getElementById('fuel-print-dialog').close();
     window.onbeforeprint();
     window.print();
