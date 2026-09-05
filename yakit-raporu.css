@@ -14,3 +14,5 @@
 @media print{.owner-subtotal{break-before:avoid}.document-brand{min-width:110px;margin-left:20px}}
 
 .document-footer small{font-size:8px;font-weight:400;color:#87939c;white-space:nowrap}
+
+.document-header .document-period{font-size:13px;font-weight:700;color:#172632;margin-bottom:5px}

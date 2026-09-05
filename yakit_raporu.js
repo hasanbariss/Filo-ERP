@@ -258,6 +258,12 @@ function ownerPrintTable(group, detail) {
     const subtotal=detail?'<td colspan="3">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td><td></td>':'<td colspan="3">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td>';
     return '<table class="owner-print-table"><thead><tr class="owner-title"><th colspan="'+columns+'">'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></th></tr><tr class="column-titles">'+head+'</tr></thead><tbody>'+rows+'<tr class="owner-subtotal">'+subtotal+'<td class="num">'+fuelNumber(group.cost)+'</td></tr></tbody></table>';
 }
+function fuelPrintPeriodLabel() {
+    const start = document.getElementById('fuel-start').value;
+    const end = document.getElementById('fuel-end').value;
+    const format = value => new Intl.DateTimeFormat('tr-TR', {month:'long', year:'numeric', timeZone:'Europe/Istanbul'}).format(new Date(value + 'T12:00:00Z'));
+    return start.slice(0,7) === end.slice(0,7) ? format(start) : format(start) + ' – ' + format(end);
+}
 function buildFuelPrintDocument() {
     const fueledIds = new Set(isolatedYakitlar.map(row => String(row.arac_id)));
     const printVehicles = isolatedAraclar.filter(vehicle => fueledIds.has(String(vehicle.id)));
@@ -265,7 +271,7 @@ function buildFuelPrintDocument() {
     if (!printVehicles.length) return '<p class="empty-report">Seçili dönemde yazdırılacak yakıt kaydı bulunmuyor.</p>';
     const summary=window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar);
     const detail=document.getElementById('fuel-print-format').value==='detail';
-    return '<article class="fuel-document"><header class="document-header"><div><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicles.length+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
+    return '<article class="fuel-document"><header class="document-header"><div><p class="document-period">Dönem: '+fuelEscape(fuelPrintPeriodLabel())+'</p><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicles.length+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
 }
 window.refreshFuelPrintPreview = function() {
     if(!fuelReady)return;
