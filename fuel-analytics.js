@@ -86,6 +86,25 @@
         return true;
     }
 
+    function ownerGroups(vehicles, rows) {
+        var groups = new Map();
+        var fuelByVehicle = new Map();
+        (rows || []).forEach(function(row) { var key=String(row.arac_id); if(!fuelByVehicle.has(key))fuelByVehicle.set(key,[]);fuelByVehicle.get(key).push(row); });
+        (vehicles || []).forEach(function(vehicle) {
+            var owner=String(vehicle.firma_adi || '').trim().replace(/\s+/g,' ');
+            if (!owner && String(vehicle.mulkiyet_durumu).toLocaleUpperCase('tr-TR') === 'ÖZMAL') owner=String(vehicle.sirket || '').trim();
+            var label=owner || 'Sahibi belirtilmemiş';
+            var key=owner ? owner.toLocaleUpperCase('tr-TR') : 'missing:'+vehicle.id;
+            var group=groups.get(key) || {key:key,owner:label,vehicles:[],liters:0,cost:0,count:0};
+            var records=(fuelByVehicle.get(String(vehicle.id)) || []).slice().sort(function(a,b) {return String(a.tarih).localeCompare(String(b.tarih)) || String(a.id).localeCompare(String(b.id));});
+            var totals=summarizeFuelRows(records);
+            group.vehicles.push({vehicle:vehicle,records:records,totals:totals});
+            group.liters+=totals.liters;group.cost+=totals.cost;group.count+=totals.count;
+            groups.set(key,group);
+        });
+        return Array.from(groups.values()).sort(function(a,b){return a.owner.localeCompare(b.owner,'tr') || a.key.localeCompare(b.key,'tr');}).map(function(group){group.vehicles.sort(function(a,b){return String(a.vehicle.plaka).localeCompare(String(b.vehicle.plaka),'tr',{numeric:true});});return group;});
+    }
+
     function mileageIntervals(rows) {
         var previous = new Map();
         return (rows || []).slice().sort(function(a,b) {return String(a.tarih).localeCompare(String(b.tarih)) || number(a.kilometre)-number(b.kilometre);}).map(function(row) {
@@ -221,6 +240,7 @@
     }
 
     return {
+        ownerGroups: ownerGroups,
         mileageIntervals: mileageIntervals,
         matchesReportPreset: matchesReportPreset,
         normalizePlate: normalizePlate,

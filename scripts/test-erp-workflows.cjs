@@ -23,6 +23,19 @@ const details=[100,100,120].map((price,i)=>({vehicleClass:'16+1',vehicleId:Strin
 const classes=report.groupServiceClasses(details);
 assert.equal(classes.length,2);assert.equal(classes[0].shifts,4);assert.equal(classes.reduce((s,r)=>s+r.gross,0),790);
 
+const owners=fuel.ownerGroups([
+    {id:'1',plaka:'35 Z 1',firma_adi:'Ahmet Yılmaz'},
+    {id:'2',plaka:'35 A 1',firma_adi:'Mehmet Demir'},
+    {id:'3',plaka:'35 B 1',firma_adi:' AHMET   YILMAZ '},
+    {id:'4',plaka:'35 C 1',mulkiyet_durumu:'ÖZMAL',sirket:'IDEOL'},
+    {id:'5',plaka:'35 D 1',mulkiyet_durumu:'TAŞERON',sirket:'IDEOL'}
+],[{id:'f',arac_id:'1',litre:10,toplam_tutar:500.25}]);
+assert.equal(owners.length,4);
+assert.deepEqual(owners[0].vehicles.map(item=>item.vehicle.id),['3','1']);
+assert.equal(owners[0].cost,500.25);
+assert.equal(owners.find(g=>g.owner==='IDEOL').vehicles.length,1);
+assert.ok(owners.some(g=>g.owner==='Sahibi belirtilmemiş'));
+
 function query(data) {
     let rows=data.slice();
     const q={select(){return q},order(){return q},gte(k,v){rows=rows.filter(r=>r[k]>=v);return q},lte(k,v){rows=rows.filter(r=>r[k]<=v);return q},lt(k,v){rows=rows.filter(r=>r[k]<v);return q},eq(k,v){rows=rows.filter(r=>r[k]===v);return q},range(a,b){rows=rows.slice(a,b+1);return q},then(resolve){return Promise.resolve({data:rows}).then(resolve)}};

@@ -9,6 +9,7 @@ const webFiles = [
   'filoyonetim.html',
   'puantaj.html',
   'yakit_raporu.html',
+  'yakit-raporu.css',
   'style.css',
   'ios-mobile.css',
   'design-system.css',

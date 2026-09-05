@@ -1,250 +1,59 @@
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baris.Flow / Filo Yönetim / Yakıt Tüketim Raporu</title>
-    <!-- iOS PWA Support -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Yakıt Raporu">
-    <meta name="theme-color" content="#f8fafc">
-    <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-transparent-192.png?v=2">
-    <link rel="apple-touch-icon" href="icons/icon-transparent-192.png?v=2">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #fcfcfd;
-            transition: all 0.3s ease;
-        }
-
-        /* Smooth scroll and transitions */
-        * { transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease; }
-
-        /* Print Layout */
-        @media print {
-            @page { size: portrait; margin: 0; }
-            body { background: white !important; color: black !important; overflow: visible !important; height: auto !important; margin: 0; padding: 0; }
-            .no-print { display: none !important; }
-            
-            /* Hide EVERYTHING except #print-section */
-            body > *:not(#print-section) { display: none !important; }
-            #print-section { 
-                display: block !important; 
-                width: 100% !important; 
-                margin: 0 !important; 
-                padding: 0 !important;
-                visibility: visible !important;
-            }
-
-            /* Table Optimization for Grid View Fallback */
-            table { border-collapse: collapse !important; width: 100% !important; }
-            th, td { border: 0.5px solid #e2e8f0 !important; font-size: 7px !important; padding: 2px !important; }
-            
-            .print-avoid-break { break-inside: avoid !important; page-break-inside: avoid !important; }
-        }
-        
-        #print-section { display: none; }
-
-        /* Essential UI Styles */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
-
-        .glass-header {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-        }
-        
-        .view-btn-active {
-            background: #0f172a;
-            color: white;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
-        }
-        
-        .view-btn-inactive {
-            color: #64748b;
-        }
-        .view-btn-inactive:hover {
-            color: #0f172a;
-            background: rgba(15, 23, 42, 0.05);
-        }
-
-        /* Custom Dropdown Styles */
-        .dropdown-menu {
-            transform-origin: top;
-            animation: dropdownFade 0.2s ease-out;
-        }
-
-        @keyframes dropdownFade {
-            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .dropdown-container input[type="checkbox"] {
-            accent-color: #ea580c;
-        }
-    </style>
-<style>
-.glass-header{flex-wrap:wrap;gap:16px;height:auto!important;padding:20px!important}.fuel-report-controls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;background:white;border:1px solid #e2e8f0;border-radius:16px;padding:18px;margin-bottom:20px}.fuel-report-controls label{display:grid;gap:6px;font-size:12px;color:#475569}.fuel-report-controls select,.fuel-report-controls input,.fuel-report-controls button{border:1px solid #cbd5e1;border-radius:8px;padding:9px;background:white;color:#0f172a}.fuel-report-kpis{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:20px}.fuel-report-kpis article{flex:1;min-width:150px;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px}.fuel-report-kpis strong{display:block;font-size:22px;color:#0f172a}.fuel-summary-table{width:100%;background:white;border-collapse:collapse}.fuel-summary-table th,.fuel-summary-table td{padding:12px;text-align:left;border-bottom:1px solid #e2e8f0;font-size:13px}#fuel-report-status{color:#b45309;margin-bottom:12px}#view-list{max-width:1200px;overflow-x:auto}@media(max-width:700px){.glass-header>div{flex-wrap:wrap;max-width:100%}.fuel-report-controls label{width:100%}.fuel-report-controls select,.fuel-report-controls input{max-width:100%}.fuel-summary-table{min-width:520px}}
-</style></head>
-
-<body class="h-screen w-screen flex flex-col overflow-hidden text-slate-800">
-
-    <!-- Consolidated Sleek Header Bar -->
-    <header class="glass-header px-6 py-3 flex items-center justify-between shadow-sm z-20 shrink-0">
-        <div class="flex items-center gap-6">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                    <i data-lucide="fuel" class="w-4 h-4"></i>
-                </div>
-                <div>
-                    <h1 class="text-sm font-black tracking-tight text-slate-900 uppercase" id="header-title">Yakıt Raporu</h1>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest" id="header-subtitle">Mart 2026</p>
-                </div>
-            </div>
-
-            <!-- Global Totals (Live/Static) -->
-            <div class="hidden lg:flex items-center gap-4 border-l border-slate-200 pl-6 no-print">
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-bold text-slate-400 uppercase">Dönem Toplamı</span>
-                    <span class="text-xs font-black text-slate-900" id="total-summary-tutar">₺0.00</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Center: View Toggle -->
-        <div class="flex bg-slate-100 p-1 rounded-xl gap-1 no-print">
-            <button onclick="window.switchView('grid')" id="btn-view-grid" class="view-btn-active px-4 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> TABLO
-            </button>
-            <button onclick="window.switchView('list')" id="btn-view-list" class="view-btn-inactive px-4 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all">
-                <i data-lucide="list" class="w-3.5 h-3.5"></i> GÜNLÜK
-            </button>
-            <button onclick="window.switchView('vehicle')" id="btn-view-vehicle" class="view-btn-inactive px-4 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all">
-                <i data-lucide="truck" class="w-3.5 h-3.5"></i> ARAÇ BAZLI
-            </button>
-            <button onclick="window.switchView('summary')" id="btn-view-summary" class="view-btn-inactive px-4 py-1.5 rounded-lg text-[10px] font-bold flex items-center gap-2 transition-all">
-                <i data-lucide="file-text" class="w-3.5 h-3.5"></i> ARAÇ ÖZET
-            </button>
-        </div>
-
-        <!-- Right: Filters & Action -->
-        <div class="flex items-center gap-5 no-print">
-            <span class="text-[8px] text-slate-300 font-mono">v1.1.0</span>
-            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 p-1 rounded-xl">
-                <div class="flex items-center gap-2 px-2 border-r border-slate-200">
-                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400"></i>
-                    <input type="text" id="search-plaka" oninput="window.filterSearch()" placeholder="Plaka Ara..." class="text-[10px] font-bold bg-transparent py-1 text-slate-700 outline-none w-24">
-                </div>
-                <input type="month" id="filter-donem" onchange="window.changeDonem()" class="text-[10px] font-bold bg-transparent px-2 py-1 text-slate-700 outline-none cursor-pointer">
-            </div>
-            
-            <div class="flex items-center gap-3">
-                <div class="w-px h-3 bg-slate-200"></div>
-                
-                <!-- Multi-select Mülkiyet -->
-                <div class="relative group dropdown-container" id="dropdown-mulkiyet">
-                    <button class="text-[10px] font-bold px-3 py-1 text-slate-700 flex items-center gap-1 hover:bg-slate-100 rounded-lg transition-all" onclick="window.toggleDropdown('mulkiyet')">
-                        <span id="label-mulkiyet">Mülkiyet</span>
-                        <i data-lucide="chevron-down" class="w-2.5 h-2.5"></i>
-                    </button>
-                    <div class="dropdown-menu hidden absolute top-full left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-1">
-                        <label class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
-                            <input type="checkbox" value="ÖZMAL" checked onchange="window.filterYakit()" class="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold text-slate-700">ÖZMAL</span>
-                        </label>
-                        <label class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
-                            <input type="checkbox" value="TAŞERON" checked onchange="window.filterYakit()" class="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold text-slate-700">TAŞERON</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="w-px h-3 bg-slate-200"></div>
-
-                <!-- Multi-select Şirket -->
-                <div class="relative group dropdown-container" id="dropdown-sirket">
-                    <button class="text-[10px] font-bold px-3 py-1 text-slate-700 flex items-center gap-1 hover:bg-slate-100 rounded-lg transition-all" onclick="window.toggleDropdown('sirket')">
-                        <span id="label-sirket">Şirket</span>
-                        <i data-lucide="chevron-down" class="w-2.5 h-2.5"></i>
-                    </button>
-                    <div class="dropdown-menu hidden absolute top-full left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-2 space-y-1">
-                        <label class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
-                            <input type="checkbox" value="IDEOL" checked onchange="window.filterYakit()" class="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold text-slate-700" data-company-name>IDEOL</span>
-                        </label>
-                        <label class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
-                            <input type="checkbox" value="DİKKAN" checked onchange="window.filterYakit()" class="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold text-slate-700">DİKKAN</span>
-                        </label>
-                        <label class="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
-                            <input type="checkbox" value="M.K." checked onchange="window.filterYakit()" class="w-3.5 h-3.5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
-                            <span class="text-[10px] font-bold text-slate-700">M.K.</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-            
-            <button onclick="window.handlePrint()" class="w-9 h-9 flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-orange-600 hover:border-orange-200 rounded-xl transition-all shadow-sm" title="Yazdır">
-                <i data-lucide="printer" class="w-4 h-4"></i>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content Container -->
-    <main class="flex-1 overflow-auto p-6 md:p-8" id="main-content">
-        <section class="fuel-report-controls no-print">
-            <label>Hazır kapsam<select id="fuel-preset" onchange="window.applyFuelPreset(this.value)"><option value="all">Tüm araçlar</option><option value="owned">Tüm özmallar</option><option value="subcontract">Tüm taşeronlar</option><option value="dikkan-owned">Dikkan özmal</option><option value="ideol-mk-owned">İdeol / M. Kalıpçı özmal</option><option value="dikkan-subcontract">Dikkan taşeron</option><option value="other-subcontract">Dikkan dışı taşeron</option><option value="custom">Özel seçim</option></select></label>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yakıt Raporu"><meta name="theme-color" content="#f3f5f6"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icons/icon-transparent-192.png?v=2">
+<title>Baris.Flow Drive · Yakıt raporu</title>
+<link rel="icon" href="icons/icon-transparent-192.png?v=2">
+<link rel="stylesheet" href="yakit-raporu.css?v=2">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+<header class="report-brand"><a href="filoyonetim.html">Baris<span>.Flow</span> <small>DRIVE</small></a><span>Filo yönetimi / Raporlar</span></header>
+<main id="main-content" class="report-shell">
+    <div class="report-heading">
+        <div><p class="eyebrow">YAKIT &amp; GİDER TAKİBİ</p><h1 id="header-title">Yakıt raporu</h1><p id="header-subtitle">Dönem hazırlanıyor…</p></div>
+        <div class="report-actions"><button class="secondary-button" onclick="window.exportFuelExcel()"><i data-lucide="download"></i>Excel indir</button><button class="primary-button" onclick="window.openFuelPrintPreview()"><i data-lucide="printer"></i>Yazdır / PDF</button></div>
+    </div>
+    <section class="filter-panel" aria-label="Rapor filtreleri">
+        <div class="primary-filters">
+            <label class="scope-field">Rapor kapsamı<select id="fuel-preset" onchange="window.applyFuelPreset(this.value)"><option value="all">Tüm araçlar</option><option value="owned">Tüm özmallar</option><option value="subcontract">Tüm taşeronlar</option><option value="dikkan-owned">Dikkan özmal</option><option value="ideol-mk-owned">İdeol / M. Kalıpçı özmal</option><option value="dikkan-subcontract">Dikkan taşeron</option><option value="other-subcontract">Dikkan dışı taşeron</option><option value="custom">Özel seçim</option></select></label>
+            <label>Dönem<input type="month" id="filter-donem" onchange="window.changeDonem()"></label>
             <label>Başlangıç<input id="fuel-start" type="date" onchange="fetchData()"></label>
             <label>Bitiş<input id="fuel-end" type="date" onchange="fetchData()"></label>
+        </div>
+        <details class="extra-filters"><summary><i data-lucide="sliders-horizontal"></i>Diğer filtreler <span>Şirket, mülkiyet, sınıf ve plaka seçimi</span></summary><div class="extra-filter-grid">
+            <fieldset id="dropdown-mulkiyet"><legend>Mülkiyet</legend><label><input type="checkbox" value="ÖZMAL" onchange="window.filterYakit()">Özmal</label><label><input type="checkbox" value="TAŞERON" onchange="window.filterYakit()">Taşeron</label></fieldset>
+            <fieldset id="dropdown-sirket"><legend>Şirket</legend><label><input type="checkbox" value="DİKKAN" onchange="window.filterYakit()">Dikkan</label><label><input type="checkbox" value="IDEOL" onchange="window.filterYakit()">İdeol</label><label><input type="checkbox" value="M.K." onchange="window.filterYakit()">M. Kalıpçı</label></fieldset>
             <label>Araç sınıfı<select id="fuel-class" onchange="window.filterSearch()"><option value="">Tüm sınıflar</option><option>TAKSİ</option><option>16+1</option><option>27+1</option><option>46+1</option><option>DİĞER</option><option>SINIFLANDIRILMAMIŞ</option></select></label>
-            <label>Plakalar (çoklu seçim)<select id="fuel-plates" multiple size="3" onchange="window.filterSearch()" aria-label="Plakalar"></select></label>
-            <button onclick="window.exportFuelExcel()">Excel indir</button>
-        </section>
-        <div id="fuel-report-status" role="status" aria-live="polite"></div>
-        <div id="fuel-report-kpis" class="fuel-report-kpis"></div>
-        <!-- Grid View -->
-        <div id="view-grid" class="block">
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 mx-auto" style="width: max-content; min-width: max-content; padding-bottom: 20px;">
-                <table class="text-left border-collapse" id="yakit-table" style="table-layout: fixed; width: max-content; min-width: max-content;">
-                    <thead id="yakit-thead" class="bg-slate-50 select-none"></thead>
-                    <tbody id="yakit-tbody" class="divide-y divide-slate-100">
-                        <tr>
-                            <td class="p-12 text-center text-slate-400 font-medium">Lütfen bekleyin, veriler çekiliyor...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- List View -->
-        <div id="view-list" class="hidden max-w-4xl mx-auto space-y-6">
-            <!-- JS will populate this -->
-            <div class="p-12 text-center text-slate-400 font-medium bg-white rounded-2xl border border-slate-200">
-                Liste yükleniyor...
-            </div>
-        </div>
-    </main>
-
-    <!-- Print Section -->
-    <div id="print-section" class="hidden"></div>
-
+            <label>Plaka seçimi<select id="fuel-plates" multiple size="4" onchange="window.filterSearch()" aria-label="Plakalar"></select><small>Birden çok seçim için ⌘ / Ctrl kullanın.</small></label>
+        </div></details>
+    </section>
+    <div id="fuel-report-status" role="status" aria-live="polite"></div>
+    <div id="fuel-report-kpis" class="fuel-report-kpis"></div><span id="total-summary-tutar" hidden></span>
+    <section class="results-panel">
+        <div class="results-toolbar"><div class="view-tabs" aria-label="Görünüm">
+            <button id="btn-view-summary" onclick="window.switchView('summary')">Sahip / araç özeti</button>
+            <button id="btn-view-vehicle" onclick="window.switchView('vehicle')">Araç hareketleri</button>
+            <button id="btn-view-list" onclick="window.switchView('list')">Günlük hareketler</button>
+            <button id="btn-view-grid" onclick="window.switchView('grid')">Aylık çizelge</button>
+        </div><label class="report-search"><i data-lucide="search"></i><input id="search-plaka" type="search" oninput="window.filterSearch()" placeholder="Plaka veya araç sahibi ara" aria-label="Plaka veya araç sahibi ara"></label></div>
+        <div class="results-caption"><span>Aynı araç sahibine ait plakalar birlikte gösterilir.</span><span>Tüm tutarlar TL</span></div>
+        <div id="view-grid" class="hidden"><table id="yakit-table"><thead id="yakit-thead"></thead><tbody id="yakit-tbody"><tr><td>Veriler yükleniyor…</td></tr></tbody></table></div>
+        <div id="view-list"></div>
+    </section>
+</main>
+<dialog id="fuel-print-dialog" aria-labelledby="print-dialog-title">
+    <div class="preview-toolbar"><div><h2 id="print-dialog-title">Yazdırma önizlemesi</h2><p>Seçili filtreler · Araç sahibine göre sıralı</p></div><button class="icon-button" onclick="document.getElementById('fuel-print-dialog').close()" aria-label="Önizlemeyi kapat">×</button></div>
+    <div class="preview-options"><label>Çıktı türü<select id="fuel-print-format" onchange="window.refreshFuelPrintPreview()"><option value="summary">Sahip ve araç toplamları</option><option value="detail">Tarih tarih yakıt hareketleri</option></select></label><button class="primary-button" onclick="window.handlePrint()"><i data-lucide="printer"></i>Yazdır / PDF kaydet</button></div>
+    <div class="preview-paper" id="fuel-print-preview"></div>
+</dialog>
+<div id="print-section"></div>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://filo-erp-pi.vercel.app/api/public-config?v=1"></script>
-    <script src="fuel-analytics.js"></script>
+    <script src="fuel-analytics.js?v=2.0.4"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         document.write('<script src="config.js?v=' + Date.now() + '"><\/script>');
@@ -257,6 +66,4 @@
     <script>
         document.write('<script src="yakit_raporu.js?v=' + Date.now() + '"><\/script>');
     </script>
-</body>
-
-</html>
+</body></html>
