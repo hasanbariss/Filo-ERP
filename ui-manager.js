@@ -3402,241 +3402,175 @@ window.printCariKart = function(plaka, month) {
     const overlay = document.getElementById('cari-kart-modal-overlay');
     if (!overlay) return;
     const branding = window.CompanyBranding;
-
-    const fmt = v => String.fromCharCode(8378) + Number(v).toLocaleString('tr-TR', {minimumFractionDigits:2});
-
-    // --- Hizmet satırları ---
-    const rows = overlay.querySelectorAll('.musteri-calc-row');
-    let detailRowsHtml = '';
-    let grandBrut = 0, grandKdv = 0, grandTev = 0;
-
-    rows.forEach(function(row) {
-        var titleEl = row.querySelector('.font-black.text-white');
-        var fabrika = titleEl ? titleEl.innerText.trim() : 'Fabrika';
-
-        var kdvOran = parseFloat(row.querySelector('.calc-kdv-oran') && row.querySelector('.calc-kdv-oran').value) || 0;
-        var tevOran = parseFloat(row.querySelector('.calc-tev-oran') && row.querySelector('.calc-tev-oran').value) || 0;
-
-        function getAdet(sel) {
-            var el = row.querySelector(sel);
-            return parseInt(el ? el.value : '0') || 0;
-        }
-        function getFiyat(sel) {
-            var el = row.querySelector(sel);
-            return parseFloat(el ? el.value : '0') || 0;
-        }
-
-        var services = [
-            { label: 'Vardiya',       adet: getAdet('.calc-vardiya-count'),   fiyat: getFiyat('.calc-vardiya-fiyat'),   color: '#ea580c' },
-            { label: 'Tek Sefer',     adet: getAdet('.calc-tek-count'),        fiyat: getFiyat('.calc-tek-fiyat'),       color: '#0284c7' },
-            { label: '8 Cikisi',      adet: getAdet('.calc-cikis8-count'),     fiyat: getFiyat('.calc-cikis8-fiyat'),    color: '#d97706' },
-            { label: '20-30 Giris',   adet: getAdet('.calc-giris2030-count'),  fiyat: getFiyat('.calc-giris2030-fiyat'), color: '#7c3aed' },
-            { label: 'Mesai',         adet: getAdet('.calc-mesai-count'),      fiyat: getFiyat('.calc-mesai-fiyat'),     color: '#0891b2' }
-        ].filter(function(s){ return s.adet > 0; });
-
-        if (services.length === 0) return;
-
-        detailRowsHtml += '<tr class="factory-header"><td colspan="7">' + fabrika + ' <small style="font-weight:500;color:#94a3b8">KDV %' + kdvOran + ' / TEV %' + tevOran + '</small></td></tr>';
-
-        services.forEach(function(s) {
-            var toplam   = s.adet * s.fiyat;
-            var kdvTutar = toplam * (kdvOran / 100);
-            var tevTutar = toplam * (tevOran / 100);
-            var netSatir = toplam + kdvTutar - tevTutar;
-            grandBrut += toplam;
-            grandKdv  += kdvTutar;
-            grandTev  += tevTutar;
-            detailRowsHtml += '<tr class="svc-row">'
-                + '<td class="svc-label"><span class="svc-dot" style="background:' + s.color + '"></span>' + s.label + '</td>'
-                + '<td class="text-center mono">' + s.adet + '</td>'
-                + '<td class="text-right mono">' + fmt(s.fiyat) + '</td>'
-                + '<td class="text-right mono fw">' + fmt(toplam) + '</td>'
-                + '<td class="text-right mono kdv-col">+' + fmt(kdvTutar) + '</td>'
-                + '<td class="text-right mono tev-col">-' + fmt(tevTutar) + '</td>'
-                + '<td class="text-right mono net-col">' + fmt(netSatir) + '</td>'
-                + '</tr>';
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[char]));
+    const number = value => Number.parseFloat(value) || 0;
+    const fmt = value => Number(value).toLocaleString('tr-TR', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2
+    }) + ' TL';
+    const value = (row, selector) => number(row.querySelector(selector)?.value);
+    const dateText = text => /^\d{4}-\d{2}-\d{2}$/.test(text)
+        ? text.split('-').reverse().join('.') : text;
+    const period = /^\d{4}-(0[1-9]|1[0-2])$/.test(month)
+        ? new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1, 1)
+            .toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
+        : month;
+    const moneyCell = amount => '<td class="money">' + fmt(amount) + '</td>';
+    let serviceBrut = 0, serviceKdv = 0, serviceTev = 0;
+    let serviceRows = '';
+    overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
+        const factory = row.querySelector('.cari-factory-toggle strong')?.textContent.trim()
+            || row.querySelector('.hk-factory-title')?.textContent.trim() || 'Fabrika';
+        const kdv = value(row, '.calc-kdv-oran');
+        const tev = value(row, '.calc-tev-oran');
+        const services = [
+            ['Vardiya', 'vardiya'], ['Tek sefer', 'tek'], ['8 Çıkışı', 'cikis8'],
+            ['20:30 Giriş', 'giris2030'], ['Mesai', 'mesai']
+        ].map(([label, key]) => ({
+            label, count: value(row, '.calc-' + key + '-count'),
+            price: value(row, '.calc-' + key + '-fiyat')
+        })).filter(service => service.count > 0);
+        if (!services.length) return;
+        serviceRows += '<tr class="factory"><th colspan="7">' + esc(factory)
+            + '<span>KDV: %' + kdv + ' · TEV: %' + tev + '</span></th></tr>';
+        services.forEach(service => {
+            const base = service.count * service.price;
+            const tax = base * kdv / 100;
+            const withholding = base * tev / 100;
+            serviceBrut += base;
+            serviceKdv += tax;
+            serviceTev += withholding;
+            serviceRows += '<tr><td>' + esc(service.label) + '</td><td class="money">'
+                + service.count.toLocaleString('tr-TR') + '</td>'
+                + moneyCell(service.price) + moneyCell(base) + moneyCell(tax)
+                + moneyCell(withholding) + moneyCell(base + tax - withholding) + '</tr>';
         });
     });
-
-    detailRowsHtml += '<tr class="grand-total">'
-        + '<td colspan="3"><strong>GENEL TOPLAM</strong></td>'
-        + '<td class="text-right mono">' + fmt(grandBrut) + '</td>'
-        + '<td class="text-right mono kdv-col">+' + fmt(grandKdv) + '</td>'
-        + '<td class="text-right mono tev-col">-' + fmt(grandTev) + '</td>'
-        + '<td class="text-right mono">' + fmt(grandBrut + grandKdv - grandTev) + '</td>'
-        + '</tr>';
-
-    // --- Yakıt satırları ---
-    var yakitVal = parseFloat((overlay.querySelector('#modal-yakit-total') || {getAttribute:function(){return'0';}}).getAttribute('data-val')) || 0;
-
-    var yakitHtml = '<p class="empty-yakit">Hic yakit alimi bulunmuyor.</p>';
-    var yakitDivs = overlay.querySelectorAll('.max-h-48 > div');
-    if (yakitDivs.length > 0) {
-        yakitHtml = '<table class="yakit-table"><tbody>';
-        yakitDivs.forEach(function(yd) {
-            var tarih = (yd.querySelector('.text-xs.font-bold') || {innerText:''}).innerText;
-            var desc  = (yd.querySelectorAll('div')[1] || {innerText:''}).innerText;
-            var val   = (yd.querySelector('.text-sm.font-black.text-orange-400') || {innerText:''}).innerText;
-            yakitHtml += '<tr><td class="y-date">' + tarih + '</td><td class="y-desc">' + desc + '</td><td class="text-right y-val">' + val + '</td></tr>';
-        });
-        yakitHtml += '</tbody></table>';
-    }
-
-    // --- Manuel Gelir / Gider satırları (LocalStorage'dan) ---
-    var manuelHtml = '';
-    var manualLines = [];
-    try {
-        // Araç id'sini modal içindeki data'dan al
-        var aracIdStr = overlay.getAttribute('data-arac-id');
-        var specificKeyPrefix = aracIdStr ? 'cari_manuel_' + aracIdStr + '_' : 'cari_manuel_';
-        for (var ki = 0; ki < localStorage.length; ki++) {
-            var k = localStorage.key(ki);
-            if (k && k.startsWith(specificKeyPrefix) && k.endsWith('_' + month)) {
-                var kalemler = JSON.parse(localStorage.getItem(k) || '[]');
-                if (!Array.isArray(kalemler) || kalemler.length === 0) continue;
-                // Verify it matches — plaka check not possible here, just include all that match month
-                // (modal is open so only one arac is shown at a time; key is unique per arac+ay)
-                kalemler.forEach(function(kl) {
-                    var values = window.HakedisCalculations.normalizeManualLine(kl);
-                    manualLines.push(kl);
-                    var isGelir = kl.tip === 'gelir';
-                    manuelHtml += '<tr>'
-                        + '<td class="mk-tip" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+ Gelir' : '− Gider') + '</td>'
-                        + '<td class="mk-baslik">' + (kl.baslik || '—') + '</td>'
-                        + '<td class="text-right mono">' + (isGelir ? '+' : '-') + fmt(values.matrah) + '</td>'
-                        + '<td class="text-right mono kdv-col">' + (isGelir ? '+' : '-') + fmt(values.kdv) + '</td>'
-                        + '<td class="text-right mono tev-col">' + (isGelir ? '-' : '+') + fmt(values.tev) + '</td>'
-                        + '<td class="text-right mk-tutar" style="color:' + (isGelir ? '#16a34a' : '#dc2626') + ';font-weight:700">' + (isGelir ? '+' : '-') + fmt(values.toplam) + '</td>'
-                        + '</tr>';
-                });
-            }
-        }
-    } catch(e2) { console.warn('Manuel kalemler okunamadi:', e2); }
-
-    var manuelSectionHtml = '';
-    if (manuelHtml) {
-        manuelSectionHtml = '<div style="margin-top:18px"><span class="sec-lbl">⊕ Manuel Gelir / Gider Kalemleri</span>'
-            + '<table class="tbl" style="margin-top:4px">'
-            + '<thead><tr><th>Tur</th><th>Açıklama</th><th class="tr">Matrah</th><th class="tr">KDV</th><th class="tr">TEV</th><th class="tr">Net</th></tr></thead>'
-            + '<tbody>' + manuelHtml + '</tbody>'
-            + '</table></div>';
-    }
-
-    // --- Otomatik Bakım / Sigorta Giderleri (DOM'dan oku) ---
-    var autoGiderToplam = 0;
-    var autoGiderHtml = '';
-    try {
-        overlay.querySelectorAll('.auto-gider-row').forEach(function(row) {
-            if (row.getAttribute('data-dismissed') === 'true') return; // dismiss edilmis, atlat
-            var tutar = parseFloat(row.getAttribute('data-tutar') || 0);
-            autoGiderToplam += tutar;
-            var baslikEl = row.querySelector('.text-xs.font-bold.text-amber-200');
-            var tarihEl  = row.querySelector('.text-amber-200 + div, [class*="text-gray-500"]');
-            var baslik   = baslikEl ? baslikEl.innerText : '';
-            var tarihTur = tarihEl  ? tarihEl.innerText  : '';
-            autoGiderHtml += '<tr>'
-                + '<td class="mk-tip" style="color:#d97706;font-weight:700">− Gider</td>'
-                + '<td class="mk-baslik"><span style="font-weight:700">' + baslik + '</span><br><span style="color:#94a3b8;font-size:9px">' + tarihTur + '</span></td>'
-                + '<td class="text-right mk-tutar" style="color:#d97706;font-weight:700">-' + fmt(tutar) + '</td>'
-                + '</tr>';
-        });
-    } catch(e3) { console.warn('Auto giderler okunamadi:', e3); }
-
-    var autoSectionHtml = '';
-    if (autoGiderHtml) {
-        autoSectionHtml = '<div style="margin-top:18px"><span class="sec-lbl" style="color:#d97706">⚡ Bakım &amp; Sigorta Giderleri (Otomatik)</span>'
-            + '<table class="tbl" style="margin-top:4px">'
-            + '<thead><tr><th style="width:12%">Tur</th><th>Açıklama</th><th class="tr" style="width:18%">Tutar</th></tr></thead>'
-            + '<tbody>' + autoGiderHtml + '</tbody>'
-            + '</table></div>';
-    }
-
-    var invoiceTotals = window.HakedisCalculations.calculateTotals({
-        serviceBrut: grandBrut,
-        serviceKdv: grandKdv,
-        serviceTev: grandTev,
-        yakit: yakitVal,
-        autoGider: autoGiderToplam,
-        manualLines: manualLines
+    // The open editor is the source of truth, including edits not yet saved.
+    const manualLines = Array.from(overlay.querySelectorAll('.manuel-kalem-row'), row => ({
+        tip: row.dataset.tip,
+        baslik: row.querySelector('.manuel-baslik')?.value || 'Ek kalem',
+        tutar: value(row, '.manuel-tutar'),
+        kdv_oran: value(row, '.manuel-kdv-oran'),
+        kdv_dahil: row.querySelector('.manuel-kdv-dahil')?.value === 'dahil',
+        tev_oran: value(row, '.manuel-tev-oran')
+    }));
+    const manualRows = manualLines.map(line => {
+        const values = window.HakedisCalculations.normalizeManualLine(line);
+        const sign = line.tip === 'gider' ? -1 : 1;
+        return '<tr><td>' + (sign < 0 ? 'Gider' : 'Gelir') + '</td><td>' + esc(line.baslik) + '</td>'
+            + moneyCell(sign * values.matrah) + moneyCell(sign * values.kdv)
+            + moneyCell(sign * values.tev) + moneyCell(sign * values.toplam) + '</tr>';
+    }).join('');
+    const yakit = number(overlay.querySelector('#modal-yakit-total')?.dataset.val);
+    const fuelRows = Array.from(overlay.querySelectorAll('#yakitlar-list-container > div'), row => {
+        const date = row.querySelector('.text-xs.font-bold')?.textContent.trim() || '';
+        const description = row.querySelector('.text-xs.font-bold + div')?.textContent.trim() || '';
+        const amount = row.querySelector('.text-sm.font-black')?.textContent.trim() || '';
+        return '<tr><td>' + esc(dateText(date)) + '</td><td>' + esc(description)
+            + '</td><td class="money">' + esc(amount) + '</td></tr>';
+    }).join('');
+    let autoGider = 0;
+    const expenseRows = Array.from(overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])'), row => {
+        const amount = number(row.dataset.tutar);
+        autoGider += amount;
+        const title = row.querySelector('.text-xs.font-bold.text-amber-200')?.textContent.trim() || 'Gider';
+        const description = row.querySelector('.text-amber-200 + div, [class*="text-gray-500"]')?.textContent.trim() || '';
+        return '<tr><td>' + esc(title) + '</td><td>' + esc(description) + '</td>' + moneyCell(-amount) + '</tr>';
+    }).join('');
+    const totals = window.HakedisCalculations.calculateTotals({
+        serviceBrut, serviceKdv, serviceTev, yakit, autoGider, manualLines
     });
-    var netTop = invoiceTotals.net;
-
-    var sahipBilgisi = (overlay.querySelector('#modal-sahip-bilgisi') || {innerText:''}).innerText;
-    var win = window.open('', '', 'height=850,width=960');
-    win.document.write('<!DOCTYPE html><html><head>'
-+ '<meta charset="UTF-8">'
-+ '<title>' + branding.getBrowserTitle('Cari Hesap - ' + plaka) + '</title>'
-+ branding.getFaviconLink()
-+ '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">'
-+ '<style>'
-+ branding.getPrintStyles()
-+ '*{margin:0;padding:0;box-sizing:border-box}'
-+ 'body{font-family:Inter,sans-serif;padding:28px 36px;color:#1e293b;background:#fff;font-size:11px;line-height:1.5}'
-+ '@page{size:portrait;margin:0}'
-+ '.sec-lbl{font-size:9px;font-weight:800;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;display:block}'
-+ '.tbl{width:100%;border-collapse:collapse;margin-bottom:18px}'
-+ '.tbl th{background:#f8fafc;color:#64748b;font-weight:700;text-transform:uppercase;font-size:8.5px;padding:7px 9px;border-bottom:2px solid #e2e8f0}'
-+ '.tbl th.tr{text-align:right}.tbl th.tc{text-align:center}'
-+ '.tbl td{padding:6px 9px;vertical-align:middle}'
-+ '.factory-header td{background:#f8fafc;font-size:10px;font-weight:800;color:#0f172a;padding:8px 9px;border-top:2px solid #e2e8f0;border-bottom:1px solid #e2e8f0}'
-+ '.svc-row td{border-bottom:1px solid #f8fafc}'
-+ '.grand-total td{border-top:2px solid #1e293b;border-bottom:2px solid #1e293b;background:#0f172a;color:#fff;font-weight:800;padding:9px;font-size:11.5px}'
-+ '.grand-total .kdv-col{color:#67e8f9}'
-+ '.grand-total .tev-col{color:#fca5a5}'
-+ '.svc-label{display:flex;align-items:center;gap:5px;font-weight:600;color:#334155}'
-+ '.svc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block}'
-+ '.mono{font-variant-numeric:tabular-nums}'
-+ '.fw{font-weight:800;color:#0f172a}'
-+ '.kdv-col{color:#0891b2;font-weight:600}'
-+ '.tev-col{color:#b7791f;font-weight:600}'
-+ '.net-col{font-weight:700;color:#0f172a}'
-+ '.text-right{text-align:right}.text-center{text-align:center}'
-+ '.fg{display:grid;grid-template-columns:1fr 258px;gap:28px;margin-top:14px}'
-+ '.scard{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:15px}'
-+ '.sr{display:flex;justify-content:space-between;margin-bottom:7px;font-size:10.5px;font-weight:500;color:#64748b}'
-+ '.sr b{color:#1e293b;font-weight:700}'
-+ '.nb{margin-top:10px;padding-top:10px;border-top:2px dashed #e2e8f0;display:flex;justify-content:space-between;align-items:center}'
-+ '.nl{font-size:11px;font-weight:800;color:#0f172a}'
-+ '.nv{font-size:19px;font-weight:900;letter-spacing:-.5px}'
-+ '.yt{width:100%;border-collapse:collapse;margin-top:4px}'
-+ '.yt td{padding:4px 0;border-bottom:1px solid #f8fafc;font-size:10px}'
-+ '.y-date{color:#64748b;font-weight:600;width:68px}'
-+ '.y-desc{color:#94a3b8}'
-+ '.y-val{color:#ea580c;font-weight:700;text-align:right}'
-+ '.mk-tip{width:60px;font-size:10px}'
-+ '.mk-baslik{color:#334155;font-size:10px}'
-+ '.mk-tutar{font-size:10.5px}'
-+ '.empty-yakit{color:#cbd5e1;font-size:10px;font-style:italic}'
-+ '.doc-ftr{margin-top:36px;padding-top:10px;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;color:#cbd5e1;font-size:9px;font-weight:600}'
-+ '</style></head><body>'
-+ branding.getPrintHeader({ title: 'Cari Kart: ' + plaka, subtitle: month + ' Dönemi Hakediş Detayları' + (sahipBilgisi ? ' • ' + sahipBilgisi : '') })
-+ '<span class="sec-lbl">Hizmet Dokumu</span>'
-+ '<table class="tbl">'
-+ '<thead><tr>'
-+ '<th style="width:17%">Hizmet Turu</th>'
-+ '<th class="tc" style="width:8%">Adet</th>'
-+ '<th class="tr" style="width:15%">Birim Fiyat</th>'
-+ '<th class="tr" style="width:15%">Ara Toplam</th>'
-+ '<th class="tr" style="width:13%">+ KDV</th>'
-+ '<th class="tr" style="width:13%">- TEV</th>'
-+ '<th class="tr" style="width:19%">Net (KDV-TEV)</th>'
-+ '</tr></thead>'
-+ '<tbody>' + detailRowsHtml + '</tbody>'
-+ '</table>'
-+ '<div class="fg">'
-+ '<div><span class="sec-lbl">Yakit Kesintileri</span>' + yakitHtml + manuelSectionHtml + autoSectionHtml + '</div>'
-+ '<div class="scard">'
-+ '<div class="sr"><span>Fatura Matrahi</span><b>' + fmt(invoiceTotals.matrah) + '</b></div>'
-+ '<div class="sr"><span style="color:#0891b2">KDV Toplami</span><b style="color:#0891b2">' + (invoiceTotals.kdv >= 0 ? '+' : '-') + fmt(Math.abs(invoiceTotals.kdv)) + '</b></div>'
-+ '<div class="sr"><span style="color:#b7791f">TEV (Stopaj)</span><b style="color:#b7791f">' + (invoiceTotals.tev >= 0 ? '-' : '+') + fmt(Math.abs(invoiceTotals.tev)) + '</b></div>'
-+ '<div class="sr"><span style="color:#ea580c">- Yakit Kesintisi</span><b style="color:#ea580c">-' + fmt(yakitVal) + '</b></div>'
-+ (autoGiderToplam > 0 ? '<div class="sr"><span style="color:#d97706">- Bakım &amp; Sigorta</span><b style="color:#d97706">-' + fmt(autoGiderToplam) + '</b></div>' : '')
-+ '<div class="nb"><span class="nl">NET HAKEDIS</span><span class="nv" style="color:' + (netTop < 0 ? '#dc2626' : '#b7791f') + '">' + fmt(netTop) + '</span></div>'
-+ '</div></div>'
-+ branding.getPrintFooter(new Date().toLocaleString('tr-TR'))
-+ '</body></html>');
+    const invoiceGross = totals.matrah + totals.kdv;
+    const beforeDeductions = invoiceGross - totals.tev;
+    const owner = overlay.querySelector('#modal-sahip-bilgisi')?.textContent.trim() || 'Belirtilmedi';
+    const company = branding.currentCompany;
+    const billingField = (label, content) => '<div><dt>' + label + '</dt><dd>'
+        + (content ? esc(content) : '<span class="missing">Bilgi tanımlanmamış</span>') + '</dd></div>';
+    const summaryRow = (label, amount, className = '') => '<div class="summary-row ' + className
+        + '"><span>' + label + '</span><strong>' + fmt(amount) + '</strong></div>';
+    const table = (headers, rows) => '<table><thead><tr>' + headers.map((heading, i) =>
+        '<th' + (i > 1 ? ' class="money"' : '') + '>' + heading + '</th>').join('')
+        + '</tr></thead><tbody>' + rows + '</tbody></table>';
+    const win = window.open('', '_blank', 'height=900,width=1050');
+    if (!win) {
+        window.Toast?.error('Yazdırma penceresi açılamadı. Tarayıcınızın açılır pencere iznini kontrol edin.');
+        return;
+    }
+    win.document.write('<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8">'
+        + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        + '<title>' + esc(plaka + ' - ' + period + ' Hakediş Bildirimi') + '</title>'
+        + '<style>'
+        + '*{box-sizing:border-box}body{margin:0;background:#eef1f4;color:#17212b;font:12px/1.5 Arial,Helvetica,sans-serif}'
+        + '.sheet{max-width:900px;margin:24px auto;padding:32px;background:#fff}'
+        + '.print-tools{position:sticky;top:0;display:flex;justify-content:center;align-items:center;gap:16px;padding:12px;background:#17212b;color:#fff;font-size:13px}'
+        + '.print-tools button{padding:10px 18px;border:0;border-radius:6px;background:#fff;color:#17212b;font-weight:700;cursor:pointer}'
+        + 'header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #17212b;padding-bottom:16px;margin-bottom:16px}'
+        + 'h1{font-size:24px;line-height:1.2;margin:4px 0 6px;letter-spacing:-.5px}header p{margin:0;color:#53616d;font-size:11px}'
+        + '.eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#53616d}.company-mark{text-align:right;font-size:18px;font-weight:700}'
+        + '.identity{display:grid;grid-template-columns:1fr 1fr 2fr;gap:14px;margin:0 0 20px;padding:12px 14px;background:#f5f7f9;border:1px solid #dbe1e7}'
+        + 'dt{font-size:10px;font-weight:700;color:#53616d;margin-bottom:3px}dd{margin:0;font-size:12px;font-weight:600;overflow-wrap:anywhere}'
+        + 'h2{font-size:14px;margin:20px 0 8px;break-after:avoid}table{width:100%;border-collapse:collapse;table-layout:auto;margin:0 0 12px;font-size:10px}'
+        + 'th,td{padding:7px 6px;border-bottom:1px solid #dbe1e7;text-align:left;vertical-align:top;overflow-wrap:anywhere}'
+        + 'thead th{background:#edf1f4;color:#34424e;font-size:9px;font-weight:700}thead{display:table-header-group}tr{break-inside:avoid}'
+        + '.money{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.factory th{background:#f5f7f9;border-top:1px solid #aeb9c3;font-size:11px}.factory span{float:right;font-size:9px;font-weight:400}'
+        + '.factory{break-after:avoid}.service-total td{font-weight:700;border-top:2px solid #53616d}'
+        + '.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;break-inside:avoid}'
+        + '.summary{padding:14px;border:1px solid #bfc9d2;border-radius:6px}.summary h2{margin:0 0 12px}'
+        + '.summary-row{display:flex;justify-content:space-between;gap:12px;margin:7px 0;font-size:11px}.summary-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}'
+        + '.subtotal{border-top:1px solid #bfc9d2;padding-top:8px;font-weight:700}.net{border-top:2px solid #17212b;margin-top:12px;padding-top:10px;font-weight:700}.net strong{font-size:17px}'
+        + '.note{font-size:10px;color:#53616d;margin:8px 0 0}.billing{padding:14px 16px;border:1px solid #aeb9c3;border-left:4px solid #17212b;break-inside:avoid;margin-top:20px}'
+        + '.billing h2{margin:0 0 4px}.billing dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:12px 0 0}.billing .wide{grid-column:1/-1}'
+        + '.missing{color:#9c382f}.empty{padding:10px 12px;border:1px solid #dbe1e7;color:#53616d;font-size:11px}'
+        + 'footer{display:flex;justify-content:space-between;gap:20px;margin-top:20px;padding-top:8px;border-top:1px solid #dbe1e7;font-size:9px;color:#53616d}'
+        + '@page{size:A4 portrait;margin:12mm} @media print{body{background:#fff;font-size:11px}.sheet{max-width:none;margin:0;padding:0}.print-tools{display:none}h1{font-size:22px}header{padding-bottom:10px;margin-bottom:12px}.identity{padding:8px 12px;margin-bottom:12px}h2{margin-top:14px}th,td{padding:5px 6px}.summary-grid{margin:14px 0}.summary{padding:10px 12px}.summary-row{margin:5px 0}.billing{padding:10px 12px;margin-top:14px}.billing dl{gap:7px 16px;margin-top:8px}footer{margin-top:12px}header,.identity,.closing{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+        + '@media screen and (max-width:650px){.sheet{padding:18px;margin:0}.summary-grid{grid-template-columns:1fr}.print-tools span{display:none}.table-wrap{overflow-x:auto}}'
+        + '</style></head><body>'
+        + '<div class="print-tools"><span>Hakediş çıktısı · A4</span><button type="button" onclick="window.print()">Yazdır / PDF Kaydet</button></div>'
+        + '<main class="sheet"><header><div><span class="eyebrow">DÖNEMSEL HAKEDİŞ</span>'
+        + '<h1>Hakediş ve Fatura Bildirimi</h1><p>Hizmet dökümü, fatura özeti ve ödeme hesabı</p></div>'
+        + '<div class="company-mark">' + esc(company.shortName || company.name) + '</div></header>'
+        + '<dl class="identity">' + billingField('Dönem', period) + billingField('Araç plakası', plaka)
+        + billingField('Hizmet veren / araç sahibi', owner) + '</dl>'
+        + '<h2>1. Hizmet dökümü</h2><div class="table-wrap">'
+        + (serviceRows ? table(['Hizmet', 'Adet', 'Birim fiyat', 'Matrah', 'KDV', 'TEV', 'TEV sonrası'],
+            serviceRows + '<tr class="service-total"><td colspan="3">Hizmet toplamı</td>'
+            + moneyCell(serviceBrut) + moneyCell(serviceKdv) + moneyCell(serviceTev)
+            + moneyCell(serviceBrut + serviceKdv - serviceTev) + '</tr>')
+            : '<p class="empty">Bu dönem için hizmet satırı bulunmuyor.</p>') + '</div>'
+        + (manualRows ? '<h2>Ek gelir / gider kalemleri</h2><p class="note">Bu kalemler aşağıdaki fatura özetine dahildir.</p>'
+            + table(['Tür', 'Açıklama', 'Matrah', 'KDV', 'TEV', 'Toplam'], manualRows) : '')
+        + '<section class="summary-grid"><div class="summary"><h2>2. Fatura özeti</h2>'
+        + summaryRow('Fatura matrahı (KDV hariç)', totals.matrah)
+        + summaryRow('+ KDV', totals.kdv)
+        + summaryRow('KDV dahil toplam', invoiceGross, 'subtotal')
+        + summaryRow('− TEV / tevkifat', totals.tev)
+        + summaryRow('Tevkifat sonrası tutar', beforeDeductions, 'subtotal')
+        + '<p class="note">KDV ve TEV, hakediş kartındaki oranlarla hesaplanmıştır. Hizmet satırlarındaki TEV oranı matrah üzerinden uygulanır.</p>'
+        + '</div><div class="summary"><h2>3. Ödeme hesabı</h2>'
+        + summaryRow('Tevkifat sonrası tutar', beforeDeductions)
+        + summaryRow('− Yakıt kesintisi', yakit)
+        + (autoGider ? summaryRow('− Bakım / sigorta kesintisi', autoGider) : '')
+        + summaryRow('Net ödenecek tutar', totals.net, 'net')
+        + '<p class="note">Yakıt ve bakım/sigorta kesintileri ödeme hesabından düşülmüştür; yukarıdaki fatura matrahını değiştirmez.</p>'
+        + '</div></section><h2>4. Kesinti dökümü</h2>'
+        + (fuelRows ? table(['Yakıt tarihi', 'Miktar × birim fiyat', 'Kesinti tutarı'], fuelRows)
+            : '<p class="empty">Bu dönemde yakıt kesintisi bulunmuyor.</p>')
+        + (expenseRows ? table(['Bakım / sigorta', 'Açıklama', 'Kesinti tutarı'], expenseRows) : '')
+        + '<div class="closing"><section class="billing"><h2>Fatura düzenlenecek firma bilgileri</h2>'
+        + '<p class="note">Faturanızın alıcı bilgileri için aşağıdaki bilgileri kullanınız.</p><dl>'
+        + billingField('Tam ticari unvan', company.legalName)
+        + billingField('Vergi dairesi', company.taxOffice)
+        + billingField('Vergi numarası / VKN', company.taxNumber)
+        + (company.email ? billingField('E-posta', company.email) : '')
+        + (company.phone ? billingField('Telefon', company.phone) : '')
+        + '<div class="wide"><dt>Fatura adresi</dt><dd>' + (company.address ? esc(company.address)
+            : '<span class="missing">Bilgi tanımlanmamış</span>') + '</dd></div></dl></section>'
+        + '<footer><span>Bu belge hakediş bildirimidir; fatura yerine geçmez.</span><span>'
+        + esc(new Date().toLocaleString('tr-TR')) + '</span></footer></div></main></body></html>');
     win.document.close();
-    win.setTimeout(function(){ win.print(); win.close(); }, 700);
+    win.focus();
 };
 /* === 9. HARİTA & ROTA MANTIĞI === */
 window.mainMap = null;
