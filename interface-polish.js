@@ -95,6 +95,44 @@
     body.prepend(bar);
     select(0);
   };
+  window.prepareHakedisPanel = function (overlay) {
+    if (overlay.querySelector(".hakedis-section-nav")) return;
+    const body = overlay.querySelector(".cari-card-body");
+    const nav = document.createElement("nav");
+    nav.className = "hakedis-section-nav";
+    nav.setAttribute("aria-label", "Hakediş bölümleri");
+    const sections = [
+      [".cari-service-section", "Seferler"],
+      [".cari-fuel-section", "Yakıt"],
+      [".cari-auto-expense-section", "Bakım / Sigorta"],
+      [".cari-manual-section", "Ek kalemler"],
+    ];
+    sections.forEach(([selector, label]) => {
+      const section = body.querySelector(selector);
+      if (!section) return;
+      const number = String(nav.children.length + 1).padStart(2, "0");
+      section.dataset.sectionNumber = number;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = number + "  " + label;
+      button.onclick = () => {
+        body.scrollTo({
+          top:
+            body.scrollTop +
+            section.getBoundingClientRect().top -
+            body.getBoundingClientRect().top -
+            20,
+          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "instant"
+            : "smooth",
+        });
+        section.tabIndex = -1;
+        section.focus({ preventScroll: true });
+      };
+      nav.append(button);
+    });
+    body.before(nav);
+  };
   window.prepareDetailDrawer = function (overlay, close) {
     if (!overlay || overlay.dataset.drawerReady) return;
     overlay.dataset.drawerReady = "true";

@@ -65,6 +65,7 @@ const webFiles = [
   'vehicle-deletion.js',
   'feedback-ui.css',
   'interface-polish.css',
+  'hakedis-panel.css',
   'interface-polish.js',
   'ui-manager.js',
   'whatsapp-reporter.js',

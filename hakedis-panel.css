@@ -1,0 +1,371 @@
+/* Screen-only statement design; printed account documents retain their own layout. */
+@media screen {
+  body.bf-app #cari-kart-modal-overlay {
+    --hk-accent: #be6348;
+    --hk-ink: #253846;
+    --hk-paper: var(--feedback-bg);
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-sheet {
+    width: min(1040px, 100vw) !important;
+    border-radius: 24px 0 0 24px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-header {
+    padding: 24px 28px !important;
+    gap: 20px;
+    align-items: center;
+    background: var(--hk-paper) !important;
+    position: relative;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-header::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 22px;
+    bottom: 22px;
+    width: 4px;
+    background: var(--hk-accent);
+    border-radius: 0 4px 4px 0;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-eyebrow {
+    font-size: 9px !important;
+    letter-spacing: 0.18em !important;
+    color: var(--hk-accent) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-header h2 {
+    margin: 7px 0 !important;
+    gap: 0 !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-header h2 > i,
+  body.bf-app #cari-kart-modal-overlay .cari-card-header h2 > svg,
+  body.bf-app #cari-kart-modal-overlay .cari-hakedis-title {
+    display: none !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-hakedis-plate {
+    font-size: 30px !important;
+    font-weight: 750 !important;
+    letter-spacing: -0.045em !important;
+    background: none !important;
+    border: 0 !important;
+    padding: 0 !important;
+    line-height: 1.15;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-meta {
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 11px;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-actions {
+    gap: 7px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-action {
+    border-radius: 10px !important;
+    min-height: 38px !important;
+    padding: 9px 14px !important;
+    font-size: 11px !important;
+    box-shadow: none !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-action.is-save {
+    background: var(--hk-ink) !important;
+    color: #fff !important;
+    border: 1px solid var(--hk-ink) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-action.is-print {
+    display: inline-flex !important;
+    background: var(--feedback-soft) !important;
+    color: var(--feedback-text) !important;
+    border: 1px solid var(--feedback-line) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-close {
+    border-radius: 10px !important;
+  }
+  .hakedis-section-nav {
+    display: flex;
+    gap: 6px;
+    padding: 12px 28px;
+    border-bottom: 1px solid var(--feedback-line);
+    background: var(--feedback-bg);
+    flex-shrink: 0;
+    overflow-x: auto;
+  }
+  .hakedis-section-nav button {
+    flex-shrink: 0;
+    border: 1px solid var(--feedback-line);
+    border-radius: 100px;
+    padding: 8px 14px;
+    color: var(--feedback-muted);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: pre;
+  }
+  .hakedis-section-nav button:hover,
+  .hakedis-section-nav button:focus-visible {
+    background: var(--feedback-soft);
+    color: var(--feedback-text);
+    border-color: var(--hk-accent);
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-body {
+    padding: 24px 28px !important;
+    background: var(--feedback-soft) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-section {
+    position: relative;
+    padding: 22px !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--feedback-line) !important;
+    background: var(--hk-paper) !important;
+    box-shadow: 0 3px 12px #00000003;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-section + .cari-card-section {
+    margin-top: 16px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-section h3 {
+    font-size: 11px !important;
+    letter-spacing: 0.025em !important;
+    color: var(--feedback-text) !important;
+    line-height: 1.6;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-section::before {
+    content: attr(data-section-number);
+    display: block;
+    color: var(--hk-accent);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-card {
+    border: 1px solid var(--feedback-line) !important;
+    border-radius: 12px !important;
+    background: var(--hk-paper) !important;
+    box-shadow: none !important;
+    overflow: hidden;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-toggle {
+    padding: 15px !important;
+    background: var(--feedback-soft) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-toggle strong {
+    font-size: 13px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-content {
+    padding: 14px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-rate-item {
+    border-radius: 9px !important;
+    box-shadow: none !important;
+    border-color: var(--feedback-line) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-rate-item input {
+    font-variant-numeric: tabular-nums;
+    color: var(--feedback-text) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-rate-item:focus-within {
+    border-color: var(--hk-accent) !important;
+    background: var(--feedback-soft) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-summary {
+    padding: 16px 28px !important;
+    border-top: 1px dashed var(--feedback-line) !important;
+    background: var(--feedback-bg) !important;
+    box-shadow: 0 -6px 22px #00000004 !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-summary > div {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-summary-row {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 4px;
+    min-height: 50px !important;
+    padding: 8px 10px !important;
+    border: 0 !important;
+    background: var(--feedback-soft) !important;
+    border-radius: 8px;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-summary-row > span:first-child {
+    font-size: 9px !important;
+    font-weight: 550 !important;
+    letter-spacing: 0 !important;
+    color: var(--feedback-muted) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-summary-row > span:last-child {
+    font-size: 14px !important;
+    font-weight: 650 !important;
+    font-variant-numeric: tabular-nums;
+    color: var(--feedback-text) !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-summary-row.is-net {
+    grid-column: 1/-1;
+    flex-direction: row;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: var(--hk-ink) !important;
+    border: 0 !important;
+    margin: 2px 0 0 !important;
+    padding: 14px 18px !important;
+    min-height: 64px !important;
+    border-radius: 12px;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    .cari-summary-row.is-net
+    > span:first-child {
+    color: #c7d3db !important;
+    letter-spacing: 0.12em !important;
+    font-size: 10px !important;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    .cari-summary-row.is-net
+    #modal-net-total {
+    font-size: 29px !important;
+    color: #fff !important;
+    letter-spacing: -0.045em !important;
+  }
+  @media (max-width: 768px) {
+    body.bf-app #cari-kart-modal-overlay .cari-card-sheet {
+      border-radius: 0 !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-header {
+      padding: 16px !important;
+      flex-wrap: wrap;
+      gap: 12px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-hakedis-plate {
+      font-size: 25px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-close {
+      position: absolute;
+      right: 14px;
+      top: 18px;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-heading {
+      padding-right: 40px;
+    }
+    .hakedis-section-nav {
+      padding: 10px 16px;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-body {
+      padding: 16px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-section {
+      padding: 16px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-summary {
+      padding: 10px 16px !important;
+      max-height: 34dvh;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-summary > div {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 5px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-summary-row {
+      min-height: 42px !important;
+      padding: 6px 9px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-summary-row.is-net {
+      min-height: 54px !important;
+      padding: 10px 12px !important;
+    }
+    body.bf-app
+      #cari-kart-modal-overlay
+      .cari-summary-row.is-net
+      #modal-net-total {
+      font-size: 24px !important;
+    }
+  }
+}
+@media print {
+  .hakedis-section-nav {
+    display: none !important;
+  }
+}
+@media screen {
+  body.bf-app #cari-kart-modal-overlay .cari-factory-toggle {
+    display: flex !important;
+    width: 100% !important;
+    text-align: left !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-toggle > span {
+    display: grid !important;
+    grid-template-columns: 18px minmax(0, 1fr) !important;
+    flex: 1;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-toggle :is(strong, small) {
+    grid-column: 2;
+    white-space: normal !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-card-summary .cari-summary-row {
+    border-radius: 8px !important;
+  }
+  body.bf-app
+    #cari-kart-modal-overlay
+    .cari-card-summary
+    .cari-summary-row.is-net {
+    border-radius: 12px !important;
+  }
+  @media (max-width: 768px) {
+    body.bf-app #cari-kart-modal-overlay .cari-card-header {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-card-actions {
+      display: flex !important;
+      position: static !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-rate-head {
+      display: none !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-rate-item {
+      grid-template-columns: minmax(0, 1fr) !important;
+      gap: 8px !important;
+      padding: 12px !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-rate-item > div {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    body.bf-app
+      #cari-kart-modal-overlay
+      .cari-rate-item
+      > div:first-child
+      > div {
+      display: flex !important;
+      justify-content: space-between !important;
+    }
+    body.bf-app
+      #cari-kart-modal-overlay
+      .cari-rate-item
+      > div:first-child
+      span {
+      white-space: normal !important;
+      overflow: visible !important;
+      max-width: none !important;
+      width: auto !important;
+      text-overflow: clip !important;
+    }
+    body.bf-app #cari-kart-modal-overlay .cari-factory-content .bg-black\/20 {
+      background: var(--feedback-soft) !important;
+    }
+  }
+}
+@media screen {
+  body.bf-app #cari-kart-modal-overlay .cari-factory-total > div {
+    background: var(--feedback-soft) !important;
+    border: 1px solid var(--feedback-line) !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+  }
+  body.bf-app #cari-kart-modal-overlay .cari-factory-total > div > span {
+    color: var(--feedback-text) !important;
+  }
+}

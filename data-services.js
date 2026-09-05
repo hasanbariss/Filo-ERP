@@ -3711,6 +3711,7 @@ window.openCariHakedisDetay = async function(arac_id) {
 
         if(window.lucide) window.lucide.createIcons();
 
+        window.prepareHakedisPanel?.(overlay);
         window.prepareDetailDrawer?.(overlay, () => overlay.remove());
 
         // === HESAPLAMA FONKSİYONU (önce tanımla) ===

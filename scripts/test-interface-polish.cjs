@@ -29,6 +29,7 @@ const assert = require("node:assert/strict");
     "ios-mobile.css",
     "feedback-ui.css",
     "interface-polish.css",
+    "hakedis-panel.css",
   ])
     if (fs.existsSync(file))
       await page.addStyleTag({
@@ -183,7 +184,21 @@ const assert = require("node:assert/strict");
   await page.evaluate(() => {
     window._taseronCariAy = "2026-09";
     window._taseronCariData = {
-      v: { plaka: "35 TEST", musteriDetay: {}, mulkiyet_durumu: "TAŞERON" },
+      v: {
+        plaka: "35 TEST",
+        musteriDetay: {
+          f: {
+            musteri_ad: "İdeol Fabrika",
+            vardiya: 10,
+            tek: 2,
+            vardiya_fiyat: 1000,
+            tek_fiyat: 500,
+            kdv_oran: 0,
+            tev_oran: 0,
+          },
+        },
+        mulkiyet_durumu: "TAŞERON",
+      },
     };
     window.supabaseClient = {
       from() {
@@ -220,6 +235,17 @@ const assert = require("node:assert/strict");
       1,
       await page.locator("#cari-kart-modal-overlay").innerText(),
     );
+    assert.equal(await page.locator(".hakedis-section-nav button").count(), 3);
+    assert.match(await page.locator("#modal-net-total").innerText(), /11.000/);
+    await page.locator(".calc-vardiya-fiyat").fill("1200");
+    assert.match(await page.locator("#modal-net-total").innerText(), /13.000/);
+    await page.locator(".hakedis-section-nav button").last().click();
+    assert.ok(
+      await page
+        .locator(".cari-manual-section")
+        .evaluate((el) => el === document.activeElement),
+    );
+    await page.locator(".hakedis-section-nav button").first().click();
     const rect = await drawer.boundingBox();
     assert.ok(Math.abs(rect.x + rect.width - width) < 2);
     assert.ok(rect.height >= 895);
