@@ -67,7 +67,7 @@ window.exportTaseronData = function () {
     if (!activeTab) return;
 
     const id = activeTab.id.replace('taseron-content-', '');
-    if (id === 'liste') window.exportTableToExcel('taseron-table', 'Taseron_Listesi');
+    if (id === 'liste') window.exportFleetScope('TAŞERON');
     if (id === 'hakedis') window.exportTableToExcel('taseron-hakedis-table', 'Taseron_Hakedis');
     if (id === 'sefer') window.exportTableToExcel('taseron-sefer-table', 'Taseron_Seferler');
 };

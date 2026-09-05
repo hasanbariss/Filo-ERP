@@ -102,7 +102,7 @@
     <link rel="stylesheet" href="web-executive.css?v=2.0.19">
     <link rel="stylesheet" href="fleet-bulk-edit.css?v=1.0.1">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
-    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.4">
+    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.5">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -576,12 +576,7 @@
                                     <input id="fleet-search-input" type="search" placeholder="Plaka, araç veya sürücü ara" autocomplete="off" oninput="window.filterOwnedFleetSearch(this.value)">
                                 </label>
                                 <div class="fleet-toolbar-controls">
-                                    <select id="fleet-filter-ownership" class="erp-filter-select" onchange="window.applyOwnedFleetFilters()" aria-label="Mülkiyet durumuna göre filtrele">
-                                        <option value="">Tüm mülkiyet türleri</option>
-                                        <option value="ÖZMAL">Özmal</option>
-                                        <option value="TAŞERON">Taşeron</option>
-                                        <option value="KİRALIK">Kiralık</option>
-                                    </select>
+<span class="badge-info">Yalnızca özmal araçlar</span>
                                     <select id="fleet-filter-driver" class="erp-filter-select" onchange="window.applyOwnedFleetFilters()" aria-label="Şoför atama durumuna göre filtrele">
                                         <option value="">Tüm şoför durumları</option>
                                         <option value="assigned">Şoför atanmış</option>
@@ -1937,7 +1932,7 @@
                                     <button type="button" class="btn-ghost" onclick="window.clearCariFilters()"><i data-lucide="rotate-ccw"></i>Temizle</button>
                                 </div>
                             </details>
-                            <span class="erp-result-count"><b id="cari-visible-count">—</b> cari</span>
+                            <span class="erp-result-count"><b id="cari-visible-count">—</b> cari</span><p id="cari-filtered-totals" role="status"></p>
                         </div>
                         <div id="cari-cards-grid" class="receivables-card-grid">
                             <div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Cariler yükleniyor...</p></div></div>
@@ -1976,7 +1971,15 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="maintenance-summary" aria-label="Bakım özeti">
+                        <div class="maintenance-record-filters">
+<label>Plaka, işlem veya servis<input id="maintenance-search" type="search" oninput="window.filterMaintenanceRecords()" placeholder="Bakım kayıtlarında ara"></label>
+<label>Mülkiyet<select id="maintenance-ownership" onchange="window.filterMaintenanceRecords()"><option value="">Tüm araçlar</option><option>ÖZMAL</option><option>TAŞERON</option></select></label>
+<label>Bakım durumu<select id="maintenance-status" onchange="window.filterMaintenanceRecords()"><option value="">Tüm durumlar</option><option value="is-overdue">Gecikmiş</option><option value="is-due">Yaklaşan</option><option value="is-current">Güncel</option><option value="is-unknown">KM bilgisi eksik</option></select></label>
+<button type="button" class="btn-secondary" onclick="window.clearMaintenanceFilters()">Filtreleri temizle</button>
+<p id="maintenance-filtered-totals" role="status"></p>
+<small>Yağ bakımı göstergesi son yağ değişiminden itibaren 10.000 km eşiğini kullanır. Seçili dönemde bakım kaydı olan araçları kapsar.</small>
+</div>
+<div class="maintenance-summary" aria-label="Bakım özeti">
                             <div><span>Görüntülenen Kayıt</span><strong id="bakim-summary-count">0</strong></div>
                             <div><span>Bu Ay Yapılan</span><strong id="bakim-summary-month">0</strong></div>
                             <div><span>Yaklaşan</span><strong id="bakim-summary-due">0</strong></div>
@@ -2985,16 +2988,18 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.4"></script>
 <script defer src="report-analytics.js?v=2.0.4"></script>
-<script defer src="data-services.js?v=2.0.17"></script>
-<script defer src="report-comparison-ui.js?v=2.0.4"></script>
-<script defer src="ui-manager.js?v=2.0.14"></script>
+<script defer src="data-services.js?v=2.0.18"></script>
+<script defer src="report-comparison-ui.js?v=2.0.5"></script>
+<script defer src="ui-manager.js?v=2.0.15"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.6"></script>
-<script defer src="fleet-bulk-edit.js?v=1.0.1"></script>
+<script defer src="maintenance-workspace.js?v=1.0.0"></script>
+<script defer src="fleet-scope.js?v=1.0.0"></script>
+<script defer src="fleet-bulk-edit.js?v=1.0.2"></script>
 
 
 <!-- 3. FEATURE MODULES -->
 <script defer src="import-manager.js"></script>
-<script defer src="export-manager.js"></script>
+<script defer src="export-manager.js?v=1.0.1"></script>
 
 <!-- 4. PAGE MODULES -->
 <!-- puantaj.js removed: belongs exclusively to puantaj.html -->

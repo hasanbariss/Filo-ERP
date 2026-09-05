@@ -11,6 +11,7 @@
     ];
 
     var state = {
+        scope: 'ÖZMAL',
         vehicles: [],
         drivers: [],
         supportsVehicleClass: true,
@@ -173,12 +174,12 @@
         var body = document.getElementById('fleet-bulk-body');
         try {
             var results = await Promise.all([
-                window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id, arac_sinifi').eq('mulkiyet_durumu', 'ÖZMAL').order('plaka'),
+                window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id, arac_sinifi').eq('mulkiyet_durumu', state.scope).order('plaka'),
                 window.supabaseClient.from('soforler').select('id, ad_soyad, sirket').order('ad_soyad')
             ]);
             state.supportsVehicleClass = true;
             if (results[0].error && /arac_sinifi|column|schema cache/i.test(results[0].error.message || '')) {
-                results[0] = await window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id').eq('mulkiyet_durumu', 'ÖZMAL').order('plaka');
+                results[0] = await window.supabaseClient.from('araclar').select('id, plaka, marka_model, sirket, sofor_id').eq('mulkiyet_durumu', state.scope).order('plaka');
                 state.supportsVehicleClass = false;
             }
             if (results[0].error) throw results[0].error;
@@ -222,7 +223,8 @@
                     var values = currentVehicleValues(row);
                     var payload = { sofor_id: values.driverId || null };
                     if (state.supportsVehicleClass) payload.arac_sinifi = values.vehicleClass || null;
-                    return window.supabaseClient.from('araclar').update(payload).eq('id', row.dataset.vehicleId).then(function (response) {
+                    return window.supabaseClient.from('araclar').update(payload).eq('id', row.dataset.vehicleId).eq('mulkiyet_durumu', state.scope).select('id').then(function (response) {
+                        if(!response.error && (!response.data || response.data.length!==1))response.error=new Error('Araç mülkiyeti değişmiş veya kayıt güncellenemedi. Listeyi yenileyin.');
                         return { response: response, row: row };
                     });
                 }));
@@ -234,6 +236,7 @@
             state.dirtyIds.clear();
             closeEditor(true);
             if (typeof window.fetchAraclar === 'function') await window.fetchAraclar();
+            if (typeof window.fetchTaseronlar === 'function') await window.fetchTaseronlar();
             if (typeof window.fetchSoforler === 'function') window.fetchSoforler();
             notify(savedCount + ' araç güncellendi.', 'success');
         } catch (error) {
@@ -246,7 +249,8 @@
         }
     }
 
-    window.openFleetBulkEditor = function () {
+    window.openFleetBulkEditor = function (scope = 'ÖZMAL') {
+        state.scope = scope === 'TAŞERON' ? 'TAŞERON' : 'ÖZMAL';
         if (!window.supabaseClient) {
             notify('Veri bağlantısı henüz hazır değil.', 'error');
             return;
@@ -269,7 +273,7 @@
                 <header class="fleet-bulk-header">
                     <div class="fleet-bulk-title-group">
                         <span class="fleet-bulk-title-icon"><i data-lucide="users-round"></i></span>
-                        <div><small>ÖZMAL FİLO</small><h2 id="fleet-bulk-title">Sürücü ve Araç Sınıfı Atama</h2><p>Plaka bazında seçim yapın; yalnızca değiştirdiğiniz satırlar kaydedilir.</p></div>
+                        <div><small>${state.scope === 'TAŞERON' ? 'TAŞERON ARAÇLAR' : 'ÖZMAL FİLO'}</small><h2 id="fleet-bulk-title">Sürücü ve Araç Sınıfı Atama</h2><p>Plaka bazında seçim yapın; yalnızca değiştirdiğiniz satırlar kaydedilir.</p></div>
                     </div>
                     <button type="button" class="fleet-bulk-close" aria-label="Toplu düzenleme penceresini kapat"><i data-lucide="x"></i></button>
                 </header>

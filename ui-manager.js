@@ -928,8 +928,6 @@ window.openModal = function (title, id = null, extra = null) {
                                 <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mülkiyet Durumu</label>
                                 <select id="arac-mulkiyet" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium appearance-none">
                                     <option value="ÖZMAL">ÖZMAL</option>
-                                    <option value="TAŞERON">TAŞERON</option>
-                                    <option value="KİRALIK">KİRALIK</option>
                                 </select>
                             </div>
                             <div>
@@ -3813,18 +3811,20 @@ window.filterAraclarBySirket = function (sirket) {
     window.applyOwnedFleetFilters();
 };
 
-window.applyOwnedFleetFilters = function () {
-    const input = document.getElementById('fleet-search-input');
+window.applyOwnedFleetFilters = function (scope = 'ÖZMAL') {
+    const prefix = scope === 'TAŞERON' ? 'contractor-' : '';
+    const fleetElement = id => document.getElementById(prefix + id);
+    const input = fleetElement('fleet-search-input');
     const normalizedQuery = String(input ? input.value : '').toLocaleLowerCase('tr-TR').trim();
-    const ownership = document.getElementById('fleet-filter-ownership')?.value || '';
-    const driver = document.getElementById('fleet-filter-driver')?.value || '';
-    const company = document.getElementById('fleet-filter-company')?.value || '';
-    const vehicleClass = document.getElementById('fleet-filter-class')?.value || '';
-    const license = document.getElementById('fleet-filter-license')?.value || '';
-    const documentStatus = document.getElementById('fleet-filter-document')?.value || '';
+    const ownership = fleetElement('fleet-filter-ownership')?.value || '';
+    const driver = fleetElement('fleet-filter-driver')?.value || '';
+    const company = fleetElement('fleet-filter-company')?.value || '';
+    const vehicleClass = fleetElement('fleet-filter-class')?.value || '';
+    const license = fleetElement('fleet-filter-license')?.value || '';
+    const documentStatus = fleetElement('fleet-filter-document')?.value || '';
     let visibleRows = 0;
 
-    document.querySelectorAll('#arac-cards-grid [data-fleet-search], #arac-list-tbody [data-fleet-search]').forEach(item => {
+    document.querySelectorAll('#'+prefix+'arac-cards-grid [data-fleet-search], #'+prefix+'arac-list-tbody [data-fleet-search]').forEach(item => {
         const haystack = String(item.dataset.fleetSearch || '').toLocaleLowerCase('tr-TR');
         const matches = (!normalizedQuery || haystack.includes(normalizedQuery))
             && (!ownership || item.dataset.fleetOwnership === ownership)
@@ -3834,25 +3834,29 @@ window.applyOwnedFleetFilters = function () {
             && (!license || item.dataset.fleetLicense === license)
             && (!documentStatus || item.dataset.fleetDocument === documentStatus);
         item.hidden = !matches;
-        if (matches && item.closest('#arac-list-tbody')) visibleRows += 1;
+        if (matches && item.closest('#'+prefix+'arac-list-tbody')) visibleRows += 1;
     });
 
-    const visibleCount = document.getElementById('fleet-visible-count');
+    const visibleCount = fleetElement('fleet-visible-count');
     if (visibleCount) visibleCount.textContent = String(visibleRows);
 };
 
-window.filterOwnedFleetSearch = function (value) {
-    const input = document.getElementById('fleet-search-input');
+window.filterOwnedFleetSearch = function (value, scope = 'ÖZMAL') {
+    const prefix = scope === 'TAŞERON' ? 'contractor-' : '';
+    const fleetElement = id => document.getElementById(prefix + id);
+    const input = fleetElement('fleet-search-input');
     if (input && input.value !== String(value || '')) input.value = String(value || '');
-    window.applyOwnedFleetFilters();
+    window.applyOwnedFleetFilters(scope);
 };
 
-window.resetOwnedFleetFilters = function () {
+window.resetOwnedFleetFilters = function (scope = 'ÖZMAL') {
+    const prefix = scope === 'TAŞERON' ? 'contractor-' : '';
+    const fleetElement = id => document.getElementById(prefix + id);
     ['fleet-search-input', 'fleet-filter-ownership', 'fleet-filter-driver', 'fleet-filter-company', 'fleet-filter-class', 'fleet-filter-license', 'fleet-filter-document'].forEach(id => {
-        const control = document.getElementById(id);
+        const control = fleetElement(id);
         if (control) control.value = '';
     });
-    window.applyOwnedFleetFilters();
+    window.applyOwnedFleetFilters(scope);
 };
 
 window.applyFleetDriverFilters = function () {

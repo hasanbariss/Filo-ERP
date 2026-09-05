@@ -1485,20 +1485,24 @@ window.updateCizelgeDateInPlace = async function(inputEl, aracId, fieldName) {
 window.updateCizelgeDate = window.updateCizelgeDateInPlace;
 
 /* === 4. SUPABASE VERİ ÇEKME (READ / SELECT) İŞLEMLERİ === */
-window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi') {
-    const grid = document.getElementById('arac-cards-grid');
-    const listBody = document.getElementById('arac-list-tbody');
+window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirketFilter = 'hepsi', scope = 'ÖZMAL') {
+    scope = scope === 'TAŞERON' ? 'TAŞERON' : 'ÖZMAL';
+    if(scope === 'TAŞERON' && window.prepareContractorFleet)window.prepareContractorFleet();
+    const fleetElement = id => document.getElementById((scope === 'TAŞERON' ? 'contractor-' : '') + id);
+    if(scope === 'ÖZMAL' && document.getElementById('taseron-content-liste')?.dataset.sharedFleet)window.fetchAraclar('hepsi','hepsi','TAŞERON');
+    const grid = fleetElement('arac-cards-grid');
+    const listBody = fleetElement('arac-list-tbody');
     if (!grid && !listBody) return;
 
     // Loading state
     if (grid && !grid.classList.contains('hidden')) grid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div>';
-    if (listBody && document.getElementById('arac-list-container') && !document.getElementById('arac-list-container').classList.contains('hidden')) {
+    if (listBody && fleetElement('arac-list-container') && !fleetElement('arac-list-container').classList.contains('hidden')) {
         listBody.innerHTML = '<tr><td colspan="7"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Araçlar yükleniyor...</p></div></div></td></tr>';
     }
 
     const conn = window.checkSupabaseConnection();
     if (!conn.ok) {
-        window.showGlobalError('arac-cards-grid', conn.msg);
+        window.showGlobalError((scope === 'TAŞERON' ? 'contractor-' : '')+'arac-cards-grid', conn.msg);
         if (listBody) listBody.innerHTML = `<tr><td colspan="7"><div class="empty-state fleet-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
         return;
     }
@@ -1509,7 +1513,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
 
         let query = window.supabaseClient
             .from('araclar')
-            .select('*')
+            .select('*').eq('mulkiyet_durumu', scope)
             .order('id', { ascending: false });
 
         // Mulkiyet/Belge Filtresi
@@ -1533,7 +1537,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         // EĞER "belge_turu" sütunu SUPEBASE'de henüz yoksa (PGRST204: column does not exist) ve filtre d2/d4s değilse
         if (error && error.message && typeof error.message === 'string' && error.message.includes("belge_turu does not exist")) {
             console.warn("Supabase tablosunda 'belge_turu' sütunu henüz oluşturulmadığı için esnek sorguya (fallback) geçiliyor...");
-            let fallbackQuery = window.supabaseClient.from('araclar').select('*').order('id', { ascending: false });
+            let fallbackQuery = window.supabaseClient.from('araclar').select('*').eq('mulkiyet_durumu', scope).order('id', { ascending: false });
             if (mulkiyetFilter && mulkiyetFilter !== 'hepsi' && mulkiyetFilter !== 'D2' && mulkiyetFilter !== 'D4S') {
                 fallbackQuery = fallbackQuery.eq('mulkiyet_durumu', mulkiyetFilter);
             }
@@ -1548,7 +1552,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         }
 
         if (error) throw error;
-        araclar = window.sanitizeDataArray(araclar);
+        araclar = window.sanitizeDataArray(araclar).filter(a => a.mulkiyet_durumu === scope);
 
         // Fetch driver names manually to avoid Supabase join errors
         const { data: tumSoforler } = await window.supabaseClient.from('soforler').select('id, ad_soyad');
@@ -1587,7 +1591,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
             'fleet-visible-count': araclar.length
         };
         Object.entries(summaryValues).forEach(([elementId, value]) => {
-            const element = document.getElementById(elementId);
+            const element = fleetElement(elementId);
             if (element) element.textContent = String(value);
         });
 
@@ -1595,9 +1599,11 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
         if (grid) grid.innerHTML = '';
         if (listBody) listBody.innerHTML = '';
 
+        if(scope === 'TAŞERON'){const count=document.getElementById('taseron-total-count');if(count)count.textContent=araclar.length;}
         if (araclar.length === 0) {
             if (grid) grid.innerHTML = '<div class="empty-state fleet-empty-state"><div><span class="fleet-state-icon"><i data-lucide="truck"></i></span><strong>Henüz araç bulunmuyor.</strong><p>Filonuza ilk aracı ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal(\'Yeni Araç Ekle\')"><i data-lucide="plus"></i>Araç Ekle</button></div></div>';
             if (listBody) listBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div><strong>Henüz araç bulunmuyor.</strong><p>Seçili filtrelere uygun araç kaydı bulunamadı.</p></div></div></td></tr>';
+            if(scope === 'TAŞERON' && grid)grid.innerHTML=grid.innerHTML.replace(/Yeni Araç Ekle/g,'Yeni Taşeron Kaydı');
             if (window.lucide) window.lucide.createIcons();
             return;
         }
@@ -1789,7 +1795,7 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                 ? `<span class="fleet-class-badge">${vehicleClassLabel}</span>`
                 : '<span class="fleet-class-badge is-empty">Sınıf yok</span>';
 
-            const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', mulkiyet, arac.belge_turu || '', vehicleClassLabel].join(' ');
+            const searchText = [plaka, marka, soforAdi || '', arac.sirket || '', arac.firma_adi || '', mulkiyet, arac.belge_turu || '', vehicleClassLabel].join(' ');
             const state = documentState(arac);
             const documentStatus = (state.missing || state.expired) ? 'critical' : (state.upcoming ? 'upcoming' : 'current');
             const licenseType = arac.belge_turu && arac.belge_turu !== 'Yok' ? arac.belge_turu : 'none';
@@ -1848,9 +1854,10 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                         <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" title="Poliçe ve evrak"><i data-lucide="file-text"></i><span>Evrak</span></button>
                         <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" title="Bakım geçmişi"><i data-lucide="history"></i><span>Geçmiş</span></button>
                         <button onclick="openModal('Araç Güncelle', '${arac.id}')" title="Aracı düzenle"><i data-lucide="edit-2"></i><span>Düzenle</span></button>
-                        <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" title="Aracı sil"><i data-lucide="trash-2"></i><span>Sil</span></button>
+                        <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', '${scope === 'TAŞERON' ? 'fetchTaseronlar' : 'fetchAraclar'}')" title="Aracı sil"><i data-lucide="trash-2"></i><span>Sil</span></button>
                     </div>
                 `;
+                if(scope === 'TAŞERON'){const owner=document.createElement('p');owner.className='fleet-owner-name';owner.textContent=(arac.firma_adi || 'Firma belirtilmemiş')+(arac.kira_bedeli ? ' · Kira: '+window.formatCurrency(arac.kira_bedeli):'');card.prepend(owner);}
                 grid.appendChild(card);
             }
 
@@ -1901,17 +1908,18 @@ window.fetchAraclar = async function fetchAraclar(mulkiyetFilter = 'hepsi', sirk
                             <button onclick="openModal('Araç Evrak Güncelle', '${arac.id}')" title="Evrak/Poliçe"><i data-lucide="file-text"></i></button>
                             <button onclick="openModal('Araç Bakım Geçmişi', '${arac.id}')" title="Bakım Geçmişi"><i data-lucide="history"></i></button>
                             <button onclick="openModal('Araç Güncelle', '${arac.id}')" title="Düzenle"><i data-lucide="edit-2"></i></button>
-                            <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', 'fetchAraclar')" title="Sil"><i data-lucide="trash-2"></i></button>
+                            <button class="is-danger" onclick="deleteRecord('araclar', '${arac.id}', '${scope === 'TAŞERON' ? 'fetchTaseronlar' : 'fetchAraclar'}')" title="Sil"><i data-lucide="trash-2"></i></button>
                         </div>
                     </td>
                 `;
+                if(scope === 'TAŞERON'){const owner=document.createElement('small');owner.className='fleet-owner-name';owner.textContent=(arac.firma_adi || 'Firma belirtilmemiş')+(arac.kira_bedeli ? ' · Kira: '+window.formatCurrency(arac.kira_bedeli):'');tr.cells[0].appendChild(owner);}
                 listBody.appendChild(tr);
             }
 
 
         });
 
-        if (typeof window.applyOwnedFleetFilters === 'function') window.applyOwnedFleetFilters();
+        if (typeof window.applyOwnedFleetFilters === 'function') window.applyOwnedFleetFilters(scope);
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -2290,116 +2298,7 @@ window.openAracDetay = async function(aracId) {
 
 
 async function fetchTaseronlar() {
-    const grid = document.getElementById('taseron-cards-grid');
-    const tbody = document.getElementById('taseron-tbody');
-    const container = grid || tbody;
-    if (!container) return;
-
-    if (grid) grid.innerHTML = '<div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Taşeron araçlar yükleniyor...</p></div></div>';
-    if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="loading-state"><div><i data-lucide="loader-2" class="animate-spin"></i><p>Taşeron araçlar yükleniyor...</p></div></div></td></tr>';
-
-    try {
-        const conn = window.checkSupabaseConnection();
-        if (!conn.ok) {
-            if (grid) grid.innerHTML = `<div class="empty-state contractor-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div>`;
-            if (tbody) tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state contractor-error-state"><div><strong>Bağlantı kurulamadı.</strong><p>${conn.msg}</p></div></div></td></tr>`;
-            return;
-        }
-
-        const { data: taseronlar, error } = await window.supabaseClient
-            .from('araclar')
-            .select('*, soforler(ad_soyad)')
-            .eq('mulkiyet_durumu', 'TAŞERON')
-            .order('id', { ascending: false });
-
-        if (error) throw error;
-
-        const records = taseronlar || [];
-        const firmNames = new Set(records.map(a => String(a.firma_adi || '').trim()).filter(Boolean));
-        const summaryValues = {
-            'contractor-kpi-firms': firmNames.size,
-            'contractor-kpi-vehicles': records.length,
-            'contractor-kpi-assigned': records.filter(a => a.sofor_id).length,
-            'contractor-kpi-missing': records.filter(a => !a.firma_adi || !a.sofor_id).length,
-            'taseron-total-count': records.length,
-            'contractor-visible-count': records.length
-        };
-        Object.entries(summaryValues).forEach(([elementId, value]) => {
-            const element = document.getElementById(elementId);
-            if (element) element.textContent = String(value);
-        });
-
-        if (grid) grid.innerHTML = '';
-        if (tbody) tbody.innerHTML = '';
-        if (records.length === 0) {
-            if (grid) grid.innerHTML = `<div class="empty-state contractor-empty-state"><div><span class="contractor-state-icon"><i data-lucide="building-2"></i></span><strong>Henüz taşeron firma bulunmuyor.</strong><p>Yeni taşeron ekleyerek başlayabilirsiniz.</p><button class="btn-primary" onclick="openModal('Yeni Taşeron Kaydı')"><i data-lucide="plus"></i>Taşeron Ekle</button></div></div>`;
-            if (tbody) tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><div><strong>Henüz taşeron firma bulunmuyor.</strong><p>Yeni taşeron ekleyerek başlayabilirsiniz.</p></div></div></td></tr>';
-            if (window.lucide) window.lucide.createIcons();
-            return;
-        }
-
-        records.forEach(a => {
-            const soforAdi = a.soforler ? a.soforler.ad_soyad : null;
-            const firmaAdi = a.firma_adi || null;
-            const searchText = [firmaAdi || '', a.plaka || '', a.marka_model || '', soforAdi || ''].join(' ');
-
-            if (grid) {
-                const card = document.createElement('div');
-                card.className = 'contractor-card';
-                card.dataset.contractorSearch = searchText;
-                card.innerHTML = `
-                    <div class="contractor-card-head">
-                        <div class="contractor-card-identity">
-                            <div class="contractor-card-icon"><i data-lucide="building-2"></i></div>
-                            <div>
-                                <h3>${firmaAdi || 'Firma belirtilmemiş'}</h3>
-                                <p>Dış firma / iş ortağı</p>
-                            </div>
-                        </div>
-                        <span class="${firmaAdi && soforAdi ? 'badge-success' : 'badge-warning'}">${firmaAdi && soforAdi ? 'Hazır' : 'Bilgi eksik'}</span>
-                    </div>
-                    <div class="contractor-card-details">
-                        <div><span><i data-lucide="truck"></i>Araç</span><strong>${a.plaka || '—'}</strong><small>${a.marka_model || 'Marka belirtilmemiş'}</small></div>
-                        <div><span><i data-lucide="user"></i>Şoför</span><strong>${soforAdi || 'Atanmamış'}</strong></div>
-                        <div><span><i data-lucide="wallet-cards"></i>Kira Bedeli</span><strong>${a.kira_bedeli ? window.formatCurrency(a.kira_bedeli) : '—'}</strong></div>
-                    </div>
-                    <div class="contractor-card-actions">
-                        <button onclick="openModal('Araç Güncelle', '${a.id}')"><i data-lucide="edit-2"></i><span>Düzenle</span></button>
-                        <button class="is-danger" onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" aria-label="${a.plaka || 'Taşeron'} kaydını sil" title="Sil">
-                            <i data-lucide="trash-2"></i><span>Sil</span>
-                        </button>
-                    </div>`;
-                grid.appendChild(card);
-            }
-
-            if (tbody) {
-                const tr = document.createElement('tr');
-                tr.dataset.contractorSearch = searchText;
-                tr.innerHTML = `
-                    <td><div class="contractor-company-cell"><span class="contractor-company-icon"><i data-lucide="building-2"></i></span><div><strong>${firmaAdi || 'Firma belirtilmemiş'}</strong><span>Dış firma / iş ortağı</span></div></div></td>
-                    <td><div class="contractor-vehicle-cell"><strong>${a.plaka || '—'}</strong><span>${a.marka_model || 'Marka belirtilmemiş'}</span></div></td>
-                    <td><div class="contractor-driver-cell"><i data-lucide="user"></i><span>${soforAdi || 'Atanmamış'}</span></div></td>
-                    <td class="contractor-money">${a.kira_bedeli ? window.formatCurrency(a.kira_bedeli) : '—'}</td>
-                    <td><span class="${firmaAdi && soforAdi ? 'badge-success' : 'badge-warning'}">${firmaAdi && soforAdi ? 'Hazır' : 'Bilgi eksik'}</span></td>
-                    <td><div class="contractor-row-actions">
-                        <button onclick="openModal('Araç Güncelle', '${a.id}')" aria-label="${a.plaka || 'Taşeron'} kaydını düzenle" title="Düzenle"><i data-lucide="edit-2"></i></button>
-                        <button class="is-danger" onclick="deleteRecord('araclar', '${a.id}', 'fetchTaseronlar')" aria-label="${a.plaka || 'Taşeron'} kaydını sil" title="Sil"><i data-lucide="trash-2"></i></button>
-                    </div></td>`;
-                tbody.appendChild(tr);
-            }
-        });
-
-        const searchInput = document.getElementById('search-taseron');
-        if (searchInput) window.filterTaseronCards(searchInput.value);
-
-        if (window.lucide) window.lucide.createIcons();
-
-    } catch (e) {
-        console.error('Taşeron fetch hatası:', e);
-        if (grid) grid.innerHTML = `<div class="empty-state contractor-error-state"><div><i data-lucide="circle-alert"></i><strong>Taşeronlar yüklenemedi.</strong><p>${e.message}</p></div></div>`;
-        if (tbody) tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state contractor-error-state"><div><strong>Taşeronlar yüklenemedi.</strong><p>${e.message}</p></div></div></td></tr>`;
-        if (window.lucide) window.lucide.createIcons();
-    }
+    return window.fetchAraclar('hepsi','hepsi','TAŞERON');
 }
 
 window.filterTaseronCards = function(q) {
@@ -4579,6 +4478,11 @@ window.filterFactoryTable = function () {
 
     const count = document.getElementById('factory-visible-count');
     if (count) count.textContent = visible;
+    var selectedDebt=0,selectedPayment=0;
+    document.querySelectorAll('#cariler-tbody tr[data-filterable="true"]:not([hidden])').forEach(function(row){selectedDebt+=Number(row.dataset.ledgerDebt)||0;selectedPayment+=Number(row.dataset.ledgerPayment)||0;});
+    var summary=document.getElementById('cari-filtered-totals');
+    if(summary)summary.textContent='Seçili cariler · Borç: '+window.formatCurrency(selectedDebt)+' · Ödeme: '+window.formatCurrency(selectedPayment)+' · Kalan: '+window.formatCurrency(selectedDebt-selectedPayment);
+
 };
 
 window.clearFactoryFilters = function () {
@@ -5018,7 +4922,7 @@ window.fetchCariler = async function() {
             window.supabaseClient.from('kredi_karti_islemleri').select('kart_id, toplam_tutar')
         ]);
 
-        if (carilerRes.error) throw carilerRes.error;
+        for (const response of [carilerRes,faturalarRes,odemelerRes,policelerRes,bakimlarRes,kartIslemleriRes]) { if(response.error)throw response.error; }
         
         // Fetch cards to map kart_id to cari_id for balance calc
         // Legacy şemalarda cari_id bulunmayabilir; select('*') eksik sütun nedeniyle
@@ -5100,6 +5004,8 @@ window.fetchCariler = async function() {
             const tr = document.createElement('tr');
             tr.className = "ios-cari-row receivables-row";
             tr.dataset.filterable = 'true';
+            tr.dataset.ledgerDebt = totalBorc;
+            tr.dataset.ledgerPayment = totalOdeme;
             tr.dataset.filterSearch = [c.unvan, c.tur, c.isletme_turu, c.telefon].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
             tr.dataset.filterType = (c.tur || c.isletme_turu || 'Cari').toLocaleLowerCase('tr-TR');
             tr.dataset.filterBalance = bakiye > 0 ? 'debt' : bakiye < 0 ? 'credit' : 'settled';
@@ -5183,6 +5089,11 @@ window.filterCariTable = function () {
 
     const count = document.getElementById('cari-visible-count');
     if (count) count.textContent = visible;
+    var selectedDebt=0,selectedPayment=0;
+    document.querySelectorAll('#cariler-tbody tr[data-filterable="true"]:not([hidden])').forEach(function(row){selectedDebt+=Number(row.dataset.ledgerDebt)||0;selectedPayment+=Number(row.dataset.ledgerPayment)||0;});
+    var summary=document.getElementById('cari-filtered-totals');
+    if(summary)summary.textContent='Seçili cariler · Borç: '+window.formatCurrency(selectedDebt)+' · Ödeme: '+window.formatCurrency(selectedPayment)+' · Kalan: '+window.formatCurrency(selectedDebt-selectedPayment);
+
 };
 
 window.clearCariFilters = function () {
@@ -6072,7 +5983,7 @@ async function fetchBakimlar() {
     try {
         if (window.supabaseUrl === 'YOUR_SUPABASE_URL') return;
 
-        let query = window.supabaseClient.from('arac_bakimlari').select('*, araclar:araclar(plaka, guncel_km, son_yag_km), cariler:cariler(unvan)').order('islem_tarihi', { ascending: false });
+        let query = window.supabaseClient.from('arac_bakimlari').select('*, araclar:araclar(plaka, guncel_km, son_yag_km, mulkiyet_durumu), cariler:cariler(unvan)').order('islem_tarihi', { ascending: false });
 
         const filterVal = document.getElementById('filter-bakim-ay')?.value;
         if (filterVal) {
@@ -6118,6 +6029,12 @@ async function fetchBakimlar() {
             }
             const tr = document.createElement('tr');
             tr.className = "maintenance-row";
+            tr.dataset.maintenanceSearch = [b.araclar?.plaka,b.islem_turu,b.aciklama,b.cariler?.unvan].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');
+            tr.dataset.maintenanceOwnership = b.araclar?.mulkiyet_durumu || '';
+            tr.dataset.maintenanceStatus = maintenanceState.className;
+            tr.dataset.maintenanceCost = Number(b.toplam_tutar)||0;
+            tr.dataset.maintenanceVehicle = b.arac_id || b.araclar?.plaka || b.id;
+
             tr.innerHTML = `
                         <td class="maintenance-date" data-label="Tarih">${b.islem_tarihi}</td>
                         <td class="maintenance-vehicle" data-label="Araç"><strong>${b.araclar ? b.araclar.plaka : '-'}</strong><span>${currentKm ? `${currentKm.toLocaleString('tr-TR')} km` : 'KM bilgisi yok'}</span></td>
@@ -6149,6 +6066,7 @@ async function fetchBakimlar() {
             'bakim-summary-cost': `₺${totalGider.toLocaleString('tr-TR')}`
         };
         Object.entries(summaryValues).forEach(([id, value]) => { const el = document.getElementById(id); if (el) el.textContent = value; });
+        if(window.filterMaintenanceRecords)window.filterMaintenanceRecords();
         if (window.lucide) window.lucide.createIcons();
         
         if (typeof window.makeTableSortable === 'function') {
