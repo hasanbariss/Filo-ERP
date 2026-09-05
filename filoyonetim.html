@@ -102,7 +102,7 @@
     <link rel="stylesheet" href="web-executive.css?v=2.0.19">
     <link rel="stylesheet" href="fleet-bulk-edit.css?v=1.0.1">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
-    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.5">
+    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.6">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -1956,6 +1956,12 @@
 
                     <!-- Bakım -->
                     <div id="content-bakim" class="hidden maintenance-workspace">
+<section id="maintenance-plan-panel" class="maintenance-plan-panel">
+<h3>Bakım Takibi · GPS</h3><p>Her bakımın kendi kilometre ve gün aralığı vardır. Planlar geçmiş kayıtların dönem filtresinden bağımsızdır.</p>
+<div class="maintenance-record-filters"><label>Araç grubu<select id="maintenance-plan-ownership" onchange="window.loadMaintenancePlans()"><option>ÖZMAL</option><option>TAŞERON</option></select></label><label>Araç<select id="maintenance-plan-vehicle" onchange="window.renderMaintenancePlans()"><option value="">Araç seçin</option></select></label><label>Durum<select id="maintenance-plan-status" onchange="window.renderMaintenancePlans()"><option value="">Tümü</option><option value="due">Gecikenler</option><option value="soon">Yaklaşanlar</option><option value="unknown">Veri bekleyenler</option><option value="current">Güncel</option></select></label></div>
+<div id="maintenance-plan-controls" hidden><button class="btn-secondary" onclick="window.setupMaintenanceGPS()">GPS başlangıcı / kalibrasyon</button><button class="btn-secondary" onclick="window.syncMaintenanceGPS(this)">Şimdi güncelle</button><button class="btn-primary" onclick="window.editMaintenancePlan()">Bakım planı ekle</button><button class="btn-secondary" onclick="window.setupMaintenanceFuel()">Yakıt tahmini ayarları</button></div>
+<p id="maintenance-gps-status" role="status"></p><p id="maintenance-fuel-status"></p><div id="maintenance-plan-results" class="maintenance-plan-grid"></div></section>
+
                         <div class="maintenance-toolbar">
                             <div class="maintenance-heading">
                                 <span class="maintenance-eyebrow">Filo Sağlığı</span>
@@ -1974,16 +1980,16 @@
                         <div class="maintenance-record-filters">
 <label>Plaka, işlem veya servis<input id="maintenance-search" type="search" oninput="window.filterMaintenanceRecords()" placeholder="Bakım kayıtlarında ara"></label>
 <label>Mülkiyet<select id="maintenance-ownership" onchange="window.filterMaintenanceRecords()"><option value="">Tüm araçlar</option><option>ÖZMAL</option><option>TAŞERON</option></select></label>
-<label>Bakım durumu<select id="maintenance-status" onchange="window.filterMaintenanceRecords()"><option value="">Tüm durumlar</option><option value="is-overdue">Gecikmiş</option><option value="is-due">Yaklaşan</option><option value="is-current">Güncel</option><option value="is-unknown">KM bilgisi eksik</option></select></label>
+<label>İşlem kilometresi<select id="maintenance-status" onchange="window.filterMaintenanceRecords()"><option value="">Tümü</option><option value="has-km">KM kayıtlı</option><option value="no-km">KM eksik</option></select></label>
 <button type="button" class="btn-secondary" onclick="window.clearMaintenanceFilters()">Filtreleri temizle</button>
 <p id="maintenance-filtered-totals" role="status"></p>
-<small>Yağ bakımı göstergesi son yağ değişiminden itibaren 10.000 km eşiğini kullanır. Seçili dönemde bakım kaydı olan araçları kapsar.</small>
+<small>Geçmiş işlem kayıtları. Bakıma kalan mesafe ve süreyi yukarıdaki Bakım Takibi bölümünden izleyin.</small>
 </div>
 <div class="maintenance-summary" aria-label="Bakım özeti">
                             <div><span>Görüntülenen Kayıt</span><strong id="bakim-summary-count">0</strong></div>
                             <div><span>Bu Ay Yapılan</span><strong id="bakim-summary-month">0</strong></div>
-                            <div><span>Yaklaşan</span><strong id="bakim-summary-due">0</strong></div>
-                            <div><span>Gecikmiş</span><strong id="bakim-summary-overdue">0</strong></div>
+
+
                             <div class="is-cost"><span>Toplam Maliyet</span><strong id="bakim-summary-cost">₺0</strong></div>
                         </div>
                         <div class="maintenance-table-wrap">
@@ -2988,10 +2994,12 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.4"></script>
 <script defer src="report-analytics.js?v=2.0.4"></script>
-<script defer src="data-services.js?v=2.0.18"></script>
+<script defer src="data-services.js?v=2.0.19"></script>
 <script defer src="report-comparison-ui.js?v=2.0.5"></script>
-<script defer src="ui-manager.js?v=2.0.15"></script>
+<script defer src="ui-manager.js?v=2.0.16"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.6"></script>
+<script defer src="maintenance-tracking.js?v=1.0.0"></script>
+<script defer src="maintenance-planner.js?v=1.0.0"></script>
 <script defer src="maintenance-workspace.js?v=1.0.0"></script>
 <script defer src="fleet-scope.js?v=1.0.0"></script>
 <script defer src="fleet-bulk-edit.js?v=1.0.2"></script>

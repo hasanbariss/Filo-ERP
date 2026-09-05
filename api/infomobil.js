@@ -112,6 +112,7 @@ async function getMobiles(settings, forceRefresh) {
 
 function distanceValue(payload) {
     const raw = payload && typeof payload === 'object' ? payload.distanceKm ?? payload.distance ?? payload.value : payload;
+    if(raw === null || raw === undefined || String(raw).trim()==='')throw new Error('InfoMobil mesafe verisi eksik.');
     const value = typeof raw === 'number' ? raw : Number(String(raw == null ? '' : raw).replace(',', '.'));
     if (!Number.isFinite(value) || value < 0) throw new Error('InfoMobil kilometre yanıtı geçersiz.');
     return value;
@@ -208,3 +209,6 @@ async function handler(request, response) {
 
 module.exports = handler;
 module.exports._internals = { normalizePlate, plateCandidates, distanceValue, validRange };
+
+// Shared server-side access for the maintenance synchronizer.
+module.exports._server = { config, validateUser, getMobiles, getDistance };

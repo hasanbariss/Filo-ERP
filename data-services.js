@@ -612,6 +612,8 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                 if (dosyaNo) aciklama = `[Hasar Dosya No: ${dosyaNo}] ` + aciklama;
             }
 
+            const trackingFields = await window.collectMaintenanceTrackingFields();
+
             // Dosya yükleme
             const bakimDosya = document.getElementById('bakim-dosya');
             let dosya_url = null;
@@ -621,7 +623,7 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
 
             if (!arac_id || !aciklama) throw new Error("Araç ve açıklama alanları zorunludur.");
             const { error, data: bakimData } = await window.supabaseClient.from('arac_bakimlari').insert([{
-                islem_tarihi, arac_id, islem_turu, cari_id, aciklama, toplam_tutar, dosya_url
+                islem_tarihi, arac_id, islem_turu, cari_id, aciklama, toplam_tutar, dosya_url, ...trackingFields
             }]).select();
             if (error) throw error;
             
@@ -632,9 +634,7 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                     if (!aData || bakim_km > (aData.guncel_km || 0)) {
                         await window.supabaseClient.from('araclar').update({ guncel_km: bakim_km }).eq('id', arac_id);
                     }
-                    if (islem_turu === 'Yağ Değişimi') {
-                        await window.supabaseClient.from('araclar').update({ son_yag_km: bakim_km }).eq('id', arac_id);
-                    }
+
                 } catch(err) { console.error('KM update error:', err); }
             }
 
@@ -663,24 +663,9 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
                 }
             }
 
-            // Yağ Bakımı Kaydı: Eğer bakım türü yağ değişimi ise son_yag_km güncelle
-            if (bakim_km && arac_id) {
-                const { data: arac } = await window.supabaseClient.from('araclar').select('guncel_km, son_yag_km').eq('id', arac_id).single();
-                const updatePayload = {};
-                if (!arac || bakim_km > (arac.guncel_km || 0)) updatePayload.guncel_km = bakim_km;
-                const islemTuruLower = islem_turu?.toLowerCase() || '';
-                if (
-                    islem_turu.trim() === 'Yağ Değişimi' ||
-                    islem_turu.trim() === 'Periyodik Bakım' ||
-                    islem_turu.trim() === '10.000 Yağ' ||
-                    islemTuruLower.includes('yağ') ||
-                    islemTuruLower.includes('yag')
-                ) {
-                    updatePayload.son_yag_km = bakim_km;
-                }
-                if (Object.keys(updatePayload).length > 0) {
-                    await window.supabaseClient.from('araclar').update(updatePayload).eq('id', arac_id);
-                }
+            if(islem_turu === 'Yağ Değişimi' && trackingFields.km !== null){
+                const latest=await window.supabaseClient.from('arac_bakimlari').select('km').eq('arac_id',arac_id).eq('islem_turu','Yağ Değişimi').order('islem_tarihi',{ascending:false}).order('islem_zamani',{ascending:false,nullsFirst:false}).limit(1);
+                if(!latest.error && latest.data?.[0]?.km != null)await window.supabaseClient.from('araclar').update({son_yag_km:latest.data[0].km}).eq('id',arac_id);
             }
             if (typeof fetchBakimlar === 'function') fetchBakimlar();
             if (typeof fetchDashboardData === 'function') fetchDashboardData();
@@ -5978,6 +5963,7 @@ async function fetchSoforMaaslar() {
 }
 
 async function fetchBakimlar() {
+    if(window.loadMaintenancePlans)window.loadMaintenancePlans();
     const tbody = document.getElementById('bakim-tbody');
     if (!tbody) return;
     try {
@@ -6015,18 +6001,7 @@ async function fetchBakimlar() {
             totalGider += Number(b.toplam_tutar) || 0;
             if (String(b.islem_tarihi || '').startsWith(currentMonthKey)) currentMonthCount++;
             const currentKm = Number(b.araclar?.guncel_km) || 0;
-            const lastOilKm = Number(b.araclar?.son_yag_km) || 0;
-            const remainingKm = currentKm > 0 && lastOilKm > 0 ? 10000 - (currentKm - lastOilKm) : null;
-            let maintenanceState = { label: 'Kayıt yok', className: 'is-unknown', detail: 'KM eşiği hesaplanamadı' };
-            if (remainingKm !== null && remainingKm < 0) {
-                overdueVehicles.add(b.arac_id || b.araclar?.plaka);
-                maintenanceState = { label: 'Gecikmiş', className: 'is-overdue', detail: `${Math.abs(remainingKm).toLocaleString('tr-TR')} km geçti` };
-            } else if (remainingKm !== null && remainingKm <= 1200) {
-                dueVehicles.add(b.arac_id || b.araclar?.plaka);
-                maintenanceState = { label: 'Yaklaşıyor', className: 'is-due', detail: `${remainingKm.toLocaleString('tr-TR')} km kaldı` };
-            } else if (remainingKm !== null) {
-                maintenanceState = { label: 'Güncel', className: 'is-current', detail: `${remainingKm.toLocaleString('tr-TR')} km kaldı` };
-            }
+            const maintenanceState = { label: b.km != null ? Number(b.km).toLocaleString('tr-TR')+' km' : 'KM girilmemiş', className: b.km != null ? 'has-km' : 'no-km', detail: b.bakim_plan_id ? 'Bakım planına işlendi' : 'Geçmiş işlem kaydı' };
             const tr = document.createElement('tr');
             tr.className = "maintenance-row";
             tr.dataset.maintenanceSearch = [b.araclar?.plaka,b.islem_turu,b.aciklama,b.cariler?.unvan].filter(Boolean).join(' ').toLocaleLowerCase('tr-TR');

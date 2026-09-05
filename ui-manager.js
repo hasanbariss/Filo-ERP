@@ -1753,8 +1753,9 @@ window.openModal = function (title, id = null, extra = null) {
                         </section>
                     </div>
                 `;
-        setTimeout(() => {
-            loadSelectOptions('bakim-arac', 'araclar', 'id', 'plaka');
+        setTimeout(async () => {
+            await loadSelectOptions('bakim-arac', 'araclar', 'id', 'plaka');
+            if(window.prepareMaintenanceTrackingForm)window.prepareMaintenanceTrackingForm().catch(e=>window.Toast?.error(e.message));
             loadSelectOptions('bakim-cari', 'cariler', 'id', 'unvan', 'tur', ['Tedarikçi', 'Tamirci', 'Servis', 'Tedarikçi/Tamirci']);
             loadSelectOptions('bakim-kredi-karti', 'kredi_kartlari', 'id', 'kart_adi');
             loadSelectOptions('bakim-odeme-cari', 'cariler', 'id', 'unvan');

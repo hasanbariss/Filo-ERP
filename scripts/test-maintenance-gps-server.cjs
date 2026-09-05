@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict');
+const provider=require('../api/infomobil');
+let calls=0;
+provider._server.getDistance=async()=>{calls++;return 100;};
+const {syncReference,infoTime}=require('../api/maintenance-gps')._internals;
+const records=[];
+const db={from(){let ref;const q={select(){return q;},eq(k,v){ref=v;return q;},order(){return q;},then(cb){return Promise.resolve({data:records.filter(r=>r.referans_id===ref)}).then(cb);},upsert(row){let i=records.findIndex(r=>r.referans_id===row.referans_id&&r.baslangic===row.baslangic);if(i<0)records.push(row);else records[i]=row;return Promise.resolve({data:[]});}};return q;}};
+(async()=>{
+let code;const response={setHeader(){},status(v){code=v;return this;},json(){}};await require('../api/maintenance-gps')({method:'GET',headers:{}},response);assert.equal(code,401);
+const start=Date.now()-60*86400000;const ref={id:'r',km:120000,olcum_zamani:new Date(start).toISOString()};const until=start+21*86400000;
+assert.equal(infoTime(Date.parse('2026-09-05T00:00:00Z')),'2026-09-05 03:00');
+const first=await syncReference(db,{},ref,'device',until);assert.equal(first.km,120300);assert.equal(records.length,3);
+const second=await syncReference(db,{},ref,'device',until);assert.equal(second.km,first.km);assert.equal(records.length,3);
+const before=records.map(r=>({...r}));const historical=await syncReference(db,{},ref,'device',start+86400000,true);assert.equal(historical.km,120100);assert.deepEqual(records,before);
+await assert.rejects(syncReference(db,{},ref,'device',start-1),/Referans/);
+for(const input of [null,{}, {distance:null}, {distance:''}])assert.throws(()=>provider._internals.distanceValue(input));
+assert.equal(provider._internals.distanceValue({distance:0}),0);
+const replay=await syncReference(db,{}, {...ref,id:'old'},'device',start+59*86400000);assert.equal(replay.durum,'pending');
+console.log('GPS chunk retry/idempotency, historical non-mutation, backfill limits and empty distance validation PASS');
+})().catch(e=>{console.error(e);process.exit(1);});

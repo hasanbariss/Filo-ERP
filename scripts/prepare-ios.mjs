@@ -33,6 +33,8 @@ const webFiles = [
   'fleet-bulk-edit.js',
   'fleet-scope.js',
   'maintenance-workspace.js',
+  'maintenance-tracking.js',
+  'maintenance-planner.js',
   'report-analytics.js',
   'report-comparison-ui.js',
   'turkish-month-select.js',
