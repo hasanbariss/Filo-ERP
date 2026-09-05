@@ -56,9 +56,9 @@
         return { data: rows, error: null };
     }
     async function vehicleRows() {
-        var response = await window.supabaseClient.from('araclar').select('id, plaka, arac_sinifi');
+        var response = await window.supabaseClient.from('araclar').select('id, plaka, arac_sinifi, mulkiyet_durumu');
         if (response && response.error && /arac_sinifi|column|schema cache/i.test(response.error.message || '')) {
-            response = await window.supabaseClient.from('araclar').select('id, plaka');
+            response = await window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu');
         }
         if (response && response.error) throw response.error;
         return response;
@@ -191,20 +191,34 @@
     function renderCustomers() {
         var tbody = document.getElementById('rapor-musteri-tbody');
         if (!tbody) return;
-        updateColumnHead('rapor-musteri-table', 4, state.period.label + ' Gelir');
-        updateColumnHead('rapor-musteri-table', 5, state.period.previousLabel + ' Gelir');
+        updateColumnHead('rapor-musteri-table', 4, state.period.label + ' Hizmet Bedeli');
+        updateColumnHead('rapor-musteri-table', 5, state.period.previousLabel + ' Hizmet Bedeli');
         if (!state.customers.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state">Bu iki dönemde müşteri puantajı bulunamadı.</div></td></tr>'; return; }
         tbody.innerHTML = state.customers.map(function (row, customerIndex) {
-            var summary = '<tr class="report-customer-row"><td><button type="button" class="report-customer-toggle" onclick="window.toggleReportCustomer(' + customerIndex + ')"><i data-lucide="chevron-right"></i><span><strong>' + esc(row.name) + '</strong><small>' + row.details.length + ' araç / bölge kaydı</small></span></button></td><td class="is-center">' + fmtNumber(row.current.shifts, 0) + '</td><td class="is-center">' + fmtNumber(row.current.trips, 0) + '</td><td class="is-number is-emphasis">' + fmtMoney(row.current.accrual) + '</td><td class="is-number">' + fmtMoney(row.previous.accrual) + '</td><td class="is-number">' + changeMarkup(row.current.accrual, row.previous.accrual, false) + '</td><td class="is-center"><button class="report-detail-button" type="button" onclick="window.toggleReportCustomer(' + customerIndex + ')">Sınıflar</button></td></tr>';
-            var detail = '<tr class="report-customer-detail" data-report-customer="' + customerIndex + '" hidden><td colspan="7"><div class="report-customer-detail-panel"><p>Aynı sınıftaki farklı tarifeler ayrı satırlarda gösterilir. Fiyat değişiklikleri müşteri araç tanımlarından yapılır. Toplam, diğer operasyonları da içerir.</p><table class="premium-table w-full"><thead><tr><th>Sınıf</th><th>Bölge</th><th>Vardiya</th><th>Vardiya fiyatı</th><th>Tek</th><th>Tek fiyatı</th><th>Toplam</th></tr></thead><tbody>' + window.ReportAnalytics.groupServiceClasses(row.details).map(function (item) {
-                return '<tr><td>' + esc(item.vehicleClass) + '</td><td>' + esc(Array.from(item.regions).join(', ')) + '</td><td>' + fmtNumber(item.shifts,0) + '</td><td>' + fmtMoney(item.vardiyaPrice) + '</td><td>' + fmtNumber(item.trips,0) + '</td><td>' + fmtMoney(item.tekPrice) + '</td><td>' + fmtMoney(item.gross) + '</td></tr>';
-            }).join('') + '</tbody></table><details class="report-rate-exceptions"><summary>Araç bazlı tarife düzenle</summary><div class="report-service-head"><span>Araç / sınıf</span><span>Vardiya</span><span>Vardiya fiyatı</span><span>Tek</span><span>Tek fiyatı</span><span>Brüt gelir</span><span></span></div>' + row.details.map(function (item, detailIndex) {
+            var ownershipGroups=window.ReportAnalytics.groupServiceOwnership(row.details);
+            var missingClass=row.details.filter(function(item){return item.vehicleClass==='SINIFLANDIRILMAMIŞ';});
+            var breakdown='<div class="customer-service-breakdown">'+ownershipGroups.map(function(item){return '<span><small>'+esc(item.ownership)+'</small><b>'+fmtMoney(item.gross)+'</b></span>';}).join('')+'<span class="service-total"><small>GENEL TOPLAM</small><b>'+fmtMoney(row.current.accrual)+'</b></span></div>';
+
+            var summary = '<tr class="report-customer-row"><td><button type="button" class="report-customer-toggle" onclick="window.toggleReportCustomer(' + customerIndex + ')"><i data-lucide="chevron-right"></i><span><strong>' + esc(row.name) + '</strong><small>' + row.details.length + ' araç / bölge kaydı</small></span></button></td><td class="is-center">' + fmtNumber(row.current.shifts, 0) + '</td><td class="is-center">' + fmtNumber(row.current.trips, 0) + '</td><td class="is-number is-emphasis">' + breakdown + '</td><td class="is-number">' + fmtMoney(row.previous.accrual) + '</td><td class="is-number">' + changeMarkup(row.current.accrual, row.previous.accrual, false) + '</td><td class="is-center"><button class="report-detail-button" type="button" onclick="window.toggleReportCustomer(' + customerIndex + ')">Sınıflar</button></td></tr>';
+            var detail = '<tr class="report-customer-detail" data-report-customer="' + customerIndex + '" hidden><td colspan="7"><div class="report-customer-detail-panel"><p>Hizmet bedeli müşteri tarifelerinden hesaplanır; taşeron ödeme maliyeti değildir. Kesilmiş faturalar harici muhasebe / Excel’de takip edilir.</p>'+(missingClass.length?'<p class="customer-class-warning">'+missingClass.length+' araç / bölge kaydında sınıf eksik. Bu hizmetler aşağıda ve toplamlarda yer alır.</p>':'')+ownershipGroups.map(function(group){return '<section class="customer-ownership-section"><h4>'+esc(group.ownership)+'</h4><table class="premium-table w-full"><thead><tr><th>Sınıf</th><th>Bölge</th><th>Vardiya</th><th>Vardiya fiyatı</th><th>Tek</th><th>Tek fiyatı</th><th>Diğer</th><th>Hizmet bedeli</th></tr></thead><tbody>'+window.ReportAnalytics.groupServiceClasses(group.details).map(function(item){return '<tr><td>'+esc(item.vehicleClass)+'</td><td>'+esc(Array.from(item.regions).join(', '))+'</td><td>'+fmtNumber(item.shifts,0)+'</td><td>'+fmtMoney(item.vardiyaPrice)+'</td><td>'+fmtNumber(item.trips,0)+'</td><td>'+fmtMoney(item.tekPrice)+'</td><td>'+fmtNumber(item.other,0)+'</td><td>'+fmtMoney(item.gross)+'</td></tr>';}).join('')+'<tr class="customer-ownership-total"><td colspan="2">'+esc(group.ownership)+' TOPLAMI</td><td>'+fmtNumber(group.shifts,0)+'</td><td></td><td>'+fmtNumber(group.trips,0)+'</td><td></td><td>'+fmtNumber(group.other,0)+'</td><td>'+fmtMoney(group.gross)+'</td></tr></tbody></table></section>';}).join('')+'<p class="customer-factory-total">Fabrika genel toplamı: '+fmtMoney(row.current.accrual)+'</p><details class="report-rate-exceptions"><summary>Araç bazlı tarife düzenle</summary><div class="report-service-head"><span>Araç / sınıf</span><span>Vardiya</span><span>Vardiya fiyatı</span><span>Tek</span><span>Tek fiyatı</span><span>Brüt gelir</span><span></span></div>' + row.details.map(function (item, detailIndex) {
                 return '<div class="report-service-line"><span><strong>' + esc(item.plate) + '</strong><small>' + esc(item.vehicleClass) + ' · ' + esc(item.region) + '</small></span><span>' + fmtNumber(item.current.shifts, 0) + '</span><label><span class="sr-only">Vardiya fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="vardiya" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.vardiyaPrice + '"></label><span>' + fmtNumber(item.current.trips, 0) + '</span><label><span class="sr-only">Tek sefer fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="tek" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.tekPrice + '"></label><span class="is-money">' + fmtMoney(item.current.gross) + '</span><button type="button" onclick="window.saveReportServicePrices(' + customerIndex + ',' + detailIndex + ',this)"><i data-lucide="save"></i>Kaydet</button></div>';
             }).join('') + '</details></div></td></tr>';
             return summary + detail;
         }).join('');
         if (window.lucide) window.lucide.createIcons();
     }
+
+    window.getCustomerServiceExport = function() {
+        var rows=[];
+        state.customers.forEach(function(customer){
+            window.ReportAnalytics.groupServiceOwnership(customer.details).forEach(function(group){
+                window.ReportAnalytics.groupServiceClasses(group.details).forEach(function(item){rows.push([customer.name,group.ownership,item.vehicleClass,item.shifts,item.vardiyaPrice,item.trips,item.tekPrice,item.other,item.gross]);});
+                rows.push([customer.name,group.ownership,'ARA TOPLAM',group.shifts,'',group.trips,'',group.other,group.gross]);
+            });
+            rows.push([customer.name,'GENEL TOPLAM','',customer.current.shifts,'',customer.current.trips,'',window.ReportAnalytics.groupServiceOwnership(customer.details).reduce(function(sum,g){return sum+g.other;},0),customer.current.accrual]);
+        });
+        return {headers:['Fabrika','Mülkiyet','Araç sınıfı','Vardiya','Vardiya fiyatı (TL)','Tek','Tek fiyatı (TL)','Diğer','Hizmet bedeli (TL)'],rows:rows};
+    };
 
     window.toggleReportCustomer = function (index) {
         var row = document.querySelector('[data-report-customer="' + index + '"]');

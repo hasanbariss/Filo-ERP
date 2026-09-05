@@ -184,14 +184,15 @@
                 var group = groups.get(customerId) || { id: customerId, name: customerNames.get(customerId) || 'Kayıt Dışı Müşteri', current: { shifts: 0, trips: 0, accrual: 0 }, previous: { shifts: 0, trips: 0, accrual: 0 }, details: new Map() };
                 var detailKey = vehicleId + '|||' + region;
                 var detail = group.details.get(detailKey) || {
-                    key: detailKey, customerId: customerId, vehicleId: vehicleId, plate: vehicle.plaka || 'Eşleşmeyen araç', vehicleClass: vehicle.arac_sinifi || 'SINIFLANDIRILMAMIŞ', region: region,
-                    current: { shifts: 0, trips: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 },
-                    previous: { shifts: 0, trips: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 }
+                    key: detailKey, customerId: customerId, vehicleId: vehicleId, plate: vehicle.plaka || 'Eşleşmeyen araç', vehicleClass: vehicle.arac_sinifi || 'SINIFLANDIRILMAMIŞ', ownership: serviceOwnership(vehicle.mulkiyet_durumu), region: region,
+                    current: { shifts: 0, trips: 0, other: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 },
+                    previous: { shifts: 0, trips: 0, other: 0, gross: 0, vardiyaPrice: 0, tekPrice: 0 }
                 };
                 var definition = resolver(definitions || [], { musteriId: row.musteri_id, aracId: row.arac_id, bolge: region, donem: periodValue }) || {};
                 var bucket = detail[periodKey];
                 bucket.shifts += number(row.vardiya);
                 bucket.trips += number(row.tek);
+                bucket.other += number(row.cikis_8)+number(row.giris_2030)+number(row.mesai);
                 bucket.gross += serviceGross(row, definition);
                 bucket.vardiyaPrice = number(definition.vardiya_fiyat);
                 bucket.tekPrice = number(definition.tek_fiyat);
@@ -240,13 +241,29 @@
         }).sort(function (a, b) { return b.current.revenue - a.current.revenue; });
     }
 
+    function serviceOwnership(value) {
+        var normalized=String(value || '').trim().toLocaleUpperCase('tr-TR');
+        return normalized==='ÖZMAL'||normalized==='TAŞERON'?normalized:'MÜLKİYET BELİRSİZ';
+    }
+    function groupServiceOwnership(details, period) {
+        period=period==='previous'?'previous':'current';
+        var groups=new Map(['ÖZMAL','TAŞERON'].map(function(key){return [key,{ownership:key,shifts:0,trips:0,other:0,gross:0,details:[]}];}));
+        (details || []).forEach(function(detail){
+            var key=serviceOwnership(detail.ownership);
+            var item=groups.get(key)||{ownership:key,shifts:0,trips:0,other:0,gross:0,details:[]};
+            var bucket=detail[period]||{};
+            item.shifts+=number(bucket.shifts);item.trips+=number(bucket.trips);item.other+=number(bucket.other);item.gross+=number(bucket.gross);item.details.push(detail);groups.set(key,item);
+        });
+        return Array.from(groups.values());
+    }
+
     function groupServiceClasses(details) {
         var groups = new Map();
         (details || []).forEach(function(detail) {
             var current = detail.current;
-            var key = JSON.stringify([detail.vehicleClass, current.vardiyaPrice, current.tekPrice]);
-            var group = groups.get(key) || {vehicleClass:detail.vehicleClass, shifts:0, trips:0, gross:0, vardiyaPrice:current.vardiyaPrice, tekPrice:current.tekPrice, regions:new Set(), vehicles:new Set()};
-            group.shifts += number(current.shifts); group.trips += number(current.trips); group.gross += number(current.gross);
+            var key = JSON.stringify([serviceOwnership(detail.ownership), detail.vehicleClass, current.vardiyaPrice, current.tekPrice]);
+            var group = groups.get(key) || {vehicleClass:detail.vehicleClass, ownership:serviceOwnership(detail.ownership), shifts:0, trips:0, other:0, gross:0, vardiyaPrice:current.vardiyaPrice, tekPrice:current.tekPrice, regions:new Set(), vehicles:new Set()};
+            group.shifts += number(current.shifts); group.trips += number(current.trips); group.other += number(current.other); group.gross += number(current.gross);
             group.regions.add(detail.region); group.vehicles.add(detail.vehicleId);
             groups.set(key, group);
         });
@@ -285,6 +302,7 @@
         groupCustomerServices: groupCustomerServices,
         mergeVehicleRevenue: mergeVehicleRevenue,
         groupServiceClasses: groupServiceClasses,
+        groupServiceOwnership: groupServiceOwnership,
         groupCaris: groupCaris
     };
 });

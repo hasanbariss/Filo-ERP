@@ -102,7 +102,7 @@
     <link rel="stylesheet" href="web-executive.css?v=2.0.19">
     <link rel="stylesheet" href="fleet-bulk-edit.css?v=1.0.1">
     <link rel="stylesheet" href="auth-v2.css?v=1.0.0">
-    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.1">
+    <link rel="stylesheet" href="ui-final-pass.css?v=1.0.2">
     <!-- Chart.js -->
 
     <!-- Leaflet Maps -->
@@ -2342,12 +2342,13 @@
                     </div>
                     <div id="rapor-content-musteri" class="report-content hidden p-5">
                         <div class="flex items-center justify-between mb-4">
-                            <h3 class="font-bold text-sm">Fabrika / Müşteri Sefer ve Fiyat Raporu</h3>
+                            <h3 class="font-bold text-sm">Fabrika Hizmet ve Hakediş Raporu</h3>
                             <div class="flex gap-2">
                                 <button onclick="window.exportRaporExcel('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>Excel</button>
                                 <button onclick="window.exportRaporPDF('musteri')" class="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-xs font-bold transition-all"><i data-lucide="file-text" class="w-3.5 h-3.5"></i>PDF</button>
                             </div>
                         </div>
+                        <p class="customer-report-note">Özmal ve taşeron hizmetleri ayrı hesaplanır; genel toplam fabrikaya verilen hizmet bedelidir. Sınıfı eksik araçlar toplama dahildir. Kesilmiş fatura tutarları harici muhasebe / Excel’de takip edilmektedir.</p>
                         <div class="overflow-x-auto rounded-xl border border-white/5">
                             <table class="w-full" id="rapor-musteri-table">
                                 <thead><tr class="text-[10px] uppercase tracking-widest text-gray-400 border-b border-white/5 bg-white/5"><th class="p-3 text-left">Fabrika / Müşteri</th><th class="p-3 text-center">Vardiya</th><th class="p-3 text-center">Tek Sefer</th><th class="p-3 text-right text-orange-400">Seçilen Gelir</th><th class="p-3 text-right">Önceki Gelir</th><th class="p-3 text-right">Değişim</th><th class="p-3 text-center">Detay</th></tr></thead>
@@ -2983,9 +2984,9 @@
 <script defer src="hakedis-calculations.js"></script>
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.4"></script>
-<script defer src="report-analytics.js?v=2.0.1"></script>
-<script defer src="data-services.js?v=2.0.16"></script>
-<script defer src="report-comparison-ui.js?v=2.0.1"></script>
+<script defer src="report-analytics.js?v=2.0.2"></script>
+<script defer src="data-services.js?v=2.0.17"></script>
+<script defer src="report-comparison-ui.js?v=2.0.2"></script>
 <script defer src="ui-manager.js?v=2.0.14"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.6"></script>
 <script defer src="fleet-bulk-edit.js?v=1.0.1"></script>

@@ -8841,7 +8841,8 @@ window.exportRaporExcel = function(tab) {
     if (!table) { alert('Tablo bulunamadı.'); return; }
     try {
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.table_to_sheet(table);
+        const exportData = tab === 'musteri' && window.getCustomerServiceExport ? window.getCustomerServiceExport() : null;
+        const ws = exportData ? XLSX.utils.aoa_to_sheet([['Dönem: '+ay],['Puantajdan hesaplanan hizmet bedeli; kesilmiş fatura tutarı değildir.'],exportData.headers,...exportData.rows]) : XLSX.utils.table_to_sheet(table);
         XLSX.utils.book_append_sheet(wb, ws, label);
         XLSX.writeFile(wb, `Filo_${label}_${ay}.xlsx`);
     } catch(e) { console.error(e); alert('Excel indirme hatası: ' + e.message); }
@@ -8870,12 +8871,13 @@ window.exportRaporPDF = function(tab) {
         const doc = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
         window.CompanyBranding.addPdfBranding(doc, {
             title: (tabTitles[tab] || tab) + ' Raporu',
-            subtitle: 'Dönem: ' + ay + ' • Oluşturulma: ' + new Date().toLocaleDateString('tr-TR')
+            subtitle: 'Dönem: ' + ay + (tab === 'musteri' ? ' • Hesaplanan hizmet bedeli; kesilmiş fatura değildir.' : ' • Oluşturulma: ' + new Date().toLocaleDateString('tr-TR'))
         });
 
         // Collect table data
-        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
-        const bodyRows = Array.from(table.querySelectorAll('tbody tr')).map(tr =>
+        const exportData = tab === 'musteri' && window.getCustomerServiceExport ? window.getCustomerServiceExport() : null;
+        const headers = exportData ? exportData.headers : Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        const bodyRows = exportData ? exportData.rows : Array.from(table.querySelectorAll('tbody tr')).map(tr =>
             Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim())
         ).filter(row => row.some(cell => cell));
 

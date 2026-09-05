@@ -89,3 +89,19 @@ assert.equal(cariRows[0].previousNet, 750);
 assert.equal(cariRows[0].change, 100);
 
 console.log('Rapor dönem, özet, araç, personel, müşteri ve cari karşılaştırma testleri başarılı.');
+
+// Ownership must preserve all service value, including missing class/ownership.
+const splitServices=report.groupCustomerServices([{id:'m',ad:'Fabrika'}],[
+ {id:'owned',plaka:'A',mulkiyet_durumu:'ÖZMAL',arac_sinifi:'16+1'},
+ {id:'contractor',plaka:'B',mulkiyet_durumu:'TAŞERON',arac_sinifi:'16+1'},
+ {id:'missing',plaka:'C',mulkiyet_durumu:'TAŞERON'},
+ {id:'unknown',plaka:'D'}
+],[{musteri_id:'m',arac_id:'owned',vardiya:2,tek:1},{musteri_id:'m',arac_id:'contractor',vardiya:3,tek:2},{musteri_id:'m',arac_id:'missing',tek:1,mesai:1},{musteri_id:'m',arac_id:'unknown',tek:1}],[],[], '2026-09','2026-08',()=>({vardiya_fiyat:100,tek_fiyat:50,mesai_fiyat:25}))[0];
+const ownershipTotals=report.groupServiceOwnership(splitServices.details);
+assert.equal(ownershipTotals.find(g=>g.ownership==='ÖZMAL').gross,250);
+assert.equal(ownershipTotals.find(g=>g.ownership==='TAŞERON').gross,475);
+assert.equal(ownershipTotals.find(g=>g.ownership==='MÜLKİYET BELİRSİZ').gross,50);
+assert.equal(ownershipTotals.reduce((sum,g)=>sum+g.gross,0),splitServices.current.accrual);
+assert.equal(report.groupServiceClasses(splitServices.details).length,4);
+assert.equal(ownershipTotals.find(g=>g.ownership==='TAŞERON').other,1);
+assert.equal(splitServices.details.find(d=>d.vehicleId==='missing').vehicleClass,'SINIFLANDIRILMAMIŞ');
