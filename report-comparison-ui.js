@@ -221,13 +221,48 @@
         var item=group&&window.ReportAnalytics.groupServiceClasses(group.details)[classIndex];
         if(!item)return;
         var rates={vardiya_fiyat:item.vardiyaPrice,tek_fiyat:item.tekPrice};
-        priceEdit={customerId:customer.id,period:state.period.value,details:item.details,busy:false,baseline:window.ReportAnalytics.servicePricePlan(state.priceDefinitions,item.details,state.period.value,rates,window.HakedisCalculations.selectPriceDefinition)};
+        priceEdit={customerId:customer.id,period:state.period.value,details:item.details,ownership:group.ownership,vehicleClass:item.vehicleClass,busy:false,baseline:window.ReportAnalytics.servicePricePlan(state.priceDefinitions,item.details,state.period.value,rates,window.HakedisCalculations.selectPriceDefinition)};
         var dialog=priceEditorDialog();
         dialog.innerHTML='<h2 id="report-price-title">Sınıf fiyatlarını düzenle</h2><p>'+esc(customer.name)+' · '+esc(group.ownership)+' · '+esc(item.vehicleClass)+'</p><p><strong>'+esc(state.period.label)+'</strong> · '+item.vehicles.size+' araç / '+item.details.length+' araç-bölge kaydı</p><div class="report-price-inputs"><label>Vardiya fiyatı (TL)<input id="report-class-shift-price" type="number" min="0" step="0.01" value="'+item.vardiyaPrice+'"></label><label>Tek sefer fiyatı (TL)<input id="report-class-trip-price" type="number" min="0" step="0.01" value="'+item.tekPrice+'"></label></div><p>Bu fiyatlar aşağıdaki araçların yalnızca seçili dönemine uygulanır. Diğer hizmet fiyatları korunur.</p><ul>'+item.details.map(function(detail){return '<li>'+esc(detail.plate)+' · '+esc(detail.region)+'</li>';}).join('')+'</ul><p id="report-price-status" role="status" aria-live="polite"></p><div class="report-price-actions"><button type="button" id="report-price-close">Kapat</button><button type="button" id="report-price-save">Bu döneme uygula</button></div>';
+        if(item.vehicleClass !== 'SINIFLANDIRILMAMIŞ' && ['ÖZMAL','TAŞERON'].includes(group.ownership)) {
+            var candidates=state.vehicleMeta.filter(function(vehicle){return !String(vehicle.arac_sinifi||'').trim() && window.ReportAnalytics.serviceOwnership(vehicle.mulkiyet_durumu)===group.ownership;});
+            priceEdit.candidates=candidates;
+            var section=document.createElement('section');section.className='report-class-assignment';
+            section.innerHTML='<h3>Sınıflandırılmamış araçları dahil et</h3><p>Seçilen '+esc(group.ownership)+' araçların filo sınıfı '+esc(item.vehicleClass)+' olarak kaydedilir. Bu işlem fiyatları ve fabrika atamalarını değiştirmez. Bu fabrikada hizmeti olanlar raporda ilgili sınıfa taşınır.</p>'+(candidates.length?'<div class="report-class-candidates">'+candidates.map(function(vehicle,index){return '<label><input type="checkbox" data-report-class-candidate="'+index+'"> '+esc(vehicle.plaka)+'</label>';}).join('')+'</div><button type="button" id="report-class-assign">Seçilen araçların sınıfını kaydet</button>':'<p>Bu mülkiyet grubunda sınıflandırılmamış araç yok.</p>');
+            dialog.querySelector('#report-price-status').before(section);
+            var assign=dialog.querySelector('#report-class-assign');if(assign)assign.onclick=window.saveReportVehicleClasses;
+        }
         dialog.querySelector('#report-price-close').onclick=function(){if(!priceEdit.busy)dialog.close();};
         dialog.querySelector('#report-price-save').onclick=window.saveReportClassPrices;
         dialog.showModal();
     };
+    window.saveReportVehicleClasses = async function() {
+        if(!priceEdit||priceEdit.busy)return;
+        var edit=priceEdit,dialog=priceEditorDialog(),status=dialog.querySelector('#report-price-status');
+        var selected=Array.from(dialog.querySelectorAll('[data-report-class-candidate]:checked')).map(function(input){return edit.candidates[Number(input.dataset.reportClassCandidate)];});
+        if(!selected.length){status.textContent='Önce dahil edilecek araçları seçin.';return;}
+        edit.busy=true;dialog.querySelectorAll('button,input').forEach(function(el){el.disabled=true;});
+        var saved=0;
+        try {
+            for(var vehicle of selected){
+                var query=window.supabaseClient.from('araclar').update({arac_sinifi:edit.vehicleClass}).eq('id',vehicle.id).eq('mulkiyet_durumu',vehicle.mulkiyet_durumu);
+                query=vehicle.arac_sinifi==null?query.is('arac_sinifi',null):query.eq('arac_sinifi',vehicle.arac_sinifi);
+                var response=await query.select('id');
+                if(response.error)throw response.error;
+                if(!response.data||response.data.length!==1)throw new Error(vehicle.plaka+' kaydı değişmiş veya güncellenemedi. Raporu yenileyin.');
+                saved++;
+            }
+            dialog.close();if(window.Toast)window.Toast.success(saved+' aracın filo sınıfı güncellendi.');
+        } catch(error){status.textContent=saved+' / '+selected.length+' araç güncellendi. '+(error.message||'Kaydetme başarısız.');}
+        finally {
+            edit.busy=false;dialog.querySelector('#report-price-close').disabled=false;
+            await window.fetchRaporlar();
+            if(typeof window.fetchAraclar==='function')await window.fetchAraclar();
+            var index=state.customers.findIndex(function(customer){return customer.id===edit.customerId;});
+            var row=document.querySelector('[data-report-customer="'+index+'"]');if(row)row.hidden=false;
+        }
+    };
+
     window.saveReportClassPrices = async function() {
         if(!priceEdit||priceEdit.busy)return;
         var edit=priceEdit, dialog=priceEditorDialog(), status=dialog.querySelector('#report-price-status');

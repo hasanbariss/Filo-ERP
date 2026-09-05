@@ -322,6 +322,7 @@
         mergeVehicleRevenue: mergeVehicleRevenue,
         groupServiceClasses: groupServiceClasses,
         groupServiceOwnership: groupServiceOwnership,
+        serviceOwnership: serviceOwnership,
         servicePricePlan: servicePricePlan,
         groupCaris: groupCaris
     };
