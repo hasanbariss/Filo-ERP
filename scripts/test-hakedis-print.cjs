@@ -62,8 +62,8 @@ const assert = require('node:assert/strict');
     const printed = await print();
     assert.match(await printed.locator('body').innerText(), /Eylül 2026/);
     assert.match(await printed.locator('body').innerText(), /Örnek Fabrika/);
-    assert.match(await printed.locator('body').innerText(), /03\.09\.2026/);
-    assert.match(await printed.locator('body').innerText(), /100 Lt x ₺50/);
+    assert.doesNotMatch(await printed.locator('body').innerText(), /03\.09\.2026/);
+    assert.doesNotMatch(await printed.locator('body').innerText(), /100 Lt x ₺50/);
     assert.match(await printed.locator('body').innerText(), /Bilgi tanımlanmamış/);
     assert.doesNotMatch(await printed.locator('body').innerText(), /Başka araç/);
     assert.equal(await printed.locator('img').count(), 0);
@@ -119,16 +119,21 @@ const assert = require('node:assert/strict');
     assert.match(await billing.locator('.billing').innerText(), /0000000000/);
     assert.doesNotMatch(await billing.locator('.billing').innerText(), /Bilgi tanımlanmamış/);
     await billing.close();
-    // Long fuel lists must paginate as a full-width table.
+    // Fuel count must not increase the print layout height.
     await page.evaluate(() => {
         const list = document.querySelector('#yakitlar-list-container');
         for (let i=0;i<65;i++) list.append(list.firstElementChild.cloneNode(true));
     });
     const long = await print();
+    await long.emulateMedia({media:'print'});
+    assert.ok(await long.locator('.sheet').evaluate(el => el.getBoundingClientRect().height < 1030),
+        '66 fuel records still fit in the usable A4 height');
+    assert.doesNotMatch(await long.locator('body').innerText(), /Yakıt tarihi/);
+    assert.match(await long.locator('.summary-grid').innerText(), /5\.000,00 TL/);
     if (process.env.PRINT_QA_DIR) await long.pdf({
         path:process.env.PRINT_QA_DIR+'/hakedis-uzun.pdf',preferCSSPageSize:true,printBackground:true
     });
     assert.equal(await long.locator('.billing').count(), 1);
     await browser.close();
-    console.log('Hakediş print: current editor totals, VAT, TEV, fuel details, period isolation, escaping and print controls PASS');
+    console.log('Hakediş print: current editor totals, VAT, TEV, compact fuel summary, period isolation, escaping and print controls PASS');
 })().catch(error => { console.error(error); process.exit(1); });

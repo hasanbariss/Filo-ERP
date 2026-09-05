@@ -3410,8 +3410,6 @@ window.printCariKart = function(plaka, month) {
         minimumFractionDigits: 2, maximumFractionDigits: 2
     }) + ' TL';
     const value = (row, selector) => number(row.querySelector(selector)?.value);
-    const dateText = text => /^\d{4}-\d{2}-\d{2}$/.test(text)
-        ? text.split('-').reverse().join('.') : text;
     const period = /^\d{4}-(0[1-9]|1[0-2])$/.test(month)
         ? new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1, 1)
             .toLocaleDateString('tr-TR', { month: 'long', year: 'numeric' })
@@ -3464,21 +3462,9 @@ window.printCariKart = function(plaka, month) {
             + moneyCell(sign * values.tev) + moneyCell(sign * values.toplam) + '</tr>';
     }).join('');
     const yakit = number(overlay.querySelector('#modal-yakit-total')?.dataset.val);
-    const fuelRows = Array.from(overlay.querySelectorAll('#yakitlar-list-container > div'), row => {
-        const date = row.querySelector('.text-xs.font-bold')?.textContent.trim() || '';
-        const description = row.querySelector('.text-xs.font-bold + div')?.textContent.trim() || '';
-        const amount = row.querySelector('.text-sm.font-black')?.textContent.trim() || '';
-        return '<tr><td>' + esc(dateText(date)) + '</td><td>' + esc(description)
-            + '</td><td class="money">' + esc(amount) + '</td></tr>';
-    }).join('');
-    let autoGider = 0;
-    const expenseRows = Array.from(overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])'), row => {
-        const amount = number(row.dataset.tutar);
-        autoGider += amount;
-        const title = row.querySelector('.text-xs.font-bold.text-amber-200')?.textContent.trim() || 'Gider';
-        const description = row.querySelector('.text-amber-200 + div, [class*="text-gray-500"]')?.textContent.trim() || '';
-        return '<tr><td>' + esc(title) + '</td><td>' + esc(description) + '</td>' + moneyCell(-amount) + '</tr>';
-    }).join('');
+    const autoGider = Array.from(
+        overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])')
+    ).reduce((sum, row) => sum + number(row.dataset.tutar), 0);
     const totals = window.HakedisCalculations.calculateTotals({
         serviceBrut, serviceKdv, serviceTev, yakit, autoGider, manualLines
     });
@@ -3508,7 +3494,7 @@ window.printCariKart = function(plaka, month) {
         + '.print-tools button{padding:10px 18px;border:0;border-radius:6px;background:#fff;color:#17212b;font-weight:700;cursor:pointer}'
         + 'header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #17212b;padding-bottom:16px;margin-bottom:16px}'
         + 'h1{font-size:24px;line-height:1.2;margin:4px 0 6px;letter-spacing:-.5px}header p{margin:0;color:#53616d;font-size:11px}'
-        + '.eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#53616d}.company-mark{text-align:right;font-size:18px;font-weight:700}'
+        + '.eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#53616d}.company-mark{text-align:right;font-size:18px;font-weight:700;letter-spacing:1px}'
         + '.identity{display:grid;grid-template-columns:1fr 1fr 2fr;gap:14px;margin:0 0 20px;padding:12px 14px;background:#f5f7f9;border:1px solid #dbe1e7}'
         + 'dt{font-size:10px;font-weight:700;color:#53616d;margin-bottom:3px}dd{margin:0;font-size:12px;font-weight:600;overflow-wrap:anywhere}'
         + 'h2{font-size:14px;margin:20px 0 8px;break-after:avoid}table{width:100%;border-collapse:collapse;table-layout:auto;margin:0 0 12px;font-size:10px}'
@@ -3519,9 +3505,9 @@ window.printCariKart = function(plaka, month) {
         + '.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;break-inside:avoid}'
         + '.summary{padding:14px;border:1px solid #bfc9d2;border-radius:6px}.summary h2{margin:0 0 12px}'
         + '.summary-row{display:flex;justify-content:space-between;gap:12px;margin:7px 0;font-size:11px}.summary-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}'
-        + '.subtotal{border-top:1px solid #bfc9d2;padding-top:8px;font-weight:700}.net{border-top:2px solid #17212b;margin-top:12px;padding-top:10px;font-weight:700}.net strong{font-size:17px}'
+        + '.subtotal{border-top:1px solid #bfc9d2;padding-top:8px;font-weight:700}.net{border-top:2px solid #17212b;margin-top:12px;padding:10px 0 0;font-weight:700}.net strong{font-size:17px}'
         + '.note{font-size:10px;color:#53616d;margin:8px 0 0}.billing{padding:14px 16px;border:1px solid #aeb9c3;border-left:4px solid #17212b;break-inside:avoid;margin-top:20px}'
-        + '.billing h2{margin:0 0 4px}.billing dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:12px 0 0}.billing .wide{grid-column:1/-1}'
+        + '.billing h2{margin:0 0 4px}.billing dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:12px 0 0}.billing .wide,.billing dl>div:first-child{grid-column:1/-1}'
         + '.missing{color:#9c382f}.empty{padding:10px 12px;border:1px solid #dbe1e7;color:#53616d;font-size:11px}'
         + 'footer{display:flex;justify-content:space-between;gap:20px;margin-top:20px;padding-top:8px;border-top:1px solid #dbe1e7;font-size:9px;color:#53616d}'
         + '@page{size:A4 portrait;margin:12mm} @media print{body{background:#fff;font-size:11px}.sheet{max-width:none;margin:0;padding:0}.print-tools{display:none}h1{font-size:22px}header{padding-bottom:10px;margin-bottom:12px}.identity{padding:8px 12px;margin-bottom:12px}h2{margin-top:14px}th,td{padding:5px 6px}.summary-grid{margin:14px 0}.summary{padding:10px 12px}.summary-row{margin:5px 0}.billing{padding:10px 12px;margin-top:14px}.billing dl{gap:7px 16px;margin-top:8px}footer{margin-top:12px}header,.identity,.closing{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
@@ -3529,37 +3515,32 @@ window.printCariKart = function(plaka, month) {
         + '</style></head><body>'
         + '<div class="print-tools"><span>Hakediş çıktısı · A4</span><button type="button" onclick="window.print()">Yazdır / PDF Kaydet</button></div>'
         + '<main class="sheet"><header><div><span class="eyebrow">DÖNEMSEL HAKEDİŞ</span>'
-        + '<h1>Hakediş ve Fatura Bildirimi</h1><p>Hizmet dökümü, fatura özeti ve ödeme hesabı</p></div>'
+        + '<h1>Hakediş Bildirimi</h1></div>'
         + '<div class="company-mark">' + esc(company.shortName || company.name) + '</div></header>'
         + '<dl class="identity">' + billingField('Dönem', period) + billingField('Araç plakası', plaka)
         + billingField('Hizmet veren / araç sahibi', owner) + '</dl>'
-        + '<h2>1. Hizmet dökümü</h2><div class="table-wrap">'
+        + '<h2>Hizmet dökümü</h2><div class="table-wrap">'
         + (serviceRows ? table(['Hizmet', 'Adet', 'Birim fiyat', 'Matrah', 'KDV', 'TEV', 'TEV sonrası'],
             serviceRows + '<tr class="service-total"><td colspan="3">Hizmet toplamı</td>'
             + moneyCell(serviceBrut) + moneyCell(serviceKdv) + moneyCell(serviceTev)
             + moneyCell(serviceBrut + serviceKdv - serviceTev) + '</tr>')
             : '<p class="empty">Bu dönem için hizmet satırı bulunmuyor.</p>') + '</div>'
-        + (manualRows ? '<h2>Ek gelir / gider kalemleri</h2><p class="note">Bu kalemler aşağıdaki fatura özetine dahildir.</p>'
+        + (manualRows ? '<h2>Ek kalemler</h2>'
             + table(['Tür', 'Açıklama', 'Matrah', 'KDV', 'TEV', 'Toplam'], manualRows) : '')
-        + '<section class="summary-grid"><div class="summary"><h2>2. Fatura özeti</h2>'
+        + '<section class="summary-grid"><div class="summary"><h2>Fatura özeti</h2>'
         + summaryRow('Fatura matrahı (KDV hariç)', totals.matrah)
         + summaryRow('+ KDV', totals.kdv)
         + summaryRow('KDV dahil toplam', invoiceGross, 'subtotal')
         + summaryRow('− TEV / tevkifat', totals.tev)
         + summaryRow('Tevkifat sonrası tutar', beforeDeductions, 'subtotal')
-        + '<p class="note">KDV ve TEV, hakediş kartındaki oranlarla hesaplanmıştır. Hizmet satırlarındaki TEV oranı matrah üzerinden uygulanır.</p>'
-        + '</div><div class="summary"><h2>3. Ödeme hesabı</h2>'
+        + '</div><div class="summary"><h2>Ödeme özeti</h2>'
         + summaryRow('Tevkifat sonrası tutar', beforeDeductions)
         + summaryRow('− Yakıt kesintisi', yakit)
         + (autoGider ? summaryRow('− Bakım / sigorta kesintisi', autoGider) : '')
         + summaryRow('Net ödenecek tutar', totals.net, 'net')
-        + '<p class="note">Yakıt ve bakım/sigorta kesintileri ödeme hesabından düşülmüştür; yukarıdaki fatura matrahını değiştirmez.</p>'
-        + '</div></section><h2>4. Kesinti dökümü</h2>'
-        + (fuelRows ? table(['Yakıt tarihi', 'Miktar × birim fiyat', 'Kesinti tutarı'], fuelRows)
-            : '<p class="empty">Bu dönemde yakıt kesintisi bulunmuyor.</p>')
-        + (expenseRows ? table(['Bakım / sigorta', 'Açıklama', 'Kesinti tutarı'], expenseRows) : '')
-        + '<div class="closing"><section class="billing"><h2>Fatura düzenlenecek firma bilgileri</h2>'
-        + '<p class="note">Faturanızın alıcı bilgileri için aşağıdaki bilgileri kullanınız.</p><dl>'
+        + '</div></section>'
+        + '<div class="closing"><section class="billing"><h2>Fatura bilgileri</h2>'
+        + '<dl>'
         + billingField('Tam ticari unvan', company.legalName)
         + billingField('Vergi dairesi', company.taxOffice)
         + billingField('Vergi numarası / VKN', company.taxNumber)
@@ -3567,7 +3548,7 @@ window.printCariKart = function(plaka, month) {
         + (company.phone ? billingField('Telefon', company.phone) : '')
         + '<div class="wide"><dt>Fatura adresi</dt><dd>' + (company.address ? esc(company.address)
             : '<span class="missing">Bilgi tanımlanmamış</span>') + '</dd></div></dl></section>'
-        + '<footer><span>Bu belge hakediş bildirimidir; fatura yerine geçmez.</span><span>'
+        + '<footer><span>Fatura yerine geçmez.</span><span>'
         + esc(new Date().toLocaleString('tr-TR')) + '</span></footer></div></main></body></html>');
     win.document.close();
     win.focus();
