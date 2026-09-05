@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.60';
+var CACHE_NAME = 'filo-erp-v1.0.61';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
@@ -39,8 +39,8 @@ var STATIC_ASSETS = [
     '/toast-manager.js?v=3.1.0',
     '/vehicle-deletion.js?v=1.0.0',
     '/feedback-ui.css?v=1.0.0',
-    '/interface-polish.css?v=1.0.1',
-    '/hakedis-panel.css?v=2.0.0',
+    '/interface-polish.css?v=1.1.0',
+    '/hakedis-panel.css?v=2.0.1',
     '/interface-polish.js?v=2.0.0',
     '/manifest.json',
     '/icons/icon-transparent-192.png?v=2',

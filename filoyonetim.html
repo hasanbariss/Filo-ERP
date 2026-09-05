@@ -161,7 +161,7 @@
 <link rel="stylesheet" href="erp-workspace.css?v=1.0.0">
 <link rel="stylesheet" href="sidebar-flyout.css?v=1.0.1">
 <link rel="stylesheet" href="feedback-ui.css?v=1.0.0">
-<link rel="stylesheet" href="interface-polish.css?v=1.0.1">
+<link rel="stylesheet" href="interface-polish.css?v=1.1.0">
 <link rel="stylesheet" href="hakedis-panel.css?v=2.0.1">
 </head>
 
@@ -314,12 +314,12 @@
 
             <!-- Takvim (Gantt) Module -->
             <div id="module-takvim" class="main-module hidden stagger-in">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div class="page-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
                         <h2 class="text-3xl font-black tracking-tight text-white mb-1">Operasyon Takvimi</h2>
-                        <p class="text-sm font-medium text-gray-400">Araçların günlük müşteri ve vardiya tahsislerini Gantt formatında inceleyin.</p>
+                        <p class="page-subtitle text-sm font-medium text-gray-400">Araçların günlük müşteri ve vardiya tahsislerini Gantt formatında inceleyin.</p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="page-actions flex items-center gap-3">
                         <div class="relative w-full max-w-xs md:w-64">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
                             <input type="text" id="takvim-search" placeholder="Plaka veya Müşteri Ara..." oninput="if(window.filterTakvim) window.filterTakvim(this.value)" class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-orange-500 transition-all shadow-xl w-full">

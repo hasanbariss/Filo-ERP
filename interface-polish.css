@@ -250,7 +250,7 @@
       tr:not(:hover):not(:focus-within)
       td:last-child
       button {
-      opacity: 0;
+      opacity: 1;
     }
     body.bf-app
       :is(.fleet-table, .fleet-driver-table, .receivables-table)
@@ -287,7 +287,7 @@
   @keyframes bf-drawer-in {
     from {
       transform: translateX(35px);
-      opacity: 0;
+      opacity: 1;
     }
     to {
       transform: translateX(0);
@@ -517,4 +517,188 @@
     :is(.text-gray-400, .text-gray-500, .text-gray-600) {
     color: var(--feedback-muted) !important;
   }
+}
+
+/* Shared menu vocabulary: screen-only, independent of data and print layouts. */
+@media screen {
+  body.bf-app {
+    --ui-accent: #dc5143;
+    --ui-on-accent: #fff;
+    --ui-control-radius: 8px;
+    --ui-panel-radius: 12px;
+    --ui-control-height: 40px;
+  }
+  html.dark body.bf-app { --ui-accent: #ff8a7c; --ui-on-accent: #17212b; }
+  body.bf-app .main-module {
+    color: var(--feedback-text);
+    font-family: var(--bf-font-ui);
+  }
+  body.bf-app .main-module :is(.page-header, .bf-page-header, .dashboard-page-header, .om-header, .ew-top) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 0 !important;
+    margin: 0 0 22px !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-bottom: 1px solid var(--feedback-line) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  body.bf-app .main-module :is(.page-header, .bf-page-header, .dashboard-page-header, .om-header, .ew-top) :is(h1, h2) {
+    font-size: 26px !important;
+    line-height: 1.25;
+    font-weight: 700 !important;
+    letter-spacing: -.035em;
+    color: var(--feedback-text) !important;
+    margin: 4px 0 !important;
+  }
+  body.bf-app .main-module :is(.page-subtitle, .bf-page-header p, .om-header p, .ew-top p) {
+    color: var(--feedback-muted) !important;
+    font-size: 13px !important;
+    line-height: 1.6;
+  }
+  body.bf-app .main-module :is(.page-actions, .bf-page-actions, .om-header-actions) {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  body.bf-app .main-module :is(.btn-primary, .btn-secondary, .btn-ghost, .om-primary-button, .om-secondary-button, .ew-shell button) {
+    min-height: var(--ui-control-height);
+    border-radius: var(--ui-control-radius) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+  }
+  body.bf-app .main-module :is(.btn-primary, .om-primary-button, #ew-build) {
+    background: var(--ui-accent) !important;
+    color: var(--ui-on-accent) !important;
+    border: 1px solid var(--ui-accent) !important;
+  }
+  body.bf-app .main-module :is(.btn-secondary, .om-secondary-button) {
+    background: var(--feedback-bg) !important;
+    color: var(--feedback-text) !important;
+    border: 1px solid var(--feedback-line) !important;
+  }
+  body.bf-app .main-module :is(.btn-ghost) { color: var(--feedback-muted) !important; }
+  body.bf-app .main-module :is(.btn-primary, .btn-secondary, .btn-ghost, .om-primary-button, .om-secondary-button):hover:not(:disabled) {
+    filter: brightness(.95);
+  }
+  body.bf-app :is(.main-module, .ew-dialog) :is(button, a, input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--ui-accent) !important;
+    outline-offset: 3px;
+  }
+  body.bf-app .main-module :is(.fleet-toolbar, .fleet-driver-toolbar, .fleet-schedule-toolbar, .contractor-toolbar, .factory-toolbar, .personnel-toolbar, .progress-toolbar, .receivables-toolbar, .bf-offer-toolbar, .fuel-toolbar, .fuel-analysis-filters, .fuel-record-filters, .maintenance-record-filters, .ew-filters) {
+    gap: 12px !important;
+    padding: 14px !important;
+    background: var(--feedback-soft) !important;
+    border-color: var(--feedback-line) !important;
+    border-radius: var(--ui-control-radius);
+    box-shadow: none !important;
+  }
+  body.bf-app .main-module :is(.page-actions, .fleet-toolbar, .fleet-driver-toolbar, .fleet-schedule-toolbar, .contractor-toolbar, .factory-toolbar, .personnel-toolbar, .progress-toolbar, .receivables-toolbar, .bf-offer-toolbar, .fuel-toolbar, .fuel-analysis-filters, .fuel-record-filters, .maintenance-record-filters, .om-shell, .ew-shell) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select) {
+    min-height: var(--ui-control-height) !important;
+    border-radius: var(--ui-control-radius) !important;
+    border-color: var(--feedback-line) !important;
+    background: var(--feedback-bg) !important;
+    color: var(--feedback-text) !important;
+    font-size: 13px !important;
+    box-shadow: none !important;
+  }
+  body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs, .om-tabs, .ew-tabs, .evrak-filter-tabs) {
+    gap: 4px !important;
+    padding: 6px !important;
+    background: var(--feedback-soft) !important;
+    border: 1px solid var(--feedback-line) !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    overflow-x: auto;
+  }
+  body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs, .om-tabs, .ew-tabs, .evrak-filter-tabs) > button {
+    min-height: 38px;
+    padding: 8px 12px !important;
+    color: var(--feedback-muted) !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    border-radius: 7px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
+    white-space: nowrap;
+  }
+  body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs, .om-tabs, .ew-tabs, .evrak-filter-tabs) > button:is(.active, .is-active, [aria-selected="true"], .bg-orange-500) {
+    background: var(--feedback-bg) !important;
+    color: var(--ui-accent) !important;
+    border-color: var(--feedback-line) !important;
+    box-shadow: 0 1px 3px #00000008 !important;
+  }
+  body.bf-app .main-module :is(.progress-kpi-card, .receivables-kpi-card, .fuel-kpi-grid > article, #evrak-kpi-row > div, .dashboard-panel, .om-panel-card, .om-table-card, .om-toolbar-card, .om-metric) {
+    background: var(--feedback-bg) !important;
+    border: 1px solid var(--feedback-line) !important;
+    border-radius: var(--ui-panel-radius) !important;
+    box-shadow: none !important;
+  }
+  body.bf-app .main-module :is(.empty-state, .loading-state) {
+    color: var(--feedback-muted);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  body.bf-app .main-module :is(.fleet-table, .fleet-driver-table, .receivables-table, .progress-table, .fuel-table) :is(th, td) {
+    font-variant-numeric: tabular-nums;
+  }
+  body.bf-app .om-shell { color: var(--feedback-text); }
+  body.bf-app .om-shell :is(h3, strong, .om-table td) { color: var(--feedback-text); }
+  body.bf-app .om-shell :is(p, .om-select-label, .om-metric span, .om-metric small, .om-kicker) { color: var(--feedback-muted); }
+  body.bf-app .om-shell :is(.om-count-badge, .om-note, .om-table th) {
+    background: var(--feedback-soft); color: var(--feedback-muted); border-color: var(--feedback-line);
+  }
+  body.bf-app :is(#module-calisma-dosyalari, .ew-dialog) {
+    --ew-border: var(--feedback-line);
+    --ew-muted: var(--feedback-muted);
+    --ew-accent: var(--ui-accent);
+    color: var(--feedback-text);
+  }
+  body.bf-app :is(.ew-shell, .ew-dialog) :is(button, .ew-upload, input, select, textarea),
+  body.bf-app :is(.ew-dialog, #ew-result:has(.ew-report-head)) {
+    background: var(--feedback-bg);
+    color: var(--feedback-text);
+    border-color: var(--feedback-line);
+    color-scheme: light;
+  }
+  html.dark body.bf-app :is(.ew-shell, .ew-dialog) :is(input, select, textarea) { color-scheme: dark; }
+  body.bf-app :is(.ew-shell, .ew-dialog) :is(label, .ew-note, .ew-report-head small, .ew-report-scope, .ew-report-section p) { color: var(--feedback-muted); }
+  body.bf-app :is(.ew-shell, .ew-dialog) table { color: var(--feedback-text); }
+  body.bf-app :is(.ew-shell, .ew-dialog) th { background: var(--feedback-soft); color: var(--feedback-muted); }
+  body.bf-app :is(.ew-shell, .ew-dialog) button:hover { background: var(--feedback-soft); border-color: var(--ui-accent); }
+  @media (max-width: 768px) {
+    body.bf-app { --ui-control-height: 44px; }
+    body.bf-app .main-module :is(.page-header, .bf-page-header, .dashboard-page-header, .om-header, .ew-top) {
+      flex-direction: column; align-items: stretch; gap: 12px;
+      padding: 14px 0 !important; margin-bottom: 16px !important;
+    }
+    body.bf-app .main-module :is(.page-header, .bf-page-header, .dashboard-page-header, .om-header, .ew-top) :is(h1, h2) { font-size: 23px !important; }
+    body.bf-app .main-module :is(.page-actions, .bf-page-actions) { justify-content: flex-start; }
+    body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs, .om-tabs, .ew-tabs, .evrak-filter-tabs) { flex-wrap: nowrap; }
+    body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs, .om-tabs, .ew-tabs, .evrak-filter-tabs) > button { flex-shrink: 0; min-height: 44px; }
+  }
+}
+
+@media screen {
+  body.bf-app .main-module :is(.page-header, .bf-page-header, .om-header, .ew-top) :is([class$="-eyebrow"], .om-kicker, small) {
+    color: var(--feedback-muted) !important;
+    font-size: 10px !important;
+    letter-spacing: .08em;
+  }
+  body.bf-app .main-module .fuel-period-toggle button.is-active {
+    background: var(--ui-accent) !important;
+    color: var(--ui-on-accent) !important;
+  }
+  body.bf-app .main-module .fuel-kpi-icon {
+    background: var(--feedback-soft) !important;
+    color: var(--feedback-muted) !important;
+  }
+  body.bf-app .main-module :is(.fuel-tabs, .bf-fleet-tabs, .contractor-tabs, .personnel-tabs, .progress-tabs, .receivables-tabs, .report-tabs) > button::after { display: none; }
+  body.bf-app .om-shell :is(.om-table th, .om-table td, .om-table-head) { border-color: var(--feedback-line); }
 }

@@ -53,18 +53,18 @@
         if (!container) return;
 
         container.innerHTML = `
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div class="page-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
                 <h2 class="text-3xl font-black tracking-tight text-white mb-1">Evrak Arşivi</h2>
-                <p class="text-sm font-medium text-gray-400">Tüm araç ve şoför evraklarını tek noktadan yönetin. Süresi yaklaşanları anında görün.</p>
+                <p class="page-subtitle text-sm font-medium text-gray-400">Tüm araç ve şoför evraklarını tek noktadan yönetin. Süresi yaklaşanları anında görün.</p>
             </div>
-            <div class="flex items-center gap-3 flex-wrap">
+            <div class="page-actions flex items-center gap-3 flex-wrap">
                 <div class="relative">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500"></i>
                     <input type="text" id="evrak-arama" placeholder="Evrak türü ara..." oninput="window.evrakAramaYap(this.value)"
                         class="bg-white/5 border border-white/10 text-white text-sm rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-orange-500 transition-all w-56">
                 </div>
-                <div class="flex items-center bg-black/30 p-1 rounded-xl border border-white/5 gap-1">
+                <div class="evrak-filter-tabs flex items-center bg-black/30 p-1 rounded-xl border border-white/5 gap-1">
                     <button id="evrak-filter-hepsi" onclick="window.evrakFiltrele('hepsi')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
                     <button id="evrak-filter-arac" onclick="window.evrakFiltrele('ARAÇ')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Araç</button>
                     <button id="evrak-filter-sofor" onclick="window.evrakFiltrele('ŞOFÖR')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Şoför</button>
@@ -72,7 +72,7 @@
                     <button id="evrak-filter-kritik" onclick="window.evrakFiltrele('KRİTİK')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-red-400 hover:bg-red-500/20 transition-all">⚠ Kritik</button>
                 </div>
                 <button onclick="window.openModal('Yeni Evrak Ekle')"
-                    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
+                    class="btn-primary bg-orange-500 hover:bg-orange-600 text-white font-bold py-2.5 px-5 rounded-xl text-sm transition-all flex items-center gap-2 shadow-lg shadow-orange-500/20">
                     <i data-lucide="plus-circle" class="w-4 h-4"></i> Yeni Evrak
                 </button>
             </div>
