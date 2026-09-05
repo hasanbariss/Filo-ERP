@@ -186,6 +186,7 @@ function initMobileSidebar() {
 // 2. SIDEBAR COLLAPSE (desktop toggle button)
 // ============================================================
 function initSidebarCollapse() {
+    if (window.initSidebarFlyout) { window.initSidebarFlyout(); return; }
     const sidebar = document.getElementById('main-sidebar');
     const topbar = document.querySelector('.bf-topbar');
     if (!sidebar || !topbar || document.getElementById('sidebar-collapse-btn')) return;

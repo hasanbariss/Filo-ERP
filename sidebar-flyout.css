@@ -1,0 +1,246 @@
+.bf-nav-rail,
+.bf-rail-toggle,
+.bf-flyout-heading {
+  display: none;
+}
+@media (min-width: 769px) {
+  body.bf-app.sidebar-rail-enabled #main-sidebar {
+    width: 88px;
+    overflow: visible;
+    z-index: 60;
+    background: var(--erp-panel);
+    border-right: 1px solid var(--erp-line);
+    color: var(--erp-text);
+  }
+  body.bf-app.sidebar-rail-enabled > .bf-main-shell {
+    margin-left: 88px !important;
+  }
+  body.bf-app.sidebar-rail-enabled .bf-topbar {
+    left: 88px !important;
+  }
+  body.bf-app.sidebar-rail-enabled #main-sidebar .bf-sidebar-brand {
+    height: 88px;
+    min-height: 88px;
+    padding: 0;
+    justify-content: center;
+    background: transparent;
+    border-bottom: 0;
+    gap: 12px;
+  }
+  .sidebar-rail-enabled #main-sidebar .sidebar-brand-composite {
+    display: none;
+  }
+  body.sidebar-rail-enabled #main-sidebar .bf-sidebar-nav {
+    overflow: visible;
+    padding: 8px 0;
+  }
+  .sidebar-rail-enabled #main-sidebar .bf-sidebar-footer {
+    display: none;
+  }
+  .sidebar-rail-enabled .bf-rail-toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--erp-text);
+    cursor: pointer;
+  }
+  .bf-rail-toggle svg {
+    width: 25px;
+    height: 25px;
+  }
+  .sidebar-rail-enabled .bf-nav-rail {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 7px;
+    max-height: calc(100dvh - 106px);
+    overflow: auto;
+  }
+  .bf-nav-rail .bf-rail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    width: 100%;
+    min-height: 82px;
+    padding: 12px 3px;
+    border: 0;
+    border-radius: 14px;
+    background: transparent;
+    color: var(--erp-text);
+    font-size: 11px;
+    font-weight: 550;
+    cursor: pointer;
+  }
+  .bf-rail-item svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 1.8;
+  }
+  .bf-nav-rail .bf-rail-item:hover,
+  .bf-nav-rail .bf-rail-item.active,
+  .bf-nav-rail .bf-rail-item[aria-expanded="true"],
+  .bf-rail-toggle:hover {
+    background: var(--erp-panel-hover);
+  }
+  .bf-nav-rail .bf-rail-item.active svg {
+    color: var(--erp-coral);
+  }
+  .bf-rail-item:focus-visible,
+  .bf-rail-toggle:focus-visible,
+  .bf-flyout-heading button:focus-visible {
+    outline: 2px solid var(--erp-coral);
+    outline-offset: 2px;
+  }
+  body.sidebar-rail-enabled:not(.sidebar-menu-expanded)
+    #main-sidebar
+    .bf-rail-panel {
+    display: none;
+  }
+  body.sidebar-rail-enabled:not(.sidebar-menu-expanded)
+    #main-sidebar
+    .bf-rail-panel.rail-panel-open {
+    display: block;
+    position: fixed;
+    left: 100px;
+    top: 100px;
+    width: min(310px, calc(100vw - 116px));
+    max-height: calc(100dvh - 24px);
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid var(--erp-line);
+    border-radius: 20px;
+    background: var(--erp-panel);
+    box-shadow: 0 16px 55px rgba(15, 23, 42, 0.18);
+    margin: 0;
+    animation: bf-flyout-enter 140ms ease-out;
+  }
+  .sidebar-rail-enabled #main-sidebar .bf-flyout-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px 14px;
+    gap: 18px;
+    color: var(--erp-text);
+  }
+  .bf-flyout-heading h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .bf-flyout-heading button {
+    font-size: 25px;
+    line-height: 1;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    background: transparent;
+    border-radius: 8px;
+    color: var(--erp-text-3);
+    cursor: pointer;
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 100%;
+    min-height: 52px;
+    padding: 12px 14px;
+    border-radius: 11px;
+    color: var(--erp-text);
+    background: transparent;
+    font-size: 14px;
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link svg {
+    color: var(--erp-text-2);
+    width: 23px;
+    height: 23px;
+    min-width: 23px;
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link span {
+    display: inline;
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link:hover,
+  body.sidebar-rail-enabled #main-sidebar .nav-link.active {
+    background: var(--erp-panel-hover);
+    color: var(--erp-text);
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link.active svg {
+    color: var(--erp-coral);
+  }
+  body.sidebar-rail-enabled #main-sidebar .nav-link::before {
+    display: none;
+  }
+  body.sidebar-rail-enabled:not(.sidebar-menu-expanded)
+    #main-sidebar
+    .bf-rail-panel
+    > summary {
+    display: none;
+  }
+  body.sidebar-rail-enabled #main-sidebar .bf-sidebar-more > div {
+    display: block;
+    background: transparent;
+    padding: 0;
+  }
+  body.sidebar-rail-enabled.sidebar-menu-expanded #main-sidebar {
+    width: 264px;
+    overflow: hidden;
+  }
+  body.sidebar-rail-enabled.sidebar-menu-expanded > .bf-main-shell {
+    margin-left: 264px !important;
+  }
+  body.sidebar-rail-enabled.sidebar-menu-expanded .bf-topbar {
+    left: 264px !important;
+  }
+  body.sidebar-menu-expanded #main-sidebar .bf-nav-rail,
+  body.sidebar-menu-expanded #main-sidebar .bf-flyout-heading {
+    display: none;
+  }
+  body.sidebar-menu-expanded #main-sidebar .bf-sidebar-nav {
+    overflow-y: auto;
+    padding: 8px 12px;
+  }
+  body.sidebar-menu-expanded #main-sidebar .nav-section-label {
+    display: block;
+    padding: 15px 14px 7px;
+    color: var(--erp-text-3);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  body.sidebar-menu-expanded #main-sidebar .bf-sidebar-more > summary {
+    color: var(--erp-text-2);
+  }
+  body.sidebar-menu-expanded #main-sidebar .sidebar-brand-composite {
+    display: block;
+    width: 156px;
+  }
+  body.sidebar-menu-expanded #main-sidebar .sidebar-brand-logo-base {
+    filter: none;
+  }
+  :root.dark body.sidebar-menu-expanded #main-sidebar .sidebar-brand-logo-base {
+    filter: brightness(0) invert(1);
+  }
+  @keyframes bf-flyout-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.sidebar-rail-enabled #main-sidebar .bf-rail-panel.rail-panel-open {
+    animation: none !important;
+  }
+}

@@ -22,6 +22,8 @@ const webFiles = [
   'service-worker.js',
   'ornek_puantaj_sablonu.xlsx',
   'app-fixes.js',
+  'sidebar-flyout.js',
+  'sidebar-flyout.css',
   'ios-mobile.js',
   'cache-manager.js',
   'config.js',
