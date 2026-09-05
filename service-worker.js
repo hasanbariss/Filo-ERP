@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.47';
+var CACHE_NAME = 'filo-erp-v1.0.48';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',

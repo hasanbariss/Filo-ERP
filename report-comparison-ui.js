@@ -200,13 +200,66 @@
             var breakdown='<div class="customer-service-breakdown">'+ownershipGroups.map(function(item){return '<span><small>'+esc(item.ownership)+'</small><b>'+fmtMoney(item.gross)+'</b></span>';}).join('')+'<span class="service-total"><small>GENEL TOPLAM</small><b>'+fmtMoney(row.current.accrual)+'</b></span></div>';
 
             var summary = '<tr class="report-customer-row"><td><button type="button" class="report-customer-toggle" onclick="window.toggleReportCustomer(' + customerIndex + ')"><i data-lucide="chevron-right"></i><span><strong>' + esc(row.name) + '</strong><small>' + row.details.length + ' araç / bölge kaydı</small></span></button></td><td class="is-center">' + fmtNumber(row.current.shifts, 0) + '</td><td class="is-center">' + fmtNumber(row.current.trips, 0) + '</td><td class="is-number is-emphasis">' + breakdown + '</td><td class="is-number">' + fmtMoney(row.previous.accrual) + '</td><td class="is-number">' + changeMarkup(row.current.accrual, row.previous.accrual, false) + '</td><td class="is-center"><button class="report-detail-button" type="button" onclick="window.toggleReportCustomer(' + customerIndex + ')">Sınıflar</button></td></tr>';
-            var detail = '<tr class="report-customer-detail" data-report-customer="' + customerIndex + '" hidden><td colspan="7"><div class="report-customer-detail-panel"><p>Hizmet bedeli müşteri tarifelerinden hesaplanır; taşeron ödeme maliyeti değildir. Kesilmiş faturalar harici muhasebe / Excel’de takip edilir.</p>'+(missingClass.length?'<p class="customer-class-warning">'+missingClass.length+' araç / bölge kaydında sınıf eksik. Bu hizmetler aşağıda ve toplamlarda yer alır.</p>':'')+ownershipGroups.map(function(group){return '<section class="customer-ownership-section"><h4>'+esc(group.ownership)+'</h4><table class="premium-table w-full"><thead><tr><th>Sınıf</th><th>Bölge</th><th>Vardiya</th><th>Vardiya fiyatı</th><th>Tek</th><th>Tek fiyatı</th><th>Diğer</th><th>Hizmet bedeli</th></tr></thead><tbody>'+window.ReportAnalytics.groupServiceClasses(group.details).map(function(item){return '<tr><td>'+esc(item.vehicleClass)+'</td><td>'+esc(Array.from(item.regions).join(', '))+'</td><td>'+fmtNumber(item.shifts,0)+'</td><td>'+fmtMoney(item.vardiyaPrice)+'</td><td>'+fmtNumber(item.trips,0)+'</td><td>'+fmtMoney(item.tekPrice)+'</td><td>'+fmtNumber(item.other,0)+'</td><td>'+fmtMoney(item.gross)+'</td></tr>';}).join('')+'<tr class="customer-ownership-total"><td colspan="2">'+esc(group.ownership)+' TOPLAMI</td><td>'+fmtNumber(group.shifts,0)+'</td><td></td><td>'+fmtNumber(group.trips,0)+'</td><td></td><td>'+fmtNumber(group.other,0)+'</td><td>'+fmtMoney(group.gross)+'</td></tr></tbody></table></section>';}).join('')+'<p class="customer-factory-total">Fabrika genel toplamı: '+fmtMoney(row.current.accrual)+'</p><details class="report-rate-exceptions"><summary>Araç bazlı tarife düzenle</summary><div class="report-service-head"><span>Araç / sınıf</span><span>Vardiya</span><span>Vardiya fiyatı</span><span>Tek</span><span>Tek fiyatı</span><span>Brüt gelir</span><span></span></div>' + row.details.map(function (item, detailIndex) {
+            var detail = '<tr class="report-customer-detail" data-report-customer="' + customerIndex + '" hidden><td colspan="7"><div class="report-customer-detail-panel"><p>Hizmet bedeli müşteri tarifelerinden hesaplanır; taşeron ödeme maliyeti değildir. Kesilmiş faturalar harici muhasebe / Excel’de takip edilir.</p>'+(missingClass.length?'<p class="customer-class-warning">'+missingClass.length+' araç / bölge kaydında sınıf eksik. Bu hizmetler aşağıda ve toplamlarda yer alır.</p>':'')+ownershipGroups.map(function(group, ownershipIndex){return '<section class="customer-ownership-section"><h4>'+esc(group.ownership)+'</h4><table class="premium-table w-full"><thead><tr><th>Sınıf</th><th>Bölge</th><th>Vardiya</th><th>Vardiya fiyatı</th><th>Tek</th><th>Tek fiyatı</th><th>Diğer</th><th>Hizmet bedeli</th><th>Fiyat</th></tr></thead><tbody>'+window.ReportAnalytics.groupServiceClasses(group.details).map(function(item, classIndex){return '<tr><td>'+esc(item.vehicleClass)+'</td><td>'+esc(Array.from(item.regions).join(', '))+'</td><td>'+fmtNumber(item.shifts,0)+'</td><td>'+fmtMoney(item.vardiyaPrice)+'</td><td>'+fmtNumber(item.trips,0)+'</td><td>'+fmtMoney(item.tekPrice)+'</td><td>'+fmtNumber(item.other,0)+'</td><td>'+fmtMoney(item.gross)+'</td><td><button type="button" class="report-detail-button" onclick="window.openReportClassPrices('+customerIndex+','+ownershipIndex+','+classIndex+')">Düzenle</button></td></tr>';}).join('')+'<tr class="customer-ownership-total"><td colspan="2">'+esc(group.ownership)+' TOPLAMI</td><td>'+fmtNumber(group.shifts,0)+'</td><td></td><td>'+fmtNumber(group.trips,0)+'</td><td></td><td>'+fmtNumber(group.other,0)+'</td><td>'+fmtMoney(group.gross)+'</td><td></td></tr></tbody></table></section>';}).join('')+'<p class="customer-factory-total">Fabrika genel toplamı: '+fmtMoney(row.current.accrual)+'</p><details class="report-rate-exceptions"><summary>Araç bazlı tarife düzenle</summary><div class="report-service-head"><span>Araç / sınıf</span><span>Vardiya</span><span>Vardiya fiyatı</span><span>Tek</span><span>Tek fiyatı</span><span>Brüt gelir</span><span></span></div>' + row.details.map(function (item, detailIndex) {
                 return '<div class="report-service-line"><span><strong>' + esc(item.plate) + '</strong><small>' + esc(item.vehicleClass) + ' · ' + esc(item.region) + '</small></span><span>' + fmtNumber(item.current.shifts, 0) + '</span><label><span class="sr-only">Vardiya fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="vardiya" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.vardiyaPrice + '"></label><span>' + fmtNumber(item.current.trips, 0) + '</span><label><span class="sr-only">Tek sefer fiyatı</span><input type="number" min="0" step="0.01" data-report-rate="tek" data-customer-index="' + customerIndex + '" data-detail-index="' + detailIndex + '" value="' + item.current.tekPrice + '"></label><span class="is-money">' + fmtMoney(item.current.gross) + '</span><button type="button" onclick="window.saveReportServicePrices(' + customerIndex + ',' + detailIndex + ',this)"><i data-lucide="save"></i>Kaydet</button></div>';
             }).join('') + '</details></div></td></tr>';
             return summary + detail;
         }).join('');
         if (window.lucide) window.lucide.createIcons();
     }
+
+    var priceEdit = null;
+    function priceEditorDialog() {
+        var dialog=document.getElementById('report-class-price-dialog');
+        if(!dialog){dialog=document.createElement('dialog');dialog.id='report-class-price-dialog';dialog.className='report-price-dialog';dialog.setAttribute('aria-labelledby','report-price-title');dialog.addEventListener('cancel',function(event){if(priceEdit&&priceEdit.busy)event.preventDefault();});document.body.appendChild(dialog);}
+        return dialog;
+    }
+    window.openReportClassPrices = function(customerIndex, ownershipIndex, classIndex) {
+        if(priceEdit&&priceEdit.busy)return;
+        var customer=state.customers[customerIndex];
+        var group=customer&&window.ReportAnalytics.groupServiceOwnership(customer.details)[ownershipIndex];
+        var item=group&&window.ReportAnalytics.groupServiceClasses(group.details)[classIndex];
+        if(!item)return;
+        var rates={vardiya_fiyat:item.vardiyaPrice,tek_fiyat:item.tekPrice};
+        priceEdit={customerId:customer.id,period:state.period.value,details:item.details,busy:false,baseline:window.ReportAnalytics.servicePricePlan(state.priceDefinitions,item.details,state.period.value,rates,window.HakedisCalculations.selectPriceDefinition)};
+        var dialog=priceEditorDialog();
+        dialog.innerHTML='<h2 id="report-price-title">Sınıf fiyatlarını düzenle</h2><p>'+esc(customer.name)+' · '+esc(group.ownership)+' · '+esc(item.vehicleClass)+'</p><p><strong>'+esc(state.period.label)+'</strong> · '+item.vehicles.size+' araç / '+item.details.length+' araç-bölge kaydı</p><div class="report-price-inputs"><label>Vardiya fiyatı (TL)<input id="report-class-shift-price" type="number" min="0" step="0.01" value="'+item.vardiyaPrice+'"></label><label>Tek sefer fiyatı (TL)<input id="report-class-trip-price" type="number" min="0" step="0.01" value="'+item.tekPrice+'"></label></div><p>Bu fiyatlar aşağıdaki araçların yalnızca seçili dönemine uygulanır. Diğer hizmet fiyatları korunur.</p><ul>'+item.details.map(function(detail){return '<li>'+esc(detail.plate)+' · '+esc(detail.region)+'</li>';}).join('')+'</ul><p id="report-price-status" role="status" aria-live="polite"></p><div class="report-price-actions"><button type="button" id="report-price-close">Kapat</button><button type="button" id="report-price-save">Bu döneme uygula</button></div>';
+        dialog.querySelector('#report-price-close').onclick=function(){if(!priceEdit.busy)dialog.close();};
+        dialog.querySelector('#report-price-save').onclick=window.saveReportClassPrices;
+        dialog.showModal();
+    };
+    window.saveReportClassPrices = async function() {
+        if(!priceEdit||priceEdit.busy)return;
+        var edit=priceEdit, dialog=priceEditorDialog(), status=dialog.querySelector('#report-price-status');
+        var shift=dialog.querySelector('#report-class-shift-price'),trip=dialog.querySelector('#report-class-trip-price');
+        if(!shift.value||!trip.value||!shift.checkValidity()||!trip.checkValidity()){status.textContent='İki fiyatı da geçerli, sıfır veya pozitif bir tutar olarak girin.';return;}
+        var rates={vardiya_fiyat:Number(shift.value),tek_fiyat:Number(trip.value)};
+        var saved=0;
+        edit.busy=true;dialog.querySelectorAll('button,input').forEach(function(el){el.disabled=true;});status.textContent='Fiyatlar kontrol ediliyor…';
+        try {
+            var fresh=await priceRows();
+            var plan=window.ReportAnalytics.servicePricePlan(fresh.data,edit.details,edit.period,rates,window.HakedisCalculations.selectPriceDefinition);
+            if(plan.some(function(item,index){return item.signature!==edit.baseline[index].signature;}))throw new Error('Tarifeler rapor açıldıktan sonra değişmiş. Raporu yenileyip tekrar düzenleyin.');
+            for(var item of plan){
+                var response;
+                if(item.id){response=await window.supabaseClient.from('musteri_arac_tanimlari').update(item.payload).eq('id',item.id).select('id');}
+                else{response=await window.supabaseClient.from('musteri_arac_tanimlari').insert([item.payload]).select('id');}
+                if(response.error)throw response.error;
+                if(!response.data||response.data.length!==1)throw new Error(item.plate+' kaydı güncellenemedi.');
+                saved++;status.textContent=saved+' / '+plan.length+' kayıt kaydedildi.';
+            }
+            dialog.close();
+            if(window.Toast)window.Toast.success(edit.period+' döneminde '+saved+' araç-bölge tarifesi güncellendi.');
+        } catch(error) {
+            status.textContent=saved+' / '+edit.details.length+' kayıt kaydedildi. '+(error.message||'Kaydetme başarısız.')+' Kapatıp güncel rapor üzerinden yeniden deneyin.';
+        } finally {
+            edit.busy=false;dialog.querySelector('#report-price-close').disabled=false;
+            // Reload after success or partial failure; do not retry stale target definitions.
+            await window.fetchRaporlar();
+            var index=state.customers.findIndex(function(customer){return customer.id===edit.customerId;});
+            var detailRow=document.querySelector('[data-report-customer="'+index+'"]');if(detailRow)detailRow.hidden=false;
+        }
+    };
 
     window.getCustomerServiceExport = function() {
         var rows=[];
@@ -235,18 +288,14 @@
         var line = button.closest('.report-service-line');
         var vardiyaPrice = Math.max(0, Number(line.querySelector('[data-report-rate="vardiya"]').value) || 0);
         var tekPrice = Math.max(0, Number(line.querySelector('[data-report-rate="tek"]').value) || 0);
-        function normalizedRegion(value) { return String(value || 'Manisa').trim().toLocaleUpperCase('tr-TR'); }
-        var exact = state.priceDefinitions.find(function (row) {
-            return String(row.musteri_id) === String(detail.customerId) && String(row.arac_id) === String(detail.vehicleId)
-                && normalizedRegion(row.bolge) === normalizedRegion(detail.region) && row.donem === state.period.value;
-        });
+        var change=window.ReportAnalytics.servicePricePlan(state.priceDefinitions,[detail],state.period.value,{vardiya_fiyat:vardiyaPrice,tek_fiyat:tekPrice},window.HakedisCalculations.selectPriceDefinition)[0];
         var original = button.innerHTML;
         button.disabled = true;
         button.textContent = 'Kaydediliyor…';
         try {
             var response;
-            if (exact) response = await window.supabaseClient.from('musteri_arac_tanimlari').update({ vardiya_fiyat: vardiyaPrice, tek_fiyat: tekPrice }).eq('id', exact.id);
-            else response = await window.supabaseClient.from('musteri_arac_tanimlari').insert([{ musteri_id: detail.customerId, arac_id: detail.vehicleId, bolge: detail.region || 'Manisa', donem: state.period.value, vardiya_fiyat: vardiyaPrice, tek_fiyat: tekPrice, tarife_turu: 'Vardiya' }]);
+            if (change.id) response = await window.supabaseClient.from('musteri_arac_tanimlari').update(change.payload).eq('id', change.id);
+            else response = await window.supabaseClient.from('musteri_arac_tanimlari').insert([change.payload]);
             if (response.error) throw response.error;
             if (window.Toast) window.Toast.success('Dönemsel vardiya ve tek sefer fiyatları kaydedildi.');
             await window.fetchRaporlar();

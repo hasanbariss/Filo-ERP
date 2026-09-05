@@ -262,12 +262,31 @@
         (details || []).forEach(function(detail) {
             var current = detail.current;
             var key = JSON.stringify([serviceOwnership(detail.ownership), detail.vehicleClass, current.vardiyaPrice, current.tekPrice]);
-            var group = groups.get(key) || {vehicleClass:detail.vehicleClass, ownership:serviceOwnership(detail.ownership), shifts:0, trips:0, other:0, gross:0, vardiyaPrice:current.vardiyaPrice, tekPrice:current.tekPrice, regions:new Set(), vehicles:new Set()};
+            var group = groups.get(key) || {vehicleClass:detail.vehicleClass, ownership:serviceOwnership(detail.ownership), shifts:0, trips:0, other:0, gross:0, vardiyaPrice:current.vardiyaPrice, tekPrice:current.tekPrice, regions:new Set(), vehicles:new Set(), details:[]};
             group.shifts += number(current.shifts); group.trips += number(current.trips); group.other += number(current.other); group.gross += number(current.gross);
-            group.regions.add(detail.region); group.vehicles.add(detail.vehicleId);
+            group.regions.add(detail.region); group.vehicles.add(detail.vehicleId); group.details.push(detail);
             groups.set(key, group);
         });
         return Array.from(groups.values());
+    }
+
+    function servicePricePlan(definitions, details, period, rates, resolver) {
+        if (!/^\d{4}-\d{2}$/.test(period || '')) throw new Error('Geçerli dönem gerekli.');
+        ['vardiya_fiyat','tek_fiyat'].forEach(function(field){if(typeof rates[field]!=='number'||!Number.isFinite(rates[field])||rates[field]<0)throw new Error('Fiyat sıfır veya pozitif bir sayı olmalı.');});
+        var fields=['vardiya_fiyat','tek_fiyat','cikis_8_fiyat','giris_2030_fiyat','mesai_fiyat'];
+        var normalized=(definitions || []).map(function(row){return Object.assign({},row,{musteri_id:String(row.musteri_id),arac_id:String(row.arac_id)});});
+        var seen=new Set();
+        return (details || []).filter(function(detail){var key=JSON.stringify([detail.customerId,detail.vehicleId,detail.region]);if(seen.has(key))return false;seen.add(key);return true;}).map(function(detail){
+            var region=detail.region || 'Manisa';
+            var exact=normalized.find(function(row){return row.musteri_id===String(detail.customerId)&&row.arac_id===String(detail.vehicleId)&&(row.bolge || 'Manisa')===region&&row.donem===period;});
+            var source=resolver(normalized,{musteriId:String(detail.customerId),aracId:String(detail.vehicleId),bolge:region,donem:period}) || {};
+            var payload=Object.assign({},rates);
+            if(!exact){
+                payload.musteri_id=detail.customerId;payload.arac_id=detail.vehicleId;payload.bolge=region;payload.donem=period;payload.tarife_turu='Vardiya';
+                fields.slice(2).forEach(function(field){if(Object.prototype.hasOwnProperty.call(source,field))payload[field]=source[field];});
+            }
+            return {id:exact?exact.id:null,payload:payload,signature:JSON.stringify([exact?exact.id:null,source.id||null].concat(fields.map(function(field){return source[field]===undefined?null:source[field];}))),plate:detail.plate,region:region};
+        });
     }
 
     function groupCaris(caris, currentInvoices, currentPayments, previousInvoices, previousPayments) {
@@ -303,6 +322,7 @@
         mergeVehicleRevenue: mergeVehicleRevenue,
         groupServiceClasses: groupServiceClasses,
         groupServiceOwnership: groupServiceOwnership,
+        servicePricePlan: servicePricePlan,
         groupCaris: groupCaris
     };
 });

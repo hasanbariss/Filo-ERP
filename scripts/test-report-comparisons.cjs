@@ -105,3 +105,22 @@ assert.equal(ownershipTotals.reduce((sum,g)=>sum+g.gross,0),splitServices.curren
 assert.equal(report.groupServiceClasses(splitServices.details).length,4);
 assert.equal(ownershipTotals.find(g=>g.ownership==='TAŞERON').other,1);
 assert.equal(splitServices.details.find(d=>d.vehicleId==='missing').vehicleClass,'SINIFLANDIRILMAMIŞ');
+
+const globalPrice={id:'global-rate',musteri_id:'m',arac_id:'a',bolge:'Manisa',donem:null,vardiya_fiyat:100,tek_fiyat:50,mesai_fiyat:75,cikis_8_fiyat:25,giris_2030_fiyat:30};
+const currentPrice={...globalPrice,id:'current-rate',donem:'2026-09',vardiya_fiyat:110};
+const target={customerId:'m',vehicleId:'a',region:'Manisa',plate:'35 A 1'};
+const rateEdit={vardiya_fiyat:200,tek_fiyat:90};
+const periodPlan=report.servicePricePlan([globalPrice,currentPrice],[target],'2026-09',rateEdit,hakedis.selectPriceDefinition);
+assert.equal(periodPlan[0].id,'current-rate');
+assert.deepEqual(periodPlan[0].payload,rateEdit);
+const newPlan=report.servicePricePlan([globalPrice],[target,target],'2026-09',rateEdit,hakedis.selectPriceDefinition);
+assert.equal(newPlan.length,1);
+assert.equal(newPlan[0].id,null);
+assert.equal(newPlan[0].payload.mesai_fiyat,75);
+assert.equal(newPlan[0].payload.cikis_8_fiyat,25);
+assert.equal(newPlan[0].payload.giris_2030_fiyat,30);
+assert.equal(newPlan[0].payload.donem,'2026-09');
+assert.equal(globalPrice.vardiya_fiyat,100);
+assert.throws(()=>report.servicePricePlan([globalPrice],[target],'2026-09',{vardiya_fiyat:-1,tek_fiyat:50},hakedis.selectPriceDefinition));
+assert.throws(()=>report.servicePricePlan([globalPrice],[target],'2026-09',{vardiya_fiyat:NaN,tek_fiyat:50},hakedis.selectPriceDefinition));
+assert.equal(report.servicePricePlan([globalPrice],[target],'2026-09',{vardiya_fiyat:0,tek_fiyat:0},hakedis.selectPriceDefinition)[0].payload.tek_fiyat,0);
