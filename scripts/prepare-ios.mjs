@@ -62,6 +62,8 @@ const webFiles = [
   'rota-logic.js',
   'swipe-gestures.js',
   'toast-manager.js',
+  'vehicle-deletion.js',
+  'feedback-ui.css',
   'ui-manager.js',
   'whatsapp-reporter.js',
   'yakit_raporu.js'

@@ -1068,6 +1068,11 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
     }
 }
 window.deleteRecord = async function (tableName, id, fetchFunctionName) {
+    if (tableName === 'araclar') {
+        if (window.reviewVehicleDeletion) return window.reviewVehicleDeletion(id, fetchFunctionName);
+        window.Toast?.error('Araç silme ekranı yüklenemedi. Sayfayı yenileyin.');
+        return;
+    }
     const btn = window.event?.currentTarget;
     const originalHTML = btn ? btn.innerHTML : 'Sil';
 
