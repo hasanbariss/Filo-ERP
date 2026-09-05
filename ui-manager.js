@@ -3417,6 +3417,7 @@ window.printCariKart = function(plaka, month) {
     const moneyCell = amount => '<td class="money">' + fmt(amount) + '</td>';
     let serviceBrut = 0, serviceKdv = 0, serviceTev = 0;
     let serviceRows = '';
+    const densePrint = overlay.querySelectorAll('.musteri-calc-row').length >= 5;
     overlay.querySelectorAll('.musteri-calc-row').forEach(row => {
         const factory = row.querySelector('.cari-factory-toggle strong')?.textContent.trim()
             || row.querySelector('.hk-factory-title')?.textContent.trim() || 'Fabrika';
@@ -3430,16 +3431,19 @@ window.printCariKart = function(plaka, month) {
             price: value(row, '.calc-' + key + '-fiyat')
         })).filter(service => service.count > 0);
         if (!services.length) return;
-        serviceRows += '<tr class="factory"><th colspan="7">' + esc(factory)
+        if (!densePrint) serviceRows += '<tr class="factory"><th colspan="7">' + esc(factory)
             + '<span>KDV: %' + kdv + ' · TEV: %' + tev + '</span></th></tr>';
-        services.forEach(service => {
+        services.forEach((service, serviceIndex) => {
             const base = service.count * service.price;
             const tax = base * kdv / 100;
             const withholding = base * tev / 100;
             serviceBrut += base;
             serviceKdv += tax;
             serviceTev += withholding;
-            serviceRows += '<tr><td>' + esc(service.label) + '</td><td class="money">'
+            serviceRows += '<tr>' + (densePrint && serviceIndex === 0
+                ? '<td class="factory-name" rowspan="' + services.length + '"><strong>' + esc(factory)
+                    + '</strong><small>KDV %' + kdv + ' · TEV %' + tev + '</small></td>' : '')
+                + '<td>' + esc(service.label) + '</td><td class="money">'
                 + service.count.toLocaleString('tr-TR') + '</td>'
                 + moneyCell(service.price) + moneyCell(base) + moneyCell(tax)
                 + moneyCell(withholding) + moneyCell(base + tax - withholding) + '</tr>';
@@ -3529,17 +3533,19 @@ window.printCariKart = function(plaka, month) {
         + 'footer{display:flex;justify-content:space-between;gap:20px;margin-top:20px;padding-top:8px;border-top:1px solid #dbe1e7;font-size:9px;color:#53616d}'
         + '@page{size:A4 portrait;margin:12mm} @media print{body{background:#fff;font-size:11px}.sheet{max-width:none;margin:0;padding:0}.print-tools{display:none}h1{font-size:22px}header{padding-bottom:10px;margin-bottom:12px}.identity{padding:8px 12px;margin-bottom:12px}h2{margin-top:14px}th,td{padding:5px 6px}.summary-grid{margin:14px 0}.summary{padding:10px 12px}.summary-row{margin:5px 0}.billing{padding:8px 0;margin-top:12px}.billing dl{gap:7px 16px;margin-top:8px}footer{margin-top:12px}header,.identity,.closing{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
         + '.fuel-section h2{display:flex;justify-content:space-between;align-items:center}.fuel-section h2 span{font-size:9px;color:#53616d;font-weight:400}.fuel-ledger{font-size:8px;line-height:1.3;table-layout:fixed}.fuel-ledger th,.fuel-ledger td{padding:3px 5px;font-size:8px}.fuel-ledger th:nth-child(3n+1){width:16%}.fuel-ledger th:nth-child(3n+2){width:18%}.fuel-ledger th:nth-child(3n){width:16%}.fuel-ledger th:nth-child(4),.fuel-ledger td:nth-child(4){border-left:2px solid #bfc9d2;padding-left:9px}.fuel-ledger tbody tr:nth-child(even){background:#f7f9fa}'
+        + '.factory-name{width:20%;border-right:1px solid #dbe1e7;background:#f7f9fa}.factory-name strong{display:block;font-size:9px}.factory-name small{display:block;margin-top:3px;color:#53616d;font-size:8px;font-weight:400}'
+        + '@media print{.dense-print{line-height:1.25}.dense-print header{margin-bottom:8px;padding-bottom:8px}.dense-print h1{font-size:19px}.dense-print .identity{padding:6px 9px;margin-bottom:8px}.dense-print h2{font-size:12px;margin:10px 0 5px}.dense-print table{font-size:9px;margin-bottom:7px}.dense-print th,.dense-print td{padding:3px 5px}.dense-print .summary-grid{gap:12px;margin:10px 0}.dense-print .summary{padding:8px 10px}.dense-print .summary h2{margin-top:0}.dense-print .summary-row{font-size:10px;margin:4px 0}.dense-print .subtotal{padding-top:5px}.dense-print .net{margin-top:6px;padding-top:6px}.dense-print .net strong{font-size:15px}.dense-print .billing{padding:6px 0;margin-top:8px}.dense-print .billing dl{gap:5px 14px;margin-top:6px}.dense-print .billing dd{font-size:10px}.dense-print .billing dl>div{display:flex;align-items:baseline;gap:6px}.dense-print .billing dt{margin:0;font-size:9px;flex-shrink:0}.dense-print .billing dl{gap:4px 12px}.dense-print .billing h2{margin:0 0 4px}.dense-print .identity dt{font-size:9px}.dense-print header{line-height:1.1}.dense-print .factory-name small{margin-top:1px}.dense-print footer{margin-top:8px;padding-top:5px}.dense-print .fuel-ledger th,.dense-print .fuel-ledger td{padding:2px 5px}}'
         + '@media screen and (max-width:650px){.sheet{padding:18px;margin:0}.summary-grid{grid-template-columns:1fr}.print-tools span{display:none}.table-wrap{overflow-x:auto}}'
         + '</style></head><body>'
         + '<div class="print-tools"><span>Hakediş çıktısı · A4</span><button type="button" onclick="window.print()">Yazdır / PDF Kaydet</button></div>'
-        + '<main class="sheet"><header><div><span class="eyebrow">DÖNEMSEL HAKEDİŞ</span>'
+        + '<main class="sheet' + (densePrint ? ' dense-print' : '') + '"><header><div><span class="eyebrow">DÖNEMSEL HAKEDİŞ</span>'
         + '<h1>Hakediş Bildirimi</h1></div>'
         + '<div class="company-mark">' + esc(company.shortName || company.name) + '</div></header>'
         + '<dl class="identity">' + billingField('Dönem', period) + billingField('Araç plakası', plaka)
         + billingField('Hizmet veren / araç sahibi', owner) + '</dl>'
         + '<h2>Hizmet dökümü</h2><div class="table-wrap">'
-        + (serviceRows ? table(['Hizmet', 'Adet', 'Birim fiyat', 'Matrah', 'KDV', 'TEV', 'TEV sonrası'],
-            serviceRows + '<tr class="service-total"><td colspan="3">Hizmet toplamı</td>'
+        + (serviceRows ? table((densePrint ? ['Fabrika'] : []).concat(['Hizmet', 'Adet', 'Birim fiyat', 'Matrah', 'KDV', 'TEV', 'TEV sonrası']),
+            serviceRows + '<tr class="service-total"><td colspan="' + (densePrint ? 4 : 3) + '">Hizmet toplamı</td>'
             + moneyCell(serviceBrut) + moneyCell(serviceKdv) + moneyCell(serviceTev)
             + moneyCell(serviceBrut + serviceKdv - serviceTev) + '</tr>')
             : '<p class="empty">Bu dönem için hizmet satırı bulunmuyor.</p>') + '</div>'

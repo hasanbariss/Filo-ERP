@@ -144,6 +144,30 @@ const assert = require('node:assert/strict');
         path:process.env.PRINT_QA_DIR+'/hakedis-uzun.pdf',preferCSSPageSize:true,printBackground:true
     });
     assert.equal(await long.locator('.billing').count(), 1);
+    // Nine factories keep all service counts, rates and totals in a compact A4 layout.
+    await page.evaluate(() => {
+        const overlay = document.querySelector('#cari-kart-modal-overlay');
+        const factory = overlay.querySelector('.musteri-calc-row');
+        for (let i=2;i<=9;i++) {
+            const copy = factory.cloneNode(true);
+            copy.querySelector('.cari-factory-toggle strong').textContent = 'Fabrika ' + i;
+            factory.parentElement.append(copy);
+        }
+        const list = overlay.querySelector('#yakitlar-list-container');
+        while(list.children.length > 12) list.lastElementChild.remove();
+        window.CompanyBranding = {...window.CompanyBranding, currentCompany:window.printTestCompany};
+    });
+    const dense = await print();
+    await dense.emulateMedia({media:'print'});
+    assert.equal(await dense.locator('.factory-name').count(), 9);
+    assert.equal(await dense.locator('.fuel-ledger tbody tr').count(), 6);
+    await dense.setViewportSize({width:703,height:1100});
+    assert.ok(await dense.locator('.sheet').evaluate(el => el.getBoundingClientRect().height < 1030),
+        'Nine factories and twelve fuel records fit the A4 content height');
+    assert.match(await dense.locator('.summary-grid').innerText(), /251\.880,00 TL/);
+    if (process.env.PRINT_QA_DIR) await dense.pdf({
+        path:process.env.PRINT_QA_DIR+'/hakedis-9-fabrika.pdf',preferCSSPageSize:true,printBackground:true
+    });
     await browser.close();
     console.log('Hakediş print: current editor totals, VAT, TEV, compact fuel summary, period isolation, escaping and print controls PASS');
 })().catch(error => { console.error(error); process.exit(1); });
