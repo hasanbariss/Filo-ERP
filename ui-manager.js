@@ -3462,6 +3462,23 @@ window.printCariKart = function(plaka, month) {
             + moneyCell(sign * values.tev) + moneyCell(sign * values.toplam) + '</tr>';
     }).join('');
     const yakit = number(overlay.querySelector('#modal-yakit-total')?.dataset.val);
+    const fuelItems = Array.from(overlay.querySelectorAll('#yakitlar-list-container > div'), row => {
+        const rawDate = row.querySelector('.text-xs.font-bold')?.textContent.trim() || '';
+        return {
+            date: /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate.split('-').reverse().join('.') : rawDate,
+            detail: row.querySelector('.text-xs.font-bold + div')?.textContent.trim() || '',
+            amount: row.querySelector('.text-sm.font-black')?.textContent.trim() || ''
+        };
+    });
+    // Pair entries across the page; retain every fuel record without tall cards.
+    const pairedFuel = fuelItems.length > 6;
+    const fuelCell = item => item
+        ? '<td>' + esc(item.date) + '</td><td>' + esc(item.detail) + '</td><td class="money">' + esc(item.amount) + '</td>'
+        : '<td></td><td></td><td></td>';
+    let fuelRows = '';
+    for (let i = 0; i < fuelItems.length; i += pairedFuel ? 2 : 1) {
+        fuelRows += '<tr>' + fuelCell(fuelItems[i]) + (pairedFuel ? fuelCell(fuelItems[i + 1]) : '') + '</tr>';
+    }
     const autoGider = Array.from(
         overlay.querySelectorAll('.auto-gider-row:not([data-dismissed="true"])')
     ).reduce((sum, row) => sum + number(row.dataset.tutar), 0);
@@ -3492,10 +3509,10 @@ window.printCariKart = function(plaka, month) {
         + '.sheet{max-width:900px;margin:24px auto;padding:32px;background:#fff}'
         + '.print-tools{position:sticky;top:0;display:flex;justify-content:center;align-items:center;gap:16px;padding:12px;background:#17212b;color:#fff;font-size:13px}'
         + '.print-tools button{padding:10px 18px;border:0;border-radius:6px;background:#fff;color:#17212b;font-weight:700;cursor:pointer}'
-        + 'header{display:flex;justify-content:space-between;gap:24px;border-bottom:3px solid #17212b;padding-bottom:16px;margin-bottom:16px}'
+        + 'header{display:flex;justify-content:space-between;gap:24px;border-bottom:2px solid #d96750;padding-bottom:16px;margin-bottom:16px}'
         + 'h1{font-size:24px;line-height:1.2;margin:4px 0 6px;letter-spacing:-.5px}header p{margin:0;color:#53616d;font-size:11px}'
         + '.eyebrow{font-size:10px;letter-spacing:1.5px;font-weight:700;color:#53616d}.company-mark{text-align:right;font-size:18px;font-weight:700;letter-spacing:1px}'
-        + '.identity{display:grid;grid-template-columns:1fr 1fr 2fr;gap:14px;margin:0 0 20px;padding:12px 14px;background:#f5f7f9;border:1px solid #dbe1e7}'
+        + '.identity{border-radius:5px;display:grid;grid-template-columns:1fr 1fr 2fr;gap:14px;margin:0 0 20px;padding:12px 14px;background:#f5f7f9;border:1px solid #dbe1e7}'
         + 'dt{font-size:10px;font-weight:700;color:#53616d;margin-bottom:3px}dd{margin:0;font-size:12px;font-weight:600;overflow-wrap:anywhere}'
         + 'h2{font-size:14px;margin:20px 0 8px;break-after:avoid}table{width:100%;border-collapse:collapse;table-layout:auto;margin:0 0 12px;font-size:10px}'
         + 'th,td{padding:7px 6px;border-bottom:1px solid #dbe1e7;text-align:left;vertical-align:top;overflow-wrap:anywhere}'
@@ -3503,14 +3520,15 @@ window.printCariKart = function(plaka, month) {
         + '.money{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}.factory th{background:#f5f7f9;border-top:1px solid #aeb9c3;font-size:11px}.factory span{float:right;font-size:9px;font-weight:400}'
         + '.factory{break-after:avoid}.service-total td{font-weight:700;border-top:2px solid #53616d}'
         + '.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;break-inside:avoid}'
-        + '.summary{padding:14px;border:1px solid #bfc9d2;border-radius:6px}.summary h2{margin:0 0 12px}'
+        + '.summary{padding:12px 14px;border:0;border-top:2px solid #17212b;background:#f6f8fa}.summary h2{margin:0 0 12px}'
         + '.summary-row{display:flex;justify-content:space-between;gap:12px;margin:7px 0;font-size:11px}.summary-row strong{white-space:nowrap;font-variant-numeric:tabular-nums}'
-        + '.subtotal{border-top:1px solid #bfc9d2;padding-top:8px;font-weight:700}.net{border-top:2px solid #17212b;margin-top:12px;padding:10px 0 0;font-weight:700}.net strong{font-size:17px}'
-        + '.note{font-size:10px;color:#53616d;margin:8px 0 0}.billing{padding:14px 16px;border:1px solid #aeb9c3;border-left:4px solid #17212b;break-inside:avoid;margin-top:20px}'
+        + '.subtotal{border-top:1px solid #bfc9d2;padding-top:8px;font-weight:700}.net{border-top:1px solid #d96750;margin-top:12px;padding:10px 8px;background:#fbefe9;font-weight:700}.net strong{font-size:17px}'
+        + '.note{font-size:10px;color:#53616d;margin:8px 0 0}.billing{padding:12px 0;border:0;border-top:1px solid #aeb9c3;break-inside:avoid;margin-top:20px}'
         + '.billing h2{margin:0 0 4px}.billing dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin:12px 0 0}.billing .wide,.billing dl>div:first-child{grid-column:1/-1}'
         + '.missing{color:#9c382f}.empty{padding:10px 12px;border:1px solid #dbe1e7;color:#53616d;font-size:11px}'
         + 'footer{display:flex;justify-content:space-between;gap:20px;margin-top:20px;padding-top:8px;border-top:1px solid #dbe1e7;font-size:9px;color:#53616d}'
-        + '@page{size:A4 portrait;margin:12mm} @media print{body{background:#fff;font-size:11px}.sheet{max-width:none;margin:0;padding:0}.print-tools{display:none}h1{font-size:22px}header{padding-bottom:10px;margin-bottom:12px}.identity{padding:8px 12px;margin-bottom:12px}h2{margin-top:14px}th,td{padding:5px 6px}.summary-grid{margin:14px 0}.summary{padding:10px 12px}.summary-row{margin:5px 0}.billing{padding:10px 12px;margin-top:14px}.billing dl{gap:7px 16px;margin-top:8px}footer{margin-top:12px}header,.identity,.closing{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+        + '@page{size:A4 portrait;margin:12mm} @media print{body{background:#fff;font-size:11px}.sheet{max-width:none;margin:0;padding:0}.print-tools{display:none}h1{font-size:22px}header{padding-bottom:10px;margin-bottom:12px}.identity{padding:8px 12px;margin-bottom:12px}h2{margin-top:14px}th,td{padding:5px 6px}.summary-grid{margin:14px 0}.summary{padding:10px 12px}.summary-row{margin:5px 0}.billing{padding:8px 0;margin-top:12px}.billing dl{gap:7px 16px;margin-top:8px}footer{margin-top:12px}header,.identity,.closing{break-inside:avoid}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}'
+        + '.fuel-section h2{display:flex;justify-content:space-between;align-items:center}.fuel-section h2 span{font-size:9px;color:#53616d;font-weight:400}.fuel-ledger{font-size:8px;line-height:1.3;table-layout:fixed}.fuel-ledger th,.fuel-ledger td{padding:3px 5px;font-size:8px}.fuel-ledger th:nth-child(3n+1){width:16%}.fuel-ledger th:nth-child(3n+2){width:18%}.fuel-ledger th:nth-child(3n){width:16%}.fuel-ledger th:nth-child(4),.fuel-ledger td:nth-child(4){border-left:2px solid #bfc9d2;padding-left:9px}.fuel-ledger tbody tr:nth-child(even){background:#f7f9fa}'
         + '@media screen and (max-width:650px){.sheet{padding:18px;margin:0}.summary-grid{grid-template-columns:1fr}.print-tools span{display:none}.table-wrap{overflow-x:auto}}'
         + '</style></head><body>'
         + '<div class="print-tools"><span>Hakediş çıktısı · A4</span><button type="button" onclick="window.print()">Yazdır / PDF Kaydet</button></div>'
@@ -3527,6 +3545,10 @@ window.printCariKart = function(plaka, month) {
             : '<p class="empty">Bu dönem için hizmet satırı bulunmuyor.</p>') + '</div>'
         + (manualRows ? '<h2>Ek kalemler</h2>'
             + table(['Tür', 'Açıklama', 'Matrah', 'KDV', 'TEV', 'Toplam'], manualRows) : '')
+        + (fuelRows ? '<section class="fuel-section"><h2>Yakıt dökümü <span>' + fuelItems.length + ' kayıt</span></h2>'
+            + '<table class="fuel-ledger"><thead><tr><th>Tarih</th><th>Litre × birim fiyat</th><th class="money">Tutar</th>'
+            + (pairedFuel ? '<th>Tarih</th><th>Litre × birim fiyat</th><th class="money">Tutar</th>' : '')
+            + '</tr></thead><tbody>' + fuelRows + '</tbody></table></section>' : '')
         + '<section class="summary-grid"><div class="summary"><h2>Fatura özeti</h2>'
         + summaryRow('Fatura matrahı (KDV hariç)', totals.matrah)
         + summaryRow('+ KDV', totals.kdv)
