@@ -158,6 +158,7 @@
         }
         #print-section { display: none; }
     </style>
+<link rel="stylesheet" href="erp-workspace.css?v=1.0.0">
 </head>
 
 <body class="bf-app">
@@ -254,6 +255,7 @@
                 <h2 class="nav-section-label" id="nav-finance-label">Finans</h2>
                 <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span>Cariler</span></button>
                 <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span>Hakediş</span></button>
+                <button data-target="module-calisma-dosyalari" class="nav-link"><i data-lucide="folders"></i><span>Çalışma Dosyaları</span></button>
                 <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Raporlar</span></button>
             </section>
             <details class="bf-sidebar-more">
@@ -282,6 +284,7 @@
                 <h1 id="page-title" class="sr-only">Genel Bakış</h1>
             </div>
             <div class="page-actions">
+                <button type="button" class="bf-topbar-tool" onclick="window.openERPGlobalSearch()" aria-label="Her yerden bul" title="Her yerden bul · Ctrl / Cmd + K"><i data-lucide="search"></i></button>
                 <div class="bf-topbar-date"><i data-lucide="calendar-days" aria-hidden="true"></i><span id="bf-topbar-date">—</span></div>
                 <button type="button" onclick="toggleDarkMode()" class="bf-topbar-tool" aria-label="Temayı değiştir" title="Temayı değiştir">
                     <i data-lucide="moon" id="theme-icon-light"></i>
@@ -1959,7 +1962,7 @@
 <section id="maintenance-plan-panel" class="maintenance-plan-panel">
 <h3>Bakım Takibi · GPS</h3><p>Her bakımın kendi kilometre ve gün aralığı vardır. Planlar geçmiş kayıtların dönem filtresinden bağımsızdır.</p>
 <div class="maintenance-record-filters"><label>Araç grubu<select id="maintenance-plan-ownership" onchange="window.loadMaintenancePlans()"><option>ÖZMAL</option><option>TAŞERON</option></select></label><label>Araç<select id="maintenance-plan-vehicle" onchange="window.renderMaintenancePlans()"><option value="">Araç seçin</option></select></label><label>Durum<select id="maintenance-plan-status" onchange="window.renderMaintenancePlans()"><option value="">Tümü</option><option value="due">Gecikenler</option><option value="soon">Yaklaşanlar</option><option value="unknown">Veri bekleyenler</option><option value="current">Güncel</option></select></label></div>
-<div id="maintenance-plan-controls" hidden><button class="btn-secondary" onclick="window.setupMaintenanceGPS()">GPS başlangıcı / kalibrasyon</button><button class="btn-secondary" onclick="window.syncMaintenanceGPS(this)">Şimdi güncelle</button><button class="btn-primary" onclick="window.editMaintenancePlan()">Bakım planı ekle</button><button class="btn-secondary" onclick="window.setupMaintenanceFuel()">Yakıt tahmini ayarları</button></div>
+<div id="maintenance-plan-controls" hidden><button class="btn-secondary" onclick="window.openERPVehicle(document.getElementById('maintenance-plan-vehicle').value,'maintenance')">Birlikte yapılacak işler / PDF</button><button class="btn-secondary" onclick="window.setupMaintenanceGPS()">GPS başlangıcı / kalibrasyon</button><button class="btn-secondary" onclick="window.syncMaintenanceGPS(this)">Şimdi güncelle</button><button class="btn-primary" onclick="window.editMaintenancePlan()">Bakım planı ekle</button><button class="btn-secondary" onclick="window.setupMaintenanceFuel()">Yakıt tahmini ayarları</button></div>
 <p id="maintenance-gps-status" role="status"></p><p id="maintenance-fuel-status"></p><div id="maintenance-plan-results" class="maintenance-plan-grid"></div></section>
 
                         <div class="maintenance-toolbar">
@@ -2167,6 +2170,7 @@
                 </div>
             </div>
             <!-- 6. RAPORLAR MODULU -->
+            <div id="module-calisma-dosyalari" class="main-module hidden stagger-in"></div>
             <div id="module-raporlar" class="main-module hidden stagger-in">
                 <div class="page-header report-page-header flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
                     <div>
@@ -2940,7 +2944,7 @@
     <!-- Toast Manager (alert() yerine) -->
     <script src="toast-manager.js?v=3.0.0"></script>
     <!-- Keyboard Shortcuts (Desktop UX) -->
-    <script src="keyboard-shortcuts.js"></script>
+    <script src="keyboard-shortcuts.js?v=1.0.1"></script>
     <!-- Swipe Gestures + Pull-to-Refresh (Mobile UX) -->
     <script src="swipe-gestures.js"></script>
 
@@ -2994,9 +2998,12 @@
 <script defer src="teklif-management.js"></script>
 <script defer src="fuel-analytics.js?v=2.0.4"></script>
 <script defer src="report-analytics.js?v=2.0.4"></script>
-<script defer src="data-services.js?v=2.0.19"></script>
+<script defer src="data-services.js?v=2.0.20"></script>
+<script defer src="erp-workspace-core.js?v=1.0.0"></script>
+<script defer src="erp-workspace-data.js?v=1.0.0"></script>
+<script defer src="erp-workspace.js?v=1.0.0"></script>
 <script defer src="report-comparison-ui.js?v=2.0.5"></script>
-<script defer src="ui-manager.js?v=2.0.16"></script>
+<script defer src="ui-manager.js?v=2.0.17"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.6"></script>
 <script defer src="maintenance-tracking.js?v=1.0.0"></script>
 <script defer src="maintenance-planner.js?v=1.0.0"></script>

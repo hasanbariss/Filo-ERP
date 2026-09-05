@@ -2266,6 +2266,12 @@ window.openAracDetay = async function(aracId) {
         `;
         if (window.lucide) window.lucide.createIcons();
         
+        const dossierButton = document.createElement('button');
+        dossierButton.className = 'btn-secondary';
+        dossierButton.textContent = 'Araç dosyası / PDF';
+        dossierButton.onclick = () => { overlay.remove(); window.openERPVehicle(aracId); };
+        document.getElementById('arac-detay-body').append(dossierButton);
+
         // P&L datalarını asenkron yükle
         window.loadAracPL(aracId);
         

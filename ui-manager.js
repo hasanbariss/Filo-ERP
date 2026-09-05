@@ -185,6 +185,8 @@ navButtons.forEach(btn => {
             if (typeof fetchCariler === 'function') loadView('cari:cariler', () => fetchCariler());
         } else if (targetId === 'module-finans') {
             if (typeof fetchFinansDashboard === 'function') loadView('finans:dashboard', () => fetchFinansDashboard());
+        } else if (targetId === 'module-calisma-dosyalari') {
+            if (window.loadERPWorkspace) window.loadERPWorkspace();
         } else if (targetId === 'module-raporlar') {
             const period = getViewPeriod('rapor-ay');
             if (typeof fetchRaporlar === 'function') loadView(`rapor:genel:${period}`, () => fetchRaporlar());

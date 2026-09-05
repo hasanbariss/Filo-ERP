@@ -31,6 +31,7 @@
             },
 
             'ctrl+k': function () {
+                if (window.openERPGlobalSearch) { window.openERPGlobalSearch(); return; }
                 // Quick search focus (varsa)
                 var searchInput = document.querySelector('input[type="search"], input[placeholder*="Ara"], input[placeholder*="ara"]');
                 if (searchInput) {
