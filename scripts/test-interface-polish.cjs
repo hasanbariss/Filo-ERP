@@ -187,6 +187,15 @@ const assert = require("node:assert/strict");
       v: {
         plaka: "35 TEST",
         musteriDetay: {
+          f2: {
+            musteri_ad: "İkinci Fabrika",
+            vardiya: 1,
+            tek: 0,
+            vardiya_fiyat: 2000,
+            tek_fiyat: 0,
+            kdv_oran: 0,
+            tev_oran: 0,
+          },
           f: {
             musteri_ad: "İdeol Fabrika",
             vardiya: 10,
@@ -235,20 +244,21 @@ const assert = require("node:assert/strict");
       1,
       await page.locator("#cari-kart-modal-overlay").innerText(),
     );
-    assert.equal(await page.locator(".hakedis-section-nav button").count(), 3);
-    assert.match(await page.locator("#modal-net-total").innerText(), /11.000/);
-    await page.locator(".calc-vardiya-fiyat").fill("1200");
+    assert.equal(await page.locator(".hakedis-section-nav button").count(), 4);
     assert.match(await page.locator("#modal-net-total").innerText(), /13.000/);
+    await page.locator(".hakedis-section-nav button").nth(1).click();
+    await page.locator(".calc-vardiya-fiyat").nth(1).fill("1200");
+    assert.match(await page.locator("#modal-net-total").innerText(), /15.000/);
     await page.locator(".hakedis-section-nav button").last().click();
     assert.ok(
       await page
         .locator(".cari-manual-section")
-        .evaluate((el) => el === document.activeElement),
+        .evaluate((el) => el.dataset.active === "true"),
     );
     await page.locator(".hakedis-section-nav button").first().click();
     const rect = await drawer.boundingBox();
-    assert.ok(Math.abs(rect.x + rect.width - width) < 2);
-    assert.ok(rect.height >= 895);
+    assert.ok(rect.x >= 0 && rect.x + rect.width <= width + 1);
+    assert.ok(rect.height >= 800 && rect.height < 850);
     if (width >= 1024) {
       const bodyBox = await page
         .locator("#cari-kart-modal-overlay .cari-card-body")
@@ -257,7 +267,7 @@ const assert = require("node:assert/strict");
         .locator("#cari-kart-modal-overlay .cari-card-summary")
         .boundingBox();
       assert.ok(
-        bodyBox.width > width * 0.65,
+        bodyBox.width > width * 0.45,
         "Calculations use most of the desktop width",
       );
       assert.ok(

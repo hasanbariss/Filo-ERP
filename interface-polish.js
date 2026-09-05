@@ -100,38 +100,72 @@
     const body = overlay.querySelector(".cari-card-body");
     const nav = document.createElement("nav");
     nav.className = "hakedis-section-nav";
-    nav.setAttribute("aria-label", "Hakediş bölümleri");
-    const sections = [
-      [".cari-service-section", "Seferler"],
-      [".cari-fuel-section", "Yakıt"],
-      [".cari-auto-expense-section", "Bakım / Sigorta"],
-      [".cari-manual-section", "Ek kalemler"],
-    ];
-    sections.forEach(([selector, label]) => {
-      const section = body.querySelector(selector);
-      if (!section) return;
-      const number = String(nav.children.length + 1).padStart(2, "0");
-      section.dataset.sectionNumber = number;
+    nav.setAttribute("aria-label", "Hakediş çalışma alanları");
+    const label = document.createElement("p");
+    label.className = "hk-nav-label";
+    label.textContent = "FABRİKALAR";
+    nav.append(label);
+    const sections = [...body.querySelectorAll(".cari-card-section")];
+    const factories = [...body.querySelectorAll(".cari-factory-card")];
+    function activate(section, factory, button) {
+      sections.forEach((el) => (el.dataset.active = String(el === section)));
+      factories.forEach((el) => {
+        el.dataset.active = String(el === factory);
+        el.classList.add("is-open");
+      });
+      nav
+        .querySelectorAll("button")
+        .forEach((el) =>
+          el.setAttribute("aria-current", String(el === button)),
+        );
+      body.scrollTop = 0;
+    }
+    function entry(title, subtitle, section, factory) {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = number + "  " + label;
-      button.onclick = () => {
-        body.scrollTo({
-          top:
-            body.scrollTop +
-            section.getBoundingClientRect().top -
-            body.getBoundingClientRect().top -
-            20,
-          behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
-            ? "instant"
-            : "smooth",
-        });
-        section.tabIndex = -1;
-        section.focus({ preventScroll: true });
-      };
+      const name = document.createElement("strong");
+      name.textContent = title;
+      button.append(name);
+      if (subtitle) {
+        const small = document.createElement("small");
+        small.textContent = subtitle;
+        button.append(small);
+      }
+      button.onclick = () => activate(section, factory, button);
       nav.append(button);
+      return button;
+    }
+    const service = body.querySelector(".cari-service-section");
+    let first;
+    factories.forEach((factory) => {
+      const title =
+        factory.querySelector(".cari-factory-toggle strong")?.textContent ||
+        "Fabrika";
+      const subtitle =
+        factory.querySelector(".cari-factory-toggle small")?.textContent || "";
+      const heading = document.createElement("h4");
+      heading.className = "hk-factory-title";
+      heading.textContent = title;
+      factory.prepend(heading);
+      const button = entry(title, subtitle, service, factory);
+      if (!first) first = button;
+    });
+    if (!factories.length)
+      first = entry("Seferler", "Henüz fabrika kaydı yok", service, null);
+    const other = document.createElement("p");
+    other.className = "hk-nav-label";
+    other.textContent = "DİĞER KALEMLER";
+    nav.append(other);
+    [
+      [".cari-fuel-section", "Yakıt kesintileri"],
+      [".cari-auto-expense-section", "Bakım ve sigorta"],
+      [".cari-manual-section", "Ek gelir / gider"],
+    ].forEach(([selector, title]) => {
+      const section = body.querySelector(selector);
+      if (section) entry(title, "", section, null);
     });
     body.before(nav);
+    first?.click();
   };
   window.prepareDetailDrawer = function (overlay, close) {
     if (!overlay || overlay.dataset.drawerReady) return;
