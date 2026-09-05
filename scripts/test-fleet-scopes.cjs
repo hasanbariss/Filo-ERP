@@ -21,6 +21,20 @@ await page.evaluate(()=>window.resetOwnedFleetFilters('TAŞERON'));assert.equal(
 assert.equal(await page.locator('#contractor-arac-list-tbody button').count(),await page.locator('#arac-list-tbody button').count());
 const ids=await page.locator('[id]').evaluateAll(els=>els.map(el=>el.id));const duplicates=ids.filter((id,i)=>ids.indexOf(id)!==i);assert.ok(!duplicates.some(id=>id.startsWith('contractor-')||id.startsWith('fleet-')));
 await page.evaluate(()=>window.setFleetView('TAŞERON','grid'));assert.equal(await page.locator('#taseron-content-liste .fleet-surface').getAttribute('data-view-mode'),'grid');
+// Exercise the production CSS cascade: desktop previously forced every card grid off.
+for (const css of ['style.css','design-system.css','web-premium.css','web-executive.css','ui-final-pass.css']) await page.addStyleTag({content:fs.readFileSync(css,'utf8').replace(/@import[^;]+;/g,'')});
+for (const width of [1280,390]) {
+ await page.setViewportSize({width,height:844});
+ for (const scope of ['ÖZMAL','TAŞERON']) {
+  const root=scope==='ÖZMAL'?'#sub-araclar':'#taseron-content-liste';
+  for(const mode of ['grid','list']) {
+   await page.evaluate(({scope,mode})=>window.setFleetView(scope,mode),{scope,mode});
+   assert.equal(await page.locator(root+' .fleet-card-grid').evaluate(el=>getComputedStyle(el).display),mode==='grid'?'grid':'none');
+   assert.equal(await page.locator(root+' .fleet-table-wrap').evaluate(el=>getComputedStyle(el).display),mode==='list'?'block':'none');
+  }
+ }
+}
+console.log('Owned/contractor cards and list visibility with production desktop/mobile styles PASS');
 console.log('Ownership query isolation, shared vehicle actions, independent filters, owner labels and view controls PASS');
 await page.addScriptTag({path:process.cwd()+'/maintenance-workspace.js'});
 await page.evaluate(()=>{document.getElementById('bakim-tbody').innerHTML='<tr class="maintenance-row" data-maintenance-search="35 own yağ servis" data-maintenance-ownership="ÖZMAL" data-maintenance-status="is-due" data-maintenance-cost="500" data-maintenance-vehicle="a"></tr><tr class="maintenance-row" data-maintenance-search="35 sub lastik" data-maintenance-ownership="TAŞERON" data-maintenance-status="is-current" data-maintenance-cost="800" data-maintenance-vehicle="b"></tr>';document.getElementById('maintenance-ownership').value='ÖZMAL';window.filterMaintenanceRecords();});

@@ -34,7 +34,37 @@
     rail.setAttribute("aria-label", "Menü kategorileri");
     nav.prepend(rail);
     let opened = null;
+    let closeTimer;
+    let hoverOpened = false;
+    const canHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+    function cancelClose() {
+      clearTimeout(closeTimer);
+    }
+    function scheduleClose() {
+      cancelClose();
+      closeTimer = setTimeout(() => close(), 240);
+    }
+    function open(group, focus = false) {
+      cancelClose();
+      if (
+        !desktop.matches ||
+        document.body.classList.contains("sidebar-menu-expanded")
+      )
+        return;
+      if (opened !== group) {
+        close();
+        opened = group;
+        if (group.panel.matches("details")) group.panel.open = true;
+        group.panel.classList.add("rail-panel-open");
+        group.button.setAttribute("aria-expanded", "true");
+        position();
+      }
+      hoverOpened = !focus;
+      if (focus) group.panel.querySelector(".nav-link")?.focus();
+    }
     function close(restoreFocus = false) {
+      cancelClose();
+      hoverOpened = false;
       if (!opened) return;
       const previous = opened;
       previous.panel.classList.remove("rail-panel-open");
@@ -102,15 +132,19 @@
         : group.panel
       ).prepend(heading);
       button.onclick = () => {
-        if (opened === group) return close(true);
-        close();
-        opened = group;
-        if (group.panel.matches("details")) group.panel.open = true;
-        group.panel.classList.add("rail-panel-open");
-        button.setAttribute("aria-expanded", "true");
-        position();
-        group.panel.querySelector(".nav-link")?.focus();
+        if (opened === group && !hoverOpened) return close(true);
+        open(group, true);
       };
+      button.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse" && canHover.matches) open(group);
+      });
+      button.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse" && canHover.matches) scheduleClose();
+      });
+      group.panel.addEventListener("pointerenter", cancelClose);
+      group.panel.addEventListener("pointerleave", (event) => {
+        if (event.pointerType === "mouse" && canHover.matches) scheduleClose();
+      });
     });
     const toggle = document.createElement("button");
     toggle.id = "sidebar-collapse-btn";
@@ -176,14 +210,12 @@
     rail.addEventListener("scroll", position, { passive: true });
     desktop.addEventListener("change", layout);
     const activeObserver = new MutationObserver(activate);
-    nav
-      .querySelectorAll(".nav-link")
-      .forEach((link) =>
-        activeObserver.observe(link, {
-          attributes: true,
-          attributeFilter: ["class"],
-        }),
-      );
+    nav.querySelectorAll(".nav-link").forEach((link) =>
+      activeObserver.observe(link, {
+        attributes: true,
+        attributeFilter: ["class"],
+      }),
+    );
     layout();
     activate();
     window.lucide?.createIcons();

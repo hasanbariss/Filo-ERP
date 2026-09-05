@@ -52,13 +52,30 @@ const fs = require("fs"),
     () =>
       Math.abs(
         document.getElementById("main-sidebar").getBoundingClientRect().width -
-          88,
+          76,
       ) < 0.1,
   );
   assert.equal(
     Math.round((await page.locator("#main-sidebar").boundingBox()).width),
-    88,
+    76,
   );
+  const beforeFocus = await page.evaluate(() => document.activeElement.tagName);
+  await page.getByRole("button", { name: "Filo", exact: true }).hover();
+  await page.waitForSelector(".rail-panel-open");
+  assert.equal(
+    await page.evaluate(() => document.activeElement.tagName),
+    beforeFocus,
+    "Hover must not steal focus",
+  );
+  await page.locator("#bf-rail-panel-1 .nav-link").first().hover();
+  await page.waitForTimeout(300);
+  assert.equal(
+    await page.locator(".rail-panel-open").count(),
+    1,
+    "Panel stays open while crossing to links",
+  );
+  await page.locator(".bf-content").hover();
+  await page.waitForFunction(() => !document.querySelector(".rail-panel-open"));
   const links = await page.locator("#main-nav-buttons .nav-link").count();
   assert.equal(links, 14);
   await page.getByRole("button", { name: "Filo", exact: true }).click();

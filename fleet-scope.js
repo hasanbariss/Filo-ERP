@@ -40,7 +40,11 @@
 
 window.setFleetView = function(scope, mode) {
     var root=document.getElementById(scope==='TAŞERON'?'taseron-content-liste':'sub-araclar');
-    if(root)root.querySelector('.fleet-surface').dataset.viewMode=mode==='grid'?'grid':'list';
+    if(root) {
+        var surface=root.querySelector('.fleet-surface');
+        surface.dataset.viewMode=mode==='grid'?'grid':'list';
+        surface.dataset.viewSelected='true';
+    }
 };
 window.exportFleetScope = function(scope) {
     var prefix=scope==='TAŞERON'?'contractor-':'';

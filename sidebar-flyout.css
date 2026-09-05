@@ -5,7 +5,7 @@
 }
 @media (min-width: 769px) {
   body.bf-app.sidebar-rail-enabled #main-sidebar {
-    width: 88px;
+    width: 76px;
     overflow: visible;
     z-index: 60;
     background: var(--erp-panel);
@@ -13,14 +13,14 @@
     color: var(--erp-text);
   }
   body.bf-app.sidebar-rail-enabled > .bf-main-shell {
-    margin-left: 88px !important;
+    margin-left: 76px !important;
   }
   body.bf-app.sidebar-rail-enabled .bf-topbar {
-    left: 88px !important;
+    left: 76px !important;
   }
   body.bf-app.sidebar-rail-enabled #main-sidebar .bf-sidebar-brand {
-    height: 88px;
-    min-height: 88px;
+    height: 76px;
+    min-height: 76px;
     padding: 0;
     justify-content: center;
     background: transparent;
@@ -57,7 +57,7 @@
     flex-direction: column;
     gap: 8px;
     padding: 0 7px;
-    max-height: calc(100dvh - 106px);
+    max-height: calc(100dvh - 94px);
     overflow: auto;
   }
   .bf-nav-rail .bf-rail-item {
@@ -65,9 +65,9 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 9px;
+    gap: 7px;
     width: 100%;
-    min-height: 82px;
+    min-height: 70px;
     padding: 12px 3px;
     border: 0;
     border-radius: 14px;
@@ -78,8 +78,8 @@
     cursor: pointer;
   }
   .bf-rail-item svg {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     stroke-width: 1.8;
   }
   .bf-nav-rail .bf-rail-item:hover,
@@ -107,9 +107,9 @@
     .bf-rail-panel.rail-panel-open {
     display: block;
     position: fixed;
-    left: 100px;
+    left: 86px;
     top: 100px;
-    width: min(310px, calc(100vw - 116px));
+    width: min(288px, calc(100vw - 102px));
     max-height: calc(100dvh - 24px);
     overflow: auto;
     padding: 12px;
