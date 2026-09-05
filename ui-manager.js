@@ -2606,6 +2606,7 @@ window.openModal = function (title, id = null, extra = null) {
     }
 
     dynamicBody.innerHTML = content;
+    simplifyEntryForm(title, dynamicBody);
     modal.classList.remove('hidden');
 
     // Pre-fill fields if ID or EXTRA provided
@@ -4250,3 +4251,45 @@ window.printOzmalCizelge = function() {
         printWin.focus();
     }, 500);
 };
+
+// Keep existing field IDs and save handlers while presenting a compact entry form.
+function simplifyEntryForm(title, body) {
+    const definitions = {
+        'Yeni Cari Hesap': {basic:['cari-unvan','cari-tur','cari-telefon'], extra:['cari-dinamik-alanlar']},
+        'Yeni Bakım/Parça Kaydı': {prefix:'bakim', basic:['bakim-arac','bakim-tarih','bakim-tur','bakim-cari','bakim-aciklama','bakim-tutar','bakim-dinamik-alanlar'], extra:['bakim-km','bakim-dosya'], payment:['bakim-odeme-turu','bakim-kredi-karti-container','bakim-cari-hesap-container']},
+        'Yeni Poliçe Kaydı': {prefix:'police', basic:['police-arac','police-tur','police-cari','police-baslangic','police-bitis','police-tutar'], extra:['police-dosya'], payment:['police-odeme-turu','police-taksit','police-kredi-karti-container','police-cari-hesap-container']}
+    };
+    const config = definitions[title];
+    if (!config) return;
+    const form = document.createElement('div'); form.className='basic-entry-form';
+    function section(label, ids, collapsible) {
+        const group=document.createElement(collapsible?'details':'section');
+        const heading=document.createElement(collapsible?'summary':'h3'); heading.textContent=label; group.appendChild(heading);
+        const grid=document.createElement('div');grid.className='basic-entry-grid';group.appendChild(grid);
+        ids.forEach(id => {const element=body.querySelector('#'+id);if(element)grid.appendChild(element.matches('input,select,textarea')?element.parentElement:element);});
+        form.appendChild(group);
+    }
+    section('Temel bilgiler',config.basic,false);
+    if(config.payment)section('Ödeme durumu',config.payment,false);
+    section('Belge ve ek bilgiler',config.extra,true);
+    body.replaceChildren(form);
+    if(config.prefix) {
+        const prefix=config.prefix;
+        const payment=body.querySelector('#'+prefix+'-odeme-turu');
+        const labels={'VADELİ (Cariye Yaz)':'Henüz ödenmedi · cariye borç yaz','KREDİ KARTI':'Ödendi · kredi kartı','CARİ HESABI':'Ödendi · cari hesabından','NAKİT / HAVALE':'Ödendi · nakit / havale'};
+        if(payment)Array.from(payment.options).forEach(option=>{option.textContent=labels[option.value]||option.textContent;});
+        const summary=document.createElement('p');summary.className='basic-entry-summary';summary.setAttribute('aria-live','polite');form.appendChild(summary);
+        const refresh=()=>{
+            const amount=Number(body.querySelector('#'+prefix+'-tutar')?.value)||0;
+            const cari=body.querySelector('#'+prefix+'-cari');
+            const name=cari?.selectedOptions[0]?.textContent||'Seçilen cari';
+            const deferred=payment?.value==='VADELİ (Cariye Yaz)';
+            const text=name+' · '+amount.toLocaleString('tr-TR',{style:'currency',currency:'TRY'})+' · '+(deferred?'Ödenmedi; cari borcu oluşacak.':payment?.selectedOptions[0]?.textContent||'Ödeme yöntemi seçin.');
+            if(summary.textContent!==text)summary.textContent=text;
+        };
+        form.addEventListener('input',refresh);form.addEventListener('change',refresh);
+        const observer=new MutationObserver(refresh);observer.observe(form,{childList:true,subtree:true});
+        // Observe only asynchronous option loading; detach before the next form opens.
+        setTimeout(()=>observer.disconnect(),5000);refresh();
+    }
+}

@@ -310,3 +310,6 @@
         font-size: 13px;
     }
 }
+
+/* Compact maintenance, policy and account entry. */
+.basic-entry-form{display:grid;gap:18px}.basic-entry-form section,.basic-entry-form details{border:1px solid var(--border-color,#334155);border-radius:12px;padding:16px}.basic-entry-form h3,.basic-entry-form summary{font-size:14px;font-weight:700;margin-bottom:14px}.basic-entry-form summary{cursor:pointer}.basic-entry-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.basic-entry-grid>div{min-width:0}.basic-entry-summary{padding:14px;border-radius:10px;background:rgba(59,130,246,.1);font-size:13px;line-height:1.6}@media(max-width:600px){.basic-entry-grid{grid-template-columns:1fr}}
