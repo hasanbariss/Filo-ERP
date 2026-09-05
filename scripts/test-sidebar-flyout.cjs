@@ -104,12 +104,12 @@ const fs = require("fs"),
     () =>
       Math.abs(
         document.getElementById("main-sidebar").getBoundingClientRect().width -
-          264,
+          240,
       ) < 0.1,
   );
   assert.equal(
     Math.round((await page.locator("#main-sidebar").boundingBox()).width),
-    264,
+    240,
   );
   assert.ok(await page.locator("[data-target=module-filo]").isVisible());
   await page.locator("#sidebar-collapse-btn").click();
