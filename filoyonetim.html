@@ -162,7 +162,7 @@
 <link rel="stylesheet" href="sidebar-flyout.css?v=1.0.2">
 <link rel="stylesheet" href="feedback-ui.css?v=1.0.0">
 <link rel="stylesheet" href="interface-polish.css?v=1.1.0">
-<link rel="stylesheet" href="hakedis-panel.css?v=2.0.1">
+<link rel="stylesheet" href="hakedis-panel.css?v=2.0.2">
 </head>
 
 <body class="bf-app">
@@ -1713,13 +1713,13 @@
                     </div>
 
                     <!-- Yakıt Yönetimi -->
-                    <div id="content-yakit" class="hidden p-6">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                            <h3 class="text-lg font-bold">Yakıt Alım Kayıtları</h3>
+                    <div id="content-yakit" class="hidden p-6 hakedis-fuel">
+                        <div class="hakedis-fuel-header">
+                            <div><h3>Yakıt Alım Kayıtları</h3><p>Araç ve şirkete göre yakıt alımlarını inceleyin, kayıt ekleyin veya içe aktarın.</p></div>
                             
-                            <div class="flex flex-wrap items-center gap-2">
+                            <div class="hakedis-fuel-toolbar">
                                 <!-- FİLTRELER BURAYA -->
-                                <div class="flex items-center bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
+                                <div class="hakedis-fuel-filters">
                                     <button id="filter-yakit-btn-hepsi" onclick="window.filterYakitlar('hepsi', 'hepsi')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg bg-orange-500 text-white transition-all">Hepsi</button>
                                     <div class="w-px h-4 bg-white/10 mx-1"></div>
                                     <button id="filter-yakit-btn-ozmal" onclick="window.filterYakitlar('ÖZMAL', window.currentYakitSirket || 'hepsi')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">Özmal</button>
@@ -1729,9 +1729,9 @@
                                     <button id="filter-yakit-btn-dikkan" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'DİKKAN')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">DİKKAN</button>
                                     <button id="filter-yakit-btn-mk" onclick="window.filterYakitlar(window.currentYakitMulkiyet || 'hepsi', 'M.K.')" class="px-3 py-1.5 text-[11px] font-bold rounded-lg text-gray-400 hover:bg-white/10 transition-all">M.K.</button>
                                 </div>
-                                <input type="text" id="yakit-search" placeholder="Plaka Ara..." oninput="if(typeof fetchYakitlar === 'function') fetchYakitlar()"
+                                <input type="text" id="yakit-search" placeholder="Plaka ara" aria-label="Yakıt kayıtlarında plaka ara" oninput="if(typeof fetchYakitlar === 'function') fetchYakitlar()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-32">
-                                <input type="month" id="filter-yakit-ay" onchange="fetchYakitlar()"
+                                <input type="month" id="filter-yakit-ay" aria-label="Yakıt dönemi" onchange="fetchYakitlar()"
                                     class="bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-sm text-white outline-none focus:border-orange-500">
                                 
                                 <input type="file" id="yakit-excel-input" accept=".xls,.xlsx" style="display:none" onchange="importYakitExcel(event)">
@@ -1759,7 +1759,7 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto hakedis-fuel-table">
                             <table class="premium-table">
                                 <thead>
                                     <tr>
@@ -1778,8 +1778,6 @@
                                 <tbody id="yakit-tbody">
                                     <tr>
                                         <td colspan="7" class="py-12 text-center text-gray-500 italic">Yükleniyor...</td>
-                                    </tr>
-                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
