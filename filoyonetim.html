@@ -158,8 +158,8 @@
         }
         #print-section { display: none; }
     </style>
-<link rel="stylesheet" href="erp-workspace.css?v=1.1.0">
-<link rel="stylesheet" href="sidebar-flyout.css?v=1.0.2">
+<link rel="stylesheet" href="erp-workspace.css?v=1.2.0">
+<link rel="stylesheet" href="sidebar-flyout.css?v=1.0.3">
 <link rel="stylesheet" href="feedback-ui.css?v=1.0.0">
 <link rel="stylesheet" href="interface-polish.css?v=1.1.0">
 <link rel="stylesheet" href="hakedis-panel.css?v=2.0.2">
@@ -245,30 +245,30 @@
         <nav class="bf-sidebar-nav" id="main-nav-buttons" aria-label="Uygulama modülleri">
             <section class="nav-section" aria-labelledby="nav-general-label">
                 <h2 class="nav-section-label" id="nav-general-label">Genel</h2>
-                <button data-target="module-dashboard" class="nav-link active"><i data-lucide="layout-dashboard"></i><span>Genel Bakış</span></button>
+                <button data-target="module-dashboard" class="nav-link active"><i data-lucide="layout-dashboard"></i><span data-menu-help="Bugünün durumu ve yaklaşan işler">Genel Bakış</span></button>
             </section>
             <section class="nav-section" aria-labelledby="nav-fleet-label">
                 <h2 class="nav-section-label" id="nav-fleet-label">Filo</h2>
-                <button data-target="module-filo" class="nav-link"><i data-lucide="truck"></i><span>Özmal Filo</span></button>
-                <button data-target="module-taseron" class="nav-link"><i data-lucide="users-2"></i><span>Taşeronlar</span></button>
-                <button data-target="module-musteri" class="nav-link"><i data-lucide="factory"></i><span>Fabrikalar</span></button>
-                <button data-target="module-personel" class="nav-link"><i data-lucide="user-round-cog"></i><span>Personel</span></button>
-                <button data-target="module-yakit-km" class="nav-link"><i data-lucide="fuel"></i><span>Yakıt &amp; KM</span></button>
+                <button data-target="module-filo" class="nav-link"><i data-lucide="truck"></i><span data-menu-help="Kendi araçların, şoförleri ve bakımları">Özmal Filo</span></button>
+                <button data-target="module-taseron" class="nav-link"><i data-lucide="users-2"></i><span data-menu-help="Dışarıdan çalıştığın araçlar ve sahipleri">Taşeronlar</span></button>
+                <button data-target="module-musteri" class="nav-link"><i data-lucide="factory"></i><span data-menu-help="Servis verdiğin fabrikalar ve puantajları">Fabrikalar</span></button>
+                <button data-target="module-personel" class="nav-link"><i data-lucide="user-round-cog"></i><span data-menu-help="Çalışanların ve personel işlemleri">Personel</span></button>
+                <button data-target="module-yakit-km" class="nav-link"><i data-lucide="fuel"></i><span data-menu-help="Hangi araç ne kadar yakıyor?">Yakıt &amp; KM</span></button>
             </section>
             <section class="nav-section" aria-labelledby="nav-finance-label">
                 <h2 class="nav-section-label" id="nav-finance-label">Finans</h2>
-                <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span>Cariler</span></button>
-                <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span>Hakediş</span></button>
-                <button data-target="module-calisma-dosyalari" class="nav-link"><i data-lucide="folders"></i><span>Çalışma Dosyaları</span></button>
-                <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span>Raporlar</span></button>
+                <button data-target="module-cari" class="nav-link"><i data-lucide="landmark"></i><span data-menu-help="Kimden alacağın, kime borcun var?">Cariler</span></button>
+                <button data-target="module-finans" class="nav-link"><i data-lucide="wallet-cards"></i><span data-menu-help="Yapılan işin dönem ücretini hesapla">Hakediş</span></button>
+                <button data-target="module-calisma-dosyalari" class="nav-link"><i data-lucide="folders"></i><span data-menu-help="Kayıtları birleştir, hesap özeti hazırla">Hesap Hazırla</span></button>
+                <button data-target="module-raporlar" class="nav-link"><i data-lucide="chart-no-axes-combined"></i><span data-menu-help="Gelir, gider ve dönemleri karşılaştır">Raporlar</span></button>
             </section>
             <details class="bf-sidebar-more">
                 <summary><i data-lucide="ellipsis"></i><span>Diğer Modüller</span><i data-lucide="chevron-down" class="bf-sidebar-more-chevron"></i></summary>
                 <div>
-                    <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span>Teklifler</span></button>
-                    <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span>Operasyon Merkezi</span></button>
-                    <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span>Evraklar</span></button>
-                    <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span>Operasyon Takvimi</span></button>
+                    <button data-target="module-teklifler" class="nav-link"><i data-lucide="file-text"></i><span data-menu-help="Müşteriye vereceğin fiyat teklifleri">Teklifler</span></button>
+                    <button data-target="module-operasyon-merkezi" class="nav-link"><i data-lucide="panel-top"></i><span data-menu-help="Günlük işler ve hızlı kayıt girişi">Operasyon Merkezi</span></button>
+                    <button data-target="module-evrak-arsivi" class="nav-link"><i data-lucide="folder-archive"></i><span data-menu-help="Belgeleri yükle, bul ve incele">Evraklar</span></button>
+                    <button data-target="module-takvim" class="nav-link"><i data-lucide="calendar-range"></i><span data-menu-help="Hangi günün kayıtları tamamlandı?">Operasyon Takvimi</span></button>
                 </div>
             </details>
         </nav>
@@ -3005,7 +3005,7 @@
 <script defer src="data-services.js?v=2.0.24"></script>
 <script defer src="erp-workspace-core.js?v=1.0.0"></script>
 <script defer src="erp-workspace-data.js?v=1.0.0"></script>
-<script defer src="erp-workspace.js?v=1.1.0"></script>
+<script defer src="erp-workspace.js?v=1.2.0"></script>
 <script defer src="report-comparison-ui.js?v=2.0.5"></script>
 <script defer src="ui-manager.js?v=2.0.22"></script>
 <script defer src="fuel-analytics-ui.js?v=2.0.6"></script>

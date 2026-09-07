@@ -256,3 +256,7 @@
     animation: none !important;
   }
 }
+
+/* Explain the destination before the user opens it. */
+body.bf-app #main-sidebar .nav-link span[data-menu-help] { min-width: 0; white-space: normal; line-height: 1.35; text-align: left; }
+body.bf-app #main-sidebar .nav-link span[data-menu-help]::after { content: attr(data-menu-help); display: block; margin-top: 4px; color: var(--erp-text-3, #73808c); font-size: 10px; font-weight: 400; line-height: 1.45; white-space: normal; letter-spacing: 0; }

@@ -397,3 +397,17 @@ body.bf-app #module-calisma-dosyalari .ew-more-grid button { display: grid; gap:
   body.bf-app #module-calisma-dosyalari .ew-start-card { min-height: 160px; padding: 20px; }
   #module-calisma-dosyalari .ew-more summary span { display: block; margin: 5px 0; }
 }
+
+#module-calisma-dosyalari .ew-how-it-works { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 24px; color: var(--feedback-muted); font-size: 12px; }
+#module-calisma-dosyalari .ew-how-it-works span { display: flex; align-items: center; gap: 8px; }
+#module-calisma-dosyalari .ew-how-it-works b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--feedback-bg); border: 1px solid var(--feedback-line); color: var(--erp-coral); }
+#module-calisma-dosyalari .ew-guidance { margin: 0 0 22px; padding: 18px 20px; background: var(--feedback-soft); border: 1px solid var(--feedback-line); border-radius: 10px; color: var(--feedback-text); }
+#module-calisma-dosyalari .ew-guidance .ew-example { margin: 0 0 16px; font-size: 14px; line-height: 1.6; }
+#module-calisma-dosyalari .ew-guidance > div { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+#module-calisma-dosyalari .ew-guidance > div p { display: grid; gap: 6px; margin: 0; font-size: 12px; line-height: 1.6; }
+#module-calisma-dosyalari .ew-guidance span { color: var(--feedback-muted); }
+#module-calisma-dosyalari .ew-extra-records { width: 100%; margin: 10px 0; padding: 14px 16px; border: 1px solid var(--feedback-line); border-radius: 8px; }
+#module-calisma-dosyalari .ew-extra-records summary { cursor: pointer; color: var(--feedback-text); font-size: 13px; font-weight: 600; }
+#module-calisma-dosyalari .ew-extra-records p { font-size: 12px; color: var(--feedback-muted); margin: 12px 0; }
+#module-calisma-dosyalari .ew-extra-fields { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+@media (max-width: 760px) { #module-calisma-dosyalari .ew-guidance > div { grid-template-columns: 1fr; } }

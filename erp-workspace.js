@@ -22,32 +22,46 @@
   const today = () =>
     new Date(Date.now() + 10800000).toISOString().slice(0, 10);
   const titles = {
-    factory: "Fabrika aylık dosyası",
-    owner: "Araç sahibi hesap pusulası",
-    vehicle: "Araç dosyası",
-    changes: "Bu ay neden değişti?",
-    package: "Araç sahibine hesap paketi",
-    quote: "Teklif hesaplayıcısı",
-    maintenance: "Birlikte yapılabilecek bakımlar",
-    search: "Her yerden bul",
-    prices: "Toplu fiyat önizlemesi",
-    management: "Aylık yönetim dosyası",
-    stock: "Parça ve sarf stokları",
-    archive: "Kaydedilmiş dosyalar",
+    factory: "Fabrikanın aylık hesap özeti",
+    owner: "Araç sahibinin hesap dökümü",
+    vehicle: "Aracın iş ve gider geçmişi",
+    changes: "Bu ayki tutar neden değişti?",
+    package: "Araç sahibine göndermek için özet hazırla",
+    quote: "Yeni bir iş için fiyat hesapla",
+    maintenance: "Servise gidecek aracın işlerini listele",
+    search: "Bir kayıt bul",
+    prices: "Fiyat değişirse ne olur?",
+    management: "Ayın genel durumunu gör",
+    stock: "Depoda ne var, ne eksik?",
+    archive: "Kaydettiğim hesap ve raporlar",
   };
   const descriptions = {
-    factory: "Hizmet, dış muhasebe faturası ve tahsilatı birlikte inceleyin.",
-    owner: "Doğrulanmış araç–sahip–cari eşleşmesiyle hesap hazırlayın.",
-    vehicle: "Aracın servis, yakıt, bakım ve belgelerini tek dosyada görün.",
-    changes: "Miktar ve fiyat değişiminin tutara etkisini karşılaştırın.",
-    package: "Araç sahibine sunulacak dökümü ve mesajı hazırlayın.",
-    quote: "Kendi maliyetlerinizle bağımsız bir teklif oluşturun.",
-    maintenance: "Aynı servis ziyaretinde yapılacak işleri seçip yazdırın.",
-    search: "Plaka, fabrika, personel, cari veya fatura bulun.",
-    prices: "Tarifelere dokunmadan fiyat değişiminin etkisini görün.",
-    management:
-      "İhtiyacınız olan bölümlerle dönemin yönetim dosyasını hazırlayın.",
-    stock: "Giriş, araca çıkış, raf ve ihtiyaç listesini takip edin.",
+    factory: "Fabrikaya verdiğin hizmetleri, eklediğin faturaları ve aldığın ödemeleri bir arada gösterir.",
+    owner: "Bir araç sahibinin seçtiğin aydaki hizmet, kesinti ve ek kalemlerini hesap dökümünde toplar.",
+    vehicle: "Bir aracın servis, yakıt, bakım ve belge kayıtlarını tek yerde gösterir.",
+    changes: "Geçen aya göre hizmet tutarının neden değiştiğini; sefer sayısı ve fiyat etkisini ayırarak gösterir.",
+    package: "Araç sahibine kendin gönderebileceğin bir hesap dökümü ve kopyalanabilir özet hazırlar.",
+    quote: "Gireceğin yakıt, şoför ve diğer maliyetlerden bir iş için teklif tutarı hesaplar.",
+    maintenance: "Seçtiğin aracın aynı servis ziyaretinde yapılabilecek bakımlarını listeler.",
+    search: "Plaka, kişi, fabrika veya fatura numarasını yazarak ilgili kaydı bulmanı sağlar.",
+    prices: "Fiyatlar değişirse hizmet tutarı nasıl etkilenir? Mevcut tarifeleri değiştirmeden hesaplar.",
+    management: "Seçtiğin ayın hizmet, gider ve diğer özetlerini tek raporda toplar.",
+    stock: "Depodaki parçaları, araçlara verilen malzemeleri ve alınması gerekenleri gösterir.",
+    archive: "Daha önce burada kaydettiğin hesapları ve raporları yeniden açar.",
+  };
+  const guidance = {
+    factory: ["Örneğin: Ağustosta bu fabrikaya ne kadar hizmet verdik, hangi faturaları ve ödemeleri kaydettik?", "Ayı ve fabrikayı seç. Hizmet fiyatlarının KDV dahil olup olmadığını biliyorsan belirt.", "Hizmet, fatura ve tahsilat dökümü", "Fabrika özetini göster"],
+    owner: ["Örneğin: Bir araç sahibinin ağustos hesabını birlikte gözden geçirmek istiyorum.", "Ayı ve araç sahibini seç. Listede yoksa önce araçlarını o kişiyle eşleştir.", "Hizmet, kesinti ve ek kalemlerden oluşan hesap dökümü", "Hesap dökümünü göster"],
+    vehicle: ["Örneğin: Bu araç ne iş yaptı, ne kadar yakıt aldı ve hangi bakımları gördü?", "Ayı ve incelemek istediğin plakayı seç.", "Aylık hizmet özeti ve aracın kayıt geçmişi", "Araç özetini göster"],
+    changes: ["Örneğin: Bu ayki hizmet tutarı geçen aydan neden farklı?", "Karşılaştırılacak ayı seç; istersen fabrika veya araçla daralt.", "Sefer sayısı ve fiyat değişimlerinin tutara etkisi", "İki ayı karşılaştır"],
+    package: ["Örneğin: Araç sahibine kontrol etmesi için bu ayın hesabını göndereceğim.", "Ayı ve araç sahibini seç. Dökümü kontrol ettikten sonra özetini kopyalayabilirsin.", "Hesap dökümü ve kendin paylaşabileceğin kısa özet", "Paylaşılacak özeti hazırla"],
+    quote: ["Örneğin: Yeni bir servis işi için hangi fiyatı vermeliyim?", "İşin kilometre, çalışma günü ve maliyet bilgilerini doldur.", "Girdiğin maliyetlere göre hesaplanan teklif", "Teklif tutarını hesapla"],
+    maintenance: ["Örneğin: Araç servise gidecek; hazır gitmişken hangi işleri yaptırmalıyım?", "Aracı seç, listelenen bakım işlerini işaretle ve varsa servise not ekle.", "Yazdırabileceğin bakım iş listesi", "Servis listesini hazırla"],
+    search: ["Örneğin: Bir plakayı biliyorum ama kaydının hangi menüde olduğunu bilmiyorum.", "Aşağıya plaka, isim veya fatura numarası yaz; çıkan kaydı seç.", "Aradığın kayıt ve ayrıntıları", "Ara"],
+    prices: ["Örneğin: Servis fiyatlarını yüzde 10 artırırsak tutar ne olur?", "Ayı ve kapsamı seç; denemek istediğin yüzde veya TL değişimini gir.", "Mevcut fiyatlarla varsayımsal fiyatların karşılaştırması", "Değişimin etkisini göster"],
+    management: ["Örneğin: Ayın genel durumunu tek bir raporda görmek istiyorum.", "Ayı seç, raporda yer almasını istediğin bölümleri işaretle.", "Seçtiğin bölümlerden oluşan aylık özet", "Aylık özeti hazırla"],
+    stock: ["Örneğin: Depoda hangi parçalar var, hangilerinden almak gerekiyor?", "Dönemi seç; sadece eksikleri görmek için satın alma ihtiyaçlarını işaretle.", "Parça, hareket ve ihtiyaç listesi", "Stok durumunu göster"],
+    archive: ["Örneğin: Geçen ay hazırlayıp kaydettiğim hesabı tekrar açmak istiyorum.", "Dosyayı hazırladığın ayı seç ve listeden aç.", "Kaydettiğin tarihteki hesap veya rapor", "Kayıtları göster"],
   };
   const S = {
     tab: "factory",
@@ -1569,7 +1583,7 @@
         '<button data-action="sale">Fatura ekle</button><button data-action="collection">Tahsilat ekle</button><button data-action="template">Excel şablonu</button><label class="ew-upload">Excel içe aktar<input type="file" id="ew-import" accept=".xlsx,.csv,.xls"></label>';
     if (["owner", "package"].includes(S.tab))
       html =
-        '<button data-action="owner">Sahip eşleştir / düzenle</button><button data-action="adjustment">Ek kalem / avans</button>';
+        '<button data-action="owner">Araç sahibini ve araçlarını tanımla</button><button data-action="adjustment">Avans veya ek tutar ekle</button>';
     if (["factory", "management"].includes(S.tab))
       html +=
         '<label>Hizmet raporu fiyatlarının KDV kapsamı<select id="ew-service-basis"><option value="">Henüz doğrulanmadı</option><option value="exclusive">KDV hariç</option><option value="inclusive">KDV dahil</option></select></label>';
@@ -1634,6 +1648,10 @@
     if (S.tab === "maintenance")
       html =
         '<div id="ew-plan-options">Araç seçerek bakım planlarını getirin.</div><label>Servise not<textarea id="ew-maint-note" rows="2"></textarea></label>';
+    if (["factory", "owner", "package"].includes(S.tab)) {
+      const needsOwner = ["owner", "package"].includes(S.tab) && owners().length === 0;
+      html = '<details class="ew-extra-records"' + (needsOwner || S.tab === 'factory' ? ' open' : '') + '><summary>' + (needsOwner ? 'Önce araç sahibini tanımlaman gerekiyor' : 'Eksik kayıt mı var? Buradan ekleyebilirsin') + '</summary><p>' + (needsOwner ? 'Bu bölümde henüz araç sahibi tanımlanmamış. Aşağıdaki düğmeden kişiyi ve ona ait araçları seç; sonra hesabını hazırlayabilirsin.' : 'Hesapta yer alacak ek bilgileri burada tamamlayabilirsin.') + '</p><div class="ew-extra-fields">' + html + '</div></details>';
+    }
     box.innerHTML = html;
     if (S.tab === "stock")
       box.querySelector("[name=needs]").id = "ew-stock-needs";
@@ -1794,6 +1812,9 @@
       .forEach((b) =>
         b.setAttribute("aria-selected", String(b.dataset.ewTab === tab)),
       );
+    const guide = guidance[tab];
+    $("ew-guidance").innerHTML = '<p class="ew-example">' + esc(guide[0]) + '</p><div><p><strong>Sen ne yapacaksın?</strong><span>' + esc(guide[1]) + '</span></p><p><strong>Sonunda ne göreceksin?</strong><span>' + esc(guide[2]) + '</span></p></div>';
+    $("ew-build").textContent = guide[3];
     extras();
     $("ew-build").hidden = ["search", "archive"].includes(tab);
     $("ew-owner-wrap").hidden = !["owner", "package"].includes(tab);
@@ -2076,18 +2097,18 @@
     if (!root || root.dataset.ready) return;
     root.dataset.ready = "yes";
     root.innerHTML =
-      '<div class="ew-shell"><header class="ew-top"><div><small>BARIS.FLOW DRIVE</small><h1>Çalışma dosyaları</h1><p>Dönem kayıtlarından hesap özeti veya rapor hazırlayın.</p></div><button data-action="reload">Kaynakları yenile</button></header><section id="ew-start" class="ew-start" aria-labelledby="ew-start-title"><div class="ew-start-heading"><span class="ew-step-label">1 · DOSYA TÜRÜNÜ SEÇ</span><h2 id="ew-start-title">Ne yapmak istiyorsun?</h2><p>Bir seçenek seç, dönemi belirt, dosyanı hazırla. Hazırladıktan sonra PDF veya Excel çıktısı alabilirsin.</p></div><div class="ew-start-cards">' +
+      '<div class="ew-shell"><header class="ew-top"><div><small>BARIS.FLOW DRIVE</small><h1>Hesap hazırla ve incele</h1><p>Farklı menülerdeki kayıtları bir araya getir; bir fabrikanın, araç sahibinin veya aracın hesabını gör.</p></div><button data-action="reload">Kaynakları yenile</button></header><section id="ew-start" class="ew-start" aria-labelledby="ew-start-title"><div class="ew-start-heading"><span class="ew-step-label">1 · DOSYA TÜRÜNÜ SEÇ</span><h2 id="ew-start-title">Hangi soruna cevap arıyorsun?</h2><p>Günlük puantaj, yakıt ve ödeme kayıtlarını kendi menülerine girersin. Burada o kayıtları birleştirip anlamlı bir özet hazırlarsın.</p><div class="ew-how-it-works"><span><b>1</b> Aşağıdan yapmak istediğin işi seç</span><span><b>2</b> Ayı ve kimin hesabı olduğunu belirt</span><span><b>3</b> Sonucu incele; istersen kaydet veya çıktı al</span></div></div><div class="ew-start-cards">' +
       [
-        ["factory", "Fabrika hesabını incele", "Bir fabrikanın hizmetlerini, faturalarını ve tahsilatlarını aynı dosyada gör.", "Fabrika aylık dosyası"],
-        ["owner", "Araç sahibinin hesabını hazırla", "Araç sahibinin dönem hesabını ve hesap pusulasını oluştur.", "Araç sahibi hesap pusulası"],
-        ["vehicle", "Bir aracın kayıtlarını gör", "Seçtiğin aracın servis, yakıt, bakım ve belgelerini bir araya getir.", "Araç dosyası"],
+        ["factory", "Bir fabrikanın aylık hesabını görmek istiyorum", "Örneğin: Ağustosta ne kadar hizmet verdik, hangi faturaları ve ödemeleri kaydettik?", "Hizmet + fatura + tahsilat özeti"],
+        ["owner", "Araç sahibiyle hesaplaşmak istiyorum", "Yaptığı işin tutarını, kesintileri ve ek kalemleri birlikte incelemek için.", "Araç sahibine ait hesap dökümü"],
+        ["vehicle", "Bir araçta neler olduğunu görmek istiyorum", "Hangi işleri yapmış, ne kadar yakıt almış, hangi bakımları görmüş?", "Aracın hizmet ve gider geçmişi"],
       ].map(([id, label, description, output]) => '<button class="ew-start-card" data-ew-tab="' + id + '"><strong>' + label + '</strong><span>' + description + '</span><small>' + output + ' →</small></button>').join("") +
-      '</div><button class="ew-saved-link" data-ew-tab="archive">Kaydettiğim dosyaları aç →</button><details class="ew-more"><summary>Diğer araçlar <span>Karşılaştırma, teklif, bakım ve stok</span></summary><div class="ew-more-grid">' +
+      '</div><button class="ew-saved-link" data-ew-tab="archive">Daha önce hazırlayıp kaydettiğim hesaplar →</button><details class="ew-more"><summary>Başka bir iş yapmak istiyorum <span>Fiyat hesapla, ayları karşılaştır, bakım veya stokları incele</span></summary><div class="ew-more-grid">' +
       Object.entries(titles).filter(([id]) => !["factory", "owner", "vehicle", "archive"].includes(id))
-        .map(([id, label]) => '<button data-ew-tab="' + id + '"><strong>' + esc(label) + '</strong><span>' + esc(descriptions[id] || "") + '</span></button>').join("") +
-      '</div></details></section><section id="ew-editor" hidden><button class="ew-back" data-action="home">← Dosya türlerine dön</button><div class="ew-heading"><span class="ew-step-label">2 · DÖNEM VE KAPSAMI BELİRLE</span><h2 id="ew-heading"></h2><p id="ew-description"></p></div><div class="ew-filters"><label>Dönem<input id="ew-month" type="month" value="' +
+        .map(([id, label]) => '<button data-ew-tab="' + id + '"><strong>' + esc(label) + '</strong><span>' + esc(guidance[id][0]) + '</span></button>').join("") +
+      '</div></details></section><section id="ew-editor" hidden><button class="ew-back" data-action="home">← Dosya türlerine dön</button><div class="ew-heading"><span class="ew-step-label">2 · DÖNEM VE KAPSAMI BELİRLE</span><h2 id="ew-heading"></h2><p id="ew-description"></p></div><aside id="ew-guidance" class="ew-guidance" aria-label="Bu işlem nasıl kullanılır?"></aside><div class="ew-filters"><label>Dönem<input id="ew-month" type="month" value="' +
       today().slice(0, 7) +
-      '"></label><label id="ew-factory-wrap">Fabrika<select id="ew-factory"></select></label><label id="ew-ownership-wrap">Mülkiyet<select id="ew-ownership"><option value="">Tümü</option><option>ÖZMAL</option><option>TAŞERON</option></select></label><label id="ew-vehicle-wrap">Araç<select id="ew-vehicle"></select></label><label id="ew-owner-wrap">Araç sahibi<select id="ew-owner"></select></label></div><div id="ew-tools" class="ew-tools"></div><div class="ew-toolbar"><button id="ew-build" data-action="build">Dosyayı hazırla</button><div id="ew-output-actions" hidden><button data-action="save">Sürümü kaydet</button><button data-action="print">PDF / Yazdır</button><button data-action="excel">Excel</button><button data-action="copy">Özeti kopyala</button></div></div><p class="ew-output-help">Dosya hazır olduğunda buradan inceleyebilir, kaydedebilir veya PDF / Excel olarak alabilirsin.</p><article id="ew-result"></article></section><p id="ew-status" role="status" aria-live="polite"></p></div>';
+      '"></label><label id="ew-factory-wrap">Fabrika<select id="ew-factory"></select></label><label id="ew-ownership-wrap">Mülkiyet<select id="ew-ownership"><option value="">Tümü</option><option>ÖZMAL</option><option>TAŞERON</option></select></label><label id="ew-vehicle-wrap">Araç<select id="ew-vehicle"></select></label><label id="ew-owner-wrap">Araç sahibi<select id="ew-owner"></select></label></div><div id="ew-tools" class="ew-tools"></div><div class="ew-toolbar"><button id="ew-build" data-action="build">Dosyayı hazırla</button><div id="ew-output-actions" hidden><button data-action="save">Sürümü kaydet</button><button data-action="print">PDF / Yazdır</button><button data-action="excel">Excel</button><button data-action="copy">Özeti kopyala</button></div></div><p class="ew-output-help">Önce sonucu ekranda kontrol et. Saklamak istersen “Sürümü kaydet”, çıktı almak istersen “PDF / Yazdır” veya “Excel” seç.</p><article id="ew-result"></article></section><p id="ew-status" role="status" aria-live="polite"></p></div>';
     root.addEventListener("click", async (e) => {
       const b = e.target.closest("button");
       if (!b) return;
