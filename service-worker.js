@@ -3,7 +3,7 @@
 // PWA offline destek + statik asset caching
 // ============================================================
 
-var CACHE_NAME = 'filo-erp-v1.0.67';
+var CACHE_NAME = 'filo-erp-v1.0.68';
 
 var STATIC_ASSETS = [
     '/filoyonetim.html',
@@ -16,8 +16,8 @@ var STATIC_ASSETS = [
     '/keyboard-shortcuts.js?v=1.0.1',
     '/erp-workspace-core.js?v=1.0.0',
     '/erp-workspace-data.js?v=1.0.0',
-    '/erp-workspace.js?v=1.0.0',
-    '/erp-workspace.css?v=1.0.0',
+    '/erp-workspace.js?v=1.1.0',
+    '/erp-workspace.css?v=1.1.0',
     '/company-branding.js?v=2.0.5',
     '/hakedis-calculations.js',
     '/teklif-management.js',

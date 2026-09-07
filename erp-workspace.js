@@ -51,6 +51,7 @@
   };
   const S = {
     tab: "factory",
+    home: true,
     data: {},
     entries: [],
     snapshots: [],
@@ -1769,7 +1770,17 @@
       }
     }, 250);
   }
+  function showHome() {
+    S.home = true;
+    S.buildKey++;
+    $("ew-start").hidden = false;
+    $("ew-editor").hidden = true;
+    status(S.loaded ? "Bir dosya türü seçerek başlayın." : "Dosya kaynakları hazırlanıyor…");
+  }
   function selectTab(tab) {
+    S.home = false;
+    $("ew-start").hidden = true;
+    $("ew-editor").hidden = false;
     S.buildKey++;
     S.tab = tab;
     S.report = null;
@@ -1921,8 +1932,8 @@
         S.selectedVehicle = "";
       }
       S.loaded = true;
-      selectTab(S.tab);
-      if (S.tab === "search") $("ew-search").focus();
+      if (!S.home) selectTab(S.tab);
+      if (!S.home && S.tab === "search") $("ew-search").focus();
       status("Kaynaklar güncel. " + new Date().toLocaleTimeString("tr-TR"));
     } catch (e) {
       status(
@@ -2065,23 +2076,23 @@
     if (!root || root.dataset.ready) return;
     root.dataset.ready = "yes";
     root.innerHTML =
-      '<div class="ew-shell"><header class="ew-top"><div><small>BARIS.FLOW DRIVE</small><h1>Çalışma dosyaları</h1><p>Hesapla, karşılaştır, dosyala.</p></div><button data-action="reload">Kaynakları yenile</button></header><nav class="ew-tabs" aria-label="Çalışma dosyası türü">' +
-      Object.entries(titles)
-        .map(
-          ([id, label]) =>
-            '<button data-ew-tab="' +
-            id +
-            '" aria-selected="false">' +
-            esc(label) +
-            "</button>",
-        )
-        .join("") +
-      '</nav><div class="ew-heading"><h2 id="ew-heading"></h2><p id="ew-description"></p></div><div class="ew-filters"><label>Dönem<input id="ew-month" type="month" value="' +
+      '<div class="ew-shell"><header class="ew-top"><div><small>BARIS.FLOW DRIVE</small><h1>Çalışma dosyaları</h1><p>Dönem kayıtlarından hesap özeti veya rapor hazırlayın.</p></div><button data-action="reload">Kaynakları yenile</button></header><section id="ew-start" class="ew-start" aria-labelledby="ew-start-title"><div class="ew-start-heading"><span class="ew-step-label">1 · DOSYA TÜRÜNÜ SEÇ</span><h2 id="ew-start-title">Ne yapmak istiyorsun?</h2><p>Bir seçenek seç, dönemi belirt, dosyanı hazırla. Hazırladıktan sonra PDF veya Excel çıktısı alabilirsin.</p></div><div class="ew-start-cards">' +
+      [
+        ["factory", "Fabrika hesabını incele", "Bir fabrikanın hizmetlerini, faturalarını ve tahsilatlarını aynı dosyada gör.", "Fabrika aylık dosyası"],
+        ["owner", "Araç sahibinin hesabını hazırla", "Araç sahibinin dönem hesabını ve hesap pusulasını oluştur.", "Araç sahibi hesap pusulası"],
+        ["vehicle", "Bir aracın kayıtlarını gör", "Seçtiğin aracın servis, yakıt, bakım ve belgelerini bir araya getir.", "Araç dosyası"],
+      ].map(([id, label, description, output]) => '<button class="ew-start-card" data-ew-tab="' + id + '"><strong>' + label + '</strong><span>' + description + '</span><small>' + output + ' →</small></button>').join("") +
+      '</div><button class="ew-saved-link" data-ew-tab="archive">Kaydettiğim dosyaları aç →</button><details class="ew-more"><summary>Diğer araçlar <span>Karşılaştırma, teklif, bakım ve stok</span></summary><div class="ew-more-grid">' +
+      Object.entries(titles).filter(([id]) => !["factory", "owner", "vehicle", "archive"].includes(id))
+        .map(([id, label]) => '<button data-ew-tab="' + id + '"><strong>' + esc(label) + '</strong><span>' + esc(descriptions[id] || "") + '</span></button>').join("") +
+      '</div></details></section><section id="ew-editor" hidden><button class="ew-back" data-action="home">← Dosya türlerine dön</button><div class="ew-heading"><span class="ew-step-label">2 · DÖNEM VE KAPSAMI BELİRLE</span><h2 id="ew-heading"></h2><p id="ew-description"></p></div><div class="ew-filters"><label>Dönem<input id="ew-month" type="month" value="' +
       today().slice(0, 7) +
-      '"></label><label id="ew-factory-wrap">Fabrika<select id="ew-factory"></select></label><label id="ew-ownership-wrap">Mülkiyet<select id="ew-ownership"><option value="">Tümü</option><option>ÖZMAL</option><option>TAŞERON</option></select></label><label id="ew-vehicle-wrap">Araç<select id="ew-vehicle"></select></label><label id="ew-owner-wrap">Araç sahibi<select id="ew-owner"></select></label></div><div id="ew-tools" class="ew-tools"></div><div class="ew-toolbar"><button id="ew-build" data-action="build">Dosyayı hazırla</button><div id="ew-output-actions" hidden><button data-action="save">Sürümü kaydet</button><button data-action="print">PDF / Yazdır</button><button data-action="excel">Excel</button><button data-action="copy">Özeti kopyala</button></div></div><p id="ew-status" role="status" aria-live="polite"></p><article id="ew-result"></article></div>';
+      '"></label><label id="ew-factory-wrap">Fabrika<select id="ew-factory"></select></label><label id="ew-ownership-wrap">Mülkiyet<select id="ew-ownership"><option value="">Tümü</option><option>ÖZMAL</option><option>TAŞERON</option></select></label><label id="ew-vehicle-wrap">Araç<select id="ew-vehicle"></select></label><label id="ew-owner-wrap">Araç sahibi<select id="ew-owner"></select></label></div><div id="ew-tools" class="ew-tools"></div><div class="ew-toolbar"><button id="ew-build" data-action="build">Dosyayı hazırla</button><div id="ew-output-actions" hidden><button data-action="save">Sürümü kaydet</button><button data-action="print">PDF / Yazdır</button><button data-action="excel">Excel</button><button data-action="copy">Özeti kopyala</button></div></div><p class="ew-output-help">Dosya hazır olduğunda buradan inceleyebilir, kaydedebilir veya PDF / Excel olarak alabilirsin.</p><article id="ew-result"></article></section><p id="ew-status" role="status" aria-live="polite"></p></div>';
     root.addEventListener("click", async (e) => {
       const b = e.target.closest("button");
       if (!b) return;
+      if (b.dataset.action === "home") return showHome();
+      if (b.dataset.ewTab && !S.loaded) return status("Kaynaklar henüz hazır değil. Yükleme tamamlandığında tekrar seçin.");
       if (b.dataset.ewTab && S.loaded) return selectTab(b.dataset.ewTab);
       if (b.dataset.action) {
         b.disabled = true;
@@ -2184,11 +2195,13 @@
   };
   window.openERPGlobalSearch = function () {
     S.tab = "search";
+    S.home = false;
     document.querySelector('[data-target="module-calisma-dosyalari"]')?.click();
   };
   window.openERPVehicle = function (id, tab = "vehicle") {
     S.selectedVehicle = id;
     S.tab = tab;
+    S.home = false;
     document.querySelector('[data-target="module-calisma-dosyalari"]')?.click();
   };
   window.ERPWorkspace = { state: S, build, load, selectTab };
