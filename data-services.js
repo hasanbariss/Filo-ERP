@@ -5935,13 +5935,15 @@ window.fetchAtamaBekleyenler = async function() {
             .order('id', { ascending: false });
         if (error) throw error;
 
+        const badge = document.getElementById('atama-bekleyen-badge');
+
         if (!araclar || araclar.length === 0) {
             if (section) section.classList.add('hidden');
+            if (badge) { badge.textContent = '0'; badge.classList.add('hidden'); }
+            container.innerHTML = '<div class="py-10 text-center text-gray-500 italic text-sm">Atama bekleyen araç yok.</div>';
             return;
         }
         if (section) section.classList.remove('hidden');
-
-        const badge = document.getElementById('atama-bekleyen-badge');
         if (badge) { badge.textContent = araclar.length; badge.classList.remove('hidden'); }
 
         container.innerHTML = araclar.map(a => {
@@ -5952,33 +5954,67 @@ window.fetchAtamaBekleyenler = async function() {
                         <i data-lucide="car" class="w-5 h-5 text-yellow-400"></i>
                     </div>
                     <div>
-                    <div class="font-black text-white font-mono text-sm">${a.plaka}</div>
+                        <div class="font-black text-white font-mono text-sm">${a.plaka}</div>
                         <div class="text-[10px] text-gray-500 mt-0.5">Excel'den eklendi — atama bekliyor</div>
                     </div>
                     <span class="text-[9px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full border border-yellow-500/20 font-black tracking-widest uppercase">Atama Bekliyor</span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'ÖZMAL')" class="px-3 py-2 text-xs font-black rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Özmal Yap</button>
-                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'TAŞERON')" class="px-3 py-2 text-xs font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">Taşeron Yap</button>
+                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'ÖZMAL', this)" class="px-3 py-2 text-xs font-black rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Özmal Yap</button>
+                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'TAŞERON', this)" class="px-3 py-2 text-xs font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">Taşeron Yap</button>
                 </div>
             </div>`;
         }).join('');
         if (window.lucide) window.lucide.createIcons();
-    } catch (e) { console.error('fetchAtamaBekleyenler error:', e); }
+    } catch (e) {
+        container.innerHTML = '<div class="py-10 text-center text-red-400 text-sm">Yüklenirken hata oluştu.</div>';
+        console.error('fetchAtamaBekleyenler error:', e);
+    }
 };
 
-window.atamaYap = async function(aracId, plaka, tip) {
+window.atamaYap = async function(aracId, plaka, tip, triggerBtn) {
     if (!confirm(`"${plaka}" plakalı araç ${tip} olarak kaydedilsin mi?`)) return;
+
+    // Butonları hemen devre dışı bırak
+    const satir = document.getElementById('atama-satir-' + aracId);
+    if (satir) {
+        satir.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.opacity = '0.4'; });
+        satir.style.opacity = '0.5';
+    }
+
     try {
         const { error } = await window.supabaseClient
             .from('araclar')
             .update({ mulkiyet_durumu: tip })
             .eq('id', aracId);
         if (error) throw error;
+
+        // Satırı animasyonla kaldır
+        if (satir) {
+            satir.style.transition = 'opacity 0.3s, transform 0.3s';
+            satir.style.opacity = '0';
+            satir.style.transform = 'translateX(20px)';
+            setTimeout(() => satir.remove(), 300);
+        }
+
+        // Badge sayısını güncelle
+        const badge = document.getElementById('atama-bekleyen-badge');
+        if (badge) {
+            const current = parseInt(badge.textContent) || 0;
+            if (current - 1 <= 0) { badge.classList.add('hidden'); }
+            else { badge.textContent = current - 1; }
+        }
+
         if (window.Toast) window.Toast.success(`"${plaka}" ${tip} olarak kaydedildi.`);
-        window.fetchAtamaBekleyenler();
         if (typeof fetchAraclar === 'function') fetchAraclar();
-    } catch (e) { alert('Hata: ' + e.message); }
+    } catch (e) {
+        // Hata durumunda satırı normale döndür
+        if (satir) {
+            satir.querySelectorAll('button').forEach(b => { b.disabled = false; b.style.opacity = ''; });
+            satir.style.opacity = '';
+        }
+        alert('Hata: ' + e.message);
+    }
 };
 
 async function fetchSoforMaaslar() {
