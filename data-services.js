@@ -5930,9 +5930,9 @@ window.fetchAtamaBekleyenler = async function() {
     try {
         const { data: araclar, error } = await window.supabaseClient
             .from('araclar')
-            .select('id, plaka, created_at')
+            .select('id, plaka')
             .eq('mulkiyet_durumu', 'ATAMA_BEKLIYOR')
-            .order('created_at', { ascending: false });
+            .order('id', { ascending: false });
         if (error) throw error;
 
         if (!araclar || araclar.length === 0) {
@@ -5945,7 +5945,6 @@ window.fetchAtamaBekleyenler = async function() {
         if (badge) { badge.textContent = araclar.length; badge.classList.remove('hidden'); }
 
         container.innerHTML = araclar.map(a => {
-            const tarih = a.created_at ? new Date(a.created_at).toLocaleDateString('tr-TR') : '—';
             return `
             <div class="flex items-center justify-between p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl group hover:bg-yellow-500/10 transition-all" id="atama-satir-${a.id}">
                 <div class="flex items-center gap-4">
@@ -5953,8 +5952,8 @@ window.fetchAtamaBekleyenler = async function() {
                         <i data-lucide="car" class="w-5 h-5 text-yellow-400"></i>
                     </div>
                     <div>
-                        <div class="font-black text-white font-mono text-sm">${a.plaka}</div>
-                        <div class="text-[10px] text-gray-500 mt-0.5">${tarih} tarihinde Excel'den eklendi</div>
+                    <div class="font-black text-white font-mono text-sm">${a.plaka}</div>
+                        <div class="text-[10px] text-gray-500 mt-0.5">Excel'den eklendi — atama bekliyor</div>
                     </div>
                     <span class="text-[9px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full border border-yellow-500/20 font-black tracking-widest uppercase">Atama Bekliyor</span>
                 </div>

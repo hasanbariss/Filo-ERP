@@ -46,8 +46,8 @@ $$;
 CREATE INDEX IF NOT EXISTS idx_araclar_mulkiyet_durumu
     ON public.araclar (mulkiyet_durumu);
 
--- Kontrol
-SELECT id, plaka, mulkiyet_durumu, created_at
+-- Kontrol (created_at yok, id ile sırala)
+SELECT id, plaka, mulkiyet_durumu
 FROM public.araclar
 WHERE mulkiyet_durumu = 'ATAMA_BEKLIYOR'
-ORDER BY created_at DESC;
+ORDER BY id DESC;
