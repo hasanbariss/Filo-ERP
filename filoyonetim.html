@@ -455,6 +455,7 @@
                             <button type="button" class="fuel-tab is-active" data-fuel-tab="analysis" onclick="window.switchFuelAnalyticsTab('analysis')"><i data-lucide="chart-no-axes-combined"></i>Yakıt Analizi</button>
                             <button type="button" class="fuel-tab" data-fuel-tab="records" onclick="window.switchFuelAnalyticsTab('records')"><i data-lucide="list-filter"></i>Yakıt Kayıtları</button>
                             <button type="button" class="fuel-tab" data-fuel-tab="entry" onclick="window.switchFuelAnalyticsTab('entry')"><i data-lucide="plus-circle"></i>Yakıt Ekle / Import</button>
+                            <button type="button" class="fuel-tab" data-fuel-tab="pending" onclick="window.switchFuelAnalyticsTab('pending'); window.fetchAtamaBekleyenler && window.fetchAtamaBekleyenler();"><i data-lucide="clock"></i>Atama Bekliyor <span id="atama-bekleyen-badge" class="ml-1 inline-flex items-center justify-center w-4 h-4 text-[9px] font-black bg-yellow-500 text-black rounded-full hidden"></span></button>
                         </div>
 
                         <div class="fuel-toolbar">
@@ -511,6 +512,24 @@
                                 <article class="fuel-entry-card"><span class="fuel-entry-icon"><i data-lucide="sheet"></i></span><div><h2>Excel’den Import</h2><p>Dosyayı önce önizleyin; geçerli ve mükerrer satırları kontrol ettikten sonra aktarın.</p></div><button type="button" class="btn-secondary" onclick="document.getElementById('yakit-excel-input').click()">Excel Dosyası Seç</button></article>
                             </div>
                         </section>
+
+                        <section id="fuel-panel-pending" class="fuel-panel" aria-label="Atama bekleyen araçlar">
+                            <div class="fuel-analysis-surface">
+                                <div class="fuel-section-head">
+                                    <div>
+                                        <h2>Atama Bekleyen Araçlar</h2>
+                                        <p>Excel'den aktarılırken sistemde tanımlı olmayan plakalar buraya eklenir. Her araç için Özmal veya Taşeron ataması yapabilirsiniz.</p>
+                                    </div>
+                                    <button type="button" class="btn-ghost" onclick="window.fetchAtamaBekleyenler && window.fetchAtamaBekleyenler()">
+                                        <i data-lucide="refresh-cw"></i> Yenile
+                                    </button>
+                                </div>
+                                <div id="atama-bekleyen-container" class="space-y-3 mt-4">
+                                    <div class="loading-state">Yükleniyor...</div>
+                                </div>
+                            </div>
+                        </section>
+
                     </div>
                 </div>
 

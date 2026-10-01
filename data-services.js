@@ -5621,6 +5621,16 @@ window.importYakitExcel = async function(event) {
                 importPlan.fileDuplicates.forEach(item => { item._fileDuplicate = true; });
                 importPlan.databaseDuplicates.forEach(item => { item._databaseDuplicate = true; });
 
+                // Eşleşmeyen ama geçerli veri olan kayıtları bul → ATAMA_BEKLIYOR olarak işlenecek
+                const newVehicleRecords = importPlan.invalid.filter(item =>
+                    !item.row.arac_id &&
+                    item.row.sortableDT &&
+                    item.row.litre > 0 &&
+                    item.row.tutar > 0 &&
+                    item.row.birim > 0
+                );
+                importPlan.newVehicles = newVehicleRecords;
+
                 const groupedMap = {};
                 rawRecords.forEach(r => {
                     if (!groupedMap[r.formattedPlaka]) {
@@ -5684,9 +5694,9 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                             </div>
                             <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
                             <div><span class="text-emerald-400 font-black">${importPlan ? importPlan.valid.length : totalRows}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Geçerli</span></div>
-                            <div><span class="text-red-400 font-black">${importPlan ? importPlan.invalid.length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Hatalı</span></div>
+                            <div><span class="text-red-400 font-black">${importPlan ? (importPlan.invalid.length - (importPlan.newVehicles ? importPlan.newVehicles.length : 0)) : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Hatalı</span></div>
                             <div><span class="text-amber-400 font-black">${importPlan ? importPlan.fileDuplicates.length + importPlan.databaseDuplicates.length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Duplicate</span></div>
-                            <div><span class="text-orange-400 font-black">${importPlan ? importPlan.invalid.filter(x => !x.row.arac_id).length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Eşleşmeyen</span></div>
+                            <div><span class="text-yellow-400 font-black">${importPlan && importPlan.newVehicles ? importPlan.newVehicles.length : 0}</span><span class="text-gray-400 text-[10px] font-bold uppercase tracking-wider ml-1">Yeni Araç</span></div>
                             <div class="w-px h-5 bg-white/10 border-r border-white/5"></div>
                             <div class="flex items-center gap-2" title="Toplam Kayıt Sayısı">
                                 <i data-lucide="list" class="w-4 h-4 text-gray-400"></i>
@@ -5725,7 +5735,7 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                                             <span class="text-lg font-black font-mono text-white bg-white/5 px-4 py-1.5 rounded-xl border border-white/10 shadow-inner">${g.plaka}</span>
                                             ${g.aracId 
                                                 ? '<span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full border border-emerald-500/20 font-black tracking-widest uppercase">MEVCUT ARAÇ</span>'
-                                                : '<span class="text-[10px] bg-red-500/10 text-red-400 px-3 py-1 rounded-full border border-red-500/20 font-black tracking-widest uppercase">EŞLEŞMEYEN PLAKA</span>'
+                                                : '<span class="text-[10px] bg-yellow-500/10 text-yellow-400 px-3 py-1 rounded-full border border-yellow-500/20 font-black tracking-widest uppercase">⚡ SİSTEME EKLENECEK</span>'
                                             }
                                         </div>
                                         <div class="text-right">
@@ -5758,10 +5768,16 @@ window.showYakitImportPreview = function(groups, initialStatus = null, detectedH
                 <div class="ios-modal-footer p-8 border-t border-white/10 bg-white/[0.03] flex justify-between items-center">
                     <button onclick="document.getElementById('yakit-import-preview-overlay').remove()" class="px-8 py-3 rounded-2xl text-sm font-black text-gray-400 hover:text-white transition-all border border-white/10 hover:bg-white/5">İptal Et</button>
                     ${!isLoading ? `
-                        <button onclick="confirmYakitImport()" ${importPlan && !importPlan.valid.length ? 'disabled' : ''} class="px-10 py-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
-                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                            Verileri Onayla ve Kaydet
-                        </button>
+                        <div class="flex items-center gap-4">
+                            ${importPlan && importPlan.newVehicles && importPlan.newVehicles.length > 0 ? `
+                            <div class="text-xs text-yellow-400/80 bg-yellow-500/10 border border-yellow-500/20 rounded-xl px-4 py-2 max-w-xs text-left">
+                                <strong>⚡ ${importPlan.newVehicles.length} yeni plaka</strong> sisteme eklenecek ve <strong>Atama Bekliyor</strong> olarak listelenecek.
+                            </div>` : ''}
+                            <button onclick="confirmYakitImport()" ${importPlan && !importPlan.valid.length && (!importPlan.newVehicles || !importPlan.newVehicles.length) ? 'disabled' : ''} class="px-10 py-4 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black rounded-2xl text-base transition-all shadow-2xl shadow-orange-500/20 flex items-center gap-3 transform hover:scale-[1.02] active:scale-95">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                Verileri Onayla ve Kaydet
+                            </button>
+                        </div>
                     ` : ''}
                 </div>
             </div>
@@ -5792,7 +5808,9 @@ function updateYakitImportStatus(message, isError = false) {
 
 window.confirmYakitImport = async function() {
     const records = window.yakitImportPlan?.valid || [];
-    if (!records || !records.length) {
+    const newVehicleItems = window.yakitImportPlan?.newVehicles || [];
+
+    if (!records.length && !newVehicleItems.length) {
         alert("İşlenecek kayıt bulunamadı.");
         return;
     }
@@ -5803,7 +5821,51 @@ window.confirmYakitImport = async function() {
     btn.innerHTML = '<i class="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></i> İşleniyor...';
 
     try {
-        // Yalnızca önizlemede doğrulanan ve mevcut araçla eşleşen kayıtları hazırla.
+        // ── ADIM 1: Yeni plakaları ATAMA_BEKLIYOR olarak araclar tablosuna ekle ──
+        let newVehicleFuelRows = [];
+        if (newVehicleItems.length > 0) {
+            // Benzersiz plakaları bul
+            const uniqueNewPlates = [...new Map(newVehicleItems.map(item => [item.row.formattedPlaka, item.row])).values()];
+            for (const rowData of uniqueNewPlates) {
+                const plaka = rowData.formattedPlaka;
+                // Race condition'a karşı önce kontrol et
+                const { data: existing } = await window.supabaseClient
+                    .from('araclar')
+                    .select('id')
+                    .eq('plaka', plaka)
+                    .maybeSingle();
+
+                let aracId;
+                if (existing && existing.id) {
+                    aracId = existing.id;
+                } else {
+                    const { data: inserted, error: insertErr } = await window.supabaseClient
+                        .from('araclar')
+                        .insert([{ plaka: plaka, mulkiyet_durumu: 'ATAMA_BEKLIYOR' }])
+                        .select('id')
+                        .single();
+                    if (insertErr) {
+                        console.warn(`"${plaka}" plakası eklenirken hata:`, insertErr.message);
+                        continue;
+                    }
+                    aracId = inserted.id;
+                }
+
+                // Bu yeni araç için tüm yakıt kayıtlarını hazırla
+                const rowsForThisVehicle = newVehicleItems
+                    .filter(item => item.row.formattedPlaka === plaka)
+                    .map(item => ({
+                        tarih: item.row.sortableDT,
+                        arac_id: aracId,
+                        litre: item.row.litre,
+                        birim_fiyat: item.row.birim,
+                        toplam_tutar: item.row.tutar
+                    }));
+                newVehicleFuelRows.push(...rowsForThisVehicle);
+            }
+        }
+
+        // ── ADIM 2: Mevcut araçlarla eşleşen kayıtları hazırla ──
         const candidatePayload = records.map(r => ({
             tarih: r.sortableDT,
             arac_id: r.aracId,
@@ -5813,15 +5875,18 @@ window.confirmYakitImport = async function() {
         }));
 
         const vehicleIds = [...new Set(candidatePayload.map(row => row.arac_id).filter(Boolean))];
-        const dates = candidatePayload.map(row => row.tarih).filter(Boolean).sort();
+        const allDates = [
+            ...candidatePayload.map(row => row.tarih),
+            ...newVehicleFuelRows.map(row => row.tarih)
+        ].filter(Boolean).sort();
         let existingRows = [];
-        if (vehicleIds.length && dates.length) {
+        if (vehicleIds.length && allDates.length) {
             const { data: currentRows, error: duplicateError } = await window.supabaseClient
                 .from('yakit_takip')
                 .select('arac_id, tarih, litre, birim_fiyat, toplam_tutar')
                 .in('arac_id', vehicleIds)
-                .gte('tarih', dates[0])
-                .lte('tarih', dates[dates.length - 1]);
+                .gte('tarih', allDates[0])
+                .lte('tarih', allDates[allDates.length - 1]);
             if (duplicateError) throw duplicateError;
             existingRows = currentRows || [];
         }
@@ -5829,15 +5894,17 @@ window.confirmYakitImport = async function() {
         const payload = finalPlan.valid;
         const duplicateCount = finalPlan.fileDuplicates.length + finalPlan.databaseDuplicates.length;
 
-        // 3. Yakıt kayıtlarını ekle
-        if (payload.length) {
-            const { error: yakitErr } = await window.supabaseClient.from('yakit_takip').insert(payload);
+        // ── ADIM 3: Tüm yakıt kayıtlarını ekle ──
+        const allFuelRows = [...payload, ...newVehicleFuelRows];
+        if (allFuelRows.length) {
+            const { error: yakitErr } = await window.supabaseClient.from('yakit_takip').insert(allFuelRows);
             if (yakitErr) throw yakitErr;
         }
 
         if (window.Toast) {
+            const newVehicleLabel = newVehicleItems.length > 0 ? ` ${newVehicleItems.length} yeni araç Atama Bekliyor olarak eklendi.` : '';
             const duplicateLabel = duplicateCount ? ` ${duplicateCount} mükerrer kayıt atlandı.` : '';
-            window.Toast.success(`${payload.length} adet yakıt kaydı işlendi.${duplicateLabel}`);
+            window.Toast.success(`${allFuelRows.length} adet yakıt kaydı işlendi.${newVehicleLabel}${duplicateLabel}`);
         }
         overlay.remove();
         fetchYakitlar();
@@ -5845,13 +5912,74 @@ window.confirmYakitImport = async function() {
         if (typeof fetchAraclar === 'function') fetchAraclar();
         if (typeof fetchTaseronFinans === 'function') fetchTaseronFinans();
         if (typeof fetchFinansDashboard === 'function') fetchFinansDashboard();
-        
+        if (typeof window.fetchAtamaBekleyenler === 'function') window.fetchAtamaBekleyenler();
+
     } catch (e) {
         console.error(e);
         alert("Hata oluştu: " + e.message);
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i> Tümünü Onayla ve Kaydet';
     }
+};
+
+// ── ATAMA BEKLEYENler ──
+window.fetchAtamaBekleyenler = async function() {
+    const container = document.getElementById('atama-bekleyen-container');
+    const section = document.getElementById('atama-bekleyen-section');
+    if (!container) return;
+    try {
+        const { data: araclar, error } = await window.supabaseClient
+            .from('araclar')
+            .select('id, plaka, created_at')
+            .eq('mulkiyet_durumu', 'ATAMA_BEKLIYOR')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+
+        if (!araclar || araclar.length === 0) {
+            if (section) section.classList.add('hidden');
+            return;
+        }
+        if (section) section.classList.remove('hidden');
+
+        const badge = document.getElementById('atama-bekleyen-badge');
+        if (badge) { badge.textContent = araclar.length; badge.classList.remove('hidden'); }
+
+        container.innerHTML = araclar.map(a => {
+            const tarih = a.created_at ? new Date(a.created_at).toLocaleDateString('tr-TR') : '—';
+            return `
+            <div class="flex items-center justify-between p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl group hover:bg-yellow-500/10 transition-all" id="atama-satir-${a.id}">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center">
+                        <i data-lucide="car" class="w-5 h-5 text-yellow-400"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-white font-mono text-sm">${a.plaka}</div>
+                        <div class="text-[10px] text-gray-500 mt-0.5">${tarih} tarihinde Excel'den eklendi</div>
+                    </div>
+                    <span class="text-[9px] bg-yellow-500/10 text-yellow-400 px-2 py-0.5 rounded-full border border-yellow-500/20 font-black tracking-widest uppercase">Atama Bekliyor</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'ÖZMAL')" class="px-3 py-2 text-xs font-black rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all">Özmal Yap</button>
+                    <button onclick="window.atamaYap('${a.id}', '${a.plaka}', 'TAŞERON')" class="px-3 py-2 text-xs font-black rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20 transition-all">Taşeron Yap</button>
+                </div>
+            </div>`;
+        }).join('');
+        if (window.lucide) window.lucide.createIcons();
+    } catch (e) { console.error('fetchAtamaBekleyenler error:', e); }
+};
+
+window.atamaYap = async function(aracId, plaka, tip) {
+    if (!confirm(`"${plaka}" plakalı araç ${tip} olarak kaydedilsin mi?`)) return;
+    try {
+        const { error } = await window.supabaseClient
+            .from('araclar')
+            .update({ mulkiyet_durumu: tip })
+            .eq('id', aracId);
+        if (error) throw error;
+        if (window.Toast) window.Toast.success(`"${plaka}" ${tip} olarak kaydedildi.`);
+        window.fetchAtamaBekleyenler();
+        if (typeof fetchAraclar === 'function') fetchAraclar();
+    } catch (e) { alert('Hata: ' + e.message); }
 };
 
 async function fetchSoforMaaslar() {
