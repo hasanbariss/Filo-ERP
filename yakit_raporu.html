@@ -14,7 +14,11 @@
 <main id="main-content" class="report-shell">
     <div class="report-heading">
         <div><p class="eyebrow">YAKIT &amp; GİDER TAKİBİ</p><h1 id="header-title">Yakıt raporu</h1><p id="header-subtitle">Dönem hazırlanıyor…</p></div>
-        <div class="report-actions"><button class="secondary-button" onclick="window.exportFuelExcel()"><i data-lucide="download"></i>Excel indir</button><button class="primary-button" onclick="window.openFuelPrintPreview()"><i data-lucide="printer"></i>Yazdır / PDF</button></div>
+        <div class="report-actions">
+            <button class="secondary-button" onclick="window.openFuelReorderModal()"><i data-lucide="arrow-up-down"></i>Sıralamayı Düzenle</button>
+            <button class="secondary-button" onclick="window.exportFuelExcel()"><i data-lucide="download"></i>Excel indir</button>
+            <button class="primary-button" onclick="window.openFuelPrintPreview()"><i data-lucide="printer"></i>Yazdır / PDF</button>
+        </div>
     </div>
     <section class="filter-panel" aria-label="Rapor filtreleri">
         <div class="primary-filters">
@@ -39,11 +43,43 @@
             <button id="btn-view-list" onclick="window.switchView('list')">Günlük hareketler</button>
             <button id="btn-view-grid" onclick="window.switchView('grid')">Aylık çizelge</button>
         </div><label class="report-search"><i data-lucide="search"></i><input id="search-plaka" type="search" oninput="window.filterSearch()" placeholder="Plaka veya araç sahibi ara" aria-label="Plaka veya araç sahibi ara"></label></div>
-        <div class="results-caption"><span>Aynı araç sahibine ait plakalar birlikte gösterilir.</span><span>Tüm tutarlar TL</span></div>
+        <div class="results-caption">
+            <span>Aynı araç sahibine ait plakalar birlikte gösterilir.</span>
+            <span id="fuel-order-badge" class="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200" style="display:none;"></span>
+            <span>Tüm tutarlar TL</span>
+        </div>
         <div id="view-grid" class="hidden"><table id="yakit-table"><thead id="yakit-thead"></thead><tbody id="yakit-tbody"><tr><td>Veriler yükleniyor…</td></tr></tbody></table></div>
         <div id="view-list"></div>
     </section>
 </main>
+<dialog id="fuel-reorder-dialog" aria-labelledby="reorder-dialog-title">
+    <div class="preview-toolbar">
+        <div>
+            <h2 id="reorder-dialog-title">Yakıt Raporu Sıralamasını Düzenle</h2>
+            <p>Plaka ve araç sahiplerinin sırasını yukarı/aşağı taşıyın. Ekranda ve yazdırırken bu sıra kullanılır.</p>
+        </div>
+        <button class="icon-button" onclick="document.getElementById('fuel-reorder-dialog').close()" aria-label="Kapat">×</button>
+    </div>
+    <div class="reorder-body" style="padding: 16px 24px; max-height: 68vh; overflow-y: auto;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; padding: 12px 16px; background: white; border: 1px solid #d5dfe5; border-radius: 8px;">
+            <span style="font-size: 11px; font-weight: 700; color: #657582; text-transform: uppercase;">Hızlı Sıralama:</span>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <button type="button" onclick="window.quickSortFuel('owner-az')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Sahip İsmi (A-Z)</button>
+                <button type="button" onclick="window.quickSortFuel('cost-desc')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Tutar (Çoktan Aza)</button>
+                <button type="button" onclick="window.quickSortFuel('liters-desc')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Litre (Çoktan Aza)</button>
+                <button type="button" onclick="window.quickSortFuel('plate-az')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Plakalar (A-Z)</button>
+                <button type="button" onclick="window.resetFuelOrder()" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px; color: #dc2626; border-color: #fca5a5; background: #fff5f5;">Varsayılana Dön</button>
+            </div>
+        </div>
+        <div id="fuel-reorder-items" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- JS dolduracak -->
+        </div>
+    </div>
+    <div class="preview-toolbar" style="border-top: 1px solid #d5dfe5; justify-content: flex-end; gap: 10px; padding: 14px 24px;">
+        <button class="secondary-button" onclick="document.getElementById('fuel-reorder-dialog').close()">Kapat</button>
+        <button class="primary-button" onclick="window.saveFuelReorderAndApply()"><i data-lucide="check"></i> Sıralamayı Kaydet ve Uygula</button>
+    </div>
+</dialog>
 <dialog id="fuel-print-dialog" aria-labelledby="print-dialog-title">
     <div class="preview-toolbar"><div><h2 id="print-dialog-title">Yazdırma önizlemesi</h2><p>Seçili filtreler · Araç sahibine göre sıralı</p></div><button class="icon-button" onclick="document.getElementById('fuel-print-dialog').close()" aria-label="Önizlemeyi kapat">×</button></div>
     <div class="preview-options"><label>Çıktı türü<select id="fuel-print-format" onchange="window.refreshFuelPrintPreview()"><option value="summary">Sahip ve araç toplamları</option><option value="detail">Tarih tarih yakıt hareketleri</option></select></label><button class="primary-button" onclick="window.handlePrint()"><i data-lucide="printer"></i>Yazdır / PDF kaydet</button></div>

@@ -153,7 +153,14 @@ function renderView() {
         filteredAraclar = isolatedAraclar.filter(a => (a.plaka || '').toUpperCase().includes(query));
     }
     
-    if (currentView === 'grid') renderGridView(filteredAraclar);
+    if (currentView === 'grid') {
+        const sortedVehicles = currentOwnerGroups().flatMap(g => g.vehicles.map(v => v.vehicle));
+        let gridList = sortedVehicles;
+        if (query) {
+            gridList = gridList.filter(a => (a.plaka || '').toUpperCase().includes(query));
+        }
+        renderGridView(gridList);
+    }
     else if (window.currentView === 'list') renderListView(filteredAraclar);
     else if (window.currentView === 'vehicle') renderVehicleView(filteredAraclar);
     else renderSummaryView(filteredAraclar);
@@ -214,20 +221,294 @@ function renderListView() {
 
 function fuelNumber(value) { return Number(value || 0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fuelDate(value) { return String(value || '').slice(0,10).split('-').reverse().join('.'); }
-function currentOwnerGroups() { return window.FuelAnalytics.ownerGroups(isolatedAraclar,isolatedYakitlar); }
+
+/* === ÖZEL SIRALAMA YÖNETİMİ === */
+function getFuelOrderStorageKey() {
+    const start = document.getElementById('fuel-start')?.value || '';
+    const end = document.getElementById('fuel-end')?.value || '';
+    const preset = document.getElementById('fuel-preset')?.value || 'all';
+    return `fuel_report_order_${start}_${end}_${preset}`;
+}
+
+window.loadCustomFuelOrder = function () {
+    try {
+        const raw = localStorage.getItem(getFuelOrderStorageKey());
+        return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+};
+
+window.saveCustomFuelOrder = function (orderObj) {
+    try {
+        localStorage.setItem(getFuelOrderStorageKey(), JSON.stringify(orderObj));
+        updateOrderIndicator();
+    } catch (e) { console.error('Save order error:', e); }
+};
+
+window.resetFuelOrder = function () {
+    try {
+        localStorage.removeItem(getFuelOrderStorageKey());
+        updateOrderIndicator();
+        renderView();
+        if (document.getElementById('fuel-reorder-dialog')?.open) {
+            window.renderReorderModalItems();
+        }
+    } catch (e) { console.error('Reset order error:', e); }
+};
+
+function updateOrderIndicator() {
+    const isCustom = Boolean(window.loadCustomFuelOrder());
+    const badge = document.getElementById('fuel-order-badge');
+    if (badge) {
+        if (isCustom) {
+            badge.style.display = 'inline-flex';
+            badge.innerHTML = '★ Özel Sıralama Aktif <button onclick="window.resetFuelOrder()" style="margin-left:6px;text-decoration:underline;color:#dc2626;background:none;border:0;cursor:pointer;font-weight:bold;">Sıfırla</button>';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+}
+
+function currentOwnerGroups() {
+    const baseGroups = window.FuelAnalytics.ownerGroups(isolatedAraclar, isolatedYakitlar);
+    const custom = window.loadCustomFuelOrder();
+    if (!custom || (!custom.ownerKeys && !custom.vehicleOrder)) {
+        return baseGroups;
+    }
+
+    // 1. Sahip gruplarını özel sıralamaya göre diz
+    if (Array.isArray(custom.ownerKeys) && custom.ownerKeys.length > 0) {
+        const oMap = new Map(custom.ownerKeys.map((k, i) => [k, i]));
+        baseGroups.sort((a, b) => {
+            const idxA = oMap.has(a.key) ? oMap.get(a.key) : (oMap.has(a.owner) ? oMap.get(a.owner) : 9999);
+            const idxB = oMap.has(b.key) ? oMap.get(b.key) : (oMap.has(b.owner) ? oMap.get(b.owner) : 9999);
+            if (idxA !== idxB) return idxA - idxB;
+            return a.owner.localeCompare(b.owner, 'tr');
+        });
+    }
+
+    // 2. Her sahip grubunun içindeki araçları özel sıralamaya göre diz
+    if (custom.vehicleOrder && typeof custom.vehicleOrder === 'object') {
+        baseGroups.forEach(group => {
+            const list = custom.vehicleOrder[group.key] || custom.vehicleOrder[group.owner];
+            if (Array.isArray(list) && list.length > 0) {
+                const vMap = new Map(list.map((p, i) => [String(p).replace(/\s+/g, '').toUpperCase(), i]));
+                group.vehicles.sort((va, vb) => {
+                    const pa = String(va.vehicle.plaka).replace(/\s+/g, '').toUpperCase();
+                    const pb = String(vb.vehicle.plaka).replace(/\s+/g, '').toUpperCase();
+                    const iA = vMap.has(pa) ? vMap.get(pa) : 9999;
+                    const iB = vMap.has(pb) ? vMap.get(pb) : 9999;
+                    if (iA !== iB) return iA - iB;
+                    return String(va.vehicle.plaka).localeCompare(String(vb.vehicle.plaka), 'tr', { numeric: true });
+                });
+            }
+        });
+    }
+
+    return baseGroups;
+}
+
+window.shiftOwnerGroup = function (groupKey, delta) {
+    const groups = currentOwnerGroups();
+    const idx = groups.findIndex(g => g.key === groupKey || g.owner === groupKey);
+    if (idx === -1 || idx + delta < 0 || idx + delta >= groups.length) return;
+
+    const currentCustom = window.loadCustomFuelOrder() || {};
+    const ownerKeys = groups.map(g => g.key);
+    const temp = ownerKeys[idx];
+    ownerKeys[idx] = ownerKeys[idx + delta];
+    ownerKeys[idx + delta] = temp;
+
+    const vehicleOrder = currentCustom.vehicleOrder || {};
+    groups.forEach(g => {
+        if (!vehicleOrder[g.key]) {
+            vehicleOrder[g.key] = g.vehicles.map(v => v.vehicle.plaka);
+        }
+    });
+
+    window.saveCustomFuelOrder({ ownerKeys, vehicleOrder });
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
+};
+
+window.shiftVehicleInOwner = function (groupKey, plate, delta) {
+    const groups = currentOwnerGroups();
+    const group = groups.find(g => g.key === groupKey || g.owner === groupKey);
+    if (!group) return;
+
+    const vIdx = group.vehicles.findIndex(v => v.vehicle.plaka === plate);
+    if (vIdx === -1 || vIdx + delta < 0 || vIdx + delta >= group.vehicles.length) return;
+
+    const currentCustom = window.loadCustomFuelOrder() || {};
+    const ownerKeys = currentCustom.ownerKeys || groups.map(g => g.key);
+    const vehicleOrder = currentCustom.vehicleOrder || {};
+
+    const plates = group.vehicles.map(v => v.vehicle.plaka);
+    const temp = plates[vIdx];
+    plates[vIdx] = plates[vIdx + delta];
+    plates[vIdx + delta] = temp;
+
+    vehicleOrder[group.key] = plates;
+    if (group.owner !== group.key) vehicleOrder[group.owner] = plates;
+
+    window.saveCustomFuelOrder({ ownerKeys, vehicleOrder });
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
+};
+
+window.quickSortFuel = function (type) {
+    const baseGroups = window.FuelAnalytics.ownerGroups(isolatedAraclar, isolatedYakitlar);
+    if (type === 'cost-desc') {
+        baseGroups.sort((a, b) => (b.cost || 0) - (a.cost || 0));
+        baseGroups.forEach(g => g.vehicles.sort((va, vb) => (vb.totals.cost || 0) - (va.totals.cost || 0)));
+    } else if (type === 'liters-desc') {
+        baseGroups.sort((a, b) => (b.liters || 0) - (a.liters || 0));
+        baseGroups.forEach(g => g.vehicles.sort((va, vb) => (vb.totals.liters || 0) - (va.totals.liters || 0)));
+    } else if (type === 'owner-az') {
+        baseGroups.sort((a, b) => a.owner.localeCompare(b.owner, 'tr'));
+        baseGroups.forEach(g => g.vehicles.sort((va, vb) => String(va.vehicle.plaka).localeCompare(String(vb.vehicle.plaka), 'tr', { numeric: true })));
+    } else if (type === 'plate-az') {
+        baseGroups.sort((a, b) => a.owner.localeCompare(b.owner, 'tr'));
+        baseGroups.forEach(g => g.vehicles.sort((va, vb) => String(va.vehicle.plaka).localeCompare(String(vb.vehicle.plaka), 'tr', { numeric: true })));
+    }
+
+    const orderObj = {
+        ownerKeys: baseGroups.map(g => g.key),
+        vehicleOrder: {}
+    };
+    baseGroups.forEach(g => {
+        orderObj.vehicleOrder[g.key] = g.vehicles.map(v => v.vehicle.plaka);
+    });
+
+    window.saveCustomFuelOrder(orderObj);
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
+};
+
+window.openFuelReorderModal = function () {
+    if (!fuelReady) return;
+    window.renderReorderModalItems();
+    document.getElementById('fuel-reorder-dialog').showModal();
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.renderReorderModalItems = function () {
+    const container = document.getElementById('fuel-reorder-items');
+    if (!container) return;
+    const groups = currentOwnerGroups();
+    if (!groups.length) {
+        container.innerHTML = '<div style="text-align:center;padding:24px;color:#64748b;">Sıralanacak araç veya sahip bulunamadı.</div>';
+        return;
+    }
+
+    container.innerHTML = groups.map((group, gIdx) => {
+        const vehiclesHtml = group.vehicles.map((it, vIdx) => {
+            const v = it.vehicle;
+            return `
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:10px;font-weight:700;color:#94a3b8;width:18px;">${vIdx + 1}.</span>
+                        <strong style="font-size:12px;color:#0f172a;letter-spacing:0.5px;">${fuelEscape(v.plaka)}</strong>
+                        <span style="font-size:10px;color:#64748b;">(${fuelEscape(v.mulkiyet_durumu || '—')} • ${fuelEscape(v.sirket || '—')})</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span style="font-size:11px;font-weight:700;color:#334155;">${fuelNumber(it.totals.cost)} TL</span>
+                        <div style="display:flex;gap:3px;">
+                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',-1)" ${vIdx === 0 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;">▲</button>
+                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',1)" ${vIdx === group.vehicles.length - 1 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;">▼</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        return `
+            <div style="background:white;border:1px solid #cbd5e1;border-radius:8px;padding:12px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px;margin-bottom:8px;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span style="font-size:12px;font-weight:800;color:#0f172a;background:#e2e8f0;padding:2px 7px;border-radius:4px;">#${gIdx + 1}</span>
+                        <div>
+                            <h4 style="margin:0;font-size:13px;font-weight:700;color:#0f172a;">${fuelEscape(group.owner)}</h4>
+                            <span style="font-size:10px;color:#64748b;">${group.vehicles.length} araç • ${fuelNumber(group.liters)} L</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <strong style="font-size:13px;color:#ea580c;">${fuelNumber(group.cost)} TL</strong>
+                        <div style="display:flex;gap:4px;">
+                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',-1)" ${gIdx === 0 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:26px;padding:2px 8px;font-size:11px;font-weight:bold;cursor:pointer;">▲ Yukarı</button>
+                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',1)" ${gIdx === groups.length - 1 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:26px;padding:2px 8px;font-size:11px;font-weight:bold;cursor:pointer;">▼ Aşağı</button>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:5px;padding-left:14px;border-left:2px solid #e2e8f0;">
+                    ${vehiclesHtml}
+                </div>
+            </div>
+        `;
+    }).join('');
+};
+
+window.saveFuelReorderAndApply = function () {
+    document.getElementById('fuel-reorder-dialog')?.close();
+    renderView();
+    updateOrderIndicator();
+};
+
 function ownerSummaryTable(group) {
-    return '<div class="table-scroll"><table class="fuel-summary-table"><thead><tr><th>Plaka</th><th>Şirket</th><th>Mülkiyet</th><th class="num">Fiş</th><th class="num">Litre</th><th class="num">Tutar (TL)</th></tr></thead><tbody>'+group.vehicles.map(function(item){const v=item.vehicle;return '<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td><span class="ownership-badge">'+fuelEscape(v.mulkiyet_durumu)+'</span></td><td class="num">'+item.totals.count+'</td><td class="num">'+fuelNumber(item.totals.liters)+'</td><td class="num">'+fuelNumber(item.totals.cost)+'</td></tr>';}).join('')+'<tr class="owner-subtotal"><td colspan="4">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td><td class="num">'+fuelNumber(group.cost)+'</td></tr></tbody></table></div>';
+    return '<div class="table-scroll"><table class="fuel-summary-table"><thead><tr><th style="width:130px;">Plaka</th><th>Şirket</th><th>Mülkiyet</th><th class="num">Fiş</th><th class="num">Litre</th><th class="num">Tutar (TL)</th><th class="no-print" style="width:65px;text-align:center;">Sıra</th></tr></thead><tbody>'+group.vehicles.map(function(item){
+        const v = item.vehicle;
+        const reorderBtns = `<span class="no-print" style="display:inline-flex;gap:3px;">
+            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',-1)" title="Aracı Yukarı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;line-height:1;">▲</button>
+            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',1)" title="Aracı Aşağı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;line-height:1;">▼</button>
+        </span>`;
+        return '<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td><span class="ownership-badge">'+fuelEscape(v.mulkiyet_durumu)+'</span></td><td class="num">'+item.totals.count+'</td><td class="num">'+fuelNumber(item.totals.liters)+'</td><td class="num">'+fuelNumber(item.totals.cost)+'</td><td class="no-print" style="text-align:center;">'+reorderBtns+'</td></tr>';
+    }).join('')+'<tr class="owner-subtotal"><td colspan="4">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td><td class="num">'+fuelNumber(group.cost)+'</td><td class="no-print"></td></tr></tbody></table></div>';
 }
 function renderSummaryView() {
     document.getElementById('view-grid').classList.add('hidden');
     document.getElementById('view-list').classList.remove('hidden');
     const groups=currentOwnerGroups();
-    document.getElementById('view-list').innerHTML=groups.map(group=>'<section class="owner-card"><div class="owner-heading"><h3>'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></h3><span>'+fuelNumber(group.cost)+' TL</span></div>'+ownerSummaryTable(group)+'</section>').join('') || '<div class="empty-report">Bu filtrelerde araç bulunamadı.</div>';
+    document.getElementById('view-list').innerHTML=groups.map(group=>`
+        <section class="owner-card">
+            <div class="owner-heading">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="no-print" style="display:flex;gap:3px;">
+                        <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',-1)" title="Sahibi Yukarı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:bold;">▲</button>
+                        <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',1)" title="Sahibi Aşağı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:bold;">▼</button>
+                    </div>
+                    <h3>${fuelEscape(group.owner)}<small>${group.vehicles.length} araç</small></h3>
+                </div>
+                <span>${fuelNumber(group.cost)} TL</span>
+            </div>
+            ${ownerSummaryTable(group)}
+        </section>
+    `).join('') || '<div class="empty-report">Bu filtrelerde araç bulunamadı.</div>';
+    updateOrderIndicator();
 }
 function renderVehicleView() {
     document.getElementById('view-grid').classList.add('hidden');
     document.getElementById('view-list').classList.remove('hidden');
-    document.getElementById('view-list').innerHTML=currentOwnerGroups().map(group=>'<section class="owner-card"><div class="owner-heading"><h3>'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></h3><span>'+fuelNumber(group.cost)+' TL</span></div><div class="table-scroll">'+ownerPrintTable(group,true)+'</div></section>').join('') || '<div class="empty-report">Bu filtrelerde araç bulunamadı.</div>';
+    document.getElementById('view-list').innerHTML=currentOwnerGroups().map(group=>`
+        <section class="owner-card">
+            <div class="owner-heading">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="no-print" style="display:flex;gap:3px;">
+                        <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',-1)" title="Sahibi Yukarı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:bold;">▲</button>
+                        <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',1)" title="Sahibi Aşağı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:2px 7px;font-size:11px;cursor:pointer;font-weight:bold;">▼</button>
+                    </div>
+                    <h3>${fuelEscape(group.owner)}<small>${group.vehicles.length} araç</small></h3>
+                </div>
+                <span>${fuelNumber(group.cost)} TL</span>
+            </div>
+            <div class="table-scroll">${ownerPrintTable(group,true,false)}</div>
+        </section>
+    `).join('') || '<div class="empty-report">Bu filtrelerde araç bulunamadı.</div>';
+    updateOrderIndicator();
 }
 window.switchView = function(view) {
     window.currentView=view;
@@ -241,22 +522,26 @@ window.changeDonem = function() {
     if (newDonem) { const bounds = window.FuelAnalytics.periodBounds('month', newDonem+'-01'); document.getElementById('fuel-start').value=bounds.start; document.getElementById('fuel-end').value=bounds.end; fetchData(); }
 }
 
-function ownerPrintTable(group, detail) {
-    const columns=detail?6:5;
-    const head=detail?'<th>Plaka</th><th>Tarih</th><th>Şirket</th><th class="num">Litre</th><th class="num">Birim (TL)</th><th class="num">Tutar (TL)</th>':'<th>Plaka</th><th>Şirket</th><th class="num">Fiş</th><th class="num">Litre</th><th class="num">Tutar (TL)</th>';
+function ownerPrintTable(group, detail, isForPrint = false) {
+    const columns=detail?(isForPrint?6:7):(isForPrint?5:6);
+    const orderHeader=isForPrint?'':'<th class="no-print" style="width:65px;text-align:center;">Sıra</th>';
+    const head=detail?('<th>Plaka</th><th>Tarih</th><th>Şirket</th><th class="num">Litre</th><th class="num">Birim (TL)</th><th class="num">Tutar (TL)</th>'+orderHeader):('<th>Plaka</th><th>Şirket</th><th class="num">Fiş</th><th class="num">Litre</th><th class="num">Tutar (TL)</th>'+orderHeader);
     let rows='';
     group.vehicles.forEach(item=>{
         const v=item.vehicle;
+        const reorderBtns = isForPrint ? '' : `<td class="no-print" style="text-align:center;"><span style="display:inline-flex;gap:3px;"><button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',-1)" title="Aracı Yukarı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;line-height:1;">▲</button><button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',1)" title="Aracı Aşağı Taşı" style="border:1px solid #cbd5e1;background:#fff;border-radius:4px;padding:1px 5px;font-size:10px;cursor:pointer;line-height:1;">▼</button></span></td>`;
         if(detail && item.records.length) {
-            item.records.forEach(row=>{rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelDate(row.tarih)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td class="num">'+fuelNumber(row.litre)+'</td><td class="num">'+fuelNumber(row.birim_fiyat)+'</td><td class="num">'+fuelNumber(row.toplam_tutar)+'</td></tr>';});
+            item.records.forEach((row, rIdx)=>{
+                rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelDate(row.tarih)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td class="num">'+fuelNumber(row.litre)+'</td><td class="num">'+fuelNumber(row.birim_fiyat)+'</td><td class="num">'+fuelNumber(row.toplam_tutar)+'</td>'+(rIdx===0 ? reorderBtns : (isForPrint?'':'<td class="no-print"></td>'))+'</tr>';
+            });
         } else if(detail) {
-            rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td colspan="2">Yakıt kaydı yok</td><td class="num">0,00</td><td class="num">—</td><td class="num">0,00</td></tr>';
+            rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td colspan="2">Yakıt kaydı yok</td><td class="num">0,00</td><td class="num">—</td><td class="num">0,00</td>'+reorderBtns+'</tr>';
         } else {
-            rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td class="num">'+item.totals.count+'</td><td class="num">'+fuelNumber(item.totals.liters)+'</td><td class="num">'+fuelNumber(item.totals.cost)+'</td></tr>';
+            rows+='<tr><td>'+fuelEscape(v.plaka)+'</td><td>'+fuelEscape(v.sirket || '—')+'</td><td class="num">'+item.totals.count+'</td><td class="num">'+fuelNumber(item.totals.liters)+'</td><td class="num">'+fuelNumber(item.totals.cost)+'</td>'+reorderBtns+'</tr>';
         }
     });
     const subtotal=detail?'<td colspan="3">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td><td></td>':'<td colspan="3">Sahip toplamı</td><td class="num">'+fuelNumber(group.liters)+'</td>';
-    return '<table class="owner-print-table"><thead><tr class="owner-title"><th colspan="'+columns+'">'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></th></tr><tr class="column-titles">'+head+'</tr></thead><tbody>'+rows+'<tr class="owner-subtotal">'+subtotal+'<td class="num">'+fuelNumber(group.cost)+'</td></tr></tbody></table>';
+    return '<table class="owner-print-table"><thead><tr class="owner-title"><th colspan="'+columns+'">'+fuelEscape(group.owner)+'<small>'+group.vehicles.length+' araç</small></th></tr><tr class="column-titles">'+head+'</tr></thead><tbody>'+rows+'<tr class="owner-subtotal">'+subtotal+'<td class="num">'+fuelNumber(group.cost)+'</td>'+(isForPrint?'':'<td class="no-print"></td>')+'</tr></tbody></table>';
 }
 function fuelPrintPeriodLabel() {
     const start = document.getElementById('fuel-start').value;
@@ -266,12 +551,27 @@ function fuelPrintPeriodLabel() {
 }
 function buildFuelPrintDocument() {
     const fueledIds = new Set(isolatedYakitlar.map(row => String(row.arac_id)));
-    const printVehicles = isolatedAraclar.filter(vehicle => fueledIds.has(String(vehicle.id)));
-    const printGroups = window.FuelAnalytics.ownerGroups(printVehicles, isolatedYakitlar);
-    if (!printVehicles.length) return '<p class="empty-report">Seçili dönemde yazdırılacak yakıt kaydı bulunmuyor.</p>';
+    // Özel sıralanmış sahip ve araç listesini al
+    const allGroups = currentOwnerGroups();
+    const printGroups = allGroups.map(group => {
+        const filteredVehicles = group.vehicles.filter(item => fueledIds.has(String(item.vehicle.id)));
+        if (!filteredVehicles.length) return null;
+        const groupLiters = filteredVehicles.reduce((s, it) => s + (it.totals.liters || 0), 0);
+        const groupCost = filteredVehicles.reduce((s, it) => s + (it.totals.cost || 0), 0);
+        return {
+            ...group,
+            vehicles: filteredVehicles,
+            liters: groupLiters,
+            cost: groupCost
+        };
+    }).filter(Boolean);
+
+    const printVehicleCount = printGroups.reduce((s, g) => s + g.vehicles.length, 0);
+    if (!printGroups.length) return '<p class="empty-report">Seçili dönemde yazdırılacak yakıt kaydı bulunmuyor.</p>';
+    
     const summary=window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar);
     const detail=document.getElementById('fuel-print-format').value==='detail';
-    return '<article class="fuel-document"><header class="document-header"><div><p class="document-period">Dönem: '+fuelEscape(fuelPrintPeriodLabel())+'</p><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicles.length+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
+    return '<article class="fuel-document"><header class="document-header"><div><p class="document-period">Dönem: '+fuelEscape(fuelPrintPeriodLabel())+'</p><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicleCount+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail,true)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
 }
 window.refreshFuelPrintPreview = function() {
     if(!fuelReady)return;

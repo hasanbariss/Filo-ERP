@@ -1601,6 +1601,13 @@ window.openModal = function (title, id = null, extra = null) {
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Tanımlanacak Araç</label>
                             <select id="tanim-arac" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-all font-medium"></select>
+                            <div class="mt-3 pt-3 border-t border-white/5">
+                                <label class="block text-xs font-bold text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Veya Listede Yoksa Yeni Plaka Girin:
+                                </label>
+                                <input type="text" id="tanim-yeni-plaka" placeholder="Örn: 45 J 1470" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 uppercase font-mono text-sm">
+                                <p class="text-[11px] text-gray-500 mt-1">Geçerli bir plaka girdiğinizde sistemde yoksa otomatik eklenir ve taşeron/özmal kontrolü yapmanız hatırlatılır.</p>
+                            </div>
                         </div>
 
                         <!-- Otomatik tarife bilgi kutusu -->

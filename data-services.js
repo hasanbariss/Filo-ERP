@@ -402,7 +402,46 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
             const musteriSelect = document.getElementById('tanim-musteri');
             const musteri_id = musteriSelect.value;
             const musteriAd  = musteriSelect.options[musteriSelect.selectedIndex]?.text || '';
-            const arac_id    = document.getElementById('tanim-arac').value;
+            let arac_id      = document.getElementById('tanim-arac')?.value;
+            const yeniPlakaInput = document.getElementById('tanim-yeni-plaka');
+            const yeniPlakaVal = (yeniPlakaInput ? yeniPlakaInput.value : '').trim();
+
+            let isBrandNewVehicle = false;
+            let newlyAddedPlateStr = '';
+
+            // Kullanıcı listede olmayan yeni bir plaka yazdıysa
+            if (yeniPlakaVal) {
+                if (typeof window.isValidTurkishPlate === 'function' && !window.isValidTurkishPlate(yeniPlakaVal)) {
+                    throw new Error("Lütfen mantıklı ve geçerli bir Türkiye plakası giriniz (örn: 45 J 1470, 45 J 3214).");
+                }
+                const formattedPlk = typeof window.cleanPlate === 'function' ? window.cleanPlate(yeniPlakaVal) : yeniPlakaVal.toUpperCase();
+
+                // DB'de var mı kontrol et
+                const { data: existArac } = await window.supabaseClient
+                    .from('araclar')
+                    .select('id, plaka')
+                    .or(`plaka.eq.${formattedPlk},plaka.eq.${formattedPlk.replace(/\s+/g, '')}`)
+                    .maybeSingle();
+
+                if (existArac) {
+                    arac_id = existArac.id;
+                } else {
+                    const { data: newArac, error: newAracErr } = await window.supabaseClient
+                        .from('araclar')
+                        .insert([{
+                            plaka: formattedPlk,
+                            mulkiyet_durumu: 'TAŞERON',
+                            marka_model: 'Yeni Araç'
+                        }])
+                        .select('id, plaka')
+                        .single();
+
+                    if (newAracErr) throw newAracErr;
+                    arac_id = newArac.id;
+                    isBrandNewVehicle = true;
+                    newlyAddedPlateStr = formattedPlk;
+                }
+            }
 
             // Tarife türünü fabrika adına göre otomatik belirle
             // Dikkan → 'Tek' (kendi puantaj satırları olan fabrika)
@@ -417,6 +456,12 @@ window.saveDataAndClose = async function (event, keepOpen = false) {
             if (error) {
                 if (error.code === '23505') throw new Error("Bu araç zaten bu müşteriye tanımlı.");
                 throw error;
+            }
+
+            if (isBrandNewVehicle) {
+                setTimeout(() => {
+                    alert(`⚠️ DİKKAT: ${newlyAddedPlateStr} plakası sistemde kayıtlı olmadığı için yeni araç olarak sisteme eklendi!\n\nLütfen Araç Kartı / Taşeron modülünden bu aracın Taşeron mu Özmal mı olduğunu ve cari bağlantısını kontrol ediniz.`);
+                }, 300);
             }
             // Auto-refresh müşteri kartı
             if (typeof fetchMusteriler === 'function') {
@@ -4569,10 +4614,23 @@ window.loadExcelMusteriler = async function () {
         const compact = s.replace(/\s+/g, '');
         const m = compact.match(/^(\d{2})([A-ZÇĞİÖŞÜ]{1,3})(\d{2,4})$/);
         if (m) {
-            return `${m[1]} ${m[2]} ${m[3].padStart(4, '0')}`;
+            let digits = m[3];
+            if (m[2].length === 1 && digits.length === 3) {
+                digits = '0' + digits;
+            }
+            return `${m[1]} ${m[2]} ${digits}`;
         }
         return s;
     }
+
+    function isValidTurkishPlate(raw) {
+        if (!raw || typeof raw !== 'string') return false;
+        const compact = raw.toLocaleUpperCase('tr-TR').replace(/\s+/g, '');
+        return /^(0[1-9]|[1-7][0-9]|8[01])([A-ZÇĞİÖŞÜ]{1,3})(\d{2,4})$/i.test(compact);
+    }
+
+    window.cleanPlate = cleanPlate;
+    window.isValidTurkishPlate = isValidTurkishPlate;
 
     function notify(msg, type = 'info') {
         if (window.Toast) {
@@ -4659,8 +4717,29 @@ window.loadExcelMusteriler = async function () {
                                 Plakaları İşaretle
                             </button>
                         </div>
-                        <textarea id="toplu-ekle-paste-input" rows="2" placeholder="Excel'den kopyalayıp alt alta veya virgülle yapıştırın (örn: 45 J 0827, 45 J 1857, 45 J 994)..." class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono resize-none"></textarea>
+                        <textarea id="toplu-ekle-paste-input" rows="2" placeholder="Excel'den kopyalayıp alt alta veya virgülle yapıştırın (örn: 45 J 0827, 45 J 1470, 45 J 3214)..." class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono resize-none"></textarea>
                         <div id="toplu-ekle-paste-feedback" class="text-[11px] font-bold mt-2 hidden"></div>
+                    </div>
+
+                    <!-- Tekil Yeni Plaka Ekleme Kutusu -->
+                    <div class="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                                <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i>
+                                Listede Olmayan Yeni Plaka Ekle (Örn: 45 J 1470 - 45 J 3214)
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="text" id="toplu-ekle-yeni-tek-plaka" 
+                                   placeholder="Geçerli bir plaka yazın (örn: 45 J 1470)..." 
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault();window.addSingleNewPlateToTopluModal();}"
+                                   class="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-xs text-white uppercase placeholder-gray-500 focus:outline-none focus:border-emerald-500 font-mono">
+                            <button type="button" onclick="window.addSingleNewPlateToTopluModal()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-emerald-500/20 flex-shrink-0">
+                                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                Plakayı Ekle
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mt-1.5">Plaka doğru formatta girildiğinde otomatik sisteme eklenir ve taşeron/özmal kontrolü yapmanız hatırlatılır.</p>
                     </div>
 
                     <!-- Arama ve Hızlı Filtre Butonları -->
@@ -4799,7 +4878,7 @@ window.loadExcelMusteriler = async function () {
         window.updateTopluSeciliSayac();
     };
 
-    window.applyPastedPlates = function () {
+    window.applyPastedPlates = async function () {
         const input = document.getElementById('toplu-ekle-paste-input');
         const feedback = document.getElementById('toplu-ekle-paste-feedback');
         const text = input ? input.value : '';
@@ -4812,38 +4891,216 @@ window.loadExcelMusteriler = async function () {
         }
 
         const tokens = text.split(/[\r\n,;\t]+/).map(t => t.trim()).filter(Boolean);
-        const searchPlates = new Set();
-        tokens.forEach(tok => {
-            const normTok = cleanPlate(tok);
-            if (normTok) searchPlates.add(normTok);
-            searchPlates.add(tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' '));
-            searchPlates.add(tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, ''));
+        const existingCheckboxes = Array.from(document.querySelectorAll('.toplu-arac-cb'));
+        
+        // Modal içindeki mevcut plakaların haritasını çıkar
+        const existingPlatesMap = new Map();
+        existingCheckboxes.forEach(cb => {
+            const raw = cb.getAttribute('data-plaka') || '';
+            const clean = cleanPlate(raw);
+            const compact = raw.toLocaleUpperCase('tr-TR').replace(/\s+/g, '');
+            const norm = raw.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' ');
+            existingPlatesMap.set(clean, cb);
+            existingPlatesMap.set(compact, cb);
+            existingPlatesMap.set(norm, cb);
         });
 
         let matched = 0;
-        document.querySelectorAll('.toplu-arac-cb').forEach(cb => {
-            const plakaRaw = cb.getAttribute('data-plaka') || '';
-            const plakaClean = cleanPlate(plakaRaw);
-            const plakaCompact = plakaRaw.toLocaleUpperCase('tr-TR').replace(/\s+/g, '');
-            const plakaNorm = plakaRaw.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' ');
+        const newPlatesToInsert = [];
 
-            if (searchPlates.has(plakaClean) || searchPlates.has(plakaCompact) || searchPlates.has(plakaNorm)) {
+        tokens.forEach(tok => {
+            const normTok = cleanPlate(tok);
+            const compactTok = tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, '');
+            const spacedTok = tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' ');
+
+            const cb = existingPlatesMap.get(normTok) || existingPlatesMap.get(compactTok) || existingPlatesMap.get(spacedTok);
+            if (cb) {
                 cb.checked = true;
                 matched++;
+            } else if (isValidTurkishPlate(tok)) {
+                const formatted = cleanPlate(tok);
+                if (!newPlatesToInsert.includes(formatted)) {
+                    newPlatesToInsert.push(formatted);
+                }
             }
         });
+
+        // Sistemde olmayan mantıklı Türkiye plakalarını otomatik sisteme ekle
+        const newlyAdded = [];
+        if (newPlatesToInsert.length > 0) {
+            if (feedback) {
+                feedback.classList.remove('hidden');
+                feedback.className = 'text-[11px] font-bold text-blue-300 mt-2 block';
+                feedback.innerHTML = `<i data-lucide="loader-2" class="w-3 h-3 inline animate-spin mr-1"></i> Yeni plakalar sisteme ekleniyor: ${newPlatesToInsert.join(', ')}...`;
+                if (window.lucide) window.lucide.createIcons();
+            }
+
+            for (const plk of newPlatesToInsert) {
+                try {
+                    // Supabase'de var mı kontrol et
+                    const { data: existingDb } = await window.supabaseClient
+                        .from('araclar')
+                        .select('id, plaka, marka_model, mulkiyet_durumu')
+                        .or(`plaka.eq.${plk},plaka.eq.${plk.replace(/\s+/g, '')}`)
+                        .maybeSingle();
+
+                    let aracRecord = existingDb;
+                    let isBrandNew = false;
+                    if (!aracRecord) {
+                        const { data: insData, error: insErr } = await window.supabaseClient
+                            .from('araclar')
+                            .insert([{
+                                plaka: plk,
+                                mulkiyet_durumu: 'TAŞERON',
+                                marka_model: 'Yeni Araç'
+                            }])
+                            .select('id, plaka, marka_model, mulkiyet_durumu')
+                            .single();
+
+                        if (!insErr && insData) {
+                            aracRecord = insData;
+                            isBrandNew = true;
+                        }
+                    }
+
+                    if (aracRecord) {
+                        const listGrid = document.querySelector('#toplu-arac-list .grid') || document.querySelector('#toplu-arac-list');
+                        if (listGrid) {
+                            const newLabel = document.createElement('label');
+                            newLabel.className = 'toplu-arac-item flex items-center justify-between p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 cursor-pointer transition-colors group animate-fadeIn';
+                            newLabel.innerHTML = `
+                                <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                                    <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-blue-600 focus:ring-blue-500/50" value="${aracRecord.id}" data-plaka="${aracRecord.plaka}" checked onchange="window.updateTopluSeciliSayac()">
+                                    <div class="min-w-0">
+                                        <div class="plaka-text font-black text-white text-sm tracking-wide">${aracRecord.plaka}</div>
+                                        <div class="text-[10px] text-amber-300 uppercase truncate">YENİ EKLENDİ (${aracRecord.mulkiyet_durumu || 'TAŞERON'})</div>
+                                    </div>
+                                </div>
+                                <span class="text-[9px] font-black px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 flex-shrink-0">Yeni Araç</span>
+                            `;
+                            listGrid.prepend(newLabel);
+                            matched++;
+                        }
+                        if (isBrandNew) {
+                            newlyAdded.push(plk);
+                        }
+                    }
+                } catch (err) {
+                    console.error('[Yeni Plaka Ekleme Hatası]:', plk, err);
+                }
+            }
+        }
 
         window.updateTopluSeciliSayac();
 
         if (feedback) {
             feedback.classList.remove('hidden');
+            let htmlMsg = '';
             if (matched > 0) {
-                feedback.className = 'text-[11px] font-bold text-emerald-300 mt-2 block';
-                feedback.innerHTML = `✓ <strong>${matched}</strong> araç listeden otomatik işaretlendi.`;
+                htmlMsg += `<div class="text-emerald-300 font-bold mb-1">✓ <strong>${matched}</strong> araç listeden seçildi / eklendi.</div>`;
             } else {
-                feedback.className = 'text-[11px] font-bold text-rose-300 mt-2 block';
-                feedback.innerHTML = '✕ Yapıştırılan plakalar sistemdeki araçlarla eşleştirilemedi.';
+                htmlMsg += `<div class="text-rose-300 font-bold mb-1">✕ Yapıştırılan metinde geçerli araç plakası bulunamadı.</div>`;
             }
+
+            if (newlyAdded.length > 0) {
+                htmlMsg += `
+                    <div class="mt-2 p-3 bg-amber-500/15 border border-amber-500/40 rounded-xl text-amber-300 text-xs font-semibold leading-relaxed">
+                        ⚠️ <strong>DİKKAT:</strong> <code>${newlyAdded.join(', ')}</code> plaka(lar)ı sistemde kayıtlı olmadığı için yeni araç olarak eklendi!<br>
+                        Lütfen Araç Kartı / Taşeron modülünden bu araçların <strong>Taşeron mu Özmal mı</strong> olduğunu ve cari bağlantılarını kontrol ediniz.
+                    </div>
+                `;
+                notify(`⚠️ ${newlyAdded.join(', ')} sisteme yeni eklendi. Taşeron mu Özmal mı olduğunu kontrol sağlayın!`, 'warning');
+            }
+            feedback.innerHTML = htmlMsg;
+        }
+    };
+
+    window.addSingleNewPlateToTopluModal = async function () {
+        const input = document.getElementById('toplu-ekle-yeni-tek-plaka');
+        const plkRaw = input ? input.value.trim() : '';
+        if (!plkRaw) return;
+
+        if (!isValidTurkishPlate(plkRaw)) {
+            notify("Lütfen mantıklı ve geçerli bir Türkiye plakası giriniz (örn: 45 J 1470, 45 J 3214).", "error");
+            return;
+        }
+
+        const formatted = cleanPlate(plkRaw);
+        
+        // Modal listesinde var mı?
+        let foundCb = null;
+        document.querySelectorAll('.toplu-arac-cb').forEach(cb => {
+            const p = cb.getAttribute('data-plaka') || '';
+            if (cleanPlate(p) === formatted || p.replace(/\s+/g, '') === formatted.replace(/\s+/g, '')) {
+                foundCb = cb;
+            }
+        });
+
+        if (foundCb) {
+            foundCb.checked = true;
+            foundCb.closest('.toplu-arac-item')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.updateTopluSeciliSayac();
+            notify(`${formatted} listede bulundu ve işaretlendi.`, 'info');
+            input.value = '';
+            return;
+        }
+
+        // DB'ye yeni araç olarak kaydet
+        try {
+            const { data: existingDb } = await window.supabaseClient
+                .from('araclar')
+                .select('id, plaka, marka_model, mulkiyet_durumu')
+                .or(`plaka.eq.${formatted},plaka.eq.${formatted.replace(/\s+/g, '')}`)
+                .maybeSingle();
+
+            let aracRecord = existingDb;
+            let isBrandNew = false;
+            if (!aracRecord) {
+                const { data: insData, error: insErr } = await window.supabaseClient
+                    .from('araclar')
+                    .insert([{
+                        plaka: formatted,
+                        mulkiyet_durumu: 'TAŞERON',
+                        marka_model: 'Yeni Araç'
+                    }])
+                    .select('id, plaka, marka_model, mulkiyet_durumu')
+                    .single();
+
+                if (insErr) throw insErr;
+                aracRecord = insData;
+                isBrandNew = true;
+            }
+
+            if (aracRecord) {
+                const listGrid = document.querySelector('#toplu-arac-list .grid') || document.querySelector('#toplu-arac-list');
+                if (listGrid) {
+                    const newLabel = document.createElement('label');
+                    newLabel.className = 'toplu-arac-item flex items-center justify-between p-3 rounded-xl border border-amber-500/40 bg-amber-500/10 cursor-pointer transition-colors group animate-fadeIn';
+                    newLabel.innerHTML = `
+                        <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                            <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-blue-600 focus:ring-blue-500/50" value="${aracRecord.id}" data-plaka="${aracRecord.plaka}" checked onchange="window.updateTopluSeciliSayac()">
+                            <div class="min-w-0">
+                                <div class="plaka-text font-black text-white text-sm tracking-wide">${aracRecord.plaka}</div>
+                                <div class="text-[10px] text-amber-300 uppercase truncate">YENİ EKLENDİ (${aracRecord.mulkiyet_durumu || 'TAŞERON'})</div>
+                            </div>
+                        </div>
+                        <span class="text-[9px] font-black px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 flex-shrink-0">Yeni Araç</span>
+                    `;
+                    listGrid.prepend(newLabel);
+                }
+                window.updateTopluSeciliSayac();
+                input.value = '';
+
+                if (isBrandNew) {
+                    notify(`⚠️ ${formatted} sisteme yeni eklendi! Lütfen Taşeron mu Özmal mı olduğunu kontrol sağlayın.`, 'warning');
+                    alert(`⚠️ DİKKAT: ${formatted} plakası sistemde kayıtlı olmadığı için yeni araç olarak eklendi!\n\nLütfen Araç Kartı / Taşeron modülünden bu aracın Taşeron mu Özmal mı olduğunu ve cari bağlantısını kontrol ediniz.`);
+                } else {
+                    notify(`${formatted} aracı seçildi.`, 'success');
+                }
+            }
+        } catch (e) {
+            console.error('[addSingleNewPlateToTopluModal]', e);
+            notify('Araç eklenirken hata: ' + (e.message || e), 'error');
         }
     };
 
