@@ -463,17 +463,78 @@ function currentOwnerGroups() {
     return baseGroups;
 }
 
-window.shiftOwnerGroup = function (groupKey, delta) {
+/* === SÜRÜKLE - BIRAK VE HIZLI ÇOKLU SIRALAMA İŞLEMLERİ === */
+let reorderDraggedItem = null;
+
+window.handleReorderDragStart = function (e, type, groupKey, plate) {
+    reorderDraggedItem = { type, groupKey, plate };
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+        e.dataTransfer.setData('text/plain', JSON.stringify(reorderDraggedItem));
+    } catch (_) {}
+    e.currentTarget.style.opacity = '0.4';
+    e.currentTarget.style.outline = '2px dashed #3b82f6';
+};
+
+window.handleReorderDragEnd = function (e) {
+    e.currentTarget.style.opacity = '1';
+    e.currentTarget.style.outline = 'none';
+    document.querySelectorAll('.reorder-drop-target').forEach(el => {
+        el.style.borderTop = '';
+        el.style.borderBottom = '';
+    });
+    reorderDraggedItem = null;
+};
+
+window.handleReorderDragOver = function (e, type) {
+    e.preventDefault();
+    if (!reorderDraggedItem || reorderDraggedItem.type !== type) return;
+    e.dataTransfer.dropEffect = 'move';
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const isAfter = (e.clientY - rect.top) > (rect.height / 2);
+    target.style.borderTop = isAfter ? '' : '3px solid #2563eb';
+    target.style.borderBottom = isAfter ? '3px solid #2563eb' : '';
+};
+
+window.handleReorderDragLeave = function (e) {
+    e.currentTarget.style.borderTop = '';
+    e.currentTarget.style.borderBottom = '';
+};
+
+window.handleReorderDrop = function (e, type, targetGroupKey, targetPlate) {
+    e.preventDefault();
+    e.currentTarget.style.borderTop = '';
+    e.currentTarget.style.borderBottom = '';
+    if (!reorderDraggedItem || reorderDraggedItem.type !== type) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isAfter = (e.clientY - rect.top) > (rect.height / 2);
+
+    if (type === 'owner') {
+        const sourceKey = reorderDraggedItem.groupKey;
+        if (sourceKey === targetGroupKey) return;
+        window.reorderMoveOwner(sourceKey, targetGroupKey, isAfter);
+    } else if (type === 'vehicle') {
+        const sourceGroup = reorderDraggedItem.groupKey;
+        const sourcePlate = reorderDraggedItem.plate;
+        window.reorderMoveVehicle(sourceGroup, sourcePlate, targetGroupKey, targetPlate, isAfter);
+    }
+};
+
+window.reorderMoveOwner = function (sourceKey, targetKey, isAfter) {
     const groups = currentOwnerGroups();
-    const idx = groups.findIndex(g => g.key === groupKey || g.owner === groupKey);
-    if (idx === -1 || idx + delta < 0 || idx + delta >= groups.length) return;
+    const keys = groups.map(g => g.key);
+    const srcIdx = keys.findIndex(k => k === sourceKey);
+    const tgtIdx = keys.findIndex(k => k === targetKey);
+    if (srcIdx === -1 || tgtIdx === -1 || srcIdx === tgtIdx) return;
+
+    const [removed] = keys.splice(srcIdx, 1);
+    let insertAt = keys.findIndex(k => k === targetKey);
+    if (isAfter) insertAt += 1;
+    keys.splice(insertAt, 0, removed);
 
     const currentCustom = window.loadCustomFuelOrder() || {};
-    const ownerKeys = groups.map(g => g.key);
-    const temp = ownerKeys[idx];
-    ownerKeys[idx] = ownerKeys[idx + delta];
-    ownerKeys[idx + delta] = temp;
-
     const vehicleOrder = currentCustom.vehicleOrder || {};
     groups.forEach(g => {
         if (!vehicleOrder[g.key]) {
@@ -481,38 +542,137 @@ window.shiftOwnerGroup = function (groupKey, delta) {
         }
     });
 
-    window.saveCustomFuelOrder({ ownerKeys, vehicleOrder });
+    window.saveCustomFuelOrder({ ownerKeys: keys, vehicleOrder });
     renderView();
-    if (document.getElementById('fuel-reorder-dialog')?.open) {
-        window.renderReorderModalItems();
-    }
+    window.renderReorderModalItems();
 };
 
-window.shiftVehicleInOwner = function (groupKey, plate, delta) {
+window.reorderMoveVehicle = function (sourceGroupKey, sourcePlate, targetGroupKey, targetPlate, isAfter) {
+    const groups = currentOwnerGroups();
+    const currentCustom = window.loadCustomFuelOrder() || {};
+    const ownerKeys = currentCustom.ownerKeys || groups.map(g => g.key);
+    const vehicleOrder = currentCustom.vehicleOrder || {};
+
+    const targetGroup = groups.find(g => g.key === targetGroupKey || g.owner === targetGroupKey);
+    if (!targetGroup) return;
+
+    let targetPlates = (vehicleOrder[targetGroup.key] || targetGroup.vehicles.map(v => v.vehicle.plaka)).slice();
+
+    if (sourceGroupKey === targetGroupKey) {
+        const srcIdx = targetPlates.findIndex(p => p === sourcePlate);
+        const tgtIdx = targetPlates.findIndex(p => p === targetPlate);
+        if (srcIdx !== -1 && tgtIdx !== -1 && srcIdx !== tgtIdx) {
+            const [removed] = targetPlates.splice(srcIdx, 1);
+            let insertAt = targetPlates.findIndex(p => p === targetPlate);
+            if (isAfter) insertAt += 1;
+            targetPlates.splice(insertAt, 0, removed);
+            vehicleOrder[targetGroup.key] = targetPlates;
+            if (targetGroup.owner !== targetGroup.key) vehicleOrder[targetGroup.owner] = targetPlates;
+        }
+    } else {
+        const sourceGroup = groups.find(g => g.key === sourceGroupKey || g.owner === sourceGroupKey);
+        if (!sourceGroup) return;
+        let sourcePlates = (vehicleOrder[sourceGroup.key] || sourceGroup.vehicles.map(v => v.vehicle.plaka)).slice();
+        sourcePlates = sourcePlates.filter(p => p !== sourcePlate);
+        vehicleOrder[sourceGroup.key] = sourcePlates;
+        if (sourceGroup.owner !== sourceGroup.key) vehicleOrder[sourceGroup.owner] = sourcePlates;
+
+        let insertAt = targetPlates.findIndex(p => p === targetPlate);
+        if (isAfter) insertAt += 1;
+        targetPlates.splice(insertAt, 0, sourcePlate);
+        vehicleOrder[targetGroup.key] = targetPlates;
+        if (targetGroup.owner !== targetGroup.key) vehicleOrder[targetGroup.owner] = targetPlates;
+    }
+
+    window.saveCustomFuelOrder({ ownerKeys, vehicleOrder });
+    renderView();
+    window.renderReorderModalItems();
+};
+
+window.moveOwnerGroupToPosition = function (groupKey, target1Based) {
+    const targetIdx = parseInt(target1Based, 10) - 1;
+    const groups = currentOwnerGroups();
+    if (isNaN(targetIdx) || targetIdx < 0 || targetIdx >= groups.length) return;
+
+    const keys = groups.map(g => g.key);
+    const srcIdx = keys.findIndex(k => k === groupKey);
+    if (srcIdx === -1 || srcIdx === targetIdx) return;
+
+    const [removed] = keys.splice(srcIdx, 1);
+    keys.splice(targetIdx, 0, removed);
+
+    const currentCustom = window.loadCustomFuelOrder() || {};
+    const vehicleOrder = currentCustom.vehicleOrder || {};
+    groups.forEach(g => {
+        if (!vehicleOrder[g.key]) {
+            vehicleOrder[g.key] = g.vehicles.map(v => v.vehicle.plaka);
+        }
+    });
+
+    window.saveCustomFuelOrder({ ownerKeys: keys, vehicleOrder });
+    renderView();
+    window.renderReorderModalItems();
+};
+
+window.moveVehicleToPosition = function (groupKey, plate, target1Based) {
+    const targetIdx = parseInt(target1Based, 10) - 1;
     const groups = currentOwnerGroups();
     const group = groups.find(g => g.key === groupKey || g.owner === groupKey);
     if (!group) return;
-
-    const vIdx = group.vehicles.findIndex(v => v.vehicle.plaka === plate);
-    if (vIdx === -1 || vIdx + delta < 0 || vIdx + delta >= group.vehicles.length) return;
+    if (isNaN(targetIdx) || targetIdx < 0 || targetIdx >= group.vehicles.length) return;
 
     const currentCustom = window.loadCustomFuelOrder() || {};
     const ownerKeys = currentCustom.ownerKeys || groups.map(g => g.key);
     const vehicleOrder = currentCustom.vehicleOrder || {};
 
-    const plates = group.vehicles.map(v => v.vehicle.plaka);
-    const temp = plates[vIdx];
-    plates[vIdx] = plates[vIdx + delta];
-    plates[vIdx + delta] = temp;
+    const plates = (vehicleOrder[group.key] || group.vehicles.map(v => v.vehicle.plaka)).slice();
+    const srcIdx = plates.findIndex(p => p === plate);
+    if (srcIdx === -1 || srcIdx === targetIdx) return;
+
+    const [removed] = plates.splice(srcIdx, 1);
+    plates.splice(targetIdx, 0, removed);
 
     vehicleOrder[group.key] = plates;
     if (group.owner !== group.key) vehicleOrder[group.owner] = plates;
 
     window.saveCustomFuelOrder({ ownerKeys, vehicleOrder });
     renderView();
-    if (document.getElementById('fuel-reorder-dialog')?.open) {
-        window.renderReorderModalItems();
-    }
+    window.renderReorderModalItems();
+};
+
+window.jumpOwnerToTop = function (groupKey) {
+    window.moveOwnerGroupToPosition(groupKey, 1);
+};
+
+window.jumpOwnerToBottom = function (groupKey) {
+    const groups = currentOwnerGroups();
+    window.moveOwnerGroupToPosition(groupKey, groups.length);
+};
+
+window.jumpVehicleToTop = function (groupKey, plate) {
+    window.moveVehicleToPosition(groupKey, plate, 1);
+};
+
+window.jumpVehicleToBottom = function (groupKey, plate) {
+    const groups = currentOwnerGroups();
+    const group = groups.find(g => g.key === groupKey || g.owner === groupKey);
+    if (group) window.moveVehicleToPosition(groupKey, plate, group.vehicles.length);
+};
+
+window.shiftOwnerGroup = function (groupKey, delta) {
+    const groups = currentOwnerGroups();
+    const idx = groups.findIndex(g => g.key === groupKey || g.owner === groupKey);
+    if (idx === -1 || idx + delta < 0 || idx + delta >= groups.length) return;
+    window.moveOwnerGroupToPosition(groupKey, idx + delta + 1);
+};
+
+window.shiftVehicleInOwner = function (groupKey, plate, delta) {
+    const groups = currentOwnerGroups();
+    const group = groups.find(g => g.key === groupKey || g.owner === groupKey);
+    if (!group) return;
+    const vIdx = group.vehicles.findIndex(v => v.vehicle.plaka === plate);
+    if (vIdx === -1 || vIdx + delta < 0 || vIdx + delta >= group.vehicles.length) return;
+    window.moveVehicleToPosition(groupKey, plate, vIdx + delta + 1);
 };
 
 window.quickSortFuel = function (type) {
@@ -549,9 +709,121 @@ window.quickSortFuel = function (type) {
 window.openFuelReorderModal = function () {
     if (!fuelReady) return;
     if (typeof window.refreshFuelTemplateDropdowns === 'function') window.refreshFuelTemplateDropdowns();
+    window.switchReorderTab('visual');
     window.renderReorderModalItems();
     document.getElementById('fuel-reorder-dialog').showModal();
     if (window.lucide) window.lucide.createIcons();
+};
+
+window.switchReorderTab = function (tabName) {
+    const visualView = document.getElementById('fuel-reorder-visual-view');
+    const bulkView = document.getElementById('fuel-reorder-bulk-view');
+    const tabVisual = document.getElementById('tab-reorder-visual');
+    const tabBulk = document.getElementById('tab-reorder-bulk');
+
+    if (tabName === 'bulk') {
+        if (visualView) visualView.style.display = 'none';
+        if (bulkView) bulkView.style.display = 'block';
+        if (tabVisual) { tabVisual.style.background = '#f1f5f9'; tabVisual.style.color = '#64748b'; }
+        if (tabBulk) { tabBulk.style.background = '#2563eb'; tabBulk.style.color = '#fff'; }
+        window.loadCurrentOrderToBulkText();
+    } else {
+        if (visualView) visualView.style.display = 'block';
+        if (bulkView) bulkView.style.display = 'none';
+        if (tabVisual) { tabVisual.style.background = '#2563eb'; tabVisual.style.color = '#fff'; }
+        if (tabBulk) { tabBulk.style.background = '#f1f5f9'; tabBulk.style.color = '#64748b'; }
+        window.renderReorderModalItems();
+    }
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.loadCurrentOrderToBulkText = function () {
+    const textarea = document.getElementById('fuel-reorder-bulk-textarea');
+    if (!textarea) return;
+    const groups = currentOwnerGroups();
+    let text = '';
+    groups.forEach(g => {
+        text += `[SAHİP] ${g.owner}\n`;
+        g.vehicles.forEach(v => {
+            text += `  ${v.vehicle.plaka}\n`;
+        });
+        text += '\n';
+    });
+    textarea.value = text.trim();
+};
+
+window.applyBulkTextReorder = function () {
+    const textarea = document.getElementById('fuel-reorder-bulk-textarea');
+    if (!textarea) return;
+    const lines = textarea.value.split('\n');
+
+    const groups = currentOwnerGroups();
+    const allKnownPlates = new Set();
+    const plateToOwner = {};
+    groups.forEach(g => {
+        g.vehicles.forEach(v => {
+            const p = v.vehicle.plaka.trim().toUpperCase();
+            allKnownPlates.add(p);
+            plateToOwner[p] = g.key;
+        });
+    });
+
+    const newOwnerKeys = [];
+    const newVehicleOrder = {};
+    let currentOwnerKey = null;
+
+    lines.forEach(rawLine => {
+        const line = rawLine.trim();
+        if (!line) return;
+
+        if (line.startsWith('[SAHİP]') || line.startsWith('#')) {
+            const ownerName = line.replace(/^\[SAHİP\]|\#+/i, '').trim();
+            const matchGroup = groups.find(g => 
+                g.owner.toLowerCase() === ownerName.toLowerCase() ||
+                g.key.toLowerCase() === ownerName.toLowerCase()
+            );
+            if (matchGroup) {
+                currentOwnerKey = matchGroup.key;
+                if (!newOwnerKeys.includes(currentOwnerKey)) {
+                    newOwnerKeys.push(currentOwnerKey);
+                }
+                if (!newVehicleOrder[currentOwnerKey]) {
+                    newVehicleOrder[currentOwnerKey] = [];
+                }
+            }
+        } else {
+            const cleanP = line.toUpperCase().trim();
+            const matchedP = Array.from(allKnownPlates).find(p => p.replace(/\s+/g, '') === cleanP.replace(/\s+/g, ''));
+            if (matchedP) {
+                const owner = currentOwnerKey || plateToOwner[matchedP] || groups[0]?.key;
+                if (owner) {
+                    if (!newVehicleOrder[owner]) newVehicleOrder[owner] = [];
+                    if (!newVehicleOrder[owner].includes(matchedP)) {
+                        newVehicleOrder[owner].push(matchedP);
+                    }
+                    if (!newOwnerKeys.includes(owner)) {
+                        newOwnerKeys.push(owner);
+                    }
+                }
+            }
+        }
+    });
+
+    // Eksik kalanları koru
+    groups.forEach(g => {
+        if (!newOwnerKeys.includes(g.key)) newOwnerKeys.push(g.key);
+        if (!newVehicleOrder[g.key]) newVehicleOrder[g.key] = [];
+        g.vehicles.forEach(v => {
+            if (!newVehicleOrder[g.key].includes(v.vehicle.plaka)) {
+                newVehicleOrder[g.key].push(v.vehicle.plaka);
+            }
+        });
+    });
+
+    window.saveCustomFuelOrder({ ownerKeys: newOwnerKeys, vehicleOrder: newVehicleOrder });
+    renderView();
+    window.switchReorderTab('visual');
+    alert('✓ Toplu metin sıralaması başarıyla uygulandı ve kaydedildi.');
 };
 
 window.renderReorderModalItems = function () {
@@ -567,17 +839,30 @@ window.renderReorderModalItems = function () {
         const vehiclesHtml = group.vehicles.map((it, vIdx) => {
             const v = it.vehicle;
             return `
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;">
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <span style="font-size:10px;font-weight:700;color:#94a3b8;width:18px;">${vIdx + 1}.</span>
-                        <strong style="font-size:12px;color:#0f172a;letter-spacing:0.5px;">${fuelEscape(v.plaka)}</strong>
+                <div class="reorder-drop-target"
+                     draggable="true"
+                     ondragstart="window.handleReorderDragStart(event, 'vehicle', '${fuelEscape(group.key)}', '${fuelEscape(v.plaka)}'); event.stopPropagation();"
+                     ondragend="window.handleReorderDragEnd(event); event.stopPropagation();"
+                     ondragover="window.handleReorderDragOver(event, 'vehicle'); event.stopPropagation();"
+                     ondragleave="window.handleReorderDragLeave(event); event.stopPropagation();"
+                     ondrop="window.handleReorderDrop(event, 'vehicle', '${fuelEscape(group.key)}', '${fuelEscape(v.plaka)}'); event.stopPropagation();"
+                     style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;transition:border-color 0.15s, background 0.15s;cursor:grab;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:14px;color:#94a3b8;cursor:grab;padding:0 3px;user-select:none;" title="Sürüklemek için basılı tutun">⠿</span>
+                        <input type="number" min="1" max="${group.vehicles.length}" value="${vIdx + 1}"
+                               onchange="window.moveVehicleToPosition('${fuelEscape(group.key)}', '${fuelEscape(v.plaka)}', this.value)"
+                               title="Sıra numarasını değiştirip Enter'a basın"
+                               style="width:34px;height:22px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-weight:700;font-size:10px;color:#334155;background:#fff;padding:0;">
+                        <strong style="font-size:12px;color:#0f172a;letter-spacing:0.5px;font-family:monospace;">${fuelEscape(v.plaka)}</strong>
                         <span style="font-size:10px;color:#64748b;">(${fuelEscape(v.mulkiyet_durumu || '—')} • ${fuelEscape(v.sirket || '—')})</span>
                     </div>
-                    <div style="display:flex;align-items:center;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
                         <span style="font-size:11px;font-weight:700;color:#334155;">${fuelNumber(it.totals.cost)} TL</span>
-                        <div style="display:flex;gap:3px;">
-                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',-1)" ${vIdx === 0 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;">▲</button>
-                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',1)" ${vIdx === group.vehicles.length - 1 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;">▼</button>
+                        <div style="display:flex;gap:2px;">
+                            <button type="button" onclick="window.jumpVehicleToTop('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}')" ${vIdx === 0 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:22px;padding:0 5px;font-size:9px;cursor:pointer;" title="En Üste Taşı">⏫</button>
+                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',-1)" ${vIdx === 0 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:22px;padding:0 5px;font-size:9px;cursor:pointer;" title="1 Yukarı">▲</button>
+                            <button type="button" onclick="window.shiftVehicleInOwner('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}',1)" ${vIdx === group.vehicles.length - 1 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:22px;padding:0 5px;font-size:9px;cursor:pointer;" title="1 Aşağı">▼</button>
+                            <button type="button" onclick="window.jumpVehicleToBottom('${fuelEscape(group.key)}','${fuelEscape(v.plaka)}')" ${vIdx === group.vehicles.length - 1 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:22px;padding:0 5px;font-size:9px;cursor:pointer;" title="En Alta Taşı">⏬</button>
                         </div>
                     </div>
                 </div>
@@ -585,20 +870,33 @@ window.renderReorderModalItems = function () {
         }).join('');
 
         return `
-            <div style="background:white;border:1px solid #cbd5e1;border-radius:8px;padding:12px 16px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+            <div class="reorder-drop-target"
+                 draggable="true"
+                 ondragstart="window.handleReorderDragStart(event, 'owner', '${fuelEscape(group.key)}', null)"
+                 ondragend="window.handleReorderDragEnd(event)"
+                 ondragover="window.handleReorderDragOver(event, 'owner')"
+                 ondragleave="window.handleReorderDragLeave(event)"
+                 ondrop="window.handleReorderDrop(event, 'owner', '${fuelEscape(group.key)}', null)"
+                 style="background:white;border:1px solid #cbd5e1;border-radius:8px;padding:12px 14px;box-shadow:0 1px 3px rgba(0,0,0,0.05);transition:border-color 0.15s, background 0.15s;">
                 <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding-bottom:8px;margin-bottom:8px;">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span style="font-size:12px;font-weight:800;color:#0f172a;background:#e2e8f0;padding:2px 7px;border-radius:4px;">#${gIdx + 1}</span>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:16px;color:#94a3b8;cursor:grab;padding:0 4px;user-select:none;" title="Tüm grubu sürüklemek için basılı tutun">⠿</span>
+                        <input type="number" min="1" max="${groups.length}" value="${gIdx + 1}"
+                               onchange="window.moveOwnerGroupToPosition('${fuelEscape(group.key)}', this.value)"
+                               title="Sahip sıra numarasını değiştirip Enter'a basın"
+                               style="width:40px;height:24px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-weight:800;font-size:11px;color:#0f172a;background:#f8fafc;padding:0;">
                         <div>
-                            <h4 style="margin:0;font-size:13px;font-weight:700;color:#0f172a;">${fuelEscape(group.owner)}</h4>
+                            <h4 style="margin:0;font-size:13px;font-weight:800;color:#0f172a;">${fuelEscape(group.owner)}</h4>
                             <span style="font-size:10px;color:#64748b;">${group.vehicles.length} araç • ${fuelNumber(group.liters)} L</span>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <strong style="font-size:13px;color:#ea580c;">${fuelNumber(group.cost)} TL</strong>
-                        <div style="display:flex;gap:4px;">
-                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',-1)" ${gIdx === 0 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:26px;padding:2px 8px;font-size:11px;font-weight:bold;cursor:pointer;">▲ Yukarı</button>
-                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',1)" ${gIdx === groups.length - 1 ? 'disabled style="opacity:0.3;"' : ''} class="secondary-button" style="min-height:26px;padding:2px 8px;font-size:11px;font-weight:bold;cursor:pointer;">▼ Aşağı</button>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <strong style="font-size:12px;color:#ea580c;">${fuelNumber(group.cost)} TL</strong>
+                        <div style="display:flex;gap:3px;">
+                            <button type="button" onclick="window.jumpOwnerToTop('${fuelEscape(group.key)}')" ${gIdx === 0 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;" title="En Üste Taşı">⏫ En Üst</button>
+                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',-1)" ${gIdx === 0 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;" title="1 Yukarı">▲</button>
+                            <button type="button" onclick="window.shiftOwnerGroup('${fuelEscape(group.key)}',1)" ${gIdx === groups.length - 1 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;" title="1 Aşağı">▼</button>
+                            <button type="button" onclick="window.jumpOwnerToBottom('${fuelEscape(group.key)}')" ${gIdx === groups.length - 1 ? 'disabled style="opacity:0.25;"' : ''} class="secondary-button" style="min-height:24px;padding:1px 6px;font-size:10px;cursor:pointer;" title="En Alta Taşı">⏬ En Alt</button>
                         </div>
                     </div>
                 </div>
@@ -608,6 +906,7 @@ window.renderReorderModalItems = function () {
             </div>
         `;
     }).join('');
+    if (window.lucide) window.lucide.createIcons();
 };
 
 window.saveFuelReorderAndApply = function () {

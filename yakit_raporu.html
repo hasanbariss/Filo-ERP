@@ -100,18 +100,56 @@
             <span style="font-size: 11px; color: #166534;">Taşıdığınız sıralama bu şablona uygulanır.</span>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; padding: 12px 16px; background: white; border: 1px solid #d5dfe5; border-radius: 8px;">
-            <span style="font-size: 11px; font-weight: 700; color: #657582; text-transform: uppercase;">Hızlı Sıralama:</span>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                <button type="button" onclick="window.quickSortFuel('owner-az')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Sahip İsmi (A-Z)</button>
-                <button type="button" onclick="window.quickSortFuel('cost-desc')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Tutar (Çoktan Aza)</button>
-                <button type="button" onclick="window.quickSortFuel('liters-desc')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Litre (Çoktan Aza)</button>
-                <button type="button" onclick="window.quickSortFuel('plate-az')" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px;">Plakalar (A-Z)</button>
-                <button type="button" onclick="window.resetFuelOrder()" class="secondary-button" style="min-height: 30px; padding: 4px 10px; font-size: 11px; color: #dc2626; border-color: #fca5a5; background: #fff5f5;">Varsayılana Dön</button>
+        <!-- Görünüm Seçimi Sekmeleri -->
+        <div style="display: flex; gap: 8px; margin-bottom: 12px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+            <button type="button" id="tab-reorder-visual" onclick="window.switchReorderTab('visual')" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 6px; border: 0; background: #2563eb; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="move" style="width:14px;height:14px;"></i> Sürükle - Bırak & Kart Görünümü
+            </button>
+            <button type="button" id="tab-reorder-bulk" onclick="window.switchReorderTab('bulk')" style="padding: 6px 14px; font-size: 12px; font-weight: 700; border-radius: 6px; border: 0; background: #f1f5f9; color: #64748b; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="file-text" style="width:14px;height:14px;"></i> Toplu Metin Düzenleyici (Hızlı Liste)
+            </button>
+        </div>
+
+        <!-- Görsel Kart & Sürükle Bırak Görünümü -->
+        <div id="fuel-reorder-visual-view">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; padding: 10px 14px; background: white; border: 1px solid #d5dfe5; border-radius: 8px;">
+                <span style="font-size: 11px; font-weight: 700; color: #657582; text-transform: uppercase;">Hızlı Sıralama:</span>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" onclick="window.quickSortFuel('owner-az')" class="secondary-button" style="min-height: 28px; padding: 3px 8px; font-size: 11px;">Sahip (A-Z)</button>
+                    <button type="button" onclick="window.quickSortFuel('cost-desc')" class="secondary-button" style="min-height: 28px; padding: 3px 8px; font-size: 11px;">Tutar (Çoktan Aza)</button>
+                    <button type="button" onclick="window.quickSortFuel('liters-desc')" class="secondary-button" style="min-height: 28px; padding: 3px 8px; font-size: 11px;">Litre (Çoktan Aza)</button>
+                    <button type="button" onclick="window.quickSortFuel('plate-az')" class="secondary-button" style="min-height: 28px; padding: 3px 8px; font-size: 11px;">Plaka (A-Z)</button>
+                    <button type="button" onclick="window.resetFuelOrder()" class="secondary-button" style="min-height: 28px; padding: 3px 8px; font-size: 11px; color: #dc2626; border-color: #fca5a5; background: #fff5f5;">Varsayılana Dön</button>
+                </div>
+            </div>
+
+            <div style="padding: 8px 12px; margin-bottom: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 11px; color: #1e40af; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;"></i>
+                <span><strong>İpucu:</strong> Satırların solundaki <strong>⠿</strong> simgesinden tutup sürükleyebilir, doğrudan <strong>sıra numarası</strong> yazabilir veya <strong>⏫ / ⏬</strong> ile en başa/sona gönderebilirsiniz.</span>
+            </div>
+
+            <div id="fuel-reorder-items" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- JS dolduracak -->
             </div>
         </div>
-        <div id="fuel-reorder-items" style="display: flex; flex-direction: column; gap: 10px;">
-            <!-- JS dolduracak -->
+
+        <!-- Toplu Metin Düzenleyici Görünümü -->
+        <div id="fuel-reorder-bulk-view" style="display: none;">
+            <div style="padding: 10px 14px; margin-bottom: 10px; background: #fefce8; border: 1px solid #fef08a; border-radius: 6px; font-size: 12px; color: #854d0e;">
+                <p style="margin: 0 0 4px 0; font-weight: 700;">📝 Toplu Hızlı Sıralama Talimatı:</p>
+                <span style="font-size: 11px; line-height: 1.4; display: block;">Aşağıdaki kutuda araç sahipleri <code>[SAHİP]</code> ile, plakalar ise altlarında listelenmiştir. Dilediğiniz plakaları veya araç sahiplerini satır satır kesip-yapıştırarak (Ctrl+X / Ctrl+V) kolayca yerlerini değiştirin. Ardından <strong>"Metin Sıralamasını Uygula"</strong> butonuna basın.</span>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <button type="button" onclick="window.applyBulkTextReorder()" class="primary-button" style="background: #16a34a; border-color: #15803d; font-size: 12px; padding: 6px 14px;">
+                    <i data-lucide="check-check"></i> Metin Sıralamasını Uygula
+                </button>
+                <button type="button" onclick="window.loadCurrentOrderToBulkText()" class="secondary-button" style="font-size: 12px; padding: 6px 12px;">
+                    <i data-lucide="refresh-cw"></i> Mevcut Listeyi Doldur / Sıfırla
+                </button>
+            </div>
+
+            <textarea id="fuel-reorder-bulk-textarea" spellcheck="false" style="width: 100%; height: 360px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.7; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #0f172a; resize: vertical;" placeholder="Araç sahipleri ve plakalar yükleniyor..."></textarea>
         </div>
     </div>
     <div class="preview-toolbar" style="border-top: 1px solid #d5dfe5; justify-content: flex-end; gap: 10px; padding: 14px 24px;">
