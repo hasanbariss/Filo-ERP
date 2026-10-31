@@ -132,6 +132,8 @@ function applyReportFilters() {
     document.getElementById('fuel-report-status').textContent = (!summary.count ? 'Seçili filtrelerde yakıt kaydı yok. ' : '') + (unmatched ? unmatched+' kayıt araçla eşleşmedi; toplamlara dahil edilmedi. ' : '') + (preset === 'other-subcontract' ? 'Şirketi boş taşeronlar bu kapsama dahil edilmez.' : '');
     document.getElementById('header-subtitle').textContent = fuelDate(document.getElementById('fuel-start').value)+' – '+fuelDate(document.getElementById('fuel-end').value)+' · '+document.getElementById('fuel-preset').selectedOptions[0].textContent + (owners.length ? ' · '+owners.join(', ') : '') + (companies.length ? ' · '+companies.join(', ') : '') + (vehicleClass ? ' · '+vehicleClass : '') + (plates.length || query ? ' · Seçili plakalar' : '');
     document.getElementById('print-section').innerHTML = '';
+    if (typeof window.refreshFuelTemplateDropdowns === 'function') window.refreshFuelTemplateDropdowns();
+    if (typeof updateOrderIndicator === 'function') updateOrderIndicator();
     renderView();
 }
 window.exportFuelExcel = function() {
@@ -222,7 +224,36 @@ function renderListView() {
 function fuelNumber(value) { return Number(value || 0).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fuelDate(value) { return String(value || '').slice(0,10).split('-').reverse().join('.'); }
 
-/* === ÖZEL SIRALAMA YÖNETİMİ === */
+/* === ÖZEL SIRALAMA VE ŞABLON YÖNETİMİ === */
+const FUEL_TEMPLATES_KEY = 'fuel_report_templates_v1';
+const FUEL_ACTIVE_TEMPLATE_KEY = 'fuel_report_active_template_v1';
+
+window.getFuelTemplates = function () {
+    try {
+        const raw = localStorage.getItem(FUEL_TEMPLATES_KEY);
+        return raw ? JSON.parse(raw) : {};
+    } catch { return {}; }
+};
+
+window.saveFuelTemplatesDict = function (dict) {
+    try {
+        localStorage.setItem(FUEL_TEMPLATES_KEY, JSON.stringify(dict));
+    } catch (e) { console.error('Save templates error:', e); }
+};
+
+window.getActiveFuelTemplateName = function () {
+    try {
+        return localStorage.getItem(FUEL_ACTIVE_TEMPLATE_KEY) || '';
+    } catch { return ''; }
+};
+
+window.setActiveFuelTemplateName = function (name) {
+    try {
+        if (name) localStorage.setItem(FUEL_ACTIVE_TEMPLATE_KEY, name);
+        else localStorage.removeItem(FUEL_ACTIVE_TEMPLATE_KEY);
+    } catch (e) { console.error('Set active template error:', e); }
+};
+
 function getFuelOrderStorageKey() {
     const start = document.getElementById('fuel-start')?.value || '';
     const end = document.getElementById('fuel-end')?.value || '';
@@ -232,6 +263,13 @@ function getFuelOrderStorageKey() {
 
 window.loadCustomFuelOrder = function () {
     try {
+        const activeName = window.getActiveFuelTemplateName();
+        if (activeName) {
+            const templates = window.getFuelTemplates();
+            if (templates[activeName]) {
+                return templates[activeName];
+            }
+        }
         const raw = localStorage.getItem(getFuelOrderStorageKey());
         return raw ? JSON.parse(raw) : null;
     } catch { return null; }
@@ -239,14 +277,99 @@ window.loadCustomFuelOrder = function () {
 
 window.saveCustomFuelOrder = function (orderObj) {
     try {
-        localStorage.setItem(getFuelOrderStorageKey(), JSON.stringify(orderObj));
+        const activeName = window.getActiveFuelTemplateName();
+        if (activeName) {
+            const templates = window.getFuelTemplates();
+            templates[activeName] = {
+                ...orderObj,
+                name: activeName,
+                updatedAt: new Date().toISOString()
+            };
+            window.saveFuelTemplatesDict(templates);
+        } else {
+            localStorage.setItem(getFuelOrderStorageKey(), JSON.stringify(orderObj));
+        }
         updateOrderIndicator();
+        window.refreshFuelTemplateDropdowns();
     } catch (e) { console.error('Save order error:', e); }
+};
+
+window.selectFuelTemplate = function (name) {
+    window.setActiveFuelTemplateName(name);
+    window.refreshFuelTemplateDropdowns();
+    updateOrderIndicator();
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
+};
+
+window.promptSaveNewFuelTemplate = function () {
+    const templates = window.getFuelTemplates();
+    const count = Object.keys(templates).length + 1;
+    const defaultName = `Şablon ${count}`;
+    const name = window.prompt('Kaydedilecek Sıralama Şablonu Adını Girin:\n(Örn: Müdüriyet Raporu, Muhasebe Sırası, Bölge Önceliği)', defaultName);
+    if (!name || !name.trim()) return;
+
+    const trimmed = name.trim();
+    const currentOrder = window.loadCustomFuelOrder() || {
+        ownerKeys: currentOwnerGroups().map(g => g.key),
+        vehicleOrder: {}
+    };
+
+    if (!currentOrder.vehicleOrder || Object.keys(currentOrder.vehicleOrder).length === 0) {
+        currentOrder.vehicleOrder = {};
+        currentOwnerGroups().forEach(g => {
+            currentOrder.vehicleOrder[g.key] = g.vehicles.map(v => v.vehicle.plaka);
+        });
+    }
+
+    templates[trimmed] = {
+        name: trimmed,
+        createdAt: new Date().toISOString(),
+        ownerKeys: currentOrder.ownerKeys,
+        vehicleOrder: currentOrder.vehicleOrder
+    };
+
+    window.saveFuelTemplatesDict(templates);
+    window.setActiveFuelTemplateName(trimmed);
+    window.refreshFuelTemplateDropdowns();
+    updateOrderIndicator();
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
+    alert(`"${trimmed}" sıralama şablonu başarıyla kaydedildi ve uygulandı.`);
+};
+
+window.deleteCurrentFuelTemplate = function () {
+    const activeName = window.getActiveFuelTemplateName();
+    if (!activeName) {
+        alert('Şu anda seçili kayıtlı bir şablon yok.');
+        return;
+    }
+
+    if (!confirm(`"${activeName}" sıralama şablonunu silmek istediğinizden emin misiniz?`)) {
+        return;
+    }
+
+    const templates = window.getFuelTemplates();
+    delete templates[activeName];
+    window.saveFuelTemplatesDict(templates);
+    window.setActiveFuelTemplateName('');
+    window.refreshFuelTemplateDropdowns();
+    updateOrderIndicator();
+    renderView();
+    if (document.getElementById('fuel-reorder-dialog')?.open) {
+        window.renderReorderModalItems();
+    }
 };
 
 window.resetFuelOrder = function () {
     try {
+        window.setActiveFuelTemplateName('');
         localStorage.removeItem(getFuelOrderStorageKey());
+        window.refreshFuelTemplateDropdowns();
         updateOrderIndicator();
         renderView();
         if (document.getElementById('fuel-reorder-dialog')?.open) {
@@ -255,13 +378,46 @@ window.resetFuelOrder = function () {
     } catch (e) { console.error('Reset order error:', e); }
 };
 
+window.refreshFuelTemplateDropdowns = function () {
+    const templates = window.getFuelTemplates();
+    const activeName = window.getActiveFuelTemplateName();
+    const tplNames = Object.keys(templates);
+
+    const dropdownIds = ['fuel-template-select', 'modal-fuel-template-select'];
+    dropdownIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        let html = '<option value="">Varsayılan Sıralama (Doğal)</option>';
+        tplNames.forEach(name => {
+            const isSel = (name === activeName) ? 'selected' : '';
+            html += `<option value="${fuelEscape(name)}" ${isSel}>Şablon: ${fuelEscape(name)}</option>`;
+        });
+        el.innerHTML = html;
+        el.value = activeName;
+    });
+
+    const deleteBtn = document.getElementById('btn-delete-template');
+    if (deleteBtn) {
+        deleteBtn.style.display = activeName ? 'inline-flex' : 'none';
+    }
+    const modalDeleteBtn = document.getElementById('btn-modal-delete-template');
+    if (modalDeleteBtn) {
+        modalDeleteBtn.style.display = activeName ? 'inline-flex' : 'none';
+    }
+};
+
 function updateOrderIndicator() {
+    const activeName = window.getActiveFuelTemplateName();
     const isCustom = Boolean(window.loadCustomFuelOrder());
     const badge = document.getElementById('fuel-order-badge');
     if (badge) {
-        if (isCustom) {
+        if (activeName) {
             badge.style.display = 'inline-flex';
-            badge.innerHTML = '★ Özel Sıralama Aktif <button onclick="window.resetFuelOrder()" style="margin-left:6px;text-decoration:underline;color:#dc2626;background:none;border:0;cursor:pointer;font-weight:bold;">Sıfırla</button>';
+            badge.innerHTML = `★ Şablon: <strong>${fuelEscape(activeName)}</strong> <button onclick="window.resetFuelOrder()" style="margin-left:6px;text-decoration:underline;color:#dc2626;background:none;border:0;cursor:pointer;font-weight:bold;">Sıfırla</button>`;
+        } else if (isCustom) {
+            badge.style.display = 'inline-flex';
+            badge.innerHTML = `★ Özel Sıralama Aktif <button onclick="window.resetFuelOrder()" style="margin-left:6px;text-decoration:underline;color:#dc2626;background:none;border:0;cursor:pointer;font-weight:bold;">Sıfırla</button>`;
         } else {
             badge.style.display = 'none';
         }
@@ -392,6 +548,7 @@ window.quickSortFuel = function (type) {
 
 window.openFuelReorderModal = function () {
     if (!fuelReady) return;
+    if (typeof window.refreshFuelTemplateDropdowns === 'function') window.refreshFuelTemplateDropdowns();
     window.renderReorderModalItems();
     document.getElementById('fuel-reorder-dialog').showModal();
     if (window.lucide) window.lucide.createIcons();
@@ -571,7 +728,9 @@ function buildFuelPrintDocument() {
     
     const summary=window.FuelAnalytics.summarizeFuelRows(isolatedYakitlar);
     const detail=document.getElementById('fuel-print-format').value==='detail';
-    return '<article class="fuel-document"><header class="document-header"><div><p class="document-period">Dönem: '+fuelEscape(fuelPrintPeriodLabel())+'</p><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicleCount+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail,true)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
+    const activeTplName = typeof window.getActiveFuelTemplateName === 'function' ? window.getActiveFuelTemplateName() : '';
+    const tplSuffix = activeTplName ? ' · Sıralama: Şablon (' + fuelEscape(activeTplName) + ')' : (window.loadCustomFuelOrder() ? ' · Özel Sıralama' : '');
+    return '<article class="fuel-document"><header class="document-header"><div><p class="document-period">Dönem: '+fuelEscape(fuelPrintPeriodLabel())+tplSuffix+'</p><p>'+fuelEscape(document.getElementById('header-subtitle').textContent)+'</p></div><div class="document-brand">İDEOL</div></header><div class="document-totals"><span>Araç sayısı<strong>'+printVehicleCount+'</strong></span><span>Yakıt fişi<strong>'+summary.count+'</strong></span><span>Toplam litre<strong>'+fuelNumber(summary.liters)+'</strong></span><span>Toplam tutar<strong>'+fuelNumber(summary.cost)+' TL</strong></span></div>'+printGroups.map(group=>ownerPrintTable(group,detail,true)).join('')+'<div class="document-grand-total">Genel toplam: '+fuelNumber(summary.cost)+' TL</div><footer class="document-footer"><span>Düzenleme tarihi: '+new Date().toLocaleDateString('tr-TR')+' · Tutarlar Türk lirasıdır.</span><small>Baris.Flow</small></footer></article>';
 }
 window.refreshFuelPrintPreview = function() {
     if(!fuelReady)return;

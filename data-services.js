@@ -4490,6 +4490,7 @@ async function fetchMusteriler() {
         });
 
         if (typeof window.filterFactoryTable === 'function') window.filterFactoryTable();
+        if (typeof window.updateAuditBadgeCounter === 'function') window.updateAuditBadgeCounter();
 
         if (window.lucide) window.lucide.createIcons();
 
@@ -5407,6 +5408,500 @@ window.loadExcelMusteriler = async function () {
                 if (window.lucide) window.lucide.createIcons();
             }
         }
+    };
+})();
+
+/* ==========================================================================
+   EKSİK KART / TAŞERON DENETİM (AUDIT) PANELİ
+   ========================================================================== */
+(function () {
+    let auditAraclarCache = [];
+    let auditCarilerCache = [];
+    let auditActiveFilter = 'all';
+    let auditSearchQuery = '';
+
+    // Bir aracın eksik kart / taşeron denetim durumunu analiz eder
+    function evaluateAracAuditStatus(arac, factoryMap) {
+        const issues = [];
+        const mulkiyet = (arac.mulkiyet_durumu || '').trim().toUpperCase();
+        const sirket = (arac.sirket || '').trim();
+        const firma = (arac.firma_adi || '').trim();
+        const assignedFactories = factoryMap[arac.id] || [];
+        const isFactoryAssigned = assignedFactories.length > 0;
+
+        let isUnclearOwner = false;
+        let isMissingCari = false;
+        let isMissingSirket = false;
+
+        if (!mulkiyet || (mulkiyet !== 'ÖZMAL' && mulkiyet !== 'TAŞERON')) {
+            isUnclearOwner = true;
+            issues.push({
+                type: 'unclear_owner',
+                label: 'Mülkiyet Belirsiz (Özmal / Taşeron seçilmemiş)',
+                severity: 'danger'
+            });
+        } else if (mulkiyet === 'TAŞERON') {
+            if (!firma || firma.toLowerCase().includes('otomatik') || firma.toLowerCase().includes('kontrol bekliyor')) {
+                isMissingCari = true;
+                issues.push({
+                    type: 'missing_cari',
+                    label: 'Taşeron Firması / Carisi Belirtilmemiş',
+                    severity: 'danger'
+                });
+            }
+        } else if (mulkiyet === 'ÖZMAL') {
+            if (!sirket) {
+                isMissingSirket = true;
+                issues.push({
+                    type: 'missing_sirket',
+                    label: 'Özmal Şirketi Atanmamış (IDEOL, DİKKAN veya M.K.)',
+                    severity: 'warning'
+                });
+            }
+        }
+
+        const hasIssue = issues.length > 0;
+        return {
+            arac,
+            hasIssue,
+            isUnclearOwner,
+            isMissingCari,
+            isMissingSirket,
+            assignedFactories,
+            isFactoryAssigned,
+            issues,
+            riskScore: (isFactoryAssigned ? 10 : 0) + (isUnclearOwner ? 5 : (isMissingCari ? 4 : 2))
+        };
+    }
+
+    // Badge sayacını günceller
+    window.updateAuditBadgeCounter = async function () {
+        const badge = document.getElementById('audit-badge-counter');
+        if (!badge) return;
+        try {
+            const [aracRes, tanimRes] = await Promise.all([
+                window.supabaseClient.from('araclar').select('id, plaka, mulkiyet_durumu, sirket, firma_adi'),
+                window.supabaseClient.from('musteri_arac_tanimlari').select('arac_id, musteri_id')
+            ]);
+            if (aracRes.error || !aracRes.data) return;
+
+            const factoryMap = {};
+            (tanimRes.data || []).forEach(t => {
+                if (!factoryMap[t.arac_id]) factoryMap[t.arac_id] = [];
+                factoryMap[t.arac_id].push(t.musteri_id);
+            });
+
+            const evaluated = aracRes.data.map(a => evaluateAracAuditStatus(a, factoryMap)).filter(x => x.hasIssue);
+            const criticalCount = evaluated.filter(x => x.isFactoryAssigned).length;
+            const totalCount = evaluated.length;
+
+            if (criticalCount > 0) {
+                badge.textContent = `${criticalCount} Kritik`;
+                badge.title = `${criticalCount} araç fabrikalarda aktif çalışıyor ancak kartı eksik! Toplam ${totalCount} eksik kart var.`;
+                badge.className = 'px-2 py-0.5 text-[10px] font-black rounded-full bg-rose-600 text-white leading-none ml-1 animate-pulse shadow-md shadow-rose-600/30';
+                badge.classList.remove('hidden');
+            } else if (totalCount > 0) {
+                badge.textContent = `${totalCount} Denetim`;
+                badge.title = `Filoda ${totalCount} aracın mülkiyet veya cari kartı eksik.`;
+                badge.className = 'px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-500 text-black leading-none ml-1';
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        } catch (e) {
+            console.warn('[updateAuditBadgeCounter]', e);
+        }
+    };
+
+    // Modal Kapatma
+    window.closeAracAuditModal = function () {
+        document.getElementById('arac-audit-modal-overlay')?.remove();
+    };
+
+    // Ana Audit Modalını Açar
+    window.openAracAuditModal = async function () {
+        document.getElementById('arac-audit-modal-overlay')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'arac-audit-modal-overlay';
+        overlay.className = 'fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-3 sm:p-5 overflow-y-auto';
+        overlay.innerHTML = `
+            <div class="ios-modal-sheet bg-[#0f172a] border border-amber-500/30 rounded-3xl w-full max-w-5xl shadow-2xl relative flex flex-col max-h-[92vh] overflow-hidden animate-scaleIn text-white">
+                <div class="p-5 border-b border-white/10 flex justify-between items-center bg-black/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-black text-white flex items-center gap-2">
+                                Eksik Kart & Taşeron Denetim Paneli
+                                <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">Audit Engine</span>
+                            </h3>
+                            <p class="text-xs text-gray-400">Filodaki eksik mülkiyet, cari/taşeron eşleşmesi ve fabrika operasyon risklerini yönetin.</p>
+                        </div>
+                    </div>
+                    <button onclick="window.closeAracAuditModal()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-gray-400 hover:text-white transition-colors" aria-label="Kapat">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 overflow-y-auto flex-1 space-y-5" id="audit-modal-body">
+                    <div class="flex items-center justify-center p-12 text-gray-400">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mr-2"></i> Filo ve atama verileri denetleniyor...
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        if (window.lucide) window.lucide.createIcons();
+
+        // Verileri çek
+        try {
+            const [aracRes, tanimRes, musteriRes, cariRes] = await Promise.all([
+                window.supabaseClient.from('araclar').select('*').order('plaka', { ascending: true }),
+                window.supabaseClient.from('musteri_arac_tanimlari').select('arac_id, musteri_id'),
+                window.supabaseClient.from('musteriler').select('id, ad, unvan'),
+                window.supabaseClient.from('cariler').select('id, unvan, tur').order('unvan', { ascending: true })
+            ]);
+
+            if (aracRes.error) throw aracRes.error;
+
+            const musteriMap = {};
+            (musteriRes.data || []).forEach(m => {
+                musteriMap[m.id] = m.ad || m.unvan || 'Fabrika';
+            });
+
+            const factoryMap = {};
+            (tanimRes.data || []).forEach(t => {
+                if (!factoryMap[t.arac_id]) factoryMap[t.arac_id] = [];
+                const fName = musteriMap[t.musteri_id] || 'Fabrika';
+                if (!factoryMap[t.arac_id].includes(fName)) factoryMap[t.arac_id].push(fName);
+            });
+
+            auditCarilerCache = cariRes.data || [];
+            const evaluated = (aracRes.data || []).map(a => evaluateAracAuditStatus(a, factoryMap));
+            auditAraclarCache = evaluated.filter(x => x.hasIssue);
+            // Risk sırasına göre diz (Fabrikada aktif çalışanlar en üstte)
+            auditAraclarCache.sort((a, b) => b.riskScore - a.riskScore);
+
+            auditActiveFilter = 'all';
+            auditSearchQuery = '';
+            window.renderAracAuditBody();
+
+        } catch (err) {
+            console.error('[openAracAuditModal]', err);
+            const body = document.getElementById('audit-modal-body');
+            if (body) {
+                body.innerHTML = `
+                    <div class="p-6 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-center space-y-2">
+                        <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto text-rose-400"></i>
+                        <p class="font-bold">Denetim verileri yüklenirken hata oluştu.</p>
+                        <p class="text-xs text-rose-400/80">${err.message || err}</p>
+                    </div>
+                `;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+    };
+
+    // Audit ekranını filtreler ve render eder
+    window.renderAracAuditBody = function () {
+        const body = document.getElementById('audit-modal-body');
+        if (!body) return;
+
+        const totalIssues = auditAraclarCache.length;
+        const factoryIssues = auditAraclarCache.filter(x => x.isFactoryAssigned).length;
+        const missingCariIssues = auditAraclarCache.filter(x => x.isMissingCari).length;
+        const unclearOwnerIssues = auditAraclarCache.filter(x => x.isUnclearOwner || x.isMissingSirket).length;
+
+        // Filtre uygula
+        let items = auditAraclarCache;
+        if (auditActiveFilter === 'factory') {
+            items = items.filter(x => x.isFactoryAssigned);
+        } else if (auditActiveFilter === 'cari') {
+            items = items.filter(x => x.isMissingCari);
+        } else if (auditActiveFilter === 'owner') {
+            items = items.filter(x => x.isUnclearOwner || x.isMissingSirket);
+        }
+
+        if (auditSearchQuery) {
+            const q = auditSearchQuery.toLocaleLowerCase('tr-TR').replace(/\s+/g, '');
+            items = items.filter(x => {
+                const plk = (x.arac.plaka || '').toLocaleLowerCase('tr-TR').replace(/\s+/g, '');
+                const mm = (x.arac.marka_model || '').toLocaleLowerCase('tr-TR');
+                const fNames = (x.assignedFactories || []).join(' ').toLocaleLowerCase('tr-TR');
+                return plk.includes(q) || mm.includes(q) || fNames.includes(q);
+            });
+        }
+
+        body.innerHTML = `
+            <!-- KPI İstatistik Kartları -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Toplam Denetim Uyarısı</span>
+                    <div class="flex items-baseline justify-between mt-2">
+                        <span class="text-2xl font-black text-white">${totalIssues}</span>
+                        <span class="text-[10px] text-gray-400 font-medium">araç eksik</span>
+                    </div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-rose-300 uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="alert-octagon" class="w-3 h-3 text-rose-400"></i> Fabrikada Aktif (Kritik)
+                    </span>
+                    <div class="flex items-baseline justify-between mt-2">
+                        <span class="text-2xl font-black text-rose-400">${factoryIssues}</span>
+                        <span class="text-[10px] text-rose-300/80 font-medium">puantaj riski</span>
+                    </div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-amber-300 uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="briefcase" class="w-3 h-3 text-amber-400"></i> Carisi / Firması Boş
+                    </span>
+                    <div class="flex items-baseline justify-between mt-2">
+                        <span class="text-2xl font-black text-amber-400">${missingCariIssues}</span>
+                        <span class="text-[10px] text-amber-300/80 font-medium">taşeron</span>
+                    </div>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex flex-col justify-between">
+                    <span class="text-[10px] font-black text-blue-300 uppercase tracking-wider flex items-center gap-1">
+                        <i data-lucide="help-circle" class="w-3 h-3 text-blue-400"></i> Mülkiyet / Şirket Eksik
+                    </span>
+                    <div class="flex items-baseline justify-between mt-2">
+                        <span class="text-2xl font-black text-blue-400">${unclearOwnerIssues}</span>
+                        <span class="text-[10px] text-blue-300/80 font-medium">belirsiz</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Araç Çubuğu: Filtreler, Arama ve Excel Butonu -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" onclick="window.setAracAuditFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${auditActiveFilter === 'all' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/20' : 'bg-white/5 text-gray-300 hover:bg-white/10'}">
+                        Tümü (${totalIssues})
+                    </button>
+                    <button type="button" onclick="window.setAracAuditFilter('factory')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${auditActiveFilter === 'factory' ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/20' : 'bg-white/5 text-rose-300 hover:bg-white/10'}">
+                        Fabrikada Aktif (${factoryIssues})
+                    </button>
+                    <button type="button" onclick="window.setAracAuditFilter('cari')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${auditActiveFilter === 'cari' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'bg-white/5 text-amber-300 hover:bg-white/10'}">
+                        Taşeron Carisi Boş (${missingCariIssues})
+                    </button>
+                    <button type="button" onclick="window.setAracAuditFilter('owner')" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${auditActiveFilter === 'owner' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white/5 text-blue-300 hover:bg-white/10'}">
+                        Mülkiyet / Şirket (${unclearOwnerIssues})
+                    </button>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="relative flex-1 sm:w-56">
+                        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        <input type="text" id="audit-search-input" value="${auditSearchQuery}" oninput="window.setAracAuditSearch(this.value)" placeholder="Plaka, marka, fabrika ara..." class="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 font-sans">
+                    </div>
+                    <button type="button" onclick="window.exportAuditToExcel()" class="px-3 py-1.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center gap-1.5 transition-all flex-shrink-0" title="Excel Raporu Olarak İndir">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Excel
+                    </button>
+                    <button type="button" onclick="window.openAracAuditModal()" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 transition-all flex-shrink-0" title="Listeyi Yenile">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Araç Listesi -->
+            <div class="space-y-2.5 max-h-[50vh] overflow-y-auto pr-1" id="audit-list-scroll">
+                ${items.length === 0 ? `
+                    <div class="text-center py-12 px-4 rounded-2xl bg-white/5 border border-white/10">
+                        <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center mb-3">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <h4 class="text-sm font-bold text-white mb-1">
+                            ${totalIssues === 0 ? 'Tebrikler! Eksik Kart Bulunmuyor' : 'Filtreye Uygun Araç Bulunamadı'}
+                        </h4>
+                        <p class="text-xs text-gray-400 max-w-md mx-auto">
+                            ${totalIssues === 0 ? 'Filodaki tüm araçların mülkiyet, şirket ve taşeron cari bağlantıları eksiksiz ve günceldir.' : 'Arama veya filtre kriterlerinizi değiştirerek diğer araçları görebilirsiniz.'}
+                        </p>
+                    </div>
+                ` : items.map(item => {
+                    const a = item.arac;
+                    return `
+                        <div class="p-4 rounded-2xl ${item.isFactoryAssigned ? 'bg-rose-950/20 border-rose-500/30' : 'bg-white/5 border-white/10'} border hover:border-amber-500/40 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="space-y-1.5 flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="font-mono text-sm font-black px-2.5 py-1 rounded-lg bg-black/60 text-white border border-white/20 tracking-wider">
+                                        ${a.plaka}
+                                    </span>
+                                    <span class="text-xs font-bold text-gray-300">
+                                        ${a.marka_model || 'Marka Belirtilmemiş'}
+                                    </span>
+                                    ${item.isFactoryAssigned ? `
+                                        <span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1">
+                                            <i data-lucide="factory" class="w-2.5 h-2.5"></i> Fabrikada Aktif: ${item.assignedFactories.join(', ')}
+                                        </span>
+                                    ` : `
+                                        <span class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-white/5 text-gray-400 border border-white/10">
+                                            Fabrika Ataması Yok
+                                        </span>
+                                    `}
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2 text-xs">
+                                    <span class="text-gray-400 font-medium">Mevcut Durum:</span>
+                                    <span class="font-bold ${a.mulkiyet_durumu === 'ÖZMAL' ? 'text-blue-400' : (a.mulkiyet_durumu === 'TAŞERON' ? 'text-amber-400' : 'text-rose-400')}">
+                                        ${a.mulkiyet_durumu || 'Belirtilmemiş'}
+                                    </span>
+                                    ${a.sirket ? `<span class="text-gray-400">· Şirket: <strong class="text-white">${a.sirket}</strong></span>` : ''}
+                                    ${a.firma_adi ? `<span class="text-gray-400">· Cari/Firma: <strong class="text-white">${a.firma_adi}</strong></span>` : ''}
+                                    ${a.sofor_adi ? `<span class="text-gray-500">· Şoför: ${a.sofor_adi}</span>` : ''}
+                                </div>
+                                <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                    ${item.issues.map(iss => `
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${iss.severity === 'danger' ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'} flex items-center gap-1">
+                                            <i data-lucide="alert-circle" class="w-3 h-3"></i> ${iss.label}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <!-- Hızlı Aksiyon Butonları -->
+                            <div class="flex flex-wrap items-center gap-1.5 flex-shrink-0 md:self-center">
+                                <div class="relative inline-block">
+                                    <button type="button" onclick="window.auditQuickSetOzmalModal('${a.id}', '${a.plaka}')" class="px-2.5 py-1.5 rounded-xl bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white border border-blue-500/30 text-[11px] font-bold transition-all flex items-center gap-1" title="Bu aracı Özmal yap ve şirket ata">
+                                        <i data-lucide="building" class="w-3 h-3"></i> Özmal Yap
+                                    </button>
+                                </div>
+                                <button type="button" onclick="window.auditQuickSetTaseronModal('${a.id}', '${a.plaka}')" class="px-2.5 py-1.5 rounded-xl bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-500/30 text-[11px] font-bold transition-all flex items-center gap-1" title="Bu aracı Taşeron yap ve cari bağla">
+                                    <i data-lucide="users" class="w-3 h-3"></i> Taşeron & Cari Bağla
+                                </button>
+                                <button type="button" onclick="window.auditOpenAracCard('${a.id}')" class="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white border border-white/10 text-xs transition-all" title="Araç Kartını Düzenle">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+        if (window.lucide) window.lucide.createIcons();
+    };
+
+    window.setAracAuditFilter = function (f) {
+        auditActiveFilter = f;
+        window.renderAracAuditBody();
+    };
+
+    window.setAracAuditSearch = function (q) {
+        auditSearchQuery = q;
+        window.renderAracAuditBody();
+    };
+
+    // Hızlı Özmal Yap Seçim Penceresi
+    window.auditQuickSetOzmalModal = function (aracId, plaka) {
+        const answer = window.prompt(`[${plaka}] aracını Özmal yapmak için şirket adını yazın:\n\nÖrnekler: IDEOL, DİKKAN veya M.K.`, 'IDEOL');
+        if (!answer || !answer.trim()) return;
+        window.auditSetAracOzmal(aracId, plaka, answer.trim().toUpperCase());
+    };
+
+    // Hızlı Taşeron Yap & Cari Bağla Seçim Penceresi
+    window.auditQuickSetTaseronModal = function (aracId, plaka) {
+        let cariListPrompt = auditCarilerCache.slice(0, 15).map((c, i) => `${i + 1}. ${c.unvan}`).join('\n');
+        if (auditCarilerCache.length > 15) cariListPrompt += `\n... ve ${auditCarilerCache.length - 15} cari daha.`;
+
+        const answer = window.prompt(`[${plaka}] aracını Taşeron yapmak için cari/firma unvanını yazın:\n\nKayıtlı carilerden bazıları:\n${cariListPrompt}`, '');
+        if (!answer || !answer.trim()) return;
+        window.auditSetAracTaseron(aracId, plaka, answer.trim());
+    };
+
+    // DB Güncelleme: Özmal Yap
+    window.auditSetAracOzmal = async function (aracId, plaka, sirket) {
+        try {
+            const { error } = await window.supabaseClient
+                .from('araclar')
+                .update({
+                    mulkiyet_durumu: 'ÖZMAL',
+                    sirket: sirket,
+                    firma_adi: sirket
+                })
+                .eq('id', aracId);
+
+            if (error) throw error;
+            notify(`✅ [${plaka}] başarıyla ${sirket} Özmal olarak güncellendi.`, 'success');
+
+            // Cache güncelle
+            auditAraclarCache = auditAraclarCache.filter(x => x.arac.id !== aracId);
+            window.renderAracAuditBody();
+            window.updateAuditBadgeCounter();
+            if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
+        } catch (e) {
+            console.error('[auditSetAracOzmal]', e);
+            notify('Güncelleme hatası: ' + (e.message || e), 'error');
+        }
+    };
+
+    // DB Güncelleme: Taşeron & Cari Bağla
+    window.auditSetAracTaseron = async function (aracId, plaka, firmaAdi) {
+        try {
+            const { error } = await window.supabaseClient
+                .from('araclar')
+                .update({
+                    mulkiyet_durumu: 'TAŞERON',
+                    firma_adi: firmaAdi,
+                    sirket: firmaAdi
+                })
+                .eq('id', aracId);
+
+            if (error) throw error;
+            notify(`✅ [${plaka}] başarıyla [${firmaAdi}] taşeronuna bağlandı.`, 'success');
+
+            // Cache güncelle
+            auditAraclarCache = auditAraclarCache.filter(x => x.arac.id !== aracId);
+            window.renderAracAuditBody();
+            window.updateAuditBadgeCounter();
+            if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
+        } catch (e) {
+            console.error('[auditSetAracTaseron]', e);
+            notify('Güncelleme hatası: ' + (e.message || e), 'error');
+        }
+    };
+
+    // Araç kartını düzenlemek için aç
+    window.auditOpenAracCard = function (aracId) {
+        if (typeof window.openModal === 'function') {
+            window.openModal('Araç Güncelle', aracId);
+        } else {
+            notify('Araç kartı düzenleme penceresi açılamadı.', 'warning');
+        }
+    };
+
+    // Excel İndirme
+    window.exportAuditToExcel = function () {
+        if (!auditAraclarCache || !auditAraclarCache.length) {
+            notify('Dışa aktarılacak eksik kayıt bulunmuyor.', 'info');
+            return;
+        }
+
+        if (typeof XLSX === 'undefined') {
+            notify('Excel kütüphanesi yüklenemedi.', 'error');
+            return;
+        }
+
+        const data = auditAraclarCache.map(it => {
+            const a = it.arac;
+            return {
+                'Plaka': a.plaka || '',
+                'Marka / Model': a.marka_model || '',
+                'Mevcut Mülkiyet': a.mulkiyet_durumu || 'Belirsiz',
+                'Şirket (Özmal)': a.sirket || '',
+                'Taşeron / Cari Unvanı': a.firma_adi || '',
+                'Şoför': a.sofor_adi || '',
+                'Fabrikada Aktif mi': it.isFactoryAssigned ? 'EVET (KRİTİK)' : 'HAYIR',
+                'Atandığı Fabrikalar': (it.assignedFactories || []).join(', ') || 'Yok',
+                'Eksiklik Açıklamaları': it.issues.map(iss => iss.label).join(' | ')
+            };
+        });
+
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Eksik_Kart_Denetimi');
+        const filename = `Eksik_Kart_Taseron_Denetim_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        XLSX.writeFile(wb, filename);
+        notify('Eksik kart denetim raporu Excel olarak indirildi.', 'success');
     };
 })();
 

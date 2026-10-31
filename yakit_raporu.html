@@ -43,6 +43,28 @@
             <button id="btn-view-list" onclick="window.switchView('list')">Günlük hareketler</button>
             <button id="btn-view-grid" onclick="window.switchView('grid')">Aylık çizelge</button>
         </div><label class="report-search"><i data-lucide="search"></i><input id="search-plaka" type="search" oninput="window.filterSearch()" placeholder="Plaka veya araç sahibi ara" aria-label="Plaka veya araç sahibi ara"></label></div>
+
+        <!-- Sıralama Şablonları Yönetim Çubuğu -->
+        <div class="results-template-bar" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">Sıralama Şablonu:</span>
+                <select id="fuel-template-select" onchange="window.selectFuelTemplate(this.value)" style="background: white; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #1e293b; min-width: 190px;">
+                    <option value="">Varsayılan Sıralama (Doğal)</option>
+                </select>
+                <button type="button" onclick="window.promptSaveNewFuelTemplate()" class="secondary-button" style="min-height: 28px; padding: 3px 10px; font-size: 11px;" title="Mevcut sıralamayı yeni bir şablon olarak kaydet">
+                    <i data-lucide="bookmark-plus" style="width:13px;height:13px;margin-right:4px;"></i> Şablon Kaydet
+                </button>
+                <button type="button" id="btn-delete-template" onclick="window.deleteCurrentFuelTemplate()" class="secondary-button" style="min-height: 28px; padding: 3px 10px; font-size: 11px; color: #dc2626; border-color: #fca5a5; display: none;" title="Seçili şablonu sil">
+                    <i data-lucide="trash-2" style="width:13px;height:13px;margin-right:4px;"></i> Sil
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" onclick="window.openFuelReorderModal()" class="secondary-button" style="min-height: 28px; padding: 3px 12px; font-size: 11px; font-weight: 700; background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">
+                    <i data-lucide="arrow-up-down" style="width:13px;height:13px;margin-right:4px;"></i> Sıralamayı Düzenle
+                </button>
+            </div>
+        </div>
+
         <div class="results-caption">
             <span>Aynı araç sahibine ait plakalar birlikte gösterilir.</span>
             <span id="fuel-order-badge" class="font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded border border-orange-200" style="display:none;"></span>
@@ -61,6 +83,23 @@
         <button class="icon-button" onclick="document.getElementById('fuel-reorder-dialog').close()" aria-label="Kapat">×</button>
     </div>
     <div class="reorder-body" style="padding: 16px 24px; max-height: 68vh; overflow-y: auto;">
+        <!-- Şablon Seçici & Yeni Kayıt -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; padding: 12px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span style="font-size: 11px; font-weight: 800; color: #166534; text-transform: uppercase;">Aktif Şablon:</span>
+                <select id="modal-fuel-template-select" onchange="window.selectFuelTemplate(this.value)" style="background: white; border: 1px solid #86efac; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 700; color: #14532d; min-width: 180px;">
+                    <option value="">Varsayılan Sıralama (Doğal)</option>
+                </select>
+                <button type="button" onclick="window.promptSaveNewFuelTemplate()" class="secondary-button" style="min-height: 28px; padding: 3px 10px; font-size: 11px; background: white; color: #15803d; border-color: #86efac;" title="Mevcut düzeni yeni bir şablon olarak kaydet">
+                    <i data-lucide="bookmark-plus" style="width:13px;height:13px;margin-right:4px;"></i> Yeni Şablon Olarak Kaydet
+                </button>
+                <button type="button" id="btn-modal-delete-template" onclick="window.deleteCurrentFuelTemplate()" class="secondary-button" style="min-height: 28px; padding: 3px 10px; font-size: 11px; color: #dc2626; border-color: #fca5a5; display: none;">
+                    Şablonu Sil
+                </button>
+            </div>
+            <span style="font-size: 11px; color: #166534;">Taşıdığınız sıralama bu şablona uygulanır.</span>
+        </div>
+
         <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; padding: 12px 16px; background: white; border: 1px solid #d5dfe5; border-radius: 8px;">
             <span style="font-size: 11px; font-weight: 700; color: #657582; text-transform: uppercase;">Hızlı Sıralama:</span>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;">

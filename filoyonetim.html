@@ -1023,6 +1023,10 @@
                         <p class="page-subtitle">Hizmet verilen fabrikaları, bölgeleri, servisleri ve araç atamalarını yönetin.</p>
                     </div>
                     <div class="page-actions factory-page-actions">
+                        <button onclick="window.openAracAuditModal()" class="btn-secondary text-amber-400 border-amber-500/30 hover:bg-amber-500/10 flex items-center gap-1.5" title="Eksik kart ve taşeron kontrol paneli">
+                            <i data-lucide="shield-alert" aria-hidden="true"></i><span>Eksik Kart Denetimi</span>
+                            <span id="audit-badge-counter" class="hidden px-2 py-0.5 text-[10px] font-black rounded-full bg-amber-500 text-black leading-none ml-1 animate-pulse">0</span>
+                        </button>
                         <button onclick="window.exportTableToExcel('musteri-table', 'Musteri_Portfoyu')" class="btn-ghost" title="Fabrika listesini Excel olarak indir">
                             <i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Excel</span>
                         </button>
