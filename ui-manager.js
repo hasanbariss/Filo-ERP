@@ -688,6 +688,18 @@ window.openCariDetail = function (cariId) {
     window.prepareDetailDrawer?.(modal, () => window.closeCariDetail());
     document.body.style.overflow = 'hidden';
 
+    // Cari filtre çubuğunu görünür yap
+    const filterContainer = document.getElementById('cari-detail-filter-container');
+    if (filterContainer) filterContainer.classList.remove('hidden');
+
+    // Farklı bir cari açılıyorsa tarih filtrelerini sıfırla
+    if (window._lastCariId !== cariId) {
+        const startInput = document.getElementById('cari-filter-start-date');
+        const endInput = document.getElementById('cari-filter-end-date');
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
+    }
+
     const statementLabels = {
         'cari-detail-borc-label': 'Toplam Borç',
         'cari-detail-odenen-label': 'Ödenen',
@@ -722,6 +734,10 @@ window.openKrediKartiDetay = function (kartId, kartAdi) {
     modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
 
+    // Kredi kartında tarih filtresini gizle
+    const filterContainer = document.getElementById('cari-detail-filter-container');
+    if (filterContainer) filterContainer.classList.add('hidden');
+
     // UI Reset for CC Statement
     document.getElementById('cari-detail-unvan').innerText = kartAdi;
     document.getElementById('cari-detail-tur').innerText = "Kredi Kartı Ekstresi";
@@ -749,12 +765,27 @@ window.openKrediKartiDetay = function (kartId, kartAdi) {
 
 window.printCariEkstre = function () {
     const branding = window.CompanyBranding;
-    const unvan = document.getElementById('cari-detail-unvan').innerText;
-    const tur = document.getElementById('cari-detail-tur').innerText;
-    const borc = document.getElementById('cari-detail-borc').innerText;
-    const odenen = document.getElementById('cari-detail-odenen').innerText;
-    const bakiye = document.getElementById('cari-detail-bakiye').innerText;
-    
+    const unvan = document.getElementById('cari-detail-unvan')?.innerText || 'Cari';
+    const tur = document.getElementById('cari-detail-tur')?.innerText || 'Genel Cari';
+    const borc = document.getElementById('cari-detail-borc')?.innerText || '₺0';
+    const odenen = document.getElementById('cari-detail-odenen')?.innerText || '₺0';
+    const bakiye = document.getElementById('cari-detail-bakiye')?.innerText || '₺0';
+    const borcLabel = document.getElementById('cari-detail-borc-label')?.innerText || 'Toplam Borç';
+    const odenenLabel = document.getElementById('cari-detail-odenen-label')?.innerText || 'Ödenen';
+    const bakiyeLabel = document.getElementById('cari-detail-bakiye-label')?.innerText || 'Güncel Bakiye';
+
+    const startDate = document.getElementById('cari-filter-start-date')?.value || '';
+    const endDate = document.getElementById('cari-filter-end-date')?.value || '';
+
+    let donemStr = 'Tüm İşlem Geçmişi';
+    if (startDate && endDate) {
+        donemStr = `${window.formatDate(startDate)} - ${window.formatDate(endDate)}`;
+    } else if (startDate) {
+        donemStr = `${window.formatDate(startDate)} Sonrası`;
+    } else if (endDate) {
+        donemStr = `${window.formatDate(endDate)} Öncesi`;
+    }
+
     const trs = document.querySelectorAll('#cari-detail-tbody tr');
     let rowsHtml = '';
     
@@ -762,68 +793,106 @@ window.printCariEkstre = function () {
         const tds = tr.querySelectorAll('td');
         if(tds.length < 5) return;
         
-        const tarih = tds[0].innerText;
-        const islemTuru = tds[1].innerText;
-        const borcTutar = tds[2].innerText;
-        const alacakTutar = tds[3].innerText;
-        const bakiyeTutar = tds[4].innerText;
+        const isDevir = tr.classList.contains('is-devir');
+        const tarih = tds[0].innerText.trim();
+        const islemDivs = tds[1].querySelectorAll('div');
+        let islemTuru = '';
+        if (islemDivs.length >= 2) {
+            islemTuru = `<div style="font-weight: 700; color: ${isDevir ? '#c2410c' : '#0f172a'}; font-size: 11px;">${islemDivs[0].innerText.trim()}</div>
+                         <div style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-top: 2px;">${islemDivs[1].innerText.trim()}</div>`;
+        } else {
+            islemTuru = `<div style="font-weight: 700; color: ${isDevir ? '#c2410c' : '#0f172a'}; font-size: 11px;">${tds[1].innerText.trim()}</div>`;
+        }
         
+        const borcTutar = tds[2].innerText.trim();
+        const alacakTutar = tds[3].innerText.trim();
+        const bakiyeTutar = tds[4].innerText.trim();
+        
+        const trStyle = isDevir 
+            ? 'background: #fff7ed; border-top: 2px solid #fdba74; border-bottom: 2px solid #fdba74;' 
+            : '';
+        const dateStyle = isDevir ? 'color: #c2410c; font-weight: bold;' : '';
+        const bakiyeStyle = isDevir ? 'color: #c2410c; font-weight: 900;' : '';
+
         rowsHtml += `
-            <tr>
-                <td>${tarih}</td>
+            <tr style="${trStyle}">
+                <td style="${dateStyle}">${tarih}</td>
                 <td>${islemTuru}</td>
                 <td class="text-right text-red-600 font-bold">${borcTutar}</td>
                 <td class="text-right text-green-600 font-bold">${alacakTutar}</td>
-                <td class="text-right font-black">${bakiyeTutar}</td>
+                <td class="text-right font-black ${bakiyeStyle}">${bakiyeTutar}</td>
             </tr>
         `;
     });
 
     const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+        alert("Yazdırma penceresi açılamadı. Lütfen tarayıcınızın açılır pencere (popup) engelleyicisini kontrol ediniz.");
+        return;
+    }
     
     printWindow.document.write(`
+        <!DOCTYPE html>
         <html>
             <head>
+                <meta charset="utf-8">
                 <title>${branding.getBrowserTitle(`Cari Hesap Ekstresi - ${unvan}`)}</title>
                 ${branding.getFaviconLink()}
                 <style>
                     ${branding.getPrintStyles()}
-                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px; color: #111; line-height: 1.4; background: #fff; }
                     
-                    .summary-box { display: flex; justify-content: space-between; margin-bottom: 30px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; }
+                    .period-banner { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid #ea580c; padding: 12px 18px; margin-bottom: 24px; border-radius: 6px; }
+                    .period-title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .period-value { font-size: 15px; font-weight: 800; color: #0f172a; margin-top: 2px; }
+                    .report-date { text-align: right; font-size: 11px; color: #64748b; }
+                    .report-date strong { color: #0f172a; font-size: 13px; display: block; margin-top: 2px; }
+
+                    .summary-box { display: flex; justify-content: space-between; margin-bottom: 28px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; }
                     .summary-item { text-align: center; flex: 1; }
-                    .summary-item p { margin: 0 0 5px 0; font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; }
-                    .summary-item h3 { margin: 0; font-size: 20px; color: #0f172a; }
+                    .summary-item p { margin: 0 0 6px 0; font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+                    .summary-item h3 { margin: 0; font-size: 20px; color: #0f172a; font-weight: 800; }
                     .summary-item-border { border-right: 1px solid #e2e8f0; }
-                    .summary-item.bakiye h3 { color: #ea580c; font-size: 24px; font-weight: 900; }
+                    .summary-item.bakiye h3 { color: #ea580c; font-size: 22px; font-weight: 900; }
                     
                     table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; }
                     th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
-                    th { background: #f1f5f9; color: #475569; font-weight: bold; text-align: left; text-transform: uppercase; font-size: 11px; }
+                    th { background: #f1f5f9; color: #475569; font-weight: 700; text-align: left; text-transform: uppercase; font-size: 11px; letter-spacing: 0.3px; }
                     .text-right { text-align: right; }
                     .text-center { text-align: center; }
                     .text-red-600 { color: #dc2626; }
                     .text-green-600 { color: #16a34a; }
-                    .font-bold { font-weight: bold; }
+                    .font-bold { font-weight: 700; }
                     .font-black { font-weight: 900; }
                     
-                    .footer { text-align: center; font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 50px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
+                    .footer { text-align: center; font-size: 10px; color: #94a3b8; font-style: italic; margin-top: 40px; border-top: 1px dashed #e2e8f0; padding-top: 15px; }
                 </style>
             </head>
             <body>
-                ${branding.getPrintHeader({ title: unvan, subtitle: tur + ' • Hesap Ekstresi' })}
+                ${branding.getPrintHeader({ title: unvan, subtitle: `${tur} • Hesap Ekstresi • Dönem: ${donemStr}` })}
                 
+                <div class="period-banner">
+                    <div>
+                        <span class="period-title">Ekstre Hesap Dönemi</span>
+                        <div class="period-value">${donemStr}</div>
+                    </div>
+                    <div class="report-date">
+                        Rapor Yazdırma Tarihi
+                        <strong>${new Date().toLocaleDateString('tr-TR')}</strong>
+                    </div>
+                </div>
+
                 <div class="summary-box">
                     <div class="summary-item summary-item-border">
-                        <p>Toplam Borç</p>
+                        <p>${borcLabel}</p>
                         <h3>${borc}</h3>
                     </div>
                     <div class="summary-item summary-item-border">
-                        <p>Ödenen</p>
+                        <p>${odenenLabel}</p>
                         <h3 class="text-green-600">${odenen}</h3>
                     </div>
                     <div class="summary-item bakiye">
-                        <p>Güncel Bakiye</p>
+                        <p>${bakiyeLabel}</p>
                         <h3>${bakiye}</h3>
                     </div>
                 </div>
@@ -831,15 +900,15 @@ window.printCariEkstre = function () {
                 <table>
                     <thead>
                         <tr>
-                            <th>Tarih</th>
-                            <th>İşlem Türü / No</th>
-                            <th class="text-right">Borç (+)</th>
-                            <th class="text-right">Alacak (-)</th>
-                            <th class="text-right">Kalan Bakiye</th>
+                            <th style="width: 14%;">Tarih</th>
+                            <th style="width: 44%;">İşlem Türü / Açıklama</th>
+                            <th class="text-right" style="width: 14%;">Borç (+)</th>
+                            <th class="text-right" style="width: 14%;">Alacak (-)</th>
+                            <th class="text-right" style="width: 14%;">Kalan Bakiye</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${rowsHtml || '<tr><td colspan="5" class="text-center">İşlem geçmişi bulunmuyor.</td></tr>'}
+                        ${rowsHtml || '<tr><td colspan="5" class="text-center" style="padding: 24px; color: #94a3b8; font-style: italic;">Seçilen dönemde işlem geçmişi bulunmuyor.</td></tr>'}
                     </tbody>
                 </table>
                 

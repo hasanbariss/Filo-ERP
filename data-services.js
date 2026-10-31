@@ -8164,66 +8164,14 @@ window.fetchCariDetails = async function (cariId) {
             } catch(translateErr) { console.warn("Poliçe detay çözümleme hatası:", translateErr); }
         }
 
-        let currentBakiye = 0;
-        let totalBorc = 0;
-        let totalAlacak = 0;
+        window._currentCariState = {
+            cariId,
+            cari,
+            allEntries: entries
+        };
 
-        tbody.innerHTML = '';
-        if (entries.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu cari hesaba ait henüz bir hareket bulunmuyor.</td></tr>';
-        }
-        entries.reverse().forEach(e => {
-            totalBorc += (Number(e.borc) || 0);
-            totalAlacak += (Number(e.alacak) || 0);
-            currentBakiye += ((Number(e.borc) || 0) - (Number(e.alacak) || 0));
-
-            const tr = document.createElement('tr');
-            tr.className = "cari-statement-row border-b border-white/5 hover:bg-white/5 transition-colors";
-            tr.innerHTML = `
-                <td class="statement-date px-6 py-4 text-gray-400 font-medium" data-label="Tarih">${window.formatDate(e.tarih)}</td>
-                <td class="statement-detail px-6 py-4" data-label="İşlem">
-                    <div class="text-white font-bold">${e.type}</div>
-                    <div class="text-[10px] text-gray-500 uppercase tracking-widest">${e.desc}</div>
-                </td>
-                <td class="statement-debt px-6 py-4 text-right text-white font-bold" data-label="Borç">${e.borc > 0 ? window.formatCurrency(e.borc) : '-'}</td>
-                <td class="statement-credit px-6 py-4 text-right text-green-500 font-bold" data-label="Alacak">${e.alacak > 0 ? window.formatCurrency(e.alacak) : '-'}</td>
-                <td class="statement-balance px-6 py-4 text-right ${currentBakiye > 0 ? 'text-orange-500' : 'text-green-400'} font-black text-base" data-label="Bakiye">${window.formatCurrency(currentBakiye)}</td>
-                <td class="statement-action px-6 py-4 text-center" data-label="İşlem">
-                    <button onclick="deleteRecord('${e.table}', '${e.id}', 'refreshCariDetails')" class="text-[10px] text-red-500 hover:text-red-400 font-bold border border-red-500/20 px-2 py-1 rounded transition-all">SİL</button>
-                </td>
-            `;
-            tbody.prepend(tr);
-        });
-
-        // Summary Stats
-        const borcEl = document.getElementById('cari-detail-borc');
-        const odenenEl = document.getElementById('cari-detail-odenen');
-        const bakiyeEl = document.getElementById('cari-detail-bakiye');
-
-        if (borcEl) borcEl.textContent = window.formatCurrency(totalBorc);
-        if (odenenEl) odenenEl.textContent = window.formatCurrency(totalAlacak);
-        if (bakiyeEl) bakiyeEl.textContent = window.formatCurrency(currentBakiye);
-
-        // Binding for WhatsApp Dynamic Button
-        const wpBtn = document.getElementById('cari-whatsapp-btn');
-        if (wpBtn) {
-            if (cari.telefon) {
-                wpBtn.classList.remove('hidden');
-                wpBtn.classList.add('flex');
-                
-                const bakiyeMsj = currentBakiye > 0 
-                  ? `${currentBakiye.toLocaleString('tr-TR')} TL BORCUNUZ` 
-                  : (currentBakiye < 0 ? `${Math.abs(currentBakiye).toLocaleString('tr-TR')} TL ALACAĞINIZ` : 'BORCUNUZ VEYA ALACAĞINIZ OLMADIĞI');
-                  
-                let text = `Merhaba Sayın ${cari.unvan}, sistemimizde an itibarıyla ${bakiyeMsj} bulunmaktadır.`;
-                wpBtn.onclick = () => window.open(`https://wa.me/90${cari.telefon.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
-            } else {
-                wpBtn.classList.remove('flex');
-                wpBtn.classList.add('hidden');
-            }
-        }
-
-        if (window.lucide) window.lucide.createIcons();
+        // Tarih filtresine göre ekstre dökümünü ve özetleri oluştur
+        window.filterCariDetailByDate();
 
     } catch (e) {
         console.error('[fetchCariDetails] Hata:', e);
@@ -8233,7 +8181,298 @@ window.fetchCariDetails = async function (cariId) {
         const unvanEl2 = document.getElementById('cari-detail-unvan');
         if (unvanEl2 && unvanEl2.textContent === 'Yükleniyor...') unvanEl2.textContent = 'Hata';
     }
-}
+};
+
+/* === CARİ EKSTRE TARİH FİLTRELEME & EXCEL SERVİSLERİ === */
+window.setCariDatePreset = function (preset) {
+    const startInput = document.getElementById('cari-filter-start-date');
+    const endInput = document.getElementById('cari-filter-end-date');
+    if (!startInput || !endInput) return;
+
+    const pad = n => String(n).padStart(2, '0');
+    const toISODate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    const now = new Date();
+    if (preset === 'this-month') {
+        const first = new Date(now.getFullYear(), now.getMonth(), 1);
+        const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        startInput.value = toISODate(first);
+        endInput.value = toISODate(last);
+    } else if (preset === 'last-month') {
+        const first = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const last = new Date(now.getFullYear(), now.getMonth(), 0);
+        startInput.value = toISODate(first);
+        endInput.value = toISODate(last);
+    } else if (preset === 'this-year') {
+        const first = new Date(now.getFullYear(), 0, 1);
+        const last = new Date(now.getFullYear(), 11, 31);
+        startInput.value = toISODate(first);
+        endInput.value = toISODate(last);
+    } else if (preset === 'all') {
+        startInput.value = '';
+        endInput.value = '';
+    }
+    window.filterCariDetailByDate();
+};
+
+window.resetCariDateFilter = function () {
+    const startInput = document.getElementById('cari-filter-start-date');
+    const endInput = document.getElementById('cari-filter-end-date');
+    if (startInput) startInput.value = '';
+    if (endInput) endInput.value = '';
+    window.filterCariDetailByDate();
+};
+
+window.filterCariDetailByDate = function () {
+    if (!window._currentCariState || !window._currentCariState.allEntries) return;
+
+    const tbody = document.getElementById('cari-detail-tbody');
+    if (!tbody) return;
+
+    const cari = window._currentCariState.cari;
+    const startInput = document.getElementById('cari-filter-start-date');
+    const endInput = document.getElementById('cari-filter-end-date');
+    let startDate = startInput?.value || '';
+    let endDate = endInput?.value || '';
+
+    if (startDate && endDate && startDate > endDate) {
+        if (typeof showToast === 'function') showToast("Başlangıç tarihi bitiş tarihinden sonra olamaz. Tarihler yer değiştirildi.", "warning");
+        const tmp = startDate;
+        startDate = endDate;
+        endDate = tmp;
+        if (startInput) startInput.value = startDate;
+        if (endInput) endInput.value = endDate;
+    }
+
+    const pad = n => String(n).padStart(2, '0');
+    const toISODate = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+    const getEntryDateStr = (val) => {
+        if (!val) return '';
+        if (typeof val === 'string') {
+            const match = val.match(/^(\d{4}-\d{2}-\d{2})/);
+            if (match) return match[1];
+        }
+        const d = new Date(val);
+        if (isNaN(d.getTime())) return '';
+        return toISODate(d);
+    };
+
+    // Tüm hareketleri kronolojik (eskiden yeniye) sırala
+    const sortedEntries = [...window._currentCariState.allEntries].sort((a, b) => {
+        const da = a.tarih ? new Date(a.tarih).getTime() : 0;
+        const db = b.tarih ? new Date(b.tarih).getTime() : 0;
+        return da - db;
+    });
+
+    let devirBorc = 0;
+    let devirAlacak = 0;
+    let hasPriorTransactions = false;
+    const periodEntries = [];
+
+    sortedEntries.forEach(e => {
+        const eDateStr = getEntryDateStr(e.tarih);
+        const b = Number(e.borc) || 0;
+        const a = Number(e.alacak) || 0;
+
+        if (startDate && eDateStr && eDateStr < startDate) {
+            devirBorc += b;
+            devirAlacak += a;
+            hasPriorTransactions = true;
+            return;
+        }
+
+        if (endDate && eDateStr && eDateStr > endDate) {
+            return;
+        }
+
+        periodEntries.push(e);
+    });
+
+    const devirBakiye = devirBorc - devirAlacak;
+
+    // Seçilen aralıktaki bakiye akışını ve toplamları hesapla
+    let runningBakiye = devirBakiye;
+    let periodBorc = 0;
+    let periodAlacak = 0;
+
+    const renderedPeriodEntries = periodEntries.map(e => {
+        const b = Number(e.borc) || 0;
+        const a = Number(e.alacak) || 0;
+        periodBorc += b;
+        periodAlacak += a;
+        runningBakiye += (b - a);
+        return {
+            ...e,
+            calculatedBakiye: runningBakiye
+        };
+    });
+
+    const isFiltered = Boolean(startDate || endDate);
+
+    // Kart Etiketleri ve Değerleri
+    const borcLabelEl = document.getElementById('cari-detail-borc-label');
+    const odenenLabelEl = document.getElementById('cari-detail-odenen-label');
+    const bakiyeLabelEl = document.getElementById('cari-detail-bakiye-label');
+
+    if (borcLabelEl) borcLabelEl.textContent = isFiltered ? 'Dönem Borç' : 'Toplam Borç';
+    if (odenenLabelEl) odenenLabelEl.textContent = isFiltered ? 'Dönem Tahsilat / Ödeme' : 'Ödenen';
+    if (bakiyeLabelEl) bakiyeLabelEl.textContent = isFiltered ? 'Dönem Sonu Bakiye' : 'Güncel Bakiye';
+
+    const borcEl = document.getElementById('cari-detail-borc');
+    const odenenEl = document.getElementById('cari-detail-odenen');
+    const bakiyeEl = document.getElementById('cari-detail-bakiye');
+
+    if (borcEl) borcEl.textContent = window.formatCurrency(isFiltered ? periodBorc : (devirBorc + periodBorc));
+    if (odenenEl) odenenEl.textContent = window.formatCurrency(isFiltered ? periodAlacak : (devirAlacak + periodAlacak));
+    if (bakiyeEl) bakiyeEl.textContent = window.formatCurrency(runningBakiye);
+
+    // Bilgi Rozeti
+    const badgeEl = document.getElementById('cari-filter-info-badge');
+    if (badgeEl) {
+        if (!isFiltered) {
+            badgeEl.textContent = `${renderedPeriodEntries.length} İşlem (Tüm Geçmiş)`;
+            badgeEl.className = "text-[11px] font-medium text-gray-400 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5";
+        } else {
+            let rangeStr = '';
+            if (startDate && endDate) rangeStr = `${window.formatDate(startDate)} - ${window.formatDate(endDate)}`;
+            else if (startDate) rangeStr = `${window.formatDate(startDate)} Sonrası`;
+            else rangeStr = `${window.formatDate(endDate)} Öncesi`;
+            badgeEl.textContent = `${rangeStr} (${renderedPeriodEntries.length} Hareket)`;
+            badgeEl.className = "text-[11px] font-bold text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20";
+        }
+    }
+
+    // WhatsApp butonu dinamik güncelleme
+    const wpBtn = document.getElementById('cari-whatsapp-btn');
+    if (wpBtn && cari) {
+        if (cari.telefon) {
+            wpBtn.classList.remove('hidden');
+            wpBtn.classList.add('flex');
+            
+            const bakiyeMsj = runningBakiye > 0 
+              ? `${runningBakiye.toLocaleString('tr-TR')} TL BORCUNUZ` 
+              : (runningBakiye < 0 ? `${Math.abs(runningBakiye).toLocaleString('tr-TR')} TL ALACAĞINIZ` : 'BORCUNUZ VEYA ALACAĞINIZ OLMADIĞI');
+              
+            const donemText = isFiltered && badgeEl ? ` (${badgeEl.textContent})` : '';
+            const text = `Merhaba Sayın ${cari.unvan}, sistemimizde${donemText} an itibarıyla ${bakiyeMsj} bulunmaktadır.`;
+            wpBtn.onclick = () => window.open(`https://wa.me/90${cari.telefon.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank');
+        } else {
+            wpBtn.classList.remove('flex');
+            wpBtn.classList.add('hidden');
+        }
+    }
+
+    // Tabloyu Doldur (Azalan: En yeni işlem en üstte)
+    tbody.innerHTML = '';
+    if (renderedPeriodEntries.length === 0 && !hasPriorTransactions) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-gray-500 italic">Bu aralıkta herhangi bir hareket bulunamadı.</td></tr>';
+        return;
+    }
+
+    const reversed = [...renderedPeriodEntries].reverse();
+    reversed.forEach(e => {
+        const tr = document.createElement('tr');
+        tr.className = "cari-statement-row border-b border-white/5 hover:bg-white/5 transition-colors";
+        tr.innerHTML = `
+            <td class="statement-date px-6 py-4 text-gray-400 font-medium" data-label="Tarih">${window.formatDate(e.tarih)}</td>
+            <td class="statement-detail px-6 py-4" data-label="İşlem">
+                <div class="text-white font-bold">${e.type}</div>
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest">${e.desc}</div>
+            </td>
+            <td class="statement-debt px-6 py-4 text-right text-white font-bold" data-label="Borç">${e.borc > 0 ? window.formatCurrency(e.borc) : '-'}</td>
+            <td class="statement-credit px-6 py-4 text-right text-green-500 font-bold" data-label="Alacak">${e.alacak > 0 ? window.formatCurrency(e.alacak) : '-'}</td>
+            <td class="statement-balance px-6 py-4 text-right ${e.calculatedBakiye > 0 ? 'text-orange-500' : 'text-green-400'} font-black text-base" data-label="Bakiye">${window.formatCurrency(e.calculatedBakiye)}</td>
+            <td class="statement-action px-6 py-4 text-center" data-label="İşlem">
+                <button onclick="deleteRecord('${e.table}', '${e.id}', 'refreshCariDetails')" class="text-[10px] text-red-500 hover:text-red-400 font-bold border border-red-500/20 px-2 py-1 rounded transition-all">SİL</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Başlangıç tarihi seçilmişse ve öncesinde hareket varsa, en alta Önceki Dönem Devir Bakiyesi ekle
+    if (startDate && hasPriorTransactions) {
+        const devirTr = document.createElement('tr');
+        devirTr.className = "cari-statement-row is-devir bg-orange-500/10 border-b border-orange-500/20 font-semibold text-orange-300";
+        devirTr.innerHTML = `
+            <td class="statement-date px-6 py-4 font-bold text-orange-400" data-label="Tarih">${window.formatDate(startDate)}</td>
+            <td class="statement-detail px-6 py-4" data-label="İşlem">
+                <div class="text-orange-400 font-bold flex items-center gap-1.5">
+                    <i data-lucide="corner-down-right" class="w-4 h-4"></i> ÖNCEKİ DÖNEM DEVİR BAKİYESİ
+                </div>
+                <div class="text-[10px] text-gray-400 uppercase tracking-widest">${window.formatDate(startDate)} Öncesi Kümülatif Bakiye</div>
+            </td>
+            <td class="statement-debt px-6 py-4 text-right text-orange-300 font-bold" data-label="Borç">${devirBakiye > 0 ? window.formatCurrency(devirBakiye) : '-'}</td>
+            <td class="statement-credit px-6 py-4 text-right text-green-400 font-bold" data-label="Alacak">${devirBakiye < 0 ? window.formatCurrency(Math.abs(devirBakiye)) : '-'}</td>
+            <td class="statement-balance px-6 py-4 text-right font-black text-base ${devirBakiye > 0 ? 'text-orange-400' : (devirBakiye < 0 ? 'text-green-400' : 'text-gray-400')}" data-label="Bakiye">${window.formatCurrency(devirBakiye)}</td>
+            <td class="statement-action px-6 py-4 text-center text-[10px] text-orange-400 font-black tracking-widest" data-label="İşlem">DEVİR</td>
+        `;
+        tbody.appendChild(devirTr);
+    }
+
+    if (window.lucide) window.lucide.createIcons();
+};
+
+window.exportCariEkstreExcel = function () {
+    if (typeof XLSX === 'undefined') {
+        alert("Excel dışa aktarım kütüphanesi yüklenemedi.");
+        return;
+    }
+    const unvan = document.getElementById('cari-detail-unvan')?.innerText || 'Cari';
+    const tur = document.getElementById('cari-detail-tur')?.innerText || 'Genel Cari';
+    const startDate = document.getElementById('cari-filter-start-date')?.value || '';
+    const endDate = document.getElementById('cari-filter-end-date')?.value || '';
+    
+    let donemStr = 'Tüm İşlem Geçmişi';
+    if (startDate && endDate) donemStr = `${window.formatDate(startDate)} - ${window.formatDate(endDate)}`;
+    else if (startDate) donemStr = `${window.formatDate(startDate)} Sonrası`;
+    else if (endDate) donemStr = `${window.formatDate(endDate)} Öncesi`;
+
+    const trs = document.querySelectorAll('#cari-detail-tbody tr');
+    const rows = [
+        ['BARIS.FLOW - CARİ HESAP EKSTRESİ'],
+        ['Cari Ünvan:', unvan],
+        ['Cari Türü:', tur],
+        ['Ekstre Dönemi:', donemStr],
+        ['Rapor Tarihi:', new Date().toLocaleDateString('tr-TR')],
+        [],
+        ['Tarih', 'İşlem Türü', 'Açıklama', 'Borç (+)', 'Alacak (-)', 'Kalan Bakiye']
+    ];
+
+    trs.forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length < 5) return;
+        const tarih = tds[0].innerText.trim();
+        const islemContainer = tds[1];
+        const islemType = islemContainer.querySelector('div:first-child')?.innerText.trim() || islemContainer.innerText.trim();
+        const islemDesc = islemContainer.querySelector('div:last-child')?.innerText.trim() || '';
+        const borc = tds[2].innerText.trim();
+        const alacak = tds[3].innerText.trim();
+        const bakiye = tds[4].innerText.trim();
+
+        rows.push([tarih, islemType, islemDesc, borc, alacak, bakiye]);
+    });
+
+    const borcTotal = document.getElementById('cari-detail-borc')?.innerText || '₺0';
+    const odenenTotal = document.getElementById('cari-detail-odenen')?.innerText || '₺0';
+    const bakiyeTotal = document.getElementById('cari-detail-bakiye')?.innerText || '₺0';
+    const borcLabel = document.getElementById('cari-detail-borc-label')?.innerText || 'Toplam Borç';
+    const odenenLabel = document.getElementById('cari-detail-odenen-label')?.innerText || 'Ödenen';
+    const bakiyeLabel = document.getElementById('cari-detail-bakiye-label')?.innerText || 'Bakiye';
+
+    rows.push([]);
+    rows.push(['ÖZET TOPLAMLAR']);
+    rows.push([borcLabel, borcTotal]);
+    rows.push([odenenLabel, odenenTotal]);
+    rows.push([bakiyeLabel, bakiyeTotal]);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cari Ekstre");
+
+    const safeName = unvan.replace(/[^a-zA-Z0-9çğıöşüÇĞİÖŞÜ_-]/g, '_');
+    XLSX.writeFile(wb, `${safeName}_Ekstre_${startDate || 'Baslangic'}_${endDate || 'Bitis'}.xlsx`);
+};
 
 // === PERSONEL MAAŞ & BORDRO (YENİ) ===
 window.fetchMaaslar = async function () {

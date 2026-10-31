@@ -2374,6 +2374,7 @@
         letter-spacing: .025em !important;
     }
     #cari-detail-modal .cari-detail-action.is-whatsapp { color: var(--erp-green) !important; }
+    #cari-detail-modal .cari-detail-action.is-excel { color: var(--erp-teal) !important; }
     #cari-detail-modal .cari-detail-action.is-print { color: var(--erp-blue) !important; }
     #cari-detail-modal .cari-detail-action svg { width: 14px !important; height: 14px !important; }
     #cari-detail-modal .cari-detail-close {
