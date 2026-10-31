@@ -4585,6 +4585,23 @@ window.loadExcelMusteriler = async function () {
         }
     }
 
+    async function getMusterilerList() {
+        try {
+            const { data, error } = await window.supabaseClient.from('musteriler').select('id, ad');
+            if (error) {
+                console.warn('[Müşteriler] select(id, ad) hatası, select(*) deneniyor:', error);
+                const { data: d2 } = await window.supabaseClient.from('musteriler').select('*');
+                return (d2 || []).map(m => ({ id: m.id, ad: m.ad || m.unvan || 'İsimsiz Fabrika' }))
+                    .sort((a, b) => (a.ad || '').localeCompare(b.ad || '', 'tr-TR'));
+            }
+            return (data || []).map(m => ({ id: m.id, ad: m.ad || 'İsimsiz Fabrika' }))
+                .sort((a, b) => (a.ad || '').localeCompare(b.ad || '', 'tr-TR'));
+        } catch (e) {
+            console.error('[Müşteriler] Fetch hatası:', e);
+            return [];
+        }
+    }
+
     window.closeTopluAracModal = function (id) {
         document.getElementById(id)?.remove();
     };
@@ -4599,12 +4616,7 @@ window.loadExcelMusteriler = async function () {
         overlay.id = "toplu-arac-modal-overlay";
         overlay.className = "fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-10 pb-10";
 
-        let musteriler = [];
-        try {
-            const { data } = await window.supabaseClient.from('musteriler').select('id, ad, unvan').order('ad');
-            musteriler = data || [];
-        } catch (_) {}
-
+        const musteriler = await getMusterilerList();
         let currentMusteriId = musteriId || (musteriler[0]?.id || '');
 
         overlay.innerHTML = `
@@ -4628,7 +4640,8 @@ window.loadExcelMusteriler = async function () {
                         <div class="flex-1">
                             <label class="block text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1.5">Hedef Fabrika</label>
                             <select id="toplu-ekle-musteri-select" onchange="window.handleTopluEkleMusteriChange(this.value)" class="w-full bg-[#1e293b] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all">
-                                ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad || m.unvan}</option>`).join('')}
+                                ${!musteriId ? '<option value="">-- Fabrika Seçin --</option>' : ''}
+                                ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad}</option>`).join('')}
                             </select>
                         </div>
                         <div id="toplu-ekle-fabrika-badge" class="flex-shrink-0"></div>
@@ -4703,6 +4716,13 @@ window.loadExcelMusteriler = async function () {
         const badgeDiv = document.getElementById('toplu-ekle-fabrika-badge');
         const selectEl = document.getElementById('toplu-ekle-musteri-select');
         const selectedText = selectEl ? selectEl.options[selectEl.selectedIndex]?.text || '' : '';
+
+        if (!musteriId) {
+            if (listDiv) listDiv.innerHTML = '<div class="text-center p-8 text-gray-400 text-xs font-semibold">Lütfen yukarıdaki menüden işlem yapılacak fabrikayı seçin.</div>';
+            if (badgeDiv) badgeDiv.innerHTML = '';
+            window.updateTopluSeciliSayac();
+            return;
+        }
 
         const isDikkan = selectedText.toUpperCase().includes('DİKKAN') || selectedText.toUpperCase().includes('DIKKAN');
         const isMsh = selectedText.toUpperCase().includes('HASTANE');
@@ -4927,12 +4947,7 @@ window.loadExcelMusteriler = async function () {
         overlay.id = "toplu-arac-sil-modal-overlay";
         overlay.className = "fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-10 pb-10";
 
-        let musteriler = [];
-        try {
-            const { data } = await window.supabaseClient.from('musteriler').select('id, ad, unvan').order('ad');
-            musteriler = data || [];
-        } catch (_) {}
-
+        const musteriler = await getMusterilerList();
         let currentMusteriId = musteriId || (musteriler[0]?.id || '');
 
         overlay.innerHTML = `
@@ -4955,7 +4970,8 @@ window.loadExcelMusteriler = async function () {
                     <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
                         <label class="block text-[10px] font-black text-rose-300 uppercase tracking-widest mb-1.5">Fabrika Seçin</label>
                         <select id="toplu-sil-musteri-select" onchange="window.handleTopluSilMusteriChange(this.value)" class="w-full bg-[#1e293b] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-rose-500 transition-all">
-                            ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad || m.unvan}</option>`).join('')}
+                            ${!musteriId ? '<option value="">-- Fabrika Seçin --</option>' : ''}
+                            ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad}</option>`).join('')}
                         </select>
                     </div>
 
@@ -5007,6 +5023,12 @@ window.loadExcelMusteriler = async function () {
     window.loadTopluSilListesi = async function (musteriId) {
         const listDiv = document.getElementById('toplu-sil-list');
         if (!listDiv) return;
+
+        if (!musteriId) {
+            listDiv.innerHTML = '<div class="text-center p-8 text-gray-400 text-xs font-semibold">Lütfen yukarıdaki menüden işlem yapılacak fabrikayı seçin.</div>';
+            window.updateTopluSilSayac();
+            return;
+        }
 
         try {
             const { data, error } = await window.supabaseClient
