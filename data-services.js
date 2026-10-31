@@ -4437,9 +4437,9 @@ async function fetchMusteriler() {
                     <td><div class="factory-identity"><span class="factory-avatar">${m.logo_url ? `<img src="${m.logo_url}" alt="" onerror="this.parentElement.textContent='${initials}'">` : initials}</span><div><strong>${factoryName}</strong><span>${m.adres || 'Adres belirtilmemiş'}</span></div></div></td>
                     <td><div class="factory-contact"><strong>${contactName}</strong><span>${m.telefon || 'Telefon belirtilmemiş'}</span></div></td>
                     <td><span class="factory-region"><i data-lucide="map-pin"></i>${regionLabel}</span><small>${tariffTypes.length ? `${tariffTypes.length} servis tanımı · ${operationLabel}` : operationLabel}</small></td>
-                    <td><details class="factory-table-vehicles"><summary><i data-lucide="bus-front"></i>${araclar.length} araç</summary><div>${araclar.length ? araclar.map(buildAracChip).join('') : '<p>Henüz araç atanmamış.</p>'}<button class="factory-inline-action" onclick="openMusteriAracTanim('${m.id}','${factoryName}')"><i data-lucide="plus"></i>Araç ekle</button></div></details></td>
+                    <td><details class="factory-table-vehicles"><summary><i data-lucide="bus-front"></i>${araclar.length} araç</summary><div>${araclar.length ? araclar.map(buildAracChip).join('') : '<p>Henüz araç atanmamış.</p>'}<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;"><button class="factory-inline-action" onclick="window.openTopluAracEkle('${m.id}','${factoryName.replace(/'/g, "\\'")}')" title="Toplu Araç Ekle"><i data-lucide="list-plus"></i>Toplu ekle</button><button class="factory-inline-action is-danger" onclick="window.openTopluAracSil('${m.id}','${factoryName.replace(/'/g, "\\'")}')" title="Toplu Araç Çıkar"><i data-lucide="trash-2"></i>Toplu sil</button><button class="factory-inline-action" onclick="openMusteriAracTanim('${m.id}','${factoryName.replace(/'/g, "\\'")}')" title="Tek Araç Ata"><i data-lucide="plus"></i>Tek ekle</button></div></div></details></td>
                     <td><span class="${araclar.length ? 'badge-success' : 'badge-warning'}">${araclar.length ? 'Araç tanımlı' : 'Atama bekliyor'}</span></td>
-                    <td><div class="factory-row-actions"><button onclick="openPuantajForMusteri('${m.id}')" title="Puantajı aç" aria-label="${factoryName} puantajını aç"><i data-lucide="table-2"></i></button><button onclick="openModal('Müşteri Güncelle', '${m.id}')" title="Düzenle" aria-label="${factoryName} kaydını düzenle"><i data-lucide="pencil"></i></button><button class="is-danger" onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" title="Sil" aria-label="${factoryName} kaydını sil"><i data-lucide="trash-2"></i></button></div></td>`;
+                    <td><div class="factory-row-actions"><button onclick="window.openTopluAracEkle('${m.id}','${factoryName.replace(/'/g, "\\'")}')" title="Toplu Araç Ekle" aria-label="${factoryName} toplu araç ekle"><i data-lucide="list-plus"></i></button><button onclick="window.openTopluAracSil('${m.id}','${factoryName.replace(/'/g, "\\'")}')" title="Toplu Araç Çıkar" aria-label="${factoryName} toplu araç çıkar" class="hover:text-red-400"><i data-lucide="list-x"></i></button><button onclick="openPuantajForMusteri('${m.id}')" title="Puantajı aç" aria-label="${factoryName} puantajını aç"><i data-lucide="table-2"></i></button><button onclick="openModal('Müşteri Güncelle', '${m.id}')" title="Düzenle" aria-label="${factoryName} kaydını düzenle"><i data-lucide="pencil"></i></button><button class="is-danger" onclick="deleteRecord('musteriler','${m.id}','fetchMusteriler')" title="Sil" aria-label="${factoryName} kaydını sil"><i data-lucide="trash-2"></i></button></div></td>`;
                 tableBody.appendChild(row);
             }
         });
@@ -4559,308 +4559,577 @@ window.loadExcelMusteriler = async function () {
 };
 
 // ============================================
-// TOPLU ARAÇ EKLEME
+// TOPLU ARAÇ EKLEME & ÇIKARMA SİSTEMİ
 // ============================================
-window.openTopluAracEkle = function (musteriId, musteriAdi) {
-    // If we have an existing openTopluAracModal, clear its state
-    const overlay = document.createElement('div');
-    overlay.id = "toplu-arac-modal-overlay";
-    overlay.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-20 pb-20";
-    
-    // We fetch araclar here directly
-    overlay.innerHTML = `
-        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
-            <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
-                <div>
-                    <h2 class="text-lg font-black text-white uppercase tracking-wider">Toplu Araç Tanımlama</h2>
-                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisine/Fabrikasına Araç Ata</p>
-                </div>
-                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
-            </div>
-            
-            <div class="ios-modal-body p-6">
-                <!-- Üst Kontroller -->
-                <div class="flex gap-4 mb-6">
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Plaka Ara</label>
-                        <input type="text" id="toplu-arac-search" onkeyup="window.filterTopluAraclar()" placeholder="Plaka girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-all">
+
+(function () {
+    function cleanPlate(raw) {
+        if (!raw || typeof raw !== 'string') return '';
+        const s = raw.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' ').trim();
+        const compact = s.replace(/\s+/g, '');
+        const m = compact.match(/^(\d{2})([A-ZÇĞİÖŞÜ]{1,3})(\d{2,4})$/);
+        if (m) {
+            return `${m[1]} ${m[2]} ${m[3].padStart(4, '0')}`;
+        }
+        return s;
+    }
+
+    function notify(msg, type = 'info') {
+        if (window.Toast) {
+            if (type === 'error' && window.Toast.error) window.Toast.error(msg);
+            else if (type === 'success' && window.Toast.success) window.Toast.success(msg);
+            else if (window.Toast.show) window.Toast.show(msg, type);
+            else alert(msg);
+        } else {
+            alert(msg);
+        }
+    }
+
+    window.closeTopluAracModal = function (id) {
+        document.getElementById(id)?.remove();
+    };
+
+    // ----------------------------------------------------
+    // 1. TOPLU ARAÇ EKLEME
+    // ----------------------------------------------------
+    window.openTopluAracEkle = async function (musteriId, musteriAdi) {
+        document.getElementById('toplu-arac-modal-overlay')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = "toplu-arac-modal-overlay";
+        overlay.className = "fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-10 pb-10";
+
+        let musteriler = [];
+        try {
+            const { data } = await window.supabaseClient.from('musteriler').select('id, ad, unvan').order('ad');
+            musteriler = data || [];
+        } catch (_) {}
+
+        let currentMusteriId = musteriId || (musteriler[0]?.id || '');
+
+        overlay.innerHTML = `
+            <div class="ios-modal-sheet bg-[#111827] border border-blue-500/30 rounded-3xl w-full max-w-4xl shadow-2xl relative flex flex-col max-h-[92vh] overflow-hidden animate-scaleIn">
+                <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400">
+                            <i data-lucide="list-plus" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-black text-white uppercase tracking-wider">Toplu Araç Tanımlama</h2>
+                            <p class="text-xs text-gray-400" id="toplu-arac-sub-title">Fabrikaya birden fazla araç atayın</p>
+                        </div>
                     </div>
-                    <div class="flex items-end pb-0.5">
-                        <div class="px-4 py-3 rounded-xl border text-[11px] font-bold leading-tight text-center ${musteriAdi.toUpperCase().includes('DİKKAN') || musteriAdi.toUpperCase().includes('DIKKAN') ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' : 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400'}">
-                            ${musteriAdi.toUpperCase().includes('DİKKAN') || musteriAdi.toUpperCase().includes('DIKKAN')
-                                ? '✨ Dikkan — Tek · Vardiya · Mesai<br>8 Çıkışı · 20:30 Girişi<br><span class="opacity-70">Puantaj açınca otomatik</span>'
-                                : '✓ Standart Fabrika<br>Vardiya + Tek<br><span class="opacity-70">Puantaj açınca otomatik</span>'
-                            }
+                    <button onclick="window.closeTopluAracModal('toplu-arac-modal-overlay')" class="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 w-9 h-9 rounded-xl flex items-center justify-center text-xl leading-none">✕</button>
+                </div>
+                
+                <div class="ios-modal-body p-6 overflow-y-auto flex-1 space-y-4">
+                    <!-- Fabrika Seçimi -->
+                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1.5">Hedef Fabrika</label>
+                            <select id="toplu-ekle-musteri-select" onchange="window.handleTopluEkleMusteriChange(this.value)" class="w-full bg-[#1e293b] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-blue-500 transition-all">
+                                ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad || m.unvan}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div id="toplu-ekle-fabrika-badge" class="flex-shrink-0"></div>
+                    </div>
+
+                    <!-- Hızlı Plaka Yapıştırma / Çoklu Plaka Seçim Kutusu -->
+                    <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-blue-200 flex items-center gap-1.5">
+                                <i data-lucide="clipboard-paste" class="w-4 h-4 text-blue-400"></i>
+                                Hızlı Plaka Yapıştır (Excel veya Liste)
+                            </label>
+                            <button type="button" onclick="window.applyPastedPlates()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition-all flex items-center gap-1.5 shadow-lg shadow-blue-500/20">
+                                <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                                Plakaları İşaretle
+                            </button>
+                        </div>
+                        <textarea id="toplu-ekle-paste-input" rows="2" placeholder="Excel'den kopyalayıp alt alta veya virgülle yapıştırın (örn: 45 J 0827, 45 J 1857, 45 J 994)..." class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 font-mono resize-none"></textarea>
+                        <div id="toplu-ekle-paste-feedback" class="text-[11px] font-bold mt-2 hidden"></div>
+                    </div>
+
+                    <!-- Arama ve Hızlı Filtre Butonları -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            <input type="text" id="toplu-arac-search" oninput="window.filterTopluAraclar()" placeholder="Listede plaka veya model ara..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="window.toggleAllTopluAraclar(true)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white transition-all">Tümünü Seç</button>
+                            <button type="button" onclick="window.toggleAllTopluAraclar(false)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-400 hover:text-white transition-all">Temizle</button>
+                        </div>
+                    </div>
+
+                    <!-- Araç Seçim Listesi -->
+                    <div class="border border-white/10 rounded-2xl overflow-hidden bg-black/20">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                            <span>Sistemdeki Araçlar</span>
+                            <span id="toplu-arac-secili-sayac" class="text-blue-400 font-black">0 araç seçildi</span>
+                        </div>
+                        <div class="max-h-[380px] overflow-y-auto p-4 custom-scrollbar" id="toplu-arac-list">
+                            <div class="flex items-center justify-center p-8 text-xs text-gray-400">
+                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin mr-2"></i> Araçlar yükleniyor...
+                            </div>
                         </div>
                     </div>
                 </div>
 
-
-                <!-- Araç Seçim Listesi -->
-                <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
-                    <div class="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Araç Kayıtları</h3>
-                        <div class="flex gap-3 text-[10px] font-bold">
-                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">Tümünü Seç</button>
-                            <span class="text-gray-600">|</span>
-                            <button onclick="document.querySelectorAll('.toplu-arac-cb').forEach(cb=>cb.checked=false)" class="text-gray-500 hover:text-gray-400">Temizle</button>
-                        </div>
-                    </div>
-                    
-                    <div class="max-h-[400px] overflow-y-auto p-4 custom-scrollbar" id="toplu-arac-list">
-                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">Araçlar yükleniyor...</div>
+                <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/30 flex items-center justify-between gap-3">
+                    <span id="toplu-ekle-summary-text" class="text-xs text-gray-400 font-medium hidden sm:inline"></span>
+                    <div class="flex items-center gap-3 ml-auto">
+                        <button onclick="window.closeTopluAracModal('toplu-arac-modal-overlay')" class="px-5 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all">İptal</button>
+                        <button id="btn-toplu-arac-kaydet" onclick="window.kaydetTopluAraclar()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-lg shadow-blue-500/25 transition-all flex items-center gap-2">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            <span id="btn-toplu-arac-kaydet-text">Seçili Araçları Fabrikaya Ekle</span>
+                        </button>
                     </div>
                 </div>
             </div>
+        `;
+        document.body.appendChild(overlay);
+        if (window.lucide) window.lucide.createIcons();
 
-            <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
-                <button onclick="document.getElementById('toplu-arac-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
-                <button onclick="kaydetTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white font-black text-sm shadow-[0_0_20px_rgba(249,115,22,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-orange-500/50">
-                    <i data-lucide="save" class="w-4 h-4"></i>
-                    Seçili Araçları Kaydet
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    if(window.lucide) window.lucide.createIcons();
+        window.loadTopluEkleListesi(currentMusteriId);
+    };
 
-    // Fetch araclar list
-    window.supabaseClient.from('araclar').select('id, plaka, marka_model, mulkiyet_durumu').order('plaka').then(res => {
+    window.handleTopluEkleMusteriChange = function (newMusteriId) {
+        window.loadTopluEkleListesi(newMusteriId);
+    };
+
+    window.loadTopluEkleListesi = async function (musteriId) {
         const listDiv = document.getElementById('toplu-arac-list');
-        if(!listDiv) return;
-        
-        if(res.error || !res.data || res.data.length === 0) {
-            listDiv.innerHTML = '<div class="text-center p-8 text-red-400 text-sm">Araç bilgileri alınamadı.</div>';
-            return;
+        const badgeDiv = document.getElementById('toplu-ekle-fabrika-badge');
+        const selectEl = document.getElementById('toplu-ekle-musteri-select');
+        const selectedText = selectEl ? selectEl.options[selectEl.selectedIndex]?.text || '' : '';
+
+        const isDikkan = selectedText.toUpperCase().includes('DİKKAN') || selectedText.toUpperCase().includes('DIKKAN');
+        const isMsh = selectedText.toUpperCase().includes('HASTANE');
+        if (badgeDiv) {
+            if (isDikkan) {
+                badgeDiv.innerHTML = '<span class="px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-black">Dikkan Fabrikası (İzmir)</span>';
+            } else if (isMsh) {
+                badgeDiv.innerHTML = '<span class="px-3 py-1.5 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 text-[11px] font-black">Şehir Hastanesi (Manisa)</span>';
+            } else {
+                badgeDiv.innerHTML = '<span class="px-3 py-1.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-300 text-[11px] font-black">Standart Fabrika</span>';
+            }
         }
 
-        const araclar = res.data;
-        listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + araclar.map(a => `
-            <label class="toplu-arac-item flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-white/20 bg-white/5 cursor-pointer transition-colors group">
-                <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-orange-500 focus:ring-orange-500/50 focus:ring-offset-gray-900" value="${a.id}">
-                <div>
-                    <div class="plaka-text font-bold text-white text-sm">${a.plaka}</div>
-                    <div class="text-[10px] text-gray-500 uppercase">${a.marka_model||'-'} <span class="opacity-50">(${a.mulkiyet_durumu})</span></div>
-                </div>
-            </label>
-        `).join('') + '</div>';
-    });
-};
+        try {
+            const [araclarRes, tanimRes] = await Promise.all([
+                window.supabaseClient.from('araclar').select('id, plaka, marka_model, mulkiyet_durumu').order('plaka'),
+                window.supabaseClient.from('musteri_arac_tanimlari').select('arac_id').eq('musteri_id', musteriId)
+            ]);
 
-window.filterTopluAraclar = function() {
-    const term = document.getElementById('toplu-arac-search')?.value.toUpperCase() || '';
-    document.querySelectorAll('.toplu-arac-item').forEach(lbl => {
-        const plaka = lbl.querySelector('.plaka-text')?.innerText.toUpperCase() || '';
-        if (plaka.includes(term)) lbl.style.display = 'flex';
-        else lbl.style.display = 'none';
-    });
-};
+            if (!listDiv) return;
 
-window.kaydetTopluAraclar = async function(musteriId) {
-    const checked = Array.from(document.querySelectorAll('.toplu-arac-cb:checked')).map(cb => cb.value);
-    if(checked.length === 0) {
-        if(window.Toast) window.Toast.error("Lütfen en az bir araç seçin.");
-        else alert("Lütfen en az bir araç seçin.");
-        return;
-    }
+            const araclar = araclarRes.data || [];
+            const existingAssignedSet = new Set((tanimRes.data || []).map(t => t.arac_id));
 
-    // Musteri adi verilmedi ise DB'den musteri adini al (fabrika tespiti icin)
-    // musteriId zaten elimizde, musteriAdi'ni overlay'den aliyoruz
-    const musteriAdiText = document.querySelector('#toplu-arac-modal-overlay p.text-xs')?.textContent || '';
-    const isDikkan = musteriAdiText.toUpperCase().includes('DİKKAN') || musteriAdiText.toUpperCase().includes('DIKKAN');
-    // Dikkan: 'Tek' (puantaj acildiginda 5 satir otomatik goster)
-    // Diger fabrikalar: 'Vardiya' (puantaj acildiginda 2 satir: vardiya + tek)
-    const tur = isDikkan ? 'Tek' : 'Vardiya';
-
-    try {
-        const payload = checked.map(aracId => ({
-            musteri_id: musteriId,
-            arac_id: aracId,
-            tarife_turu: tur,
-            tek_fiyat: 0,
-            vardiya_fiyat: 0
-        }));
-
-        // Upsert format might fail on duplicate, so standard insert with ignore duplicates is better.
-        // We do insert with onConflict not supported easily in pure js client w/o setup, so we handle standard error or check first
-        // Simple approach: try to insert all, if fails, tell user some might be duplicates, but supabase bulk insert fails completely if 1 dup.
-        // Let's get existing first
-        const { data: existing } = await window.supabaseClient.from('musteri_arac_tanimlari').select('arac_id').eq('musteri_id', musteriId);
-        const existingIds = (existing||[]).map(e => e.arac_id);
-        
-        const toInsert = payload.filter(p => !existingIds.includes(p.arac_id));
-        
-        if(toInsert.length > 0) {
-            const { error } = await window.supabaseClient.from('musteri_arac_tanimlari').insert(toInsert);
-            if(error) throw error;
-        }
-
-        if(window.Toast) window.Toast.success(`${toInsert.length} adet araç başarıyla atandı.`);
-        else alert(`${toInsert.length} adet araç başarıyla atandı.`);
-        
-        document.getElementById('toplu-arac-modal-overlay').remove();
-        if(typeof window.fetchMusteriler==='function') window.fetchMusteriler();
-        
-    } catch(e) {
-        console.error("Toplu Kayıt Hatası:", e);
-        if(window.Toast) window.Toast.error("Kayıt hatası: " + e.message);
-        else alert("Kayıt hatası: " + e.message);
-        btn.innerHTML = origHtml;
-        btn.disabled = false;
-        if(window.lucide) window.lucide.createIcons();
-    }
-};
-
-// ============================================
-// TOPLU ARAÇ SİLME
-// ============================================
-window.openTopluAracSil = function (musteriId, musteriAdi) {
-    const overlay = document.createElement('div');
-    overlay.id = "toplu-arac-sil-modal-overlay";
-    overlay.className = "fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-20 pb-20";
-    
-    overlay.innerHTML = `
-        <div class="ios-modal-sheet bg-gray-900 border border-white/10 rounded-2xl w-full max-w-4xl shadow-2xl relative animate-scaleIn">
-            <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/20">
-                <div>
-                    <h2 class="text-lg font-black text-white uppercase tracking-wider text-red-500">Toplu Araç Silme</h2>
-                    <p class="text-xs text-gray-500 mt-1">${musteriAdi} Müşterisinden Araçları Çıkar</p>
-                </div>
-                <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="text-gray-500 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-xl">✕</button>
-            </div>
-            
-            <div class="ios-modal-body p-6">
-                <!-- Üst Kontroller -->
-                <div class="flex gap-4 mb-6">
-                    <div class="flex-1">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Plaka Ara</label>
-                        <input type="text" id="toplu-sil-search" onkeyup="window.filterTopluSilAraclar()" placeholder="Plaka girin..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500 transition-all">
-                    </div>
-                </div>
-
-                <!-- Araç Seçim Listesi -->
-                <div class="border border-white/10 rounded-xl overflow-hidden bg-black/20">
-                    <div class="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
-                        <h3 class="text-xs font-bold text-white uppercase tracking-widest">Atanmış Araçlar</h3>
-                        <div class="flex gap-3 text-[10px] font-bold">
-                            <button onclick="document.querySelectorAll('.toplu-sil-cb').forEach(cb=>cb.checked=true)" class="text-blue-400 hover:text-blue-300">Tümünü Seç</button>
-                            <span class="text-gray-600">|</span>
-                            <button onclick="document.querySelectorAll('.toplu-sil-cb').forEach(cb=>cb.checked=false)" class="text-gray-500 hover:text-gray-400">Temizle</button>
-                        </div>
-                    </div>
-                    
-                    <div class="max-h-[400px] overflow-y-auto p-4 custom-scrollbar" id="toplu-sil-list">
-                        <div class="animate-pulse flex items-center justify-center p-8 text-sm text-gray-500">Araçlar yükleniyor...</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/20 flex justify-end gap-3">
-                <button onclick="document.getElementById('toplu-arac-sil-modal-overlay').remove()" class="px-6 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-white/20">İptal</button>
-                <button onclick="silTopluAraclar('${musteriId}')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-black text-sm shadow-[0_0_20px_rgba(220,38,38,0.3)] transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500/50">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    Seçili Araçları Sil
-                </button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-    if(window.lucide) window.lucide.createIcons();
-
-    // Fetch currently assigned vehicles
-    window.supabaseClient
-        .from('musteri_arac_tanimlari')
-        .select(`
-            id,
-            arac_id,
-            araclar ( id, plaka, marka_model, mulkiyet_durumu )
-        `)
-        .eq('musteri_id', musteriId)
-        .then(res => {
-            const listDiv = document.getElementById('toplu-sil-list');
-            if(!listDiv) return;
-            
-            if(res.error || !res.data || res.data.length === 0) {
-                listDiv.innerHTML = '<div class="text-center p-8 text-gray-500 text-sm">Bu müşteriye atanmış araç bulunamadı.</div>';
+            if (!araclar.length) {
+                listDiv.innerHTML = '<div class="text-center p-8 text-gray-500 text-xs">Sistemde kayıtlı araç bulunamadı.</div>';
                 return;
             }
 
-            // sort by plaka
-            const data = res.data.sort((a,b) => {
-                const pa = a.araclar ? a.araclar.plaka : '';
-                const pb = b.araclar ? b.araclar.plaka : '';
-                return pa.localeCompare(pb);
+            listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">' + araclar.map(a => {
+                const isAssigned = existingAssignedSet.has(a.id);
+                return `
+                <label class="toplu-arac-item flex items-center justify-between p-3 rounded-xl border ${isAssigned ? 'border-emerald-500/30 bg-emerald-500/5' : 'border-white/5 bg-white/5 hover:border-white/20'} cursor-pointer transition-colors group">
+                    <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                        <input type="checkbox" class="toplu-arac-cb w-4 h-4 rounded bg-black/50 border-white/20 text-blue-600 focus:ring-blue-500/50" value="${a.id}" data-plaka="${a.plaka}" onchange="window.updateTopluSeciliSayac()">
+                        <div class="min-w-0">
+                            <div class="plaka-text font-black text-white text-sm tracking-wide">${a.plaka}</div>
+                            <div class="text-[10px] text-gray-400 uppercase truncate">${a.marka_model || 'Model yok'} <span class="opacity-50">(${a.mulkiyet_durumu || 'Diğer'})</span></div>
+                        </div>
+                    </div>
+                    ${isAssigned ? '<span class="text-[9px] font-black px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex-shrink-0">✓ Atanmış</span>' : ''}
+                </label>`;
+            }).join('') + '</div>';
+
+            window.updateTopluSeciliSayac();
+            if (window.lucide) window.lucide.createIcons();
+
+        } catch (err) {
+            console.error('[Toplu Ekle] Araçlar yüklenemedi:', err);
+            if (listDiv) listDiv.innerHTML = `<div class="text-center p-8 text-red-400 text-xs">Araçlar yüklenirken hata oluştu: ${err.message}</div>`;
+        }
+    };
+
+    window.filterTopluAraclar = function () {
+        const term = (document.getElementById('toplu-arac-search')?.value || '').toLocaleUpperCase('tr-TR').trim();
+        document.querySelectorAll('.toplu-arac-item').forEach(lbl => {
+            const plaka = lbl.querySelector('.plaka-text')?.innerText.toLocaleUpperCase('tr-TR') || '';
+            const sub = lbl.innerText.toLocaleUpperCase('tr-TR') || '';
+            if (!term || plaka.includes(term) || sub.includes(term)) {
+                lbl.style.display = 'flex';
+            } else {
+                lbl.style.display = 'none';
+            }
+        });
+    };
+
+    window.toggleAllTopluAraclar = function (select) {
+        document.querySelectorAll('.toplu-arac-item').forEach(lbl => {
+            if (lbl.style.display !== 'none') {
+                const cb = lbl.querySelector('.toplu-arac-cb');
+                if (cb) cb.checked = select;
+            }
+        });
+        window.updateTopluSeciliSayac();
+    };
+
+    window.applyPastedPlates = function () {
+        const input = document.getElementById('toplu-ekle-paste-input');
+        const feedback = document.getElementById('toplu-ekle-paste-feedback');
+        const text = input ? input.value : '';
+        if (!text.trim()) {
+            if (feedback) {
+                feedback.className = 'text-[11px] font-bold text-amber-300 mt-2 block';
+                feedback.textContent = 'Lütfen yapıştırma alanına plaka metni girin.';
+            }
+            return;
+        }
+
+        const tokens = text.split(/[\r\n,;\t]+/).map(t => t.trim()).filter(Boolean);
+        const searchPlates = new Set();
+        tokens.forEach(tok => {
+            const normTok = cleanPlate(tok);
+            if (normTok) searchPlates.add(normTok);
+            searchPlates.add(tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' '));
+            searchPlates.add(tok.toLocaleUpperCase('tr-TR').replace(/\s+/g, ''));
+        });
+
+        let matched = 0;
+        document.querySelectorAll('.toplu-arac-cb').forEach(cb => {
+            const plakaRaw = cb.getAttribute('data-plaka') || '';
+            const plakaClean = cleanPlate(plakaRaw);
+            const plakaCompact = plakaRaw.toLocaleUpperCase('tr-TR').replace(/\s+/g, '');
+            const plakaNorm = plakaRaw.toLocaleUpperCase('tr-TR').replace(/\s+/g, ' ');
+
+            if (searchPlates.has(plakaClean) || searchPlates.has(plakaCompact) || searchPlates.has(plakaNorm)) {
+                cb.checked = true;
+                matched++;
+            }
+        });
+
+        window.updateTopluSeciliSayac();
+
+        if (feedback) {
+            feedback.classList.remove('hidden');
+            if (matched > 0) {
+                feedback.className = 'text-[11px] font-bold text-emerald-300 mt-2 block';
+                feedback.innerHTML = `✓ <strong>${matched}</strong> araç listeden otomatik işaretlendi.`;
+            } else {
+                feedback.className = 'text-[11px] font-bold text-rose-300 mt-2 block';
+                feedback.innerHTML = '✕ Yapıştırılan plakalar sistemdeki araçlarla eşleştirilemedi.';
+            }
+        }
+    };
+
+    window.updateTopluSeciliSayac = function () {
+        const checkedCount = document.querySelectorAll('.toplu-arac-cb:checked').length;
+        const el = document.getElementById('toplu-arac-secili-sayac');
+        const btnText = document.getElementById('btn-toplu-arac-kaydet-text');
+        const summary = document.getElementById('toplu-ekle-summary-text');
+
+        if (el) el.textContent = `${checkedCount} araç seçildi`;
+        if (btnText) btnText.textContent = checkedCount ? `Seçili ${checkedCount} Aracı Ata` : 'Seçili Araçları Fabrikaya Ekle';
+        if (summary) summary.textContent = checkedCount ? `${checkedCount} plaka kaydedilmek üzere hazır.` : '';
+    };
+
+    window.kaydetTopluAraclar = async function () {
+        const selectEl = document.getElementById('toplu-ekle-musteri-select');
+        const musteriId = selectEl?.value;
+        if (!musteriId) {
+            notify('Lütfen hedef fabrikayı seçin.', 'error');
+            return;
+        }
+
+        const checkedBoxes = Array.from(document.querySelectorAll('.toplu-arac-cb:checked'));
+        const checked = checkedBoxes.map(cb => cb.value);
+
+        if (checked.length === 0) {
+            notify('Lütfen atanacak en az bir araç seçin.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btn-toplu-arac-kaydet');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Atanıyor...';
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        const selectedText = selectEl.options[selectEl.selectedIndex]?.text || '';
+        const isDikkan = selectedText.toUpperCase().includes('DİKKAN') || selectedText.toUpperCase().includes('DIKKAN');
+        const bolge = isDikkan ? 'İzmir' : 'Manisa';
+        const tur = isDikkan ? 'Tek' : 'Vardiya';
+
+        try {
+            const { data: existing } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select('arac_id')
+                .eq('musteri_id', musteriId);
+
+            const existingIds = new Set((existing || []).map(e => e.arac_id));
+            const toInsert = checked
+                .filter(aracId => !existingIds.has(aracId))
+                .map(aracId => ({
+                    musteri_id: musteriId,
+                    arac_id: aracId,
+                    tarife_turu: tur,
+                    tek_fiyat: 0,
+                    vardiya_fiyat: 0,
+                    bolge: bolge
+                }));
+
+            if (toInsert.length > 0) {
+                const { error: insErr } = await window.supabaseClient.from('musteri_arac_tanimlari').insert(toInsert);
+                if (insErr) {
+                    const fallbackPayload = toInsert.map(({ bolge: _, ...rest }) => rest);
+                    const { error: insErr2 } = await window.supabaseClient.from('musteri_arac_tanimlari').insert(fallbackPayload);
+                    if (insErr2) throw insErr2;
+                }
+            }
+
+            const skipped = checked.length - toInsert.length;
+            let successMsg = `${toInsert.length} adet araç ${selectedText} fabrikasına başarıyla atandı.`;
+            if (skipped > 0) {
+                successMsg += ` (${skipped} araç zaten atanmış olduğu için atlandı)`;
+            }
+
+            notify(successMsg, 'success');
+            window.closeTopluAracModal('toplu-arac-modal-overlay');
+
+            if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
+
+        } catch (e) {
+            console.error('[Toplu Araç Kaydet]', e);
+            notify('Kayıt hatası: ' + (e.message || e), 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+    };
+
+
+    // ----------------------------------------------------
+    // 2. TOPLU ARAÇ ÇIKARMA / SİLME
+    // ----------------------------------------------------
+    window.openTopluAracSil = async function (musteriId, musteriAdi) {
+        document.getElementById('toplu-arac-sil-modal-overlay')?.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = "toplu-arac-sil-modal-overlay";
+        overlay.className = "fixed inset-0 bg-black/75 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 overflow-y-auto pt-10 pb-10";
+
+        let musteriler = [];
+        try {
+            const { data } = await window.supabaseClient.from('musteriler').select('id, ad, unvan').order('ad');
+            musteriler = data || [];
+        } catch (_) {}
+
+        let currentMusteriId = musteriId || (musteriler[0]?.id || '');
+
+        overlay.innerHTML = `
+            <div class="ios-modal-sheet bg-[#111827] border border-rose-500/30 rounded-3xl w-full max-w-4xl shadow-2xl relative flex flex-col max-h-[92vh] overflow-hidden animate-scaleIn">
+                <div class="ios-modal-header p-5 border-b border-white/10 flex justify-between items-center bg-black/30">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-400">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-black text-white uppercase tracking-wider text-rose-400">Toplu Araç Çıkarma</h2>
+                            <p class="text-xs text-gray-400">Fabrikadan seçilen araç atamalarını topluca kaldırın</p>
+                        </div>
+                    </div>
+                    <button onclick="window.closeTopluAracModal('toplu-arac-sil-modal-overlay')" class="text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 w-9 h-9 rounded-xl flex items-center justify-center text-xl leading-none">✕</button>
+                </div>
+                
+                <div class="ios-modal-body p-6 overflow-y-auto flex-1 space-y-4">
+                    <!-- Fabrika Seçimi -->
+                    <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                        <label class="block text-[10px] font-black text-rose-300 uppercase tracking-widest mb-1.5">Fabrika Seçin</label>
+                        <select id="toplu-sil-musteri-select" onchange="window.handleTopluSilMusteriChange(this.value)" class="w-full bg-[#1e293b] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-bold text-white focus:outline-none focus:border-rose-500 transition-all">
+                            ${musteriler.map(m => `<option value="${m.id}" ${m.id === currentMusteriId ? 'selected' : ''}>${m.ad || m.unvan}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <!-- Arama ve Kontroller -->
+                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                            <input type="text" id="toplu-sil-search" oninput="window.filterTopluSilAraclar()" placeholder="Plaka ara..." class="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-rose-500 transition-all">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" onclick="window.toggleAllTopluSilAraclar(true)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-300 hover:text-white transition-all">Tümünü Seç</button>
+                            <button type="button" onclick="window.toggleAllTopluSilAraclar(false)" class="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-bold text-gray-400 hover:text-white transition-all">Temizle</button>
+                        </div>
+                    </div>
+
+                    <!-- Atanmış Araç Listesi -->
+                    <div class="border border-white/10 rounded-2xl overflow-hidden bg-black/20">
+                        <div class="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                            <span>Bu Fabrikaya Atanmış Araçlar</span>
+                            <span id="toplu-sil-secili-sayac" class="text-rose-400 font-black">0 araç seçildi</span>
+                        </div>
+                        <div class="max-h-[380px] overflow-y-auto p-4 custom-scrollbar" id="toplu-sil-list">
+                            <div class="flex items-center justify-center p-8 text-xs text-gray-400">
+                                <i data-lucide="loader-2" class="w-5 h-5 animate-spin mr-2"></i> Atanmış araçlar yükleniyor...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ios-modal-footer p-5 border-t border-white/10 bg-black/30 flex items-center justify-end gap-3">
+                    <button onclick="window.closeTopluAracModal('toplu-arac-sil-modal-overlay')" class="px-5 py-2.5 rounded-xl border border-white/10 text-gray-400 hover:text-white font-bold text-xs transition-all">İptal</button>
+                    <button id="btn-toplu-arac-sil" onclick="window.silTopluAraclar()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-black text-xs shadow-lg shadow-rose-500/25 transition-all flex items-center gap-2">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span id="btn-toplu-arac-sil-text">Seçili Araçları Çıkar</span>
+                    </button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        if (window.lucide) window.lucide.createIcons();
+
+        window.loadTopluSilListesi(currentMusteriId);
+    };
+
+    window.handleTopluSilMusteriChange = function (newMusteriId) {
+        window.loadTopluSilListesi(newMusteriId);
+    };
+
+    window.loadTopluSilListesi = async function (musteriId) {
+        const listDiv = document.getElementById('toplu-sil-list');
+        if (!listDiv) return;
+
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .select(`id, arac_id, araclar ( id, plaka, marka_model, mulkiyet_durumu )`)
+                .eq('musteri_id', musteriId);
+
+            if (error) throw error;
+
+            if (!data || data.length === 0) {
+                listDiv.innerHTML = '<div class="text-center p-8 text-gray-400 text-xs font-semibold">Bu fabrikaya atanmış kayıtlı araç bulunmuyor.</div>';
+                window.updateTopluSilSayac();
+                return;
+            }
+
+            const sorted = data.sort((a, b) => {
+                const pa = a.araclar?.plaka || '';
+                const pb = b.araclar?.plaka || '';
+                return pa.localeCompare(pb, 'tr-TR');
             });
 
-            listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-3">' + data.map(item => {
+            listDiv.innerHTML = '<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">' + sorted.map(item => {
                 const a = item.araclar || {};
                 return `
-                <label class="toplu-sil-item flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-red-500/30 bg-white/5 hover:bg-red-500/5 cursor-pointer transition-colors group">
-                    <input type="checkbox" class="toplu-sil-cb w-4 h-4 rounded bg-black/50 border-white/20 text-red-500 focus:ring-red-500/50 focus:ring-offset-gray-900" value="${item.arac_id}">
-                    <div>
-                        <div class="plaka-text font-bold text-white text-sm">${a.plaka || 'Bilinmeyen'}</div>
-                        <div class="text-[10px] text-gray-500 uppercase">${a.marka_model||'-'} <span class="opacity-50">(${a.mulkiyet_durumu || '-'})</span></div>
+                <label class="toplu-sil-item flex items-center gap-3 p-3 rounded-xl border border-white/5 hover:border-rose-500/30 bg-white/5 hover:bg-rose-500/5 cursor-pointer transition-colors group">
+                    <input type="checkbox" class="toplu-sil-cb w-4 h-4 rounded bg-black/50 border-white/20 text-rose-600 focus:ring-rose-500/50" value="${item.arac_id}" data-tanim-id="${item.id}" data-plaka="${a.plaka || ''}" onchange="window.updateTopluSilSayac()">
+                    <div class="min-w-0">
+                        <div class="plaka-text font-black text-white text-sm tracking-wide">${a.plaka || 'Bilinmeyen'}</div>
+                        <div class="text-[10px] text-gray-400 uppercase truncate">${a.marka_model || 'Model yok'} <span class="opacity-50">(${a.mulkiyet_durumu || 'Diğer'})</span></div>
                     </div>
-                </label>
-                `;
+                </label>`;
             }).join('') + '</div>';
-        });
-};
 
-window.filterTopluSilAraclar = function() {
-    const term = document.getElementById('toplu-sil-search')?.value.toUpperCase() || '';
-    document.querySelectorAll('.toplu-sil-item').forEach(lbl => {
-        const plaka = lbl.querySelector('.plaka-text')?.innerText.toUpperCase() || '';
-        if (plaka.includes(term)) lbl.style.display = 'flex';
-        else lbl.style.display = 'none';
-    });
-};
+            window.updateTopluSilSayac();
+            if (window.lucide) window.lucide.createIcons();
 
-window.silTopluAraclar = async function(musteriId) {
-    const checked = Array.from(document.querySelectorAll('.toplu-sil-cb:checked')).map(cb => cb.value);
-    if (checked.length === 0) {
-        if(window.Toast) window.Toast.error("Lütfen silinecek en az bir araç seçin.");
-        else alert("Lütfen silinecek en az bir araç seçin.");
-        return;
-    }
-
-    if (!confirm(`Seçili ${checked.length} aracı bu müşteriden çıkarmak istediğinize emin misiniz?`)) return;
-
-    const btn = document.querySelector('button[onclick*="silTopluAraclar"]');
-    let origHtml = '';
-    if (btn) {
-        origHtml = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Siliniyor...';
-        btn.disabled = true;
-    }
-
-    try {
-        const { error } = await window.supabaseClient
-            .from('musteri_arac_tanimlari')
-            .delete()
-            .eq('musteri_id', musteriId)
-            .in('arac_id', checked);
-
-        if (error) throw error;
-
-        if (window.Toast) window.Toast.success(`${checked.length} adet araç başarıyla çıkarıldı.`);
-        else alert(`${checked.length} adet araç başarıyla çıkarıldı.`);
-        
-        document.getElementById('toplu-arac-sil-modal-overlay').remove();
-        if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
-        
-    } catch (e) {
-        console.error("Toplu Silme Hatası:", e);
-        if (window.Toast) window.Toast.error("Silme hatası: " + e.message);
-        else alert("Silme hatası: " + e.message);
-        if (btn) {
-            btn.innerHTML = origHtml;
-            btn.disabled = false;
+        } catch (err) {
+            console.error('[Toplu Sil] Araçlar yüklenemedi:', err);
+            listDiv.innerHTML = `<div class="text-center p-8 text-rose-400 text-xs">Atanmış araçlar alınamadı: ${err.message}</div>`;
         }
-        if (window.lucide) window.lucide.createIcons();
-    }
-};
+    };
+
+    window.filterTopluSilAraclar = function () {
+        const term = (document.getElementById('toplu-sil-search')?.value || '').toLocaleUpperCase('tr-TR').trim();
+        document.querySelectorAll('.toplu-sil-item').forEach(lbl => {
+            const plaka = lbl.querySelector('.plaka-text')?.innerText.toLocaleUpperCase('tr-TR') || '';
+            const sub = lbl.innerText.toLocaleUpperCase('tr-TR') || '';
+            if (!term || plaka.includes(term) || sub.includes(term)) {
+                lbl.style.display = 'flex';
+            } else {
+                lbl.style.display = 'none';
+            }
+        });
+    };
+
+    window.toggleAllTopluSilAraclar = function (select) {
+        document.querySelectorAll('.toplu-sil-item').forEach(lbl => {
+            if (lbl.style.display !== 'none') {
+                const cb = lbl.querySelector('.toplu-sil-cb');
+                if (cb) cb.checked = select;
+            }
+        });
+        window.updateTopluSilSayac();
+    };
+
+    window.updateTopluSilSayac = function () {
+        const checkedCount = document.querySelectorAll('.toplu-sil-cb:checked').length;
+        const el = document.getElementById('toplu-sil-secili-sayac');
+        const btnText = document.getElementById('btn-toplu-arac-sil-text');
+        if (el) el.textContent = `${checkedCount} araç seçildi`;
+        if (btnText) btnText.textContent = checkedCount ? `Seçili ${checkedCount} Aracı Çıkar` : 'Seçili Araçları Çıkar';
+    };
+
+    window.silTopluAraclar = async function () {
+        const selectEl = document.getElementById('toplu-sil-musteri-select');
+        const musteriId = selectEl?.value;
+        const factoryTitle = selectEl?.options[selectEl.selectedIndex]?.text || 'bu fabrika';
+
+        const checkedBoxes = Array.from(document.querySelectorAll('.toplu-sil-cb:checked'));
+        const checked = checkedBoxes.map(cb => cb.value);
+
+        if (checked.length === 0) {
+            notify('Lütfen çıkarılacak en az bir araç seçin.', 'error');
+            return;
+        }
+
+        if (!confirm(`Seçili ${checked.length} aracı ${factoryTitle} fabrikasından çıkarmak istediğinize emin misiniz?`)) {
+            return;
+        }
+
+        const btn = document.getElementById('btn-toplu-arac-sil');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Çıkarılıyor...';
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        try {
+            const { error } = await window.supabaseClient
+                .from('musteri_arac_tanimlari')
+                .delete()
+                .eq('musteri_id', musteriId)
+                .in('arac_id', checked);
+
+            if (error) throw error;
+
+            notify(`${checked.length} adet araç ${factoryTitle} fabrikasından başarıyla çıkarıldı.`, 'success');
+            window.closeTopluAracModal('toplu-arac-sil-modal-overlay');
+
+            if (typeof window.fetchMusteriler === 'function') window.fetchMusteriler();
+
+        } catch (e) {
+            console.error('[Toplu Silme Hatası]', e);
+            notify('Silme hatası: ' + (e.message || e), 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+                if (window.lucide) window.lucide.createIcons();
+            }
+        }
+    };
+})();
 
 async function fetchMusteriServis() {
     const tbody = document.getElementById('musteri-servis-tbody');

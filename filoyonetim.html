@@ -1026,8 +1026,14 @@
                         <button onclick="window.exportTableToExcel('musteri-table', 'Musteri_Portfoyu')" class="btn-ghost" title="Fabrika listesini Excel olarak indir">
                             <i data-lucide="file-spreadsheet" aria-hidden="true"></i><span>Excel</span>
                         </button>
-                        <button onclick="openModal('Müşteriye Araç Tanımla')" class="btn-secondary">
-                            <i data-lucide="link" aria-hidden="true"></i><span>Araç Ata</span>
+                        <button onclick="window.openTopluAracEkle()" class="btn-secondary" title="Fabrikalara toplu araç ata">
+                            <i data-lucide="list-plus" aria-hidden="true"></i><span>Toplu Araç Ekle</span>
+                        </button>
+                        <button onclick="window.openTopluAracSil()" class="btn-secondary text-rose-400 border-rose-500/30 hover:bg-rose-500/10" title="Fabrikadan toplu araç çıkar">
+                            <i data-lucide="trash-2" aria-hidden="true"></i><span>Toplu Araç Çıkar</span>
+                        </button>
+                        <button onclick="openModal('Müşteriye Araç Tanımla')" class="btn-ghost" title="Tek tek araç ata">
+                            <i data-lucide="link" aria-hidden="true"></i><span>Tek Araç Ata</span>
                         </button>
                         <button onclick="openModal('Yeni Müşteri Ekle')" class="btn-primary">
                             <i data-lucide="plus" aria-hidden="true"></i><span>Fabrika Ekle</span>
